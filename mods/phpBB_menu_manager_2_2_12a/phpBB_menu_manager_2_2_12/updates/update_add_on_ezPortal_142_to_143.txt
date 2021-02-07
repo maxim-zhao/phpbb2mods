@@ -1,0 +1,109 @@
+##############################################################
+## MOD Title:		Update: ADD-ON Portal Menu Manager on ezPortal
+## MOD Author: OXPUS < webmaster@oxpus.de > (Karsten Ude) http://www.oxpus.de
+## MOD Description:	Update the Add-On for the Portal Menu Manager from 1.4.2 to 1.4.3
+## MOD Version:		1.0.0
+##
+## Installation Level:	Easy
+## Installation Time:	1-2 Minutes
+## Files To Edit:	1
+##			portal.php
+##
+## Included Files:	N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2004-04-30 - Version 1.0.0
+##      - First release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy add_on_ezportal/board_menu_manager.php to board_menu_manager.php
+copy add_on_ezportal/templates/subSilver/board_menu_links_set.tpl to templates/subSilver/board_menu_links_set.tpl
+copy add_on_ezportal/templates/subSilver/board_menu_links_sort.tpl to templates/subSilver/board_menu_links_sort.tpl
+copy language/lang_english/lang_board_menu.php to language/lang_english/lang_board_menu.php
+copy language/lang_german/lang_board_menu.php to language/lang_german/lang_board_menu.php
+
+#
+#-----[ OPEN ]-----
+#
+portal.php
+
+#
+#-----[ FIND ]-----
+#
+$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . "
+	$bl_level_access
+	$bl_fix
+	ORDER BY bl_psort";
+if ( !$result = $db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+}
+
+$ubl = '';
+$ubs = '';
+$i = 1;
+
+while ( $row = $db->sql_fetchrow($result) )
+{
+	$ubl .= ( $ubl == '' ) ? ($row['bl_id']) : ',' . ($row['bl_id']);
+	$ubs .= ( $ubs == '' ) ? ($i*100) : ',' . ($i*100);
+	$i++;
+}
+
+#
+#-----[ REPLACE WITH ]-----
+#
+$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . "
+	$bl_level_access
+	$bl_fix
+	ORDER BY bl_psort DESC";
+if ( !$result = $db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+}
+
+$ubl = '';
+$ubs = '';
+$i = 1;
+
+$links_check = array();
+if ( $userdata['profil_links'] != '' )
+{
+	$link_check = explode(',', $userdata['profile_links']);
+}
+
+while ( $row = $db->sql_fetchrow($result) )
+{
+	$fix_link_id = $row['bl_id'];
+	if ( !in_array($fix_link_id, $links_check) )
+	{
+		$ubl .= ( $ubl == '' ) ? ($row['bl_id']) : ',' . ($row['bl_id']);
+		$ubs .= ( $ubs == '' ) ? (0 - $i) : ',' . (0 - $i);
+		$i++;
+	}
+}
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

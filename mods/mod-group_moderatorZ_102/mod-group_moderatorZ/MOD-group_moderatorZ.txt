@@ -1,0 +1,511 @@
+##############################################################
+## MOD Title:			Group ModeratorZ
+## MOD Author:			Ptirhiik < n/a > (Pierre) http://ptifo.clanmckeen.com
+## MOD Description:		This mod allows to have more than one group moderator.
+##
+## MOD Version:			1.0.2
+##
+## Installation Level:	Easy
+## Installation Time:	10 Minutes
+## Files To Edit: 
+##						groupcp.php
+##						templates/subSilver/groupcp_info_body.tpl
+##
+## Included Files:
+##						root/language/lang_english/lang_extend_group_moderatorz.php
+## License:				http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##	The mod introduces a new notion : the group owner which is the main moderator.
+##
+##	The group owner is set on the admin panel, as usual. Then the group owner can grant or ungrant
+##	the group moderator status to anyone within the group control panel.
+##
+##	A group moderator will receive the email of pending users, will be able to accept their admittance,
+##	but won't be able to grant them (or ungrant) the group moderator status.
+##
+##
+##	Side note regarding upgrades :
+##	----------------------------
+##	Just undo the modifications of the previous version in groupcp.php (all is commented), and apply the new ones.
+##	Regarding the tpl part, restart from an unmoddified groupcp_info_body.tpl, and apply them : they have changed
+##	since the previous versions, and are now less intrusive.
+##
+##############################################################
+## MOD History:
+##
+##   2006-03-14 - Version 1.0.2
+## 		- review the mod for phpBB 2.0.19,
+## 		- fix a security issue
+##
+##   2003-10-28 - Version 1.0.1
+## 		- fix a bug when group was empty
+## 		- add the lang settings tool
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_user_group ADD group_moderator TINYINT(1) NOT NULL;
+#
+#-----[ COPY ]------------------------------------------------
+#
+COPY root/*.* TO *.*
+#
+#-----[ OPEN ]------------------------------------------------
+#
+groupcp.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+// End session management
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- add
+// get lang
+$files = array();
+if ( $board_config['default_lang'] != 'english' )
+{
+	$files[] = $phpbb_root_path . 'language/lang_english/lang_extend_group_moderatorz.' . $phpEx;
+}
+$files[] = $phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_extend_group_moderatorz.' . $phpEx;
+foreach ( $files as $file )
+{
+	if ( @file_exists($file) )
+	{
+		include($file);
+	}
+}
+//-- fin mod : group moderatorZ ------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$sql = "SELECT group_moderator 
+		FROM " . GROUPS_TABLE . "  
+		WHERE group_id = $group_id";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not obtain user and group information', '', __LINE__, __FILE__, $sql);
+	}
+
+	$row = $db->sql_fetchrow($result);
+
+	if ( $row['group_moderator'] != $userdata['user_id'] && $userdata['user_level'] != ADMIN )
+	{
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- delete
+/*
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+*/
+//-- add
+	$sql = 'SELECT ug.user_id
+				FROM ' . USER_GROUP_TABLE . ' ug, ' . GROUPS_TABLE . ' g
+				WHERE ug.group_id = ' . intval($group_id) . '
+					AND g.group_id = ug.group_id
+					AND (ug.user_id = g.group_moderator OR ug.group_moderator = 1)';
+	if ( !$result = $db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, 'Could not obtain user and group information', '', __LINE__, __FILE__, $sql);
+	}
+	$group_moderators = array();
+	while ($row = $db->sql_fetchrow($result) )
+	{
+		$group_moderators[] = intval($row['user_id']);
+	}
+	$db->sql_freeresult($result);
+	if ( (empty($group_moderators) || !in_array($userdata['user_id'], $group_moderators)) && ($userdata['user_level'] != ADMIN) )
+	{
+//-- fin mod : group moderatorZ ------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$sql = "SELECT u.user_email, u.username, u.user_lang, g.group_name 
+		FROM ".USERS_TABLE . " u, " . GROUPS_TABLE . " g 
+		WHERE u.user_id = g.group_moderator 
+			AND g.group_id = $group_id";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, "Error getting group moderator data", "", __LINE__, __FILE__, $sql);
+	}
+
+	$moderator = $db->sql_fetchrow($result);
+
+	include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- delete
+/*
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+*/
+//-- add
+	// include the mailer api
+	include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+
+	$sql = 'SELECT g.group_name, u.user_email, u.username, u.user_lang
+				FROM ' . USER_GROUP_TABLE . ' ug, ' . GROUPS_TABLE . ' g, ' . USERS_TABLE . ' u
+				WHERE ug.group_id = ' . intval($group_id) . '
+					AND g.group_id = ug.group_id
+					AND (ug.user_id = g.group_moderator OR ug.group_moderator = 1)
+					AND u.user_id = ug.user_id';
+	if ( !$result = $db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, "Error getting group moderator data", "", __LINE__, __FILE__, $sql);
+	}
+	$moderators = array();
+	while ( $row = $db->sql_fetchrow($result) )
+	{
+		$group_moderators[] = $row;
+	}
+	$db->sql_freeresult($result);
+
+	// loop with group moderators
+	$count_group_moderators = count($group_moderators);
+	for ( $i = 0; $i < $count_group_moderators; $i++ )
+	{
+		$moderator = $group_moderators[$i];
+#
+#-----[ FIND ]------------------------------------------------
+#
+		'GROUP_MODERATOR' => $moderator['username'],
+		'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '', 
+
+		'U_GROUPCP' => $server_url . '?' . POST_GROUPS_URL . "=$group_id&validate=true")
+	);
+	$emailer->send();
+	$emailer->reset();
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- add
+	}
+	unset($group_moderators);
+//-- fin mod : group moderatorZ ------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$group_moderator = $group_info['group_moderator'];
+	
+		if ( $group_moderator == $userdata['user_id'] || $userdata['user_level'] == ADMIN )
+		{
+			$is_moderator = TRUE;
+		}
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- delete
+/*
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+*/
+//-- add
+		$sql = 'SELECT *
+					FROM ' . USER_GROUP_TABLE . ' ug, ' . GROUPS_TABLE . ' g
+					WHERE ug.group_id = ' . intval($group_id) . '
+						AND g.group_id = ug.group_id
+						AND (ug.user_id = g.group_moderator OR ug.group_moderator = 1)';
+		if ( !$result = $db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain user and group information', '', __LINE__, __FILE__, $sql);
+		}
+		$group_moderators = array();
+		while ($row = $db->sql_fetchrow($result) )
+		{
+			$group_moderators[] = $row['user_id'];
+		}
+		$db->sql_freeresult($result);
+
+		$is_moderator = (!empty($group_moderators) && in_array($userdata['user_id'], $group_moderators)) || ($userdata['user_level'] == ADMIN);
+//-- fin mod : group moderatorZ ------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if ( !empty($HTTP_POST_VARS['add']) || !empty($HTTP_POST_VARS['remove']) || isset($HTTP_POST_VARS['approve']) || isset($HTTP_POST_VARS['deny']) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- delete
+/*
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+*/
+//-- add
+		if ( !empty($HTTP_POST_VARS['add']) || !empty($HTTP_POST_VARS['remove']) || isset($HTTP_POST_VARS['approve']) || isset($HTTP_POST_VARS['deny']) || isset($HTTP_POST_VARS['grant_ungrant']) )
+//-- fin mod : group moderatorZ ------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full lines are longer
+#
+					$message = $lang['User_is_member_group']
+
+					message_die(GENERAL_MESSAGE, $message);
+				}
+			}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- add
+			else if ( isset($HTTP_POST_VARS['grant_ungrant']) )
+			{
+				$selected_members = array();
+				$count_post_members = count($HTTP_POST_VARS['members']);
+				for ( $i = 0; $i < $count_post_members; $i++ )
+				{
+					if ( intval($HTTP_POST_VARS['members'][$i]) )
+					{
+						$selected_members[] = intval($HTTP_POST_VARS['members'][$i]);
+					}
+				}
+				if ( count($selected_members) > 0 )
+				{
+					$sql = 'SELECT user_id
+								FROM ' . USER_GROUP_TABLE . '
+								WHERE group_id = ' . intval($group_id) . '
+									AND group_moderator = 1
+									AND user_id IN(' . implode(', ', $selected_members) . ')
+									AND user_id <> ' . intval($group_info['group_moderator']);
+					if ( !$result = $db->sql_query($sql) )
+					{
+						message_die(GENERAL_ERROR, 'Could not get user/group information', '', __LINE__, __FILE__, $sql);
+					}
+					$group_moderators = array();
+					while ( $row = $db->sql_fetchrow($result) )
+					{
+						$group_moderators[] = $row['user_id'];
+					}
+					$db->sql_freeresult($result);
+
+					if ( count($group_moderators) > 0)
+					{
+						$sql = 'UPDATE ' . USER_GROUP_TABLE . '
+									SET group_moderator = 0
+									WHERE group_id = ' . intval($group_id) . '
+										AND user_id <> ' . intval($group_info['group_moderator']) . '
+										AND user_id IN(' . implode(', ', $group_moderators) . ')';
+						if ( !$db->sql_query($sql) )
+						{
+							message_die(GENERAL_ERROR, 'Could not ungrant user/group mod status', '', __LINE__, __FILE__, $sql);
+						}
+					}
+					$sql = 'UPDATE ' . USER_GROUP_TABLE . '
+								SET group_moderator = 1
+								WHERE group_id = ' . intval($group_id) . '
+									AND user_id <> ' . intval($group_info['group_moderator']) . '
+									AND user_id IN(' . implode(', ', $selected_members) . ')' . (empty($group_moderators) ? '' : '
+									AND user_id NOT IN(' . implode(', ', $group_moderators) . ')');
+					if ( !$db->sql_query($sql) )
+					{
+						message_die(GENERAL_ERROR, 'Could not ungrant user/group mod status', '', __LINE__, __FILE__, $sql);
+					}
+
+					// return message
+					$template->assign_vars(array(
+						'META' => '<meta http-equiv="refresh" content="3;url=' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=$group_id") . '">')
+					);
+					$message = $lang['Group_grant_ungrant_mod_ok'] . '<br /><br />' . sprintf($lang['Click_return_group'], '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=$group_id") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+					message_die(GENERAL_MESSAGE, $message);
+				}
+			}
+//-- fin mod : group moderatorZ ------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Get user information for this group
+	//
+	$sql = "SELECT u.username, u.user_id, u.user_viewemail, u.user_posts, u.user_regdate, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_msnm, ug.user_pending 
+		FROM " . USERS_TABLE . " u, " . USER_GROUP_TABLE . " ug
+		WHERE ug.group_id = $group_id
+			AND u.user_id = ug.user_id
+			AND ug.user_pending = 0 
+			AND ug.user_id <> " . $group_moderator['user_id'] . " 
+		ORDER BY u.username";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- add
+	$sql = str_replace(', ug.user_pending', ', ug.group_moderator, ug.user_pending', $sql);
+	$sql = str_replace('ORDER BY', 'ORDER BY ug.group_moderator DESC,', $sql);
+//-- fin mod : group moderatorZ ------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		'S_GROUPCP_ACTION' => append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=$group_id"))
+	);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- add
+	$template->assign_vars(array(
+		'L_GROUP_OWNER' => $lang['Group_owner'],
+		'L_GRANT_UNGRANT_SELECTED' => $lang['Group_grant_mod_status'],
+	));
+	$last_member_type = -1;
+	$color = false;
+//-- fin mod : group moderatorZ ------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if ( $group_info['group_type'] != GROUP_HIDDEN || $is_group_member || $is_moderator )
+		{
+			$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
+			$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- add
+			$color &= $last_member_type == $group_members[$i]['group_moderator'];
+			$color = !$color;
+			$row_color = $color ? $theme['td_color1'] : $theme['td_color2'];
+			$row_class = $color ? $theme['td_class1'] : $theme['td_class2'];
+//-- fin mod : group moderatorZ ------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			if ( $is_moderator )
+			{
+				$template->assign_block_vars('member_row.switch_mod_option', array());
+			}
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- delete
+/*
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+*/
+//-- add
+			if ( $last_member_type != $group_members[$i]['group_moderator'] )
+			{
+				$template->assign_block_vars('member_row.member_type', array(
+					'L_TYPE' => ( $group_members[$i]['group_moderator'] ) ? $lang['Group_Moderator'] : $lang['Group_Members'],
+				));
+				$last_member_type = $group_members[$i]['group_moderator'];
+			}
+			if ( $is_moderator && (!$group_members[$i]['group_moderator'] || ($group_moderator['user_id'] == $userdata['user_id']) || ($userdata['user_level'] == ADMIN)) )
+			{
+				$template->assign_block_vars('member_row.switch_mod_option', array());
+			}
+//-- fin mod : group moderatorZ ------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$template->assign_block_vars('switch_add_member', array());
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : group moderatorZ ----------------------------------------------------
+//-- add
+		if ( ($group_moderator['user_id'] == $userdata['user_id']) || ($userdata['user_level'] == ADMIN) )
+		{
+			$template->assign_block_vars('switch_mod_option.switch_owner_option', array());
+		}
+//-- fin mod : group moderatorZ ------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/groupcp_info_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+{L_GROUP_MODERATOR}
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+{L_GROUP_MODERATOR}
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+{L_GROUP_OWNER}
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+<tr>
+{L_GROUP_MEMBERS}
+</tr>
+<!-- BEGIN member_row -->
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+	<!-- BEGIN member_row -->
+	<!-- BEGIN member_type -->
+	<tr>
+		<td class="catSides" colspan="8" height="28"><span class="cattitle">{member_row.member_type.L_TYPE}</span></td>
+	</tr>
+	<!-- END member_type -->
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<!-- BEGIN switch_no_members -->
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="catSides" colspan="8" height="28"><span class="cattitle">{L_GROUP_MEMBERS}</span></td>
+	</tr>
+#
+#-----[ FIND ]------------------------------------------------
+#
+# here we need to split the <input...> onto a new line, to allow to add our own with switch, so let's replace the whole thing
+#
+		<td class="catBottom" colspan="8" align="right">
+			<span class="cattitle"><input type="submit" name="remove" value="{L_REMOVE_SELECTED}" class="mainoption" /></span>
+		</td>
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+		<td class="catBottom" colspan="8" align="right"><span class="cattitle">&nbsp;
+			<input type="submit" name="remove" value="{L_REMOVE_SELECTED}" class="mainoption" />
+			<!-- BEGIN switch_owner_option -->
+			<input type="submit" name="grant_ungrant" value="{L_GRANT_UNGRANT_SELECTED}" class="liteoption" />
+			<!-- END switch_owner_option -->
+		</span></td>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

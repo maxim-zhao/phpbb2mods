@@ -1,0 +1,219 @@
+############################################################## 
+## MOD Title:       Moved_Topic_Message update 1.2.0 to 1.3.0
+## MOD Author:      Wicher < N/A > (N/A) http://www.detecties.com/phpbb2018
+## MOD Description: This mod update version 1.2.0 to 1.3.0.
+## 
+## MOD Version:     1.3.0 
+## 
+## Installation Level: Easy 
+## Installation Time: 5 Minutes
+## 
+## Files To Edit:  modcp.php 
+## 
+## Included Files:   root/includes/function_pm.php
+## 
+## License:      http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+## 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:   
+##		   This mod has been tested on phpbb 2.0.21 and 2.0.22 
+## 
+############################################################## 
+## MOD History: 
+## 
+## 1.3.0 19-06-2007
+## - pm's and mails now are send in users choosen language.
+## 1.2.0 14-01-2007
+## - fixed some more stuff in some files
+## - added admin choice wether to override usersettings yes or no.
+## 1.1.0 12-11-2006
+## - fixed some stuff in some files
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+
+
+# 
+#-----[ DIY INSTRUCTIONS ]------------------------------------------ 
+# 
+chmod root/cache to 777
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy root/includes/function_pm.php to includes/function_pm.php
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+modcp.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				// topictitle, user_id, username, useremail
+				$sql = "SELECT t.topic_id, t.topic_title, u.user_id, u.username, u.user_email, u.user_lang, u.user_topic_moved_pm_notify 
+						FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u 
+						WHERE t.topic_id IN ($topic_list)
+						AND t.topic_poster = u.user_id";
+				if ( !($result = $db->sql_query($sql, BEGIN_TRANSACTION)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select from topic or users table', '', __LINE__, __FILE__, $sql);
+				}
+				$mailrow = $db->sql_fetchrowset($result);
+				$db->sql_freeresult($result);
+
+				$script_path = preg_replace('/^\/?(.*?)\/?$/', "\\1", trim($board_config['script_path']));
+				$server_name = trim($board_config['server_name']);
+				$server_protocol = ( $board_config['cookie_secure'] ) ? 'https://' : 'http://';
+				$server_port = ( $board_config['server_port'] <> 80 ) ? ':' . trim($board_config['server_port']) . '/' : '/';
+
+				if ((($userdata['user_topic_moved_mail'] == 1) && ($board_config['board_email_moved_topic'] != 1)) || (($board_config['board_email_moved_topic'] == 1) && ($board_config['board_topic_moved_mail'])))
+				{
+					for($i = 0; $i < count($mailrow); $i++)
+					{
+						//emailer
+						include_once($phpbb_root_path . 'includes/emailer.'.$phpEx);
+						$emailer = new emailer($board_config['smtp_delivery']);
+						$emailer->from($board_config['board_email']);
+						$emailer->replyto($board_config['board_email']);
+						$emailer->use_template('topic_moved', $mailrow[$i]['user_lang']);
+						$emailer->email_address($mailrow[$i]['user_email']);
+						$emailer->set_subject($lang['topic_moved']);
+						$emailer->assign_vars(array(
+							'SUBJECT' => $lang['topic_moved'],
+							'SITENAME' => $board_config['sitename'], 
+							'BOARD_URL' => $server_protocol.$server_name.$server_port.$script_path,
+							'TOPICPOSTER' => $mailrow[$i]['username'], 
+							'TOPICTITLE' => $mailrow[$i]['topic_title'],
+							'OLD_CATAGORIE_NAME' => $oldcatname, 
+							'OLD_FORUM_NAME' => $oldforumname,
+							'NEW_CATAGORIE_NAME' => $newcatname, 
+							'NEW_FORUM_NAME' => $newforumname,
+							'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
+							'MOVED_URL' => $server_protocol.$server_name.$server_port.$script_path.'/viewtopic.'.$phpEx.'?'.POST_TOPIC_URL.'='.$mailrow[$i]['topic_id'],
+							'PROFILE_LINK' => $server_protocol.$server_name.$server_port.$script_path.'/profile.'.$phpEx.'?mode=editprofile')
+							);
+						$emailer->send();
+						$emailer->reset();
+					}
+				}
+				if ((($userdata['user_topic_moved_pm'] == 1) && ($board_config['board_email_moved_topic'] != 1)) || (($board_config['board_email_moved_topic'] == 1) && ($board_config['board_topic_moved_pm'])))
+				{
+					include($phpbb_root_path . 'includes/function_pm.'.$phpEx);
+					include($phpbb_root_path . 'includes/functions_post.'.$phpEx);
+					for($i = 0; $i < count($mailrow); $i++)
+					{
+						//pm-er
+						$moved_url = $server_protocol.$server_name.$server_port.$script_path.'/viewtopic.'.$phpEx.'?'.POST_TOPIC_URL.'='.$mailrow[$i]['topic_id'];
+						$profile_link = $server_protocol.$server_name.$server_port.$script_path.'/profile.'.$phpEx.'?mode=editprofile';
+						$pm_subject = $lang['topic_moved'];
+						$pm_message = $lang['hello'].$mailrow[$i]['username'].'\n\n'.$lang['pmtext1'].'\"'.$mailrow[$i]['topic_title'].'\"'.$lang['pmtext2'].'\n'.$lang['pmtext3'].'\"'.$oldforumname.'"'.$lang['pmtext4'].'\"'.$oldcatname.'\"\n'.$lang['pmtext5'].'\"'.$newcatname.'"'.$lang['pmtext6'].'\"'.$newforumname.'\".\n\n\n'.$lang['pmtext7'].'\n'.$moved_url.'\n\n\n'.$lang['profiletext'].'\n'.$profile_link;
+						send_moved_topic_pm($userdata['user_id'], $mailrow[$i]['user_id'], $pm_subject, $pm_message, $mailrow[$i]['user_topic_moved_pm_notify']);
+					}
+				}
+				if ($board_config['board_email_moved_topic'] != 1)
+				{
+					if (($userdata['user_topic_moved_mail'] == 1) && ($userdata['user_topic_moved_pm'] != 1))
+					{
+						$mailmess = $lang['mail_send'] . '<br /><br />';
+					}
+					else if (($userdata['user_topic_moved_mail'] != 1) && ($userdata['user_topic_moved_pm'] == 1))
+					{
+						$mailmess = $lang['pm_send'] . '<br /><br />';
+					}
+					else if (($userdata['user_topic_moved_mail'] == 1) && ($userdata['user_topic_moved_pm'] == 1))
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+				$script_path = preg_replace('/^\/?(.*?)\/?$/', "\\1", trim($board_config['script_path']));
+				$server_name = trim($board_config['server_name']);
+				$server_protocol = ( $board_config['cookie_secure'] ) ? 'https://' : 'http://';
+				$server_port = ( $board_config['server_port'] <> 80 ) ? ':' . trim($board_config['server_port']) . '/' : '/';
+
+				// topictitle, user_id, username, useremail
+				$sql = "SELECT t.topic_id, t.topic_title, u.user_id, u.username, u.user_email, u.user_lang, user_topic_moved_mail, user_topic_moved_pm, u.user_topic_moved_pm_notify 
+						FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u 
+						WHERE t.topic_id IN ($topic_list)
+						AND t.topic_poster = u.user_id";
+				if ( !($result = $db->sql_query($sql, BEGIN_TRANSACTION)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select from topic or users table', '', __LINE__, __FILE__, $sql);
+				}
+				$mailrow = $db->sql_fetchrowset($result);
+				$db->sql_freeresult($result);
+				for($i = 0; $i < count($mailrow); $i++)
+				{
+					$m_topic_id = $mailrow[$i]['topic_id'];
+					$m_topic_title = $mailrow[$i]['topic_title'];
+					$m_user_id = $mailrow[$i]['user_id'];
+					$m_username = $mailrow[$i]['username'];
+					$m_user_email = $mailrow[$i]['user_email'];
+					$m_user_lang = $mailrow[$i]['user_lang'];
+					$m_user_topic_moved_mail = $mailrow[$i]['user_topic_moved_mail'];
+					$m_user_topic_moved_pm = $mailrow[$i]['user_topic_moved_pm'];
+					$m_user_topic_moved_pm_notify = $mailrow[$i]['user_topic_moved_pm_notify'];
+
+					include_once($phpbb_root_path . 'includes/function_pm.'.$phpEx);
+					include_once($phpbb_root_path . 'includes/functions_post.'.$phpEx);
+					get_user_lang_vars($m_user_lang);
+					include_once($phpbb_root_path . 'cache/templang.'.$phpEx);
+					@unlink($phpbb_root_path . 'cache/templang.'.$phpEx);
+					if ((($m_user_topic_moved_mail == 1) && ($board_config['board_email_moved_topic'] != 1)) || (($board_config['board_email_moved_topic'] == 1) && ($board_config['board_topic_moved_mail'])))
+					{
+							//emailer
+							include_once($phpbb_root_path . 'includes/emailer.'.$phpEx);
+							$emailer = new emailer($board_config['smtp_delivery']);
+							$emailer->from($board_config['board_email']);
+							$emailer->replyto($board_config['board_email']);
+							$emailer->use_template('topic_moved', $m_user_lang);
+							$emailer->email_address($m_user_email);
+							$emailer->set_subject($lang['m_topic_moved']);
+							$emailer->assign_vars(array(
+								'SUBJECT' => $lang['m_topic_moved'],
+								'SITENAME' => $board_config['sitename'], 
+								'BOARD_URL' => $server_protocol.$server_name.$server_port.$script_path,
+								'TOPICPOSTER' => $m_username, 
+								'TOPICTITLE' => $m_topic_title,
+								'OLD_CATAGORIE_NAME' => $oldcatname, 
+								'OLD_FORUM_NAME' => $oldforumname,
+								'NEW_CATAGORIE_NAME' => $newcatname, 
+								'NEW_FORUM_NAME' => $newforumname,
+								'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
+								'MOVED_URL' => $server_protocol.$server_name.$server_port.$script_path.'/viewtopic.'.$phpEx.'?'.POST_TOPIC_URL.'='.$m_topic_id,
+								'PROFILE_LINK' => $server_protocol.$server_name.$server_port.$script_path.'/profile.'.$phpEx.'?mode=editprofile')
+								);
+							$emailer->send();
+							$emailer->reset();
+					}
+					if ((($m_user_topic_moved_pm == 1) && ($board_config['board_email_moved_topic'] != 1)) || (($board_config['board_email_moved_topic'] == 1) && ($board_config['board_topic_moved_pm'])))
+					{
+						//pm-er
+						$moved_url = $server_protocol.$server_name.$server_port.$script_path.'/viewtopic.'.$phpEx.'?'.POST_TOPIC_URL.'='.$m_topic_id;
+						$profile_link = $server_protocol.$server_name.$server_port.$script_path.'/profile.'.$phpEx.'?mode=editprofile';
+						$pm_subject = $lang['m_topic_moved'];
+						$pm_message = $lang['m_hello'].$m_username.'\n\n'.$lang['m_pmtext1'].'\"'.$m_topic_title.'\"'.$lang['m_pmtext2'].'\n'.$lang['m_pmtext3'].'\"'.$oldforumname.'"'.$lang['m_pmtext4'].'\"'.$oldcatname.'\"\n'.$lang['m_pmtext5'].'\"'.$newcatname.'"'.$lang['m_pmtext6'].'\"'.$newforumname.'\".\n\n\n'.$lang['m_pmtext7'].'\n'.$moved_url.'\n\n\n'.$lang['m_profiletext'].'\n'.$profile_link;
+						send_moved_topic_pm($userdata['user_id'], $m_user_id, $pm_subject, $pm_message, $m_user_topic_moved_pm_notify);
+					}
+				}
+				if ($board_config['board_email_moved_topic'] != 1)
+				{
+					if (($m_user_topic_moved_mail == 1) && ($m_user_topic_moved_pm != 1))
+					{
+						$mailmess = $lang['mail_send'] . '<br /><br />';
+					}
+					else if (($m_user_topic_moved_mail != 1) && ($m_user_topic_moved_pm == 1))
+					{
+						$mailmess = $lang['pm_send'] . '<br /><br />';
+					}
+					else if (($m_user_topic_moved_mail == 1) && ($m_user_topic_moved_pm == 1))
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

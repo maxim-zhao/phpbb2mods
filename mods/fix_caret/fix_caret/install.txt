@@ -1,0 +1,104 @@
+############################################################## 
+## MOD Title: Fix Caret Bug
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/phpbb
+## MOD Description: Fixes a bug in posting_body.tpl.
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 1 Minutes
+##
+## Files To Edit: 2
+##      templates/subSilver/posting_body.tpl
+##      templates/subSilver/posting_smilies.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##   The bug that this mod fixes can be reproduced by following these steps:
+##     1. Go to the page you normally would to make a new post or a new reply.
+##     2. Type in some text, and highlight it.
+##     3. Unhighlight that text by selecting text within the highlight.
+##     4. Try to insert an emoticon. It'll appear at the top of the page.
+##
+##     A demo of the bug this mod fixes can be found here:
+##     http://www.frostjedi.com/terra/scripts/demo/caretBug.html
+##
+##     For support / comments / whatever, visit here:
+##     http://www.frostjedi.com/phpbb/viewforum.php?f=33
+##
+##     The latest version of this MOD can be found here:
+##     http://www.frostjedi.com/terra/scripts/phpbb/fixes/caret.zip
+##
+############################################################## 
+## MOD History: 
+##
+##     1.0.1: - works in the Instant Smilies window (thanks, vze3k59w!)
+##     1.0.0: - initial release
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// Shows the help messages in the helpline window
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+var baseHeight;
+window.onload = initInsertions;
+
+// Fix a bug involving the TextRange object. From
+// http://www.frostjedi.com/terra/scripts/demo/caretBug.html
+function initInsertions() {
+	document.post.message.focus();
+	if (is_ie && typeof(baseHeight) != 'number') baseHeight = document.selection.createRange().duplicate().boundingHeight;
+}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if (txtarea.createTextRange && txtarea.caretPos) {
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		if (baseHeight != txtarea.caretPos.boundingHeight) {
+			txtarea.focus();
+			storeCaret(txtarea);
+		}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/posting_smilies.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if (opener.document.forms['post'].message.createTextRange && opener.document.forms['post'].message.caretPos) {
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		if (opener.baseHeight != opener.document.forms['post'].message.caretPos.boundingHeight) {
+			opener.document.forms['post'].message.focus();
+			opener.storeCaret(opener.document.forms['post'].message);
+		}
+
+#
+#-----[	SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

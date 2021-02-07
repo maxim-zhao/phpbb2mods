@@ -1,0 +1,177 @@
+############################################################## 
+## MOD Title:		Save posts as drafts add on to allow attachments in drafts
+## MOD Author:		asinshesq < N/A > (Alan) N/A
+## MOD Description:	This is an add-on to the save posts as drafts mod that will allow 
+##			users to use attachments in drafts if they 
+##			have the save as draft and attachment mods already installed
+##
+## MOD Version:		1.0.25
+## 
+## Installation Level:	Easy
+## Installation Time:	1 Minute 
+## Files To Edit:
+##			posting.php
+##			viewforum.php
+##			admin/admin_forum_prune.php
+##			includes/functions_post.php
+##
+## Included Files:	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:	Make sure you have both the latest version of save drafts as posts mod 
+##			and the attachment mod installed before you install this
+############################################################## 
+## MOD History:
+##
+##   2006-9-16	- Versions 1.0.19, 1.0.20, 1.0.21, 1.0.22, 1.0.23 and 1.0.24
+##		  no changes in this mod to the mod, but changed version to dovetail with version number in basic mod
+##
+##   2005-07-23	- Version 1.0.18
+##		  no changes in this mod to the mod, but changed version to dovetail with version number in basic mod
+##
+##   2005-03-04	- Version 1.0.17c
+##		  no changes in this mod to the mod, but changed version to dovetail with version number in basic mod
+##
+##   2005-02-19	- Version 1.0.17b
+##		  no changes in this mod to the mod, but changed version to dovetail with version number in basic mod
+##
+##   2005-01-28	- Version 1.0.17a
+##		  no changes in this mod to the mod, but changed version to dovetail with version number in basic mod
+##
+##   2005-01-10	- Version 1.0.17
+##		- revised version to dovetail with changes in version 1.0.17 of the basic mod
+##
+##   2004-09-25	- Version 1.0.0
+##		- initial version of add-on
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( $error_msg == '' && $save_as_draft || ($mode == 'delete' && $was_a_draft) )
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+//	But before adding that block, added line to assure that any attachments get added even in the case where the post is submitted as a draft
+//	(the usual attachment mod line that does this is ptherwise skipped in the case of a post submitted as a draft)
+		$attachment_mod['posting']->insert_attachment($post_id);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$sql = "DELETE FROM " . POSTS_TABLE . "
+				WHERE post_id IN ($sql_posts)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete draft posts during auto prune', '', __LINE__, __FILE__, $sql);
+			}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+			prune_attachments($sql_posts);
+			
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_forum_prune.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$sql = "DELETE FROM " . POSTS_TABLE . "
+					WHERE post_id IN ($sql_posts)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete draft posts during prune', '', __LINE__, __FILE__, $sql);
+			}
+			$pruned_posts = $db->sql_affectedrows();
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+			prune_attachments($sql_posts);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// in the below added code, we delete the old post from the posts table if the post was a draft getting finally submitted as a real post; and we also in that case save the $relevant_post_id for purposes of fidning the text in the topic table and then reset $post_id to match the new $post_id of the new post inserted above
+
+		if ($was_a_draft && !$save_as_draft)
+		{
+			$relevant_post_id = $post_id;
+			$post_id = $db->sql_nextid();
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+// in the below added code, we see if this is a draft getting submitted as a post; if it is, we see if there are attachments and if so fix the new post to reflect the attachment;
+// then, we delete the old post from the posts table if the post was a draft getting finally submitted as a real post; and we also in that case save the $relevant_post_id for purposes of fidning the text in the topic table and then reset $post_id to match the new $post_id of the new post inserted above
+
+		if ($was_a_draft && !$save_as_draft)
+		{
+			$relevant_post_id = $post_id;
+			$post_id = $db->sql_nextid();
+
+		// this part deals with attachments as mentioned above
+		$sql = "SELECT post_attachment FROM " . POSTS_TABLE . " WHERE post_id = $relevant_post_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+		}
+		$post_info = $db->sql_fetchrow($result);
+		$post_attachment = $post_info['post_attachment'];
+		// test to see if there is an attachment; if there is, fix the new post to reflect it
+		if ($post_attachment == 1)
+		{
+			$sql = "UPDATE " . POSTS_TABLE . " SET post_attachment = 1 WHERE post_id = $post_id";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+			}
+
+			$sql = "UPDATE " . TOPICS_TABLE . " SET topic_attachment = 1 WHERE topic_id = $topic_id";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+			}
+
+			$sql = "UPDATE " . ATTACHMENTS_TABLE . " SET post_id = $post_id WHERE post_id = $relevant_post_id";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+			}
+		}
+
+		// and this next part deletes the old post as mentioned above
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

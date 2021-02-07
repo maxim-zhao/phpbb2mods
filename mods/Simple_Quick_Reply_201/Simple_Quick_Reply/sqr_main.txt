@@ -1,0 +1,227 @@
+##############################################################
+## MOD Title: Simple Quick Reply 2
+## MOD Author: Merri < vesa@piittinen.name > (Vesa Piittinen) http://vesa.piittinen.name/
+## MOD Description: Adds a simple quick reply box to your forum.
+## MOD Version: 2.0.1
+##
+## Installation Level: Easy
+## Installation Time: 3 minutes
+## Files To Edit: viewtopic.php
+##                language/lang_english/lang_main.php
+##                templates/subSilver/viewtopic_body.tpl
+## Included Files: 0
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## This MOD has been tested on phpBB 2.0.23.
+## This MOD was originally based on code by Smartor: changed looks and made it much easier to customize the template.
+##
+##############################################################
+##
+## MOD History:
+##
+##    2008-03-29 - Version 2.0.1
+##       - Finally a re-submit since the last one mystically disappeared.
+##
+##    2007-03-10 - Version 2.0.0
+##       - Submitting to MOD database.
+##
+##    2006-05-07 - Version 2.0.b3
+##       - Simplified main install, no database changes necessary
+##       - Guest Switch Extension
+##       - Misc changes to viewtopic to simplify Floatbox Extension installation
+##       - A new language variable (Quick_Reply_Hide)
+##
+##    2006-05-05 - Version 2.0.b2
+##       - Errors fixed to make the MOD install with EasyMOD
+##       - copy and do-it-yourself instructions added
+##
+##    2006-05-04 - Version 2.0.b1
+##       - Included additional "extension" MOD: makes the quick reply to "float" on top of the page
+##       - Auth code changes on viewtopic: $sqr_auth variable included
+##
+##    2006-04-02 - Version 2.0.b0
+##       - Can be turned on/off for guests from admin panel
+##       - Improved flexibility: easier to change, easier to move in template, less prone to cause errors with other mods
+##
+##    2005-05-04 - Version 1.0.0
+##       - Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// Update the topic view counter
+//
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Simple Quick Reply MOD
+$sqr_auth = ($is_auth['auth_reply'] && ($forum_topic_data['forum_status'] != FORUM_LOCKED) && ($forum_topic_data['topic_status'] != TOPIC_LOCKED) )
+	&& ( ($board_config['quick_reply_guests'] == 1) || $userdata['session_logged_in'] )
+	|| ($userdata['user_level'] == ADMIN);
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->pparse('body');
+
+include($phpbb_root_path . 'includes/page_tail.'.$phpEx);
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+//
+// Simple Quick Reply MOD
+//
+if ($sqr_auth)
+{
+	$template->assign_vars(array(
+		'L_EMPTY_MSG' => $lang['Empty_message'],
+		'L_QUICK_REPLY' => $lang['Quick_Reply'],
+		'L_HIDE_QUICK_REPLY' => $lang['Quick_Reply_Hide'],
+		'L_USERNAME' => $lang['Username'],
+		'L_QUICK_SMILIES' => $lang['Quick_Reply_Smilies'],
+
+		'L_SUBJECT' => $lang['Subject'],
+		'L_MESSAGE_BODY' => $lang['Message_body'],
+		'L_OPTIONS' => $lang['Options'],
+		'L_PREVIEW' => $lang['Preview'],
+		'L_SPELLCHECK' => $lang['Spellcheck'],
+		'L_SUBMIT' => $lang['Submit'],
+		'L_DISABLE_HTML' => $lang['Disable_HTML_post'],
+		'L_DISABLE_BBCODE' => $lang['Disable_BBCode_post'],
+		'L_DISABLE_SMILIES' => $lang['Disable_Smilies_post'],
+		'L_ATTACH_SIGNATURE' => $lang['Attach_signature'],
+		'L_NOTIFY_ON_REPLY' => $lang['Notify'],
+
+		'S_ATTACH_SIG' => (( $userdata['session_logged_in'] ) ? $userdata['user_attachsig'] : '') ? '1' : '',
+		'S_NOTIFY' => (( $userdata['session_logged_in'] ) ? $userdata['user_notify'] : '') ? '1' : '',
+		'S_POSTING' => append_sid('posting.'.$phpEx),
+		'S_SID' => $userdata['session_id'],
+		'S_TOPIC_ID' => $topic_id,
+
+		'U_QUICK_SMILIES' => append_sid('posting.'.$phpEx.'?mode=smilies') )
+	);
+
+	$template->assign_block_vars('switch_quick_reply', array() );
+
+	if( !$userdata['session_logged_in'] )
+	{
+		$template->assign_block_vars('switch_quick_reply.switch_user_logged_out', array() );
+	}
+	else
+	{
+		$template->assign_block_vars('switch_quick_reply.switch_user_logged_in', array() );
+	}
+}
+//
+// Simple Quick Reply MOD
+//
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all, Folks!
+// -------------------------------------------------
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+
+// Simple Quick Reply MOD
+$lang['Quick_Reply'] = 'Quick Reply';
+$lang['Quick_Reply_Smilies'] = 'Add smilies';
+$lang['Quick_Reply_Hide'] = 'Hide Quick Reply';
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<table width="100%" cellspacing="2" border="0" align="center">
+  <tr> 
+	<td width="40%" valign="top" nowrap="nowrap" align="left"><span class="gensmall">{S_WATCH_TOPIC}</span><br />
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+
+<!-- BEGIN switch_quick_reply -->
+<form action="{S_POSTING}" method="post" name="post" onsubmit="return checkForm(this)" id="quickreply">
+<script language="JavaScript" type="text/javascript"><!--
+function checkForm() {
+	formErrors = false;
+	if (document.post.message.value.length < 2) {
+	formErrors = '{L_EMPTY_MSG}';
+	}
+	if (formErrors) {
+		alert(formErrors);
+		return false;
+	} else {
+		return true;
+	}
+}
+//--></script>
+<table border="0" cellpadding="3" cellspacing="1" class="forumline" align="center">
+  <tr>
+	<th class="thHead" colspan="2" height="25" id="quickreply_head"><b>{L_QUICK_REPLY}</b></th>
+  </tr>
+<!-- BEGIN switch_user_logged_out -->
+  <tr>
+	<td class="row1"><span class="gen"><b>{L_USERNAME}:</b></span></td>
+	<td class="row2"><span class="genmed"><input class="post" type="text" name="username" size="25" maxlength="25" value="" /></span></td>
+  </tr>
+<!-- END switch_user_logged_out -->
+  <tr>
+	<td width="22%" class="row1" valign="top"><span class="gen"><b>{L_MESSAGE_BODY}:</b></span><br /><br /><span class="gensmall"><a href="{U_QUICK_SMILIES}" onclick="window.open('{U_QUICK_SMILIES}', '_phpbbsmilies', 'HEIGHT=300,resizable=yes,scrollbars=yes,WIDTH=250');return false;" target="_phpbbsmilies">{L_QUICK_SMILIES}</a></span></td>
+	<td width="78%" class="row2" valign="top"><textarea name="message" rows="10" cols="35" wrap="virtual" style="width:450px" class="post"></textarea></td>
+  </tr>
+  <tr>
+	<td class="catBottom" colspan="2" align="center" height="28">
+		<input type="hidden" name="attach_sig" value="{S_ATTACH_SIG}" />
+		<input type="hidden" name="notify" value="{S_NOTIFY}" />
+		<input type="hidden" name="mode" value="reply" />
+		<input type="hidden" name="sid" value="{S_SID}" />
+		<input type="hidden" name="t" value="{S_TOPIC_ID}" />
+		<input type="submit" name="preview" class="mainoption" value="{L_PREVIEW}" />&nbsp;<input type="submit" accesskey="s" name="post" class="mainoption" value="{L_SUBMIT}" />
+	</td>
+  </tr>
+</table>
+</form>
+<!-- END switch_quick_reply -->
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,140 @@
+############################################################## 
+## MOD Title: Site Description
+## MOD Author: Xore < xore@azuriah.com > (Xore) http://forums.azuriah.com
+## MOD Description: Random Site Description
+## MOD Version: 1.1.0
+## 
+## Installation Level: Easy
+## Installation Time: 1 Minute 
+## Files To Edit: includes/page_header.php
+##                language/lang_english/lang_admin.php
+##                admin/admin_board.php
+##                templates/subSilver/admin/board_config_body.tpl
+## Included Files: n/a
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: I have 4 site descriptions i like to use, i prefer not to change it all the time...
+##               also, this increases the maximum size of your site description.
+############################################################## 
+## MOD History: 
+## v1.1.0 Added splicer. now it's 4 files instead of 2, and 6 edits instead of 3 :-(
+##        Now allows up to 2550 characters
+## v1.0.0 First version release. no bugs, i hope :P
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+# You need to run sql_install.php before or after completing these instructions
+# it needs to be run from your root phpbb directory.
+#
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/page_header.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+// Format Timezone. We are unable to use array_pop here, because of PHP3 compatibility
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$site_descs = explode("@@@",($board_config['site_desc'] . $board_config['site_desc_2'] . $board_config['site_desc_3'] . $board_config['site_desc_4'] . $board_config['site_desc_5'] . $board_config['site_desc_6'] . $board_config['site_desc_7'] . $board_config['site_desc_8'] . $board_config['site_desc_9'] . $board_config['site_desc_10']));
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'SITE_DESCRIPTION' => $board_config['site_desc'],
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	'SITE_DESCRIPTION' => $site_descs[rand(0,count($site_descs) - 1)],
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['Site_desc'] = 'Site description';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+$lang['Site_desc'] = 'Site description (separate each description by \'@@@\')';
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_board.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+include($phpbb_root_path . 'includes/functions_selects.'.$phpEx);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+if ( isset($HTTP_POST_VARS['site_desc']) )
+{
+	for ( $i = 2; $i <= 10; $i++ )
+	{
+		$HTTP_POST_VARS['site_desc_' . $i] = '';
+	}
+	if ( strlen($HTTP_POST_VARS['site_desc']) > 255 )
+	{
+		$HTTP_POST_VARS['site_desc_2'] = substr($HTTP_POST_VARS['site_desc'],255);
+		$HTTP_POST_VARS['site_desc'] = substr($HTTP_POST_VARS['site_desc'],0,255);
+		for ( $i = 2; $i <= 9; $i++ )
+		{
+			if ( strlen($HTTP_POST_VARS['site_desc_' . $i]) > 255)
+			{
+				$HTTP_POST_VARS['site_desc_' . ($i + 1)] = substr($HTTP_POST_VARS['site_desc_' . $i],255);
+				$HTTP_POST_VARS['site_desc_' . $i] = substr($HTTP_POST_VARS['site_desc_' . $i],0,255);
+			}
+		}
+	}
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$template->set_filenames(array(
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$new['site_desc'] .= $new['site_desc_2'] . $new['site_desc_3'] . $new['site_desc_4'] . $new['site_desc_5'] . $new['site_desc_6'] . $new['site_desc_7'] . $new['site_desc_8'] . $new['site_desc_9'] . $new['site_desc_10'];
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td class="row2"><input class="post" type="text" size="40" maxlength="255" name="site_desc" value="{SITE_DESCRIPTION}" /></td>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+maxlength="255
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+0
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

@@ -1,0 +1,118 @@
+##############################################################
+## MOD Title: Keep Session Alive MOD
+## MOD Author: markus_petrux < phpbb.mods@phpmix.com > (Markus) http://www.phpmix.com
+## MOD Description: This MOD keeps your user session alive while logged into your ACP.
+##     It avoids (annoying) redirections from the ACP to the Board Index after a period
+##     of inactivity greater than session_length.
+## MOD Version: 1.1.0
+##
+## Installation Level: (Easy)
+## Installation Time: 3 Minutes
+## Files To Edit: 2
+##    admin/index.php
+##    templates/subSilver/admin/index_navigate.tpl
+## Included Files: 2
+##    images/keep_session_alive.php
+##    templates/keep_session_alive.js
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## - How this MOD works?
+##   This MOD adds a 1x1 pixel image in your ACP navigation panel which is automatically refreshed
+##   before your session expires. The URI for that small image is actually a script that updates
+##   your session_time. So that simple trick keeps your session alive while logged into your ACP.
+##
+## - Note for MOD authors:
+##   This MOD has been rewritten so it can be reused by other MOD authors more easily.
+##   As you'll see in this MOD, all you need to do is:
+##   a) Pass on to your template the variables: KSA_JSLIB, KSA_IMG and KSA_INTERVAL
+##   b) Include once the javascript in your template (on top of everything else if possible).
+##   c) Include once the 1x1 pixel image in your template (no matter the place).
+##   Please note that you can even use the phpbb page identifer of your choice (see KSA_IMG).
+##
+## - MOD related comments:
+##   Tested with phpBB 2.0.10
+##   This MOD is EasyMOD friendly.
+##
+##############################################################
+## MOD History:
+##
+## 2004/10/14 - 1.1.0
+## - Rewritten so it can be reused by other MOD authors more easily.
+##
+## 2004/10/10 - 1.0.0
+## - Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy root/images/keep_session_alive.php to images/keep_session_alive.php
+copy root/templates/keep_session_alive.js to templates/keep_session_alive.js
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/index.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE --- the whole line to look for should be similar to this:
+#		"U_ADMIN_INDEX" => append_sid("index.$phpEx?pane=right"),
+#
+U_ADMIN_INDEX
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: Keep Session Alive!
+		'KSA_JSLIB' => $phpbb_root_path.'templates/keep_session_alive.js',
+		'KSA_IMG' => append_sid($phpbb_root_path."images/keep_session_alive.$phpEx?p=".PAGE_INDEX),
+		'KSA_INTERVAL' => intval($board_config['session_length']),
+//-MOD: Keep Session Alive!
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/index_navigate.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE --- the whole line to look for should be similar to this:
+#<table width="100%" cellpadding="4" cellspacing="0" border="0" align="center">
+#
+<table
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<script language="javascript" type="text/javascript" src="{KSA_JSLIB}"></script>
+<script language="javascript" type="text/javascript">
+<!--
+var KSA = new _KSA({KSA_INTERVAL}, "{KSA_IMG}");
+// -->
+</script>
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE --- the whole line to look for should be similar to this:
+#		  <th height="25" class="thHead"><b>{L_ADMIN}</b></th>
+#
+{L_ADMIN}
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+{L_ADMIN}
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+<img name="ksa_img" src="{KSA_IMG}" width="1" height="1" border="0" />
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

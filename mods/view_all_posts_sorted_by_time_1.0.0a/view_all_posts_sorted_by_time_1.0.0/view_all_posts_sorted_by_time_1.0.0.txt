@@ -1,0 +1,327 @@
+##############################################################
+## MOD Title: View All Posts Sorted By Time
+## MOD Author: pentapenguin < pentapenguin@bluebottle.com > (Jeremy Conley) http://www.pentapenguin.com
+## MOD Description: With this MOD you can view all posts made within a selected time frame (i.e. 1 week).
+## MOD Version: 1.0.0
+## Installation Level: Easy
+## Installation Time:  10 Minutes
+## Files To Edit: 4
+## search.php
+## includes/page_header.php
+## langauge/lang_english/lang_main.php
+## templates/subSilver/index_body.tpl
+##
+## Included Files: n/a
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## Instructions for use: just go to the index page and use the select box to view all posts in a selected time period.
+##
+## This MOD is EasyMOD friendly! (http://area51.phpbb.com/phpBB/viewforum.php?sid=&f=17)
+##
+## For additional language and style downloads, please visit http://www.pentapenguin.com/forum/viewtopic.php?t=1442
+##
+## Optional step: if you have CyberAlien's eXtreme Styles MOD (http://www.phpbb.com/phpBB/viewtopic.php?t=125251),
+## you can copy the file in contrib/admin/xs_view_all_posts_sorted_by_time.cfg to admin/xs_view_all_posts_sorted_by_time.cfg and you will
+## be automatically notified if there's an update available when you use the "check for updates" function. 
+##############################################################
+## MOD History:
+##   2005-11-07 - Version 1.0.0
+##      - Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+search.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$search_time = 0;
+	$topic_days = 0;
+}
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Start View All Posts Sorted By Time MOD
+if ( !empty($HTTP_GET_VARS['sort_time']) || !empty($HTTP_POST_VARS['sort_time']) )
+{
+	$sort_time = ( !empty($HTTP_GET_VARS['sort_time']) ) ? intval($HTTP_GET_VARS['sort_time']) : intval($HTTP_POST_VARS['sort_time']);
+	$sort_time = time() - $sort_time;
+}
+
+else
+{
+	$sort_time = 0;
+}
+// End View All Posts Sorted By Time MOD 
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Note: the full line to find on a fresh phpBB installation is: else if ( $search_keywords != '' || $search_author != '' || $search_id )
+#
+else if ( $search_keywords != '' || $search_author != ''
+
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$search_id
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+# Note: the space before the || symbol and after $sort_time are important!
+#
+ || $sort_time 
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Note: the full line to find on a fresh phpBB installation is: if ( $search_id == 'newposts' || $search_id == 'egosearch' || $search_id == 'unanswered' || $search_keywords != '' || $search_author != '' )
+#
+if ( $search_id == 'newposts' || $search_id == 'egosearch' || $search_id == 'unanswered'
+
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$search_author != '' 
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+# Note: the space before the || symbol and after $sort_time are important!
+#
+ || $sort_time 
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Note: the full line to find on a fresh phpBB installation is: if ( $search_id == 'newposts' || $search_id == 'egosearch' || ( $search_author != '' && $search_keywords == '' )  )
+#
+if ( $search_id == 'newposts' || $search_id == 'egosearch' || (
+
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$search_keywords == '' ) 
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+# Note: the space before the || symbol and after $sort_time are important!
+#
+ || $sort_time
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					redirect(append_sid("login.$phpEx?redirect=search.$phpEx&search_id=newposts", true));
+				}
+
+				$show_results = 'topics';
+				$sort_by = 0;
+				$sort_dir = 'DESC';
+			}
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			// Start View All Posts Sorted By Time MOD
+			else if ( $sort_time )
+			{
+				$sql = 'SELECT post_id 
+					FROM ' . POSTS_TABLE . " 
+					WHERE post_time >= $sort_time";
+					
+				$show_results = 'topics';
+				$sort_by = 0;
+				$sort_dir = 'DESC';
+			}
+			// End View All Posts Sorted By Time MOD
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_SEARCH_SELF' => $lang['Search_your_posts'],
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	// Start View All Posts Sorted By Time MOD
+	'S_SEARCH_ALL_POSTS' => append_sid("search.$phpEx?mode=results"),
+	
+	'L_GO' => $lang['Go'],
+	'L_SEARCH_ALL_POSTS' => $lang['Search_all_posts'],
+	'L_5_MINUTES' => $lang['5_Minutes'],
+	'L_10_MINUTES' => $lang['10_Minutes'],
+	'L_30_MINUTES' => $lang['30_Minutes'],
+	'L_1_HOUR' => $lang['1_Hour'],
+	'L_2_HOURS' => $lang['2_Hours'],
+	'L_6_HOURS' => $lang['6_Hours'],
+	'L_12_HOURS' => $lang['12_Hours'],
+	'L_1_DAY' => $lang['1_Day'],
+	'L_2_DAYS' => $lang['2_Days'],
+	'L_3_DAYS' => $lang['3_Days'],
+	'L_4_DAYS' => $lang['4_Days'],
+	'L_5_DAYS' => $lang['5_Days'],
+	'L_6_DAYS' => $lang['6_Days'],
+	'L_7_DAYS' => $lang['7_Days'],
+	'L_2_WEEKS' => $lang['2_Weeks'],
+	'L_3_WEEKS' => $lang['3_Weeks'],
+	'L_1_MONTH' => $lang['1_Month'],
+	'L_2_MONTHS' => $lang['2_Months'],
+	'L_3_MONTHS' => $lang['3_Months'],
+	'L_4_MONTHS' => $lang['4_Months'],
+	'L_5_MONTHS' => $lang['5_Months'],
+	'L_6_MONTHS' => $lang['6_Months'],
+	// End View All Posts Sorted By Time MOD
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Note: the full line to find on a fresh phpBB installation is: $lang['1_Day'] = '1 Day';
+#
+$lang['1_Day']
+
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+// Start View All Posts Sorted By Time MOD
+$lang['Search_all_posts'] = 'View all posts since';
+$lang['5_Minutes'] = '5 Minutes';
+$lang['10_Minutes'] = '10 Minutes';
+$lang['30_Minutes'] = '30 Minutes';
+$lang['1_Hour'] = '1 Hour';
+$lang['2_Hours'] = '2 Hours';
+$lang['6_Hours'] = '6 Hours';
+$lang['12_Hours'] = '12 Hours';
+$lang['2_Days'] = '2 Days';
+$lang['3_Days'] = '3 Days';
+$lang['4_Days'] = '4 Days';
+$lang['5_Days'] = '5 Days';
+$lang['6_Days'] = '6 Days';
+$lang['3_Weeks'] = '3 Weeks';
+$lang['2_Months'] = '2 Months';
+$lang['4_Months'] = '4 Months';
+$lang['5_Months'] = '5 Months';
+// End View All Posts Sorted By Time MOD
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/index_body.tpl
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<a href="{U_SEARCH_UNANSWERED}" class="gensmall">{L_SEARCH_UNANSWERED}</a></td>
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+</td>
+
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+<br />
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# Note: in other words add after this: <a href="{U_SEARCH_UNANSWERED}" class="gensmall">{L_SEARCH_UNANSWERED}</a><br />
+#
+
+<span class="gensmall">
+<form method="post" name="search_time" action="{S_SEARCH_ALL_POSTS}">
+<select name="sort_time" size="1" onChange="if(this.options[this.selectedIndex].value != 0){ document.forms['search_time'].submit() }">
+<option value="0" selected="selected">{L_SEARCH_ALL_POSTS}:</option>
+<option value="300">{L_5_MINUTES}</option>
+<option value="600">{L_10_MINUTES}</option>
+<option value="1800">{L_30_MINUTES}</option>
+<option value="3600">{L_1_HOUR}</option>
+<option value="7200">{L_2_HOURS}</option>
+<option value="21600">{L_6_HOURS}</option>
+<option value="43200">{L_12_HOURS}</option>
+<option value="86400">{L_1_DAY}</option>
+<option value="172800">{L_2_DAYS}</option>
+<option value="259200">{L_3_DAYS}</option>
+<option value="345600">{L_4_DAYS}</option>
+<option value="432000">{L_5_DAYS}</option>
+<option value="518400">{L_6_DAYS}</option>
+<option value="604800">{L_7_DAYS}</option>
+<option value="1209600">{L_2_WEEKS}</option>
+<option value="1814400">{L_3_WEEKS}</option>
+<option value="2592000">{L_1_MONTH}</option>
+<option value="5184000">{L_2_MONTHS}</option>
+<option value="7776000">{L_3_MONTHS}</option>
+<option value="10368000">{L_4_MONTHS}</option>
+<option value="12960000">{L_5_MONTHS}</option>
+<option value="15552000">{L_6_MONTHS}</option>
+</select>
+
+<noscript>
+<input type="submit" value="{L_GO}" class="liteoption" />
+</noscript>
+
+</form>
+</span>
+
+</td>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

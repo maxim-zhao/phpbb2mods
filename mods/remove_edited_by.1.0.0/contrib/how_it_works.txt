@@ -1,0 +1,58 @@
+Remove Edited By for Admins (1.0.0)
+Provided by the phpBB Doctor (www.phpBBDoctor.com)
+
+This very simple MOD from the phpBB Doctor (www.phpBBDoctor.com) allows you to 
+disable the "Edited By" message for any ADMIN edits. Some people wonder how this 
+is triggered, as you might edit one post and see a change notice added to your 
+post. Yet edit another post and no change notice is added. Why? 
+
+First, here's the code: 
+
+open includes/functions_post.php 
+find  
+        $edited_sql =  
+
+After, add   
+
+        // BEGIN No "Edit By" for ADMINS (www.phpBBDoctor.com) 
+        if ($userdata['user_level'] == ADMIN) 
+        { 
+                $edited_sql = ''; 
+        } 
+        // END No "Edit By" for ADMINS (www.phpBBDoctor.com) 
+
+
+So that removes the message for ADMIN users. But let's discuss the original line 
+of code to understand when the code is executed. 
+
+Code: ‹ Select ›  
+        $edited_sql = ($mode == 'editpost' && !$post_data['last_post'] && $post_data['poster_post']) ? ", post_edit_time = $current_time, post_edit_count = post_edit_count + 1 " : ""; 
+
+The first thing that's checked is if we're in "editpost" mode via $mode == 
+'editpost'. The mode is set from posting.php and lets us know whether we're 
+adding a new post, deleting an existing post, or - you guessed it - editing. 
+Obviously we only need an "Edited by..." message if we're editing the post.  
+
+Next, this part !$post_data['last_post'] let's us check to see if we're on the 
+last post. The decision made by the phpBB developers was that there was no harm 
+in editing the last post of a topic, because it's not possible for someone to 
+have quoted you or responded to your comments yet. So as long as you have the 
+last word on the topic, you can change it without it being documented. 
+
+Finally this $post_data['poster_post'] allows the code to check if it is you 
+editing or someone else. If a Mod or Admin edits your post, they don't get 
+flagged. 
+
+So, the bottom line... if you are editing a post that is not the last post of a 
+topic, and it's your post, then you see the "Edited by..." message. If you make 
+the change listed above, then ADMINs will be allowed to edit their posts no 
+matter where they are on the board and not trigger this message. Hope this helps 
+you understand the logic a bit more. 
+
+What if you wanted to go the opposite route? What if you wanted to record all 
+edits made by anyone, anywhere, anytime? For that you would need a new database 
+table, as there is not enough room on the POSTS_TABLE to store an edit history 
+by more than one person. Perhaps this will be a future MOD available in from
+the phpBB Doctor. 
+
+www.phpBBDoctor.com

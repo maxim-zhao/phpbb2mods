@@ -1,0 +1,380 @@
+##############################################################
+## MOD Title: Advanced Group Color Management for CH 2.1.4 - Upgrade Instructions 1.0.2 to 1.0.3
+## MOD Author: Phantomk <phantomk@modmybb.com> (N/A) http://www.modmybb.com/
+## MOD Description:
+##         Modify's the Group system to add colors.
+## MOD Version: 1.0.3
+##
+## Installation Level: Advanced
+## Installation Time: 3 Minutes
+## Files To Edit: 3
+##               common.php
+##               modcp.php
+##               templates/subSilver/subSilver.cfg
+## Included Files: 10
+##               admin/admin_color.php
+##               includes/class_color.php
+##               language/lang_english/lang_admin_color.php
+##               language/lang_english/lang_main_color.php
+##               templates/subSilver/admin/color_edit_body.tpl
+##               templates/subSilver/admin/color_style_select.tpl
+##               templates/subSilver/images/arrow_down.gif
+##               templates/subSilver/images/arrow_up.gif
+##               templates/subSilver/search_color.tpl
+##               templates/picker.js
+##               install_color/*.*
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##      - Inspired By Advanced Username Color by:
+##         - aUsTiN <austin_inc@hotmail.com> (N/A) http://phpbb-amod.com/
+##      - Tigra Color Picker provided by:
+##         - SoftComplex <N/A> (N/A) http://www.softcomplex.com/
+##      - Special thanks to ptirhiik for his time and patience in answering my barrage of questions.
+##
+##############################################################
+## MOD History:
+##
+##   2005-11-21 - Version 1.0.3
+##      - Cleaned up admin interface.
+##      - Added colors to modcp.php
+##
+##   2005-11-17 - Version 1.0.2
+##      - Removed SQL from install, caused too many problems.
+##      - Fixed a language bug.
+##      - Added missing colors to privmsg.php preview.
+##
+##   2005-11-12 - Version 1.0.1
+##      - Fixed installer issues.
+##
+##   2005-11-07 - Version 1.0.0
+##      - Added group color's to admin/index.php and includes/topic_review.php
+##      - Cleaned up installer
+##      - Cleaned up Admin Interface
+##      - Cleaned up some install find's and replace's
+##      - Cleaned up popup window for tiagra color picker (Work's in FF, IE and Opera)
+##      - Fixed a minor issue with other mod compatibility's in viewtopic.php
+##      - Upgraded phpBB compatibility to 2.0.18
+##      - Upgraded CH compatibility to 2.1.4
+##
+##   2005-10-04 - Version 0.2.2
+##      - Fixed the install file, multiple errors
+##      - Removed some code going into groupcp.php
+##      - Modified install file for common.php
+##
+##   2005-10-03 - Version 0.2.1
+##      - Added install file
+##         - Automatically installs the sql and updates the group tables, as well as regenerates
+##           necessary cache for Cat Hierarchy
+##
+##   2005-09-29 - Version 0.2.0
+##      - Bug Fixes and Code Cosmetic Changes (Thanks to Budman)
+##      - Added admin_color.php to modify the color settings
+##      - Added colors to the groupcp.php for the group name
+##      - Added colors to the moderator list if the moderator is a group
+##      - Added Tigra Color Picker (replaceing the Color Wheel)
+##      - Added support for colors that are style specific
+##
+##   2005-09-22 - Version 0.1.0-RC2
+##      - Bug Fixes
+##
+##   2005-09-12 - Version 0.1.0-RC1
+##      - Changed legend link from groupcp to memberlist for Cat Hierarchy.
+##      - Added support for sync function in functions_admin. (Fixes colors when a topic is deleted/split/moved in modcp)
+##      - Modified the Legend to look like phpBB3 (Thanks to AJ Riddle)
+##      - Added support for deleteing/adding users from/to a group or deleteing a group entirely in groupcp.php and admin_groups.php
+##
+##   2005-08-29 - Version 0.0.10-b
+##      - Fixed colors not being displayed when viewing a forum or in search for Cat Hierarchy Install
+##      - Fixed small find / replace in install instructions for Cat Hierarchy
+##      - Fixed bug in ACP -> User Management
+##      - Fixed bug in Vanilla phpBB where colors would not show up for non mod/admins in legend for whoisonline
+##      - Fixed Auto Select bug in usercp_register.php
+##      - Group_color_select now checks for pending.
+##      - Both versions of install are now compatiable with EasyMod
+##
+##   2005-08-27 - Version 0.0.9-b
+##      - Fixed markers for the install, as they created issues.  Shouldn't have anymore.
+##      - Moved $colors->display_legend(); in page_header.php to index.php for Vanilla Installation
+##      - Reformated class_colors.php fixing alot of bugs with the vanilla phpBB functions, and some minor CH functions.
+##      - Fixed a missing class in search_color.tpl
+##      - Fixed a problem with legend variable not changeing in ACP
+##      - Updated Cat Hierarchy instructions to support 2.1.1RC6a, instructions are not to be used on 2.1.1RC5 as they are different in some areas
+##      - Fixed alot of bugs with phpBB install
+##
+##   2005-08-26 - Version 0.0.8-b
+##      - Fixed Color wheel, now functioning properly, I hope.
+##      - Moved the colorwheel.png to the images folder. (Thanks to Cr@ter$)
+##
+##   2005-08-23 - Version 0.0.7-b
+##      - Added markers to the install. (Thanks to Cr@ter$)
+##      - Fixed a FIND in Cat Hierarchy install. (Thanks to Cr@ter$)
+##      - Updated some missing code for search.php in Cat Hierarchy install.
+##
+##   2005-08-22 - Version 0.0.6-b
+##      - Changed includes/class_stats.php install instructions for Cat Hierarchy.
+##      - Redefined get_user_color function.
+##
+##   2005-08-22 - Version 0.0.5-b
+##      - Minor Bug Fixes.
+##      - Renamed phpbb_user field group_id to user_group_id.
+##      - Fixed drop down user group menu issue when only in one group.
+##
+##   2005-08-21 - Version 0.0.4-b
+##      - Cleaned up install txt's to reduce size.
+##      - Moved code from top of files to common.php.
+##
+##   2005-08-21 - Version 0.0.3-b
+##      - Second Beta Release.
+##      - Added Vanilla phpBB Install.
+##      - Minor Bug fixes.
+##      - ACP User Management added.
+##      - Known Bugs:
+##          - Drop down box appears in profile/admin ACP even if only in one/no group('s).
+##
+##   2005-08-20 - Version 0.0.2-b
+##      - First Beta Release.
+##      - ACP Group Management Added.
+##      - Profile Group Management, for users in multiple groups.
+##      - Fully intergrated into Cat Hierarchy.
+##      - Known Bugs:
+##          - admin_user.php interface not completed.
+##          - Drop down box appears in profile even if only in one group.
+##
+##   2005-08-16 - Version 0.0.1-b
+##      - Initial Private Beta.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy root/admin/admin_color.php to admin/admin_color.php
+copy root/includes/class_color.php to includes/class_color.php
+copy root/language/lang_english/lang_admin_color.php to language/lang_english/lang_admin_color.php
+copy root/language/lang_english/lang_main_color.php to language/lang_english/lang_main_color.php
+copy root/templates/subSilver/admin/color_edit_body.tpl to templates/subSilver/admin/color_edit_body.tpl
+copy root/templates/subSilver/admin/color_style_select.tpl to templates/subSilver/admin/color_style_select.tpl
+copy root/templates/subSilver/images/arrow_down.gif to templates/subSilver/images/arrow_down.gif
+copy root/templates/subSilver/images/arrow_up.gif to templates/subSilver/images/arrow_up.gif
+copy root/templates/subSilver/search_color.tpl to templates/subSilver/search_color.tpl
+copy root/templates/picker.js to templates/picker.js
+copy root/install_color/*.* to install_color/*.*
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+common.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+define('IN_CH', TRUE);
+include($config->url('includes/class_color'));
+
+//
+// prepare colors class
+//
+$colors = new colors();
+
+//
+// let's run the install script
+//
+if ( !defined('IN_INSTALL') && ( $config->data['mod_advanced_group_color_management'] != AGCM_CURRENT_VERSION || empty($config->data['mod_advanced_group_color_management']) ) )
+{
+	header('Location: ./install_color/install.' . $phpEx . (empty($SID) ? '' : '?' . $SID));
+	exit;
+}
+
+//
+// People never read achievement messages after after having seen "Succesfull !", tss tss :)
+//
+if ( !defined('IN_INSTALL') && file_exists('install_color') )
+{
+	message_die(GENERAL_MESSAGE, 'Please ensure the install_color/ directory is deleted');
+}
+
+//
+// read colors
+//
+$colors->read();
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+define('IN_CH', TRUE);
+include($config->url('includes/class_color'));
+
+//
+// prepare colors class
+//
+$colors = new colors();
+
+//
+// let's run the install script
+//
+if ( !defined('IN_INSTALL') && $config->data['mod_advanced_group_color_management'] != AGCM_CURRENT_VERSION && !empty($config->data['mod_advanced_group_color_management']) )
+{
+	header('Location: ./install_color/install.' . $phpEx . (empty($SID) ? '' : '?' . $SID));
+	exit;
+}
+
+//
+// People never read achievement messages after after having seen "Succesfull !", tss tss :)
+//
+if ( !defined('IN_INSTALL') && file_exists('install_color') )
+{
+	message_die(GENERAL_MESSAGE, 'Please ensure the install_color/ directory is deleted');
+}
+
+//
+// read colors
+//
+if ( !defined('IN_INSTALL') )
+{
+	$colors->read();
+}
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+modcp.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$sql = "SELECT u.username, p.*, pt.post_text, pt.bbcode_uid, pt.post_subject, p.post_username
+				FROM " . POSTS_TABLE . " p, " . USERS_TABLE . " u, " . POSTS_TEXT_TABLE . " pt
+				WHERE p.topic_id = $topic_id
+					AND p.poster_id = u.user_id
+					AND p.post_id = pt.post_id
+				ORDER BY p.post_time ASC";
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+SELECT u.username
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_group_id
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+						'POSTER_NAME' => $poster,
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$poster,
+// with
+//	$colors->get_user_color($postrow[$i]['user_group_id'], $poster),
+//-- modify
+						'POSTER_NAME' => $colors->get_user_color($postrow[$i]['user_group_id'], $poster),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$sql = "SELECT u.user_id, u.username, COUNT(*) as postings 
+			FROM " . USERS_TABLE ." u, " . POSTS_TABLE . " p 
+			WHERE p.poster_id = u.user_id 
+				AND p.poster_ip = '" . $post_row['poster_ip'] . "'
+			GROUP BY u.user_id, u.username
+			ORDER BY " . (( SQL_LAYER == 'msaccess' ) ? 'COUNT(*)' : 'postings' ) . " DESC";
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+SELECT u.user_id, u.username
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_group_id
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					'USERNAME' => $username,
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$username,
+// with
+//	$colors->get_user_color($row['user_group_id'], $username),
+//-- modify
+					'USERNAME' => $colors->get_user_color($row['user_group_id'], $username),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$current_template_images = $current_template_path . "/images";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Advanced Group Color Management --------------------------------------
+// add
+$images['Down'] = $current_template_images . '/arrow_down.gif';
+$images['Up'] = $current_template_images . '/arrow_up.gif';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

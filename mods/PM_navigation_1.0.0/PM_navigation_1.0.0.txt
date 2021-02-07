@@ -1,0 +1,146 @@
+############################################################## 
+## MOD Title: 	PM Navigation 
+## MOD Author: Poupoune < poupoune@phpbb-fr.com > (N/A) http://www.phpbb-fr.Com/ 
+## MOD Description: This MOD allows you to have a navigation tool
+##	while reading your PMs, so you you don't have
+##	to always go back to your inbox folder to read 
+##	next pm.			
+## MOD Version: 1.0.0
+## 
+## Installation Level: Easy 
+## Installation Time: ~3 minutes
+## Files To Edit: 3
+##	privmsg.php
+##	lang_main.php
+##	privmsgs_read_body.tpl
+## Included Files: n/a 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes : 
+## 
+############################################################## 
+## MOD History : 
+## 
+##   09-07-2004 - Version 1.0.0
+##	- First Release
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+############################################################## 
+
+# 
+#-----[ OPEN ]---------------------------------------------- 
+# 
+
+privmsg.php
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+# 
+
+      message_die(GENERAL_ERROR, $lang['No_such_folder']);
+      break;
+  }
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------------- 
+#
+
+  // BEGIN PM Navigation MOD
+  if( $HTTP_GET_VARS['view']=='next' || $HTTP_GET_VARS['view']=='prev' )
+  {
+    $sql_condition = ( $HTTP_GET_VARS['view'] == 'next' ) ? '>' : '<';
+		$sql_ordering = ( $HTTP_GET_VARS['view'] == 'next' ) ? 'ASC' : 'DESC'; 
+    
+    $sql_nav = "SELECT pm.privmsgs_id FROM ". PRIVMSGS_TABLE ." pm, ". PRIVMSGS_TABLE ." p2
+      WHERE p2.privmsgs_id = $privmsgs_id
+      $pm_sql_user
+      AND pm.privmsgs_date $sql_condition p2.privmsgs_date
+      ORDER BY pm.privmsgs_date $sql_ordering LIMIT 1" ;
+    
+    if ( !($result2 = $db->sql_query($sql_nav)) )
+	  {
+		  message_die(GENERAL_ERROR, 'Could not query private message post information', '', __LINE__, __FILE__, $sql);
+	  }
+    if ( $row = $db->sql_fetchrow($result2) )
+    {
+      $privmsgs_id = intval($row['privmsgs_id']);
+    }
+    else
+    {
+      $message = ( $HTTP_GET_VARS['view'] == 'next' ) ? $lang['No_newer_pm'] : $lang['No_older_pm'];
+			$mes = $message . '<br /><br />' . sprintf($lang['Click_return_inbox'], '<a href="' . append_sid("privmsg.$phpEx?folder=inbox") . '">', '</a> ') . '<br /><br />' . sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+      message_die(GENERAL_MESSAGE, $mes);
+    }    
+  }
+  // END PM Navigation MOD
+
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+# 
+
+    'L_DELETE_MSG' => $lang['Delete_message'],
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------------- 
+#
+
+    // BEGIN PM Navigation MOD
+    'L_PRIVMSG_NEXT' => $lang['Next_privmsg'],
+    'L_PRIVMSG_PREVIOUS' => $lang['Previous_privmsg'],
+    'U_PRIVMSG_NEXT' => append_sid("privmsg.$phpEx?folder=$folder&mode=$mode&" . POST_POST_URL . "=$privmsgs_id&view=next", true),
+    'U_PRIVMSG_PREVIOUS' => append_sid("privmsg.$phpEx?folder=$folder&mode=$mode&" . POST_POST_URL . "=$privmsgs_id&view=prev", true),
+    // END PM Navigation MOD
+
+# 
+#-----[ OPEN ]---------------------------------------------- 
+# 
+
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+#
+
+$lang['Delete_message'] = '
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------------- 
+# 
+
+// BEGIN PM Navigation MOD
+$lang['Next_privmsg'] = 'Next private message';
+$lang['Previous_privmsg'] = 'Previous private message';
+$lang['No_newer_pm'] = 'There are no newer private messages.';
+$lang['No_older_pm'] = 'There are no older private messages.';
+// END PM Navigation MOD
+
+# 
+#-----[ OPEN ]---------------------------------------------- 
+# 
+
+templates/subSilver/privmsgs_read_body.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+#
+
+<table border="0" cellpadding="4" cellspacing="1" width="100%" class="forumline">
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------------- 
+# 
+
+  <tr>
+    <td class="row2" colspan="3" align="right"><span class="nav"><a href="{U_PRIVMSG_PREVIOUS}">{L_PRIVMSG_PREVIOUS}</a> :: <a href="{U_PRIVMSG_NEXT}">{L_PRIVMSG_NEXT}</a></span></td>
+  </tr>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

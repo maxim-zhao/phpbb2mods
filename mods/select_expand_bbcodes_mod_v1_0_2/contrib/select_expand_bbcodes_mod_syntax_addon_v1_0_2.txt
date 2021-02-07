@@ -1,0 +1,137 @@
+#################################################################
+## MOD Title: Select Expand BBcodes MOD (Syntax add-on)
+## MOD Author: markus_petrux < phpbb.mods@phpmix.com > (Markus) http://www.phpmix.com
+## MOD Description: This MOD enables SXBB features for the 'Syntax Highlighting BBCode'.
+##
+## MOD Version: 1.0.2
+##
+## Installation Level: Easy
+## Installation Time: ~3 Minutes
+## Files To Edit: 2
+##   includes/bbcode.php
+##   templates/subSilver/bbcode.tpl
+## Included Files: 0
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## * This MOD is an add-on for the Select Expand BBcodes MOD, therefore it uses the same
+##   version number as the Select Expand BBcodes MOD.
+##
+## * You can get the Syntax Highlighting BBCode here:
+##   http://www.phpbb.com/phpBB/viewtopic.php?t=217723
+##
+##   Note: The Syntax Highlighting BBCode MOD is in Beta stage at this moment (2004-09-27).
+##
+##############################################################
+## MOD History:
+##
+## 2004-09-27 - Version 1.0.2
+## - First time released
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	$bbcode_tpl['code_open'] = str_replace($expand_ary1, $expand_ary2, $bbcode_tpl['code_open']);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	$bbcode_tpl['syntax_open'] = str_replace($expand_ary1, $expand_ary2, $bbcode_tpl['syntax_open']);
+	$bbcode_tpl['syntax_open'] = str_replace('\'', '\\\'', $bbcode_tpl['syntax_open']);
+#
+#-----[ FIND ]------------------------------------------
+#
+	$bbcode_tpl['code_close'] = str_replace($expand_ary3, $expand_ary4, $bbcode_tpl['code_close']);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	$bbcode_tpl['syntax_close'] = str_replace($expand_ary3, $expand_ary4, $bbcode_tpl['syntax_close']);
+	$bbcode_tpl['syntax_close'] = str_replace('\'', '\\\'', $bbcode_tpl['syntax_close']);
+#
+#-----[ OPEN ]------------------------------------------
+#
+#  NOTE --- You need to do this for all of your installed template styles
+#
+templates/subSilver/bbcode.tpl
+#
+#================================================================================
+#	MOD Section: syntax_open
+#================================================================================
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- BEGIN syntax_open --></span>
+<table
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+<table
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ class="bodyline"
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td><span class="genmed"><b>{L_LANGUAGE}:</b></span></td>
+	</tr>
+	<tr>
+	  <td class="syntax-code"><!-- END syntax_open -->
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		<td class="helpline"><span class="genmed"><b>{L_LANGUAGE}:</b>
+<script type="text/javascript" src="{U_SXBB_JSLIB}"></script>
+<script type="text/javascript">
+<!--
+	var id = 'SXBB' + (1000 + Math.floor(Math.random() * 5000));
+	SXBB[id] = new _SXBB(id);
+	SXBB[id].T['select'] = '{L_SELECT}';
+	SXBB[id].T['expand'] = '{L_EXPAND}';
+	SXBB[id].T['contract'] = '{L_CONTRACT}';
+	SXBB[id].writeCmd();
+//-->
+</script>
+		</span></td>
+	</tr>
+	<tr>
+	  <td class="syntax-code">
+<script type="text/javascript">
+<!--
+	SXBB[id].writeDiv();
+//-->
+</script><!-- END syntax_open -->
+#
+#================================================================================
+#	MOD Section: syntax_close
+#================================================================================
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- BEGIN syntax_close --></td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+<!-- BEGIN syntax_close -->
+<script type="text/javascript">
+<!--
+	document.write('</div>');
+//-->
+</script>
+		</td>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

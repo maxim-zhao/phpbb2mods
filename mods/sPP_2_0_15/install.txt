@@ -1,0 +1,152 @@
+##############################################################
+## MOD Title: small Profile Panel
+## MOD Author: zi0n < gap@gmx.net > (N/A) http://zer0.pilgerer.de/
+## MOD Description: A very slight Profil replacement (basicly parts Profile into 4 parts)
+## MOD Version: 2.0.15
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+## Files To Edit: profile.php, usercp_avatar.php, lang_main.php
+## Included Files: (usercp_profile.php,profile_edit1.tpl,profile_edit2.tpl,profile_edit3.tpl,profile_edit4.tpl)
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+##      I always wanted something like Profile Control Panel, but much simpler (only one sub-navigation),
+##      so i created my own mod(100% based on usercp_register.php and profile_add_body.tpl,
+##      not stolen from any other mod ;) )
+##
+##      Make sure to apply any Mods regarding usercp_register.php and profile_add_body.tpl 
+##      to the corresponding files included!
+##
+##############################################################
+## MOD History:
+##
+##   2005-01-03 - Version 2.0.11
+##      - first version (small template-syntax errors)
+##   2005-01-12 - Version 2.0.12
+##      - initial release
+##   2005-01-30 - Version 2.0.12.0
+##      - url-avatar upload bug fixed (By Brando, thx)
+##   2005-02-22 - Version 2.0.12.1
+##      - code fixes for phpBB 2.0.12 (files for 2.0.11 included)
+##   2005-02-24 - Version 2.0.12.2
+##      - avatar-gallery bug fixed
+##   2005-02-25 - Version 2.0.12.3
+##      - redirect shows link to profile and index
+##      - avatar gallery bug should be fixed now
+##   2005-03-13 - Version 2.0.13
+##      - version number fixed
+##   2005-03-23 - Version 2.0.14
+##      - improved code-syntax
+##   2005-04-12 - Version 2.0.15
+##      - htmlspecialchars($pmode) -> intval($pmode)
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+#      for phpBB 2.0.11 # copy includes/usercp_profile.php.2.0.11 to includes/usercp_profile.php #  else
+
+copy includes/usercp_profile.php to includes/usercp_profile.php
+
+copy templates/subSilver/profile_edit1.tpl to templates/subSilver/profile_edit1.tpl
+copy templates/subSilver/profile_edit2.tpl to templates/subSilver/profile_edit2.tpl
+copy templates/subSilver/profile_edit3.tpl to templates/subSilver/profile_edit3.tpl
+copy templates/subSilver/profile_edit4.tpl to templates/subSilver/profile_edit4.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+profile.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// Start of program proper
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+if ( isset($HTTP_GET_VARS['pmode']) || isset($HTTP_POST_VARS['pmode']) )
+{
+	$pmode = ( isset($HTTP_GET_VARS['pmode']) ) ? $HTTP_GET_VARS['pmode'] : $HTTP_POST_VARS['pmode'];
+	$pmode = intval($pmode);
+}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	else if ( $mode == 'editprofile' || $mode == 'register' )
+	{
+		if ( !$userdata['session_logged_in'] && $mode == 'editprofile' )
+		{
+			redirect(append_sid("login.$phpEx?redirect=profile.$phpEx&mode=editprofile", true));
+		}
+
+		include($phpbb_root_path . 'includes/usercp_register.'.$phpEx);
+		exit;
+	}
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	else if ( $mode == 'register' )
+	{
+		include($phpbb_root_path . 'includes/usercp_register.'.$phpEx);
+		exit;
+	}
+	else if ( $mode == 'editprofile' )
+	{
+		if ( !$userdata['session_logged_in'] )
+		{
+			redirect(append_sid("login.$phpEx?redirect=profile.$phpEx&mode=editprofile&amp;pmode=".$pmode, true));
+		}
+
+		include($phpbb_root_path . 'includes/usercp_profile.'.$phpEx);
+		exit;
+	}
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_avatar.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'S_PROFILE_ACTION' => append_sid("profile.$phpEx?mode=$mode"),
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+mode=$mode
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+&pmode=4
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all, Folks!
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+$lang['User'] = 'User';
+$lang['Click_return_profile'] = 'Click %sHere%s to return to your Profile';
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM 

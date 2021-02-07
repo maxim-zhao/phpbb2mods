@@ -1,0 +1,309 @@
+##############################################################
+## MOD Title: Annual Stars
+## MOD Author: drathbun < N/A > (Dave Rathbun) http://www.phpBBDoctor.com
+## MOD Description: This MOD "rewards" members by displaying one star for each year of membership beside their name.
+## MOD Version: 1.0.2
+##
+##
+## Installation Level: Easy
+## Installation Time: ~ 5 Minutes
+## Files To Edit: admin/admin_board.php, templates/subSilver/admin/board_config_body.tpl, language/lang_english/lang_main.php, viewtopic.php, templates/subSilver/viewtopic_body.tpl, includes/usercp_viewprofile.php, templates/subSilver/profile_view_body.tpl, memberlist.php, templates/subSilver/memberlist_body.tpl
+## Included Files: star.gif
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## This MOD allows the board admin to provide a link to a small
+## image or icon of some sort. This icon will be displayed
+## under the username in their profile, on the member listing,
+## and on the viewtopic display once the user has reached a
+## year of membership. There icon will be repeated for each
+## year of membership.
+## 
+## The calculation process is not very sophisticated, it simply
+## looks for 365 day intervals since the use has joined. As a
+## result it will not handle leap years. We did not think that
+## it needed to be that precise.
+## 
+## Several simple star graphics are included with the MOD. You
+## can use one of them or you can switch out for another
+## graphic of your choice. The path to the image is set in the
+## admin control panel (ACP) so you do not need to edit any
+## code in order to switch the image. The path is based off of
+## the template root directory, and will automatically include
+## the style selected by the user. For example, if a user has
+## selected subSilver as their style then the path to the image
+## in the ACP would be
+## 
+## images/star.gif
+## 
+## ... and the fully qualified path for the image will be
+## 
+## templates/subSilver/images/star.gif
+## 
+## This will allow you to use the same image name for all
+## styles. You must provide an image for each available style
+## on your board or the graphic will not be displayed
+## correctly.
+## 
+## You can consider each of the non-admin install sections
+## optional. If you want to display the annual stars only on
+## the profile then skip the sections dealing with viewtopic
+## (both the php and the tpl files). You may also opt to skip
+## the memberlist changes. Note that if you install via EasyMOD
+## or some other automatic installer you will have to edit the
+## template file prior to using it if you do not want to
+## install all three parts.
+##
+## This MOD has 39 install instructions.
+##############################################################
+## MOD History:
+##
+##	2006-05-09 - Version 1.0.2
+##		Missing  in FIND statement for viewtopic fixed
+##
+##	2006-04-16 - Version 1.0.1
+##		Added template path to image location
+##
+##	2006-04-15 - Version 1.0.0
+##		Initial public release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]-------------------------------------
+#
+insert into phpbb_config (config_name, config_value) values ('annual_stars', 'images/star.gif');
+
+#
+#-----[ COPY ]-------------------------------------
+#
+copy star.gif to templates/subSilver/images/star.gif
+
+#
+#-----[ DIY INSTRUCTIONS ]-------------------------------------
+#
+Copy other star images, if desired, to other template folders. Alternatively you may substitute any graphic of your own.
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	"SERVER_NAME" => $new['server_name'], 
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+	// BEGIN Annual Stars 1.0.2 (www.phpBBDoctor.com)
+	'L_ANNUAL_STARS' => $lang['Annual_stars'],
+	'L_ANNUAL_STARS_EXPLAIN' => $lang['Annual_stars_explain'],
+	'ANNUAL_STARS' => $new['annual_stars'],
+	// END Annual Stars 1.0.2 (www.phpBBDoctor.com)
+
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_AVATAR_SETTINGS}</th>
+
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+	<!-- START Annual Stars 1.0.2 (www.phpBBDoctor.com)-->
+	<tr>
+		<td class="row1">{L_ANNUAL_STARS}<br /><span class="gensmall">{L_ANNUAL_STARS_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="annual_stars" value="{ANNUAL_STARS}" /></td>
+	</tr>
+	<!-- STOP Annual Stars 1.0.2 (www.phpBBDoctor.com) -->
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]-------------------------------------
+#
+//
+// That's all, Folks!
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Annual Stars 1.0.2 (www.phpBBDoctor.com)
+$lang['Annual_stars'] = 'Years of Membership';
+$lang['Annual_stars_explain'] = 'Small graphic that will denote each year of membership';
+// END Annual Stars 1.0.2 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	$poster_joined =
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+	// Begin Annual Stars 1.0.2 (www.phpBBDoctor.com)
+	$poster_term = floor(( $postrow[$i]['user_id'] != ANONYMOUS ) ? ((time() - $postrow[$i]['user_regdate']) / (365 * 86400) ) : 0);
+
+	$poster_term_img = str_repeat('<img src="templates/' . $theme['template_name'] . '/' . $board_config['annual_stars'] . '"  border="0" title="' . $lang['Annual_stars'] . '" />', $poster_term) . (($poster_term) ?  '<br />' : '');
+	// END  Annual Stars 1.0.2 (www.phpBBDoctor.com)
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+		'POSTER_JOINED' => $poster_joined,
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+		'POSTER_TERM_IMG' => $poster_term_img,
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]-------------------------------------
+#
+{postrow.POSTER_JOINED}<br />
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+{postrow.POSTER_JOINED}<br />
+
+#
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------
+#
+{postrow.POSTER_TERM_IMG}
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]-------------------------------------
+#
+assign_vars
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+$term = floor ( (time() - $profiledata['user_regdate']) / (365 * 86400) );
+$term_img = str_repeat('<img src="templates/' . $theme['template_name'] . '/' . $board_config['annual_stars'] . '" border="0" title="' . $lang['Annual_stars'] . '" />', $term);
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	'JOINED' =>
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+	'TERM_IMG' => $term_img,
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+
+#
+#-----[ FIND ]-------------------------------------
+#
+{JOINED}</span></b>
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+{JOINED}</span></b>
+
+#
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------
+#
+ {TERM_IMG}
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+memberlist.php
+
+#
+#-----[ FIND ]-------------------------------------
+#
+joined =
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+		// BEGIN Annual Stars 1.0.2 (www.phpBBDoctor.com)
+		$member_term = floor((time() - $row['user_regdate']) / (365 * 86400) );
+		$member_term_img = ($member_term ? '<br />' : '') . str_repeat('<img src="templates/' . $theme['template_name'] . '/' . $board_config['annual_stars'] . '"  border="0" title="' . $lang['Annual_stars'] . '" />', $member_term);
+		// END Annual Stars 1.0.2 (www.phpBBDoctor.com)
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+'JOINED' => $joined,
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+			'TERM_IMG' => $member_term_img,
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+templates/subSilver/memberlist_body.tpl
+
+#
+#-----[ FIND ]-------------------------------------
+#
+{memberrow.JOINED}</span>
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+{memberrow.JOINED}</span>
+
+#
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------
+#
+{memberrow.TERM_IMG}
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

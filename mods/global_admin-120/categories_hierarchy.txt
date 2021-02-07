@@ -1,0 +1,123 @@
+##############################################################
+## MOD Title: Global Admin Template for Categories Hierarchy
+## MOD Author: Thoul < thoul@phpbbsmith.com > (Jeremy Rogers) http://www.phpbbsmith.com
+## MOD Description:
+##      Allows a forum running Categories Hierarchy to have one set of template
+##      files for the Admin Panel, rather than several sets stored in each style
+##      directory. 
+## MOD Version: 1.0.0
+##
+## Installation Level: Advanced
+## Installation Time: 5 Minutes
+## Files To Edit:
+##      includes/class_user.php
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## Please read the readme.txt file if you have not already done so.
+##
+## This set of instructions is only for forums that already have Categories
+## Hierarchy installed.  If your forum does not use Categories Hierarchy, use
+## the instructions in file_edits.txt.
+##
+## These instructions are based on Categories Hierarchy 2.1.6.  They may or may
+## not work with other versions of Categories Hierarchy.
+##
+## This modification is a little different from others you may have used.
+## Many modifications have you copy files from the modification to your forum.
+## In order to preserve the files and edits added by any other modifications
+## previously installed, this modification will instruct you to copy files from
+## one location in the forum to another.
+##
+## Please be aware that after installing this modification, any files to be
+## added or edited in templates/subSilver/admin/ for other modifications would
+## now need to be added/edited in admin/templates/admin/ instead.
+##
+## After this modification has been fully installed - and not before - you may
+## backup and then delete the templates/subSilver/admin directory and all files
+## in it.  Repeat for any other installed templates/xxxx/admin directories as
+## you desire. This is not required, but may free up to 70KB in filesystem
+## storage space per template.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------------
+#
+Create a admin/templates/ directory on your forum.
+Copy the following files from their current location in your forum (on the left)
+to the new location (on the right).
+	templates/ptifo/admin/*.*            to admin/templates/admin/*.*
+	templates/ptifo/acp/*.*              to admin/templates/acp/*.*
+	templates/ptifo/error_body.tpl       to admin/templates/error_body.tpl
+	templates/ptifo/message_body.tpl     to admin/templates/message_body.tpl
+	templates/ptifo/confirm_body.tpl     to admin/templates/confirm_body.tpl
+	templates/ptifo/navigation_box.tpl   to admin/templates/navigation_box.tpl
+	templates/ptifo/stat_run_body.tpl    to admin/templates/stat_run_body.tpl
+	templates/ptifo/form_body.tpl        to admin/templates/form_body.tpl
+	templates/ptifo/form_fields.tpl      to admin/templates/form_fields.tpl
+	templates/ptifo/cp_generic.tpl       to admin/templates/cp_generic.tpl
+	templates/ptifo/cp_menus_box.tpl     to admin/templates/cp_menus_box.tpl
+	templates/ptifo/posting_icon_box.tpl to admin/templates/posting_icon_box.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/class_user.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// This file modified for Global Admin Template for Categories Hierarchy 1.0.0
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+		if ( $template = new template_class($config->root . $template_path . $template_name, $row['custom_tpls']) )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+/*------------------------------------------------------------------------------
+// Global Admin Template for Categories Hierarchy - Begin Code Alteration
+//		Original Categories Hierarchy Code:
+		if ( $template = new template_class($config->root . $template_path . $template_name, $row['custom_tpls']) )
+
+*/
+		if( defined('IN_ADMIN') )
+		{
+			$template = new template_class('./', $row['custom_tpls'], 'admin/templates');
+		}
+		else
+		{
+			$template = new template_class($config->root . $template_path . $template_name, $row['custom_tpls']);
+		}
+		if ( $template )
+//
+// Global Admin Template for Categories Hierarchy - End Code Alteration
+//------------------------------------------------------------------------------
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

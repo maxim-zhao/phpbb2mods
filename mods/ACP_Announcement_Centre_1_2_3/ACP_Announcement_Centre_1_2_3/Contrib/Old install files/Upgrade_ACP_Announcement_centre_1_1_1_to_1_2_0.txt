@@ -1,0 +1,375 @@
+##############################################################
+## MOD Title: ACP Site Announcement Centre Upgrade from 1.1.1. to 1.2.0
+## MOD Author: lefty74 < lefty@lefty74.com > (Heiko Carstens) http://www.lefty74.com
+## MOD Description: Upgrade to v1.2.0
+## MOD Version: 0.0.0
+## 
+## Installation Level: Easy
+## Installation Time: 8 minutes
+## Files To Edit: index.php
+## language/lang_english/lang_admin.php
+## includes/constants.php
+## includes/page_header.php
+## Included Files: admin/admin_announcement_centre.php
+##	templates/subSilver/admin/announcement_centre_config_body.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+## Generator: Phpbb.ModTeam.Tools
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+## 
+##############################################################
+## MOD History:
+## 
+## 2007-04-08 - Version 0.0.0
+##      - Upgrade created 
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+UPDATE phpbb_announcement_centre SET announcement_value = 'v1.2.0' WHERE announcement_desc  = 'announcement_mod_version';
+INSERT INTO phpbb_announcement_centre (announcement_desc, announcement_value) VALUES('announcement_forum_id', '');
+INSERT INTO phpbb_announcement_centre (announcement_desc, announcement_value) VALUES('announcement_topic_id', '');
+INSERT INTO phpbb_announcement_centre (announcement_desc, announcement_value) VALUES('announcement_forum_topic_first_latest', '1');
+#
+#-----[ OPEN ]------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]------------------------------------------
+#
+// 
+// Start page proper 
+// 
+$sql = "SELECT c.cat_id, c.cat_title, c.cat_order 
+   FROM " . CATEGORIES_TABLE . " c 
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//BEGIN ACP Site Announcement Centre by lefty74
+// 
+// ACP Site Announcement Centre Smilies Pass & BBCode
+// 
+$announcement_centre_config['announcement_text']	= smilies_pass($announcement_centre_config['announcement_text']);
+$announcement_text_uid     							= make_bbcode_uid();
+$announcement_centre_config['announcement_text']	= bbencode_first_pass( $announcement_centre_config['announcement_text'], $announcement_text_uid );
+$announcement_centre_config['announcement_text']	= bbencode_second_pass ( $announcement_centre_config['announcement_text'], $announcement_text_uid );
+$announcement_centre_config['announcement_text']	= str_replace("\n", "\n<br />\n", $announcement_centre_config['announcement_text']);
+
+$announcement_centre_config['announcement_guest_text']	= smilies_pass($announcement_centre_config['announcement_guest_text']);
+$announcement_guest_text_uid     						= make_bbcode_uid();
+$announcement_centre_config['announcement_guest_text']	= bbencode_first_pass( $announcement_centre_config['announcement_guest_text'], $announcement_guest_text_uid );
+$announcement_centre_config['announcement_guest_text']	= bbencode_second_pass ( $announcement_centre_config['announcement_guest_text'], $announcement_guest_text_uid );
+$announcement_centre_config['announcement_guest_text']	= str_replace("\n", "\n<br />\n", $announcement_centre_config['announcement_guest_text']);
+
+$announcement_guest_text = $announcement_centre_config['announcement_guest_text'];
+
+// get the post information in case last topic or forum has been entered
+ if ( !$announcement_centre_config['announcement_forum_id'] == '' ||  !$announcement_centre_config['announcement_topic_id'] == '')
+{
+	 if ( !$announcement_centre_config['announcement_forum_id'] == '')
+	 {
+	 $where = 'p.forum_id = ' . $announcement_centre_config['announcement_forum_id'];
+	 }
+	 elseif ( !$announcement_centre_config['announcement_topic_id'] == '')
+	 {
+	 $where = ('p.topic_id = ' . $announcement_centre_config['announcement_topic_id']);
+	 }
+	 
+	 if ( $announcement_centre_config['announcement_forum_topic_first_latest'] == ANNOUNCEMENTS_LEFTY74_FORUM_TOPIC_FIRST )
+	 {
+	 $order = 'ASC';
+	 }
+	 elseif ( $announcement_centre_config['announcement_forum_topic_first_latest'] == ANNOUNCEMENTS_LEFTY74_FORUM_TOPIC_LATEST )
+	 {
+	 $order = 'DESC';
+	 }
+	 					
+				$sql = "SELECT p.post_id, p.forum_id, p.topic_id, pt.*
+				FROM " . POSTS_TABLE . ' as p, ' . POSTS_TEXT_TABLE . " as pt
+				WHERE ". $where ."
+				AND p.post_id = pt.post_id 
+				ORDER BY p.post_id ". $order ." LIMIT 1";
+				
+			if (!($result = $db->sql_query($sql)))
+			{
+				message_die(GENERAL_ERROR, 'Error in getting announcement post', '', __LINE__, __FILE__, $sql);
+			}
+
+			if ($row = $db->sql_fetchrow($result))
+			{
+				
+				$row['post_text']	= smilies_pass($row['post_text']);
+				$row['post_text']	= bbencode_first_pass( $row['post_text'], $row['bbcode_uid'] );
+				$row['post_text']	= bbencode_second_pass ( $row['post_text'], $row['bbcode_uid'] );
+				$row['post_text']	= str_replace("\n", "\n<br />\n", $row['post_text']);
+				$announcement_text = $row['post_text'];
+			}
+}
+else
+{
+$announcement_text = $announcement_centre_config['announcement_text'];
+}	
+
+// who sees the announcements
+if ( $announcement_centre_config['announcement_status'] == ANNOUNCEMENTS_LEFTY74_SHOW_YES )
+{
+if( $announcement_centre_config['announcement_access'] == ANNOUNCEMENTS_LEFTY74_SHOW_ADM && $userdata['user_level'] == ADMIN )
+{
+	$template->assign_block_vars('announcement_displayed', array());
+}
+else if ( $announcement_centre_config['announcement_access'] == ANNOUNCEMENTS_LEFTY74_SHOW_MOD && ( $userdata['user_level'] == MOD || $userdata['user_level'] == ADMIN ) )
+{
+	$template->assign_block_vars('announcement_displayed', array());
+}
+else if ( $announcement_centre_config['announcement_access'] == ANNOUNCEMENTS_LEFTY74_SHOW_REG && $userdata['session_logged_in'] )
+{
+	$template->assign_block_vars('announcement_displayed', array());
+}
+else if ( $announcement_centre_config['announcement_access'] == ANNOUNCEMENTS_LEFTY74_SHOW_ALL )
+{
+	$template->assign_block_vars('announcement_displayed', array());
+}
+else if (  $announcement_centre_config['announcement_guest_status'] == ANNOUNCEMENTS_LEFTY74_GUEST_YES && !$userdata['session_logged_in'] && !$announcement_centre_config['announcement_access'] == ANNOUNCEMENTS_LEFTY74_SHOW_ALL )
+{
+	$template->assign_block_vars('guest_announcement_displayed', array());
+}
+} 
+else 
+{
+$template->assign_block_vars('announcement_not_displayed', array());
+} 
+		
+//END ACP Site Announcement Centre by lefty74
+#
+#-----[ FIND ]------------------------------------------
+#
+//BEGIN ACP Site Announcement Centre by lefty74
+// 
+// ACP Site Announcement Centre Smilies Pass & BBCode
+// 
+$announcement_centre_config['announcement_text']	= smilies_pass($announcement_centre_config['announcement_text']);
+$announcement_text_uid     							= make_bbcode_uid();
+$announcement_centre_config['announcement_text']	= bbencode_first_pass( $announcement_centre_config['announcement_text'], $announcement_text_uid );
+$announcement_centre_config['announcement_text']	= bbencode_second_pass ( $announcement_centre_config['announcement_text'], $announcement_text_uid );
+$announcement_centre_config['announcement_text']	= str_replace("\n", "\n<br />\n", $announcement_centre_config['announcement_text']);
+
+$announcement_centre_config['announcement_guest_text']	= smilies_pass($announcement_centre_config['announcement_guest_text']);
+$announcement_guest_text_uid     						= make_bbcode_uid();
+$announcement_centre_config['announcement_guest_text']	= bbencode_first_pass( $announcement_centre_config['announcement_guest_text'], $announcement_guest_text_uid );
+$announcement_centre_config['announcement_guest_text']	= bbencode_second_pass ( $announcement_centre_config['announcement_guest_text'], $announcement_guest_text_uid );
+$announcement_centre_config['announcement_guest_text']	= str_replace("\n", "\n<br />\n", $announcement_centre_config['announcement_guest_text']);
+//END ACP Site Announcement Centre by lefty74
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+# Delete
+// 
+#
+#-----[ FIND ]------------------------------------------
+#
+	$template->assign_vars(array(
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	//BEGIN ACP Site Announcement Centre by lefty74
+ 	'L_ANNOUNCEMENT' => $lang['Site_Announcement'],
+    'SITE_ANNOUNCEMENTS_LEFTY74' => $announcement_text, 
+    'GUEST_ANNOUNCEMENTS_LEFTY74' => $announcement_guest_text, 
+	//END ACP Site Announcement Centre by lefty74
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+//BEGIN ACP Site Announcement Centre by lefty74
+$lang['Announcement_text'] = 'Regular Site Announcement Text';
+$lang['Announcement_guest_text'] = 'Announcements for guests only';
+$lang['Announcement_main_title'] = 'Site Announcement Configuration';
+$lang['Announcement_main_title_explain'] = 'The form will allow you to write your Site Announcements. You can select who should see these announcements. You can have alternative announcements for guests.';
+$lang['Announcement_block_title'] = 'ACP Site Announcement Centre';
+$lang['Announcement_draft_text'] = 'Announcement Draft';
+$lang['Announcement_draft_text_explain'] = 'Draft your Site Announcement text using the BBCode and smileys. Once done, copy and paste it in the appropriate Announcement text field';
+$lang['Show_announcement_text'] = 'Show Site Announcements';
+$lang['Select_all'] = 'Select All';
+$lang['Copy_to_Announcement'] = 'Copy to Site Announcement';
+$lang['Copy_to_Guest_Announcement'] = 'Copy to Guest Announcement';
+$lang['Submit'] = 'Submit';
+$lang['Reset'] = 'Reset';
+$lang['Yes'] = 'Yes';
+$lang['No'] = 'No';
+$lang['Show_announcement_all'] = 'Everyone';
+$lang['Show_announcement_reg'] = 'Registered Users';
+$lang['Show_announcement_mod'] = 'Moderators';
+$lang['Show_announcement_adm'] = 'Admins';
+$lang['Show_announcement_who'] = 'Show Site Announcement to';
+$lang['Announcement_guests_only'] = 'Show different Announcement to guests';
+$lang['Announcement_guests_only_explain'] = 'Shows different Announcement for guest users except when Show Site Announcement to is set to Everyone. </br></br>';
+$lang['announcement_updated'] = 'Site Announcement Configuration updated successfully';
+$lang['Click_return_announcement'] = 'Click %sHere%s to return to Site Announcement Configuration';
+//END ACP Site Announcement Centre by lefty74
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//BEGIN ACP Site Announcement Centre by lefty74
+$lang['Announcement_text'] = 'Regular Site Announcement Text';
+$lang['Announcement_text_explain'] = 'Enter Forum ID or Topic ID to use the first or latest post as announcement text. Announcement text is populated in the following order</br>1. Forum ID, if none entered then</br>2. Topic ID, if none entered then</br>3. Custom announcement text';
+$lang['Announcement_guest_text'] = 'Announcements for guests only';
+$lang['Announcement_main_title'] = 'Site Announcement Configuration';
+$lang['Announcement_main_title_explain'] = 'The form will allow you to write your Site Announcements. You can select who should see these announcements. You can have alternative announcements for guests.';
+$lang['Announcement_block_title'] = 'ACP Site Announcement Centre';
+$lang['Announcement_draft_text'] = 'Announcement Draft';
+$lang['Announcement_draft_text_explain'] = 'Draft your Site Announcement text using the BBCode and smileys. Once done, copy and paste it in the appropriate Announcement text field';
+$lang['Show_announcement_text'] = 'Show Site Announcements';
+$lang['Select_all'] = 'Select All';
+$lang['Copy_to_Announcement'] = 'Copy to Site Announcement';
+$lang['Copy_to_Guest_Announcement'] = 'Copy to Guest Announcement';
+$lang['Submit'] = 'Submit';
+$lang['Reset'] = 'Reset';
+$lang['Yes'] = 'Yes';
+$lang['No'] = 'No';
+$lang['Show_announcement_all'] = 'Everyone';
+$lang['Show_announcement_reg'] = 'Registered Users';
+$lang['Show_announcement_mod'] = 'Moderators';
+$lang['Show_announcement_adm'] = 'Admins';
+$lang['Show_announcement_who'] = 'Show Site Announcement to';
+$lang['Announcement_guests_only'] = 'Show different Announcement to guests';
+$lang['Announcement_guests_only_explain'] = 'Shows different Announcement for guest users except when Show Site Announcement to is set to Everyone. </br></br>';
+$lang['announcement_updated'] = 'Site Announcement Configuration updated successfully';
+$lang['Click_return_announcement'] = 'Click %sHere%s to return to Site Announcement Configuration';
+$lang['Forum_ID'] = 'Forum ID';
+$lang['Topic_ID'] = 'Topic ID';
+$lang['announcement_forum_topic_latest'] = 'Latest Post';
+$lang['announcement_forum_topic_first'] = 'First Post';
+//END ACP Site Announcement Centre by lefty74
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------
+#
+// BEGIN ACP Site Announcement Centre MOD lefty74
+define('ANNOUNCEMENTS_LEFTY74_TABLE', $table_prefix.'announcement_centre');
+define('ANNOUNCEMENTS_LEFTY74_SHOW_ALL', 0);
+define('ANNOUNCEMENTS_LEFTY74_SHOW_REG', 1);
+define('ANNOUNCEMENTS_LEFTY74_SHOW_MOD', 2);
+define('ANNOUNCEMENTS_LEFTY74_SHOW_ADM', 3);
+define('ANNOUNCEMENTS_LEFTY74_SHOW_YES', 1);
+define('ANNOUNCEMENTS_LEFTY74_SHOW_NO', 0);
+define('ANNOUNCEMENTS_LEFTY74_GUEST_YES', 1);
+define('ANNOUNCEMENTS_LEFTY74_GUEST_NO', 0);
+// END ACP Site Announcement Centre MOD lefty74
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// BEGIN ACP Site Announcement Centre MOD lefty74
+define('ANNOUNCEMENTS_LEFTY74_TABLE', $table_prefix.'announcement_centre');
+define('ANNOUNCEMENTS_LEFTY74_SHOW_ALL', 0);
+define('ANNOUNCEMENTS_LEFTY74_SHOW_REG', 1);
+define('ANNOUNCEMENTS_LEFTY74_SHOW_MOD', 2);
+define('ANNOUNCEMENTS_LEFTY74_SHOW_ADM', 3);
+define('ANNOUNCEMENTS_LEFTY74_SHOW_YES', 1);
+define('ANNOUNCEMENTS_LEFTY74_SHOW_NO', 0);
+define('ANNOUNCEMENTS_LEFTY74_GUEST_YES', 1);
+define('ANNOUNCEMENTS_LEFTY74_GUEST_NO', 0);
+define('ANNOUNCEMENTS_LEFTY74_FORUM_TOPIC_LATEST', 1);
+define('ANNOUNCEMENTS_LEFTY74_FORUM_TOPIC_FIRST', 0);
+// END ACP Site Announcement Centre MOD lefty74
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------
+#
+//BEGIN ACP Site Announcement Centre by lefty74
+ $announcement_text = $announcement_centre_config['announcement_text'];
+ $announcement_guest_text = $announcement_centre_config['announcement_guest_text'];
+//END ACP Site Announcement Centre by lefty74 
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+# delete
+// 
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_ANNOUNCEMENT' => $lang['Site_Announcement'],
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+# delete
+//
+#
+#-----[ FIND ]------------------------------------------
+#
+//BEGIN ACP Site Announcement Centre by lefty74
+    'SITE_ANNOUNCEMENTS_LEFTY74' => $announcement_text, 
+    'GUEST_ANNOUNCEMENTS_LEFTY74' => $announcement_guest_text, 
+//END ACP Site Announcement Centre by lefty74
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+# delete
+//
+#
+#-----[ FIND ]------------------------------------------
+#
+//BEGIN ACP Site Announcement Centre by lefty74
+if ( $announcement_centre_config['announcement_status'] == ANNOUNCEMENTS_LEFTY74_SHOW_YES )
+{
+if( $announcement_centre_config['announcement_access'] == ANNOUNCEMENTS_LEFTY74_SHOW_ADM && $userdata['user_level'] == ADMIN )
+{
+	$template->assign_block_vars('announcement_displayed', array());
+}
+else if ( $announcement_centre_config['announcement_access'] == ANNOUNCEMENTS_LEFTY74_SHOW_MOD && ( $userdata['user_level'] == MOD || $userdata['user_level'] == ADMIN ) )
+{
+	$template->assign_block_vars('announcement_displayed', array());
+}
+else if ( $announcement_centre_config['announcement_access'] == ANNOUNCEMENTS_LEFTY74_SHOW_REG && $userdata['session_logged_in'] )
+{
+	$template->assign_block_vars('announcement_displayed', array());
+}
+else if ( $announcement_centre_config['announcement_access'] == ANNOUNCEMENTS_LEFTY74_SHOW_ALL )
+{
+	$template->assign_block_vars('announcement_displayed', array());
+}
+else if (  $announcement_centre_config['announcement_guest_status'] == ANNOUNCEMENTS_LEFTY74_GUEST_YES && !$userdata['session_logged_in'] && !$announcement_centre_config['announcement_access'] == ANNOUNCEMENTS_LEFTY74_SHOW_ALL )
+{
+	$template->assign_block_vars('guest_announcement_displayed', array());
+}
+} 
+else 
+{
+$template->assign_block_vars('announcement_not_displayed', array());
+} 
+
+//END ACP Site Announcement Centre by lefty74
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+# delete
+//
+#
+#-----[ COPY ]------------------------------------------
+#
+copy root/admin/admin_announcement_centre.php to admin/admin_announcement_centre.php
+copy root/templates/subSilver/admin/announcement_centre_config_body.tpl to templates/subSilver/admin/announcement_centre_config_body.tpl
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

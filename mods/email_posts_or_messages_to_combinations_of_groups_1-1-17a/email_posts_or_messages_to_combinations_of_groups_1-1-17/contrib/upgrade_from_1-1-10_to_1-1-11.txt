@@ -1,0 +1,187 @@
+##############################################################
+## MOD Title: email posts or messages to combinations of groups (upgrade from 1.1.10 to 1.1.11)
+## MOD Author: asinshesq < asinsh@speakeasy.net > (Alan Sinsheimer) N/A
+## MOD Description:	This upgrades an installation of email posts or messages to combinations of groups
+##			from version 1.1.10 to 1.1.11
+##
+## MOD Version: 1.1.11
+##
+## Installation Level: (Easy)
+## Installation Time: 5 Minutes
+## Files To Edit: 	posting.php
+##			includes/functions_post.php
+##			language/lang_english/lang_main.php
+## Included Files: 	language/lang_english/email/admin_enabled_email.tpl
+##			language/lang_english/email/admin_enabled_email_no_text.tpl
+##			templates/subSilver/designated_groups_cp_body.tpl
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 	Note: this is an upgrade mod that assumes you already have version 1.1.10 of email posts or messages
+##			to combinations of groups installed
+##
+##			Important: if you have any other mods that install additional lines in posting.php that begin with:
+##			user_notification(...
+##			(you can tell simply by searching for user_notification( in posting.php and seeing if the change below has
+##			already been made)
+##
+##			then in each one of those additional lines you need to make the folloiwing change:
+##
+##			FIND (note the actual line is longer)
+##			user_notification(
+##
+##			IN-LINE FIND
+##			$group_id
+##
+##			IN-LINE AFTER, ADD
+##			, $email_re
+##
+##############################################################
+## MOD History:
+##
+##   2005-04-15 - Version 1.1.11
+##		  initial version of upgrade to 1.1.11 mod
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy admin_enabled_email.tpl to language/lang_english/email/admin_enabled_email.tpl
+copy admin_enabled_email_no_text.tpl to language/lang_english/email/admin_enabled_email_no_text.tpl
+copy designated_groups_cp_body.tpl to templates/subSilver/designated_groups_cp_body.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+# note that actual line is longer
+					user_notification($mode, $post_data,
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+				// now, get the subject re for the email...if left blank, insert "Important Announcment on the {SITENAME} forum"
+					$email_re = ( !empty($HTTP_POST_VARS['email_re']) ) ? htmlspecialchars($HTTP_POST_VARS['email_re']) : $lang['Important_announcement'];
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$group_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $email_re
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'L_INCLUDE_UNAUTHORIZED_USERS' => $lang['Include_unauthorized_users'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'L_EMAIL_RE' => $lang['Email_re'],
+
+			'S_SUBJECT' => $subject,
+
+#
+#-----[ FIND ]------------------------------------------
+# note that actual line is longer
+					user_notification('newtopic', $post_data,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$group_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $email_re
+
+#
+#-----[ FIND ]------------------------------------------
+# note that actual line is longer
+				user_notification($mode, $post_data,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$group_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $email_re
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['All_users'] = 'All Users';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Email_re'] = 'Subject for email (if left blank, will read: Important Announcement):';
+$lang['Important_announcement'] = 'Important Announcement';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------
+# actual line is longer
+function user_notification($mode,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+&$group_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, &$email_re
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$emailer->set_subject($lang['New_topic_notification']);
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+$emailer->set_subject($lang['Important_announcement']);
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+						'FORUM_NAME' => $forum_name,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+						'EMAIL_RE' => $email_re,
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

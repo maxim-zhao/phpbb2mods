@@ -1,0 +1,224 @@
+############################################################## 
+## MOD Title:		Contact Form :: Reasons Add-on
+## MOD Author:          marcus.smith < marcus@phobbia.net > (MarcuS) http://www.phobbia.net/mods
+## MOD Description:	Adds a dropdown of reasons for using the form, these need to be setup by the Admin.
+## MOD Version:		1.2.0
+##
+## Installation Level:	Easy
+##
+## Installation Time:	~5 Minutes
+##
+## Files To Edit:  	contact.php
+##			includes/functions_selects.php
+##		   	language/lang_english/email/contact.tpl
+##		   	templates/subSilver/contact_body.tpl
+##
+## Included Files:	language/lang_english/lang_contact_options.php
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+##
+##	How to Use this Addon
+##	---------------------
+##	Open language/lang_english/lang_contact_options.php and locate the reasons array.
+##	Each reason is structured as follows: $lang['contact_option']['Reason'] = 'Reason';
+##	The first part: ['Reason'] - is sent to the Admin as the Subject, whilst the second
+##	part: 'Reason' is displayed in the Contact Forms dropdown options list which users see.
+##	Best practice is for both to be the same for easier handling.  Simply add/remove reasons
+##	you would like to appear on your sites Contact Form.
+##
+##
+##	Sites with Additional Languages
+##	-------------------------------
+##	When sending an e-mail to the Admin, phpBB determines their chosen language and sends
+##	it in that language, not that of the sender.  When you are adding new translations of
+##	language/lang_xxxxx/lang_contact_options.php it is vital that you maintain the order of
+##	your reasons in each translation and do not change the $lang['contact_option'] parts.
+##	You will need to translate the first 2 lines in the lang_contact_options.php file also.
+##
+############################################################## 
+## MOD History:
+##
+##	2007-22-04 - Version 1.2.0
+##		- Updated to match latest code changes (8.9.4)
+##
+##	2007-03-03 - Version 1.1.0a
+##		- Minor typos corrected in install.txt
+##		  -- Thanks to CyberSpy (phpbb.com) for pointing these out
+##
+##	2007-03-01 - Version 1.1.0
+##		- Minor tweak in install.txt:
+##			$contact_options = stripslashes(htmlspecialchars($HTTP_POST_VARS['contact_options']));
+##
+##	2007-02-20 - Version 1.0.0
+##		- Reasons Add-on written for Contact Form
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+#
+#-----[ DIY INSTRUCTIONS ]-------------------------------------------
+#
+Make sure the Contact Form mod is installed BEFORE following these instructions.
+
+See Authors Notes for creating your own reasons list or using translations.
+
+#
+#-----[ COPY ]------------------------------------------ 
+# 
+copy root/language/lang_english/lang_contact_options.php to language/lang_english/lang_contact_options.php
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+contact.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_contact.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_contact_options.'.$phpEx);
+include($phpbb_root_path . 'includes/functions_selects.'.$phpEx);
+#
+#-----[ FIND ]------------------------------------------ 
+#
+$email			= (!isset($HTTP_POST_VARS['email'])) ? '' : stripslashes(trim(htmlspecialchars($HTTP_POST_VARS['email'])));
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+$contact_options	= (!isset($HTTP_POST_VARS['contact_options'])) ? '' : htmlspecialchars($HTTP_POST_VARS['contact_options']);
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	global $CF_attach_POST_error, $CF_attach_file_exists, $CF_attach_file_dud, $CF_attach_file_big;
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	global $CF_select_option;
+#
+#-----[ FIND ]------------------------------------------ 
+#
+message_die(GENERAL_ERROR, $lang['Contact_error'] . $CF_code_empty . $CF_code_wrong . $CF_attach_POST_error . $CF_illegal_ext . $CF_unknown_ext . $CF_rname_empty . $CF_email_empty . $CF_email_check . $CF_comments_empty . $CF_comments_limit . $CF_attach_file_exists . $CF_attach_file_dud . $CF_attach_file_big . $CF_image_error . $CF_image_zip . sprintf($lang['Click_return_form'], "<a href=\"javascript:history.back(-1); return false;\">", "</a>"));
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+. $CF_image_error . $CF_image_zip
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------
+#
+ . $CF_select_option
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	// Stage 1
+	error_check();
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+	if($contact_options == '0')
+	{
+		$CF_select_option = "<br /><br />" . $lang['No_option'];
+		$CF_general_message = 1;
+	}
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	$emailer->assign_vars(array(
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		'REASON' => ":: " . trim(stripslashes($contact_options)),
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_SUBMIT' => $lang['Submit'],
+	'L_RESET' => $lang['Reset'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	'L_OPTIONS' => $lang['Contact_options'],
+	'OPTIONS' => contact_options($select_name = 'contact_options'),
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_selects.php
+#
+#-----[ FIND ]-----------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+
+//
+// Contact Form :: Reasons Addon
+//
+function contact_options($select_name = 'contact_options')
+{
+	global $lang;
+
+	$contact_options = '<select name="' . $select_name . '">';
+	$contact_options .= '<option value="0" selected="selected">' . $lang['Contact_options'] .'</option>';
+
+	while(list($value, $option) = @each($lang['contact_option']))
+	{
+		$contact_options .= '<option value="' . $value . '">' . $option . '</option>';
+	}
+	$contact_options .= '</select>';
+
+	return $contact_options;
+}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/email/contact.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+Subject: Feedback received
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+Subject: Feedback received
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------
+#
+ {REASON}
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/contact_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+  <tr> 
+	<td class="row1"><span class="gen"><b>{L_EMAIL}</b></span><br />
+		<span class="gensmall">{L_EXPLAIN_EMAIL}</span></td>
+	<td class="row2"><input type="text" name="email" size="30" maxlength="50" /></td>
+  </tr>
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+  <tr>
+	<td class="row1"><span class="gen"><b>{L_OPTIONS} *</b></span></td>
+	<td class="row2">{OPTIONS}</td>
+  </tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

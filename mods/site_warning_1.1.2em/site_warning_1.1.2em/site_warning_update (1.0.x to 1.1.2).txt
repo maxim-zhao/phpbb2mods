@@ -1,0 +1,362 @@
+############################################################## 
+## MOD Title:          Site warning
+## MOD Author:         alcaeus < alcaeus@gmx.net > (Alca Eus) http://www.alcae.us.tt
+## MOD Description:    Adds a customizable warning to the database. The warning then is displayed 
+##                       in overall_header.tpl, meaning that it is visible on every page in your 
+##                       forum. You can modify the looks of that warning, the template only 
+##                       contains the warning table, making this very customizable.
+## MOD Version:        1.1.2
+##
+## Installation Level: Easy
+## Installation Time:  ~5 Minutes (1mn by EasyMOD of Nuttzy)
+## Files To Edit:      5
+##      admin/admin_board.php
+##      includes/page_header.php
+##      language/lang_english/lang_admin.php
+##      templates/subSilver/admin/board_config_body.tpl
+##      templates/subSilver/overall_header.tpl
+##
+## Included Files:     0
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+## IMPORTANT: This is only for updating from any version prior to 1.1.1. If you do not have any 
+##            prior version installed, or if you have version 1.1.1 installed, use 
+##            site_warning_1.1.2em.txt instead.
+## 
+## 1. MOD Compatibility
+## -----------
+## This MOD has been successfully tested on phpBB 2.0.11. However, it should work on all versions 
+## starting with 2.0.5. If that is not the case, please let me know about it.
+##
+## 2. EasyMOD
+## -----------
+## This MOD is compatible and can be installed by EasyMOD
+## of Nuttzy (but is not officially EasyMOD Compliant)!
+## http://area51.phpbb.com/phpBB22/viewforum.php?f=15
+##
+## However, on alpha releases of EM and meanwhile beta or 
+## final release some actions are NOT performed.
+## You'll have to do them manually !
+##
+## 2.1 SQL commands are not performed
+## -----------
+## This MOD needs a database update.
+## Then, in any case if you install this MOD manually or using
+## an alpha release of EM, please copy the *_db_install.php
+## in your phpBB root directory, run it with your browser,
+## and then delete it from the phpBB root directory.
+##
+## Please, do it NOW! Before editing phpBB files by EM or manually!!!
+## Otherwise, you may have an error message during your next
+## connection.
+##
+## 2.2 Translation are not managed
+## -----------
+## Moreover, EM can not already manage actions for any other
+## language than English (but language intructions are proceed
+## to all installed languages in order to prevent errors).
+## So the translations provided with this MOD must be installed
+## manually if you need them.
+##
+## 3. Official last version link
+## -----------
+## The latest version of this MOD and other MODs can also be found at my site:
+## http://www.alcae.us.tt/forums.php?f=6
+##
+############################################################## 
+## MOD History: 
+## 
+##   2005-01-13 - Version 1.1.2
+##      - The warning won't be displayed unless it is activated AND a text is entered
+##
+##   2005-01-13 - Version 1.1.1
+##      - Included the SQL commands in this file for newer easyMOD versions, as they handle SQL
+##
+##   2004-12-23 - Version 1.1.0
+##      - Made it more customizable: It can now be turned on and off without having to remove the 
+##        warning text
+##      - Warning title added
+##      - Database installer included since some people seem to have problems with phpMyAdmin :roll:
+##      - Included German language information, more translations are always welcome ;)
+##
+##   2004-09-04 - Version 1.0.2
+##      - Another tiny little bug fixed
+##
+##   2004-08-25 - Version 1.0.1
+##      - Minor bugfix
+##
+##   2004-08-24 - Version 1.0.0
+##      - Initial Release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+# 
+#-----[ COPY ]------------------------------------------------ 
+# 
+copy site_warning_db_update.php to site_warning_db_update.php
+
+# 
+#-----[ SQL ]------------------------------------------------- 
+# Replace "phpbb_" with your table prefix.
+DELETE FROM phpbb_config WHERE config_name='site_warning';
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('warning_enable', '1');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('warning_title', 'MOD installation information');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('warning_msg', 'site_warning_1.1.2 was installed successfully. Now change the settings in the ACP.');
+
+
+#
+# This MOD needs a database update.
+# There is two ways of doing this:
+# a) as you must have now copied the site_warning_db_install.php file
+#    in your phpBB root directory, run it with your browser...
+#    http://www.yourWebSite.xxx/phpbbRootDir/site_warning_db_install.php
+#
+# b) you run the SQL queries specified above. If you use easyMOD, those 
+#    queries may be run automatically, depending on your version of EM.
+#    If EM doesn't ask you which queries to run, simply do everything 
+#    written in a)
+#
+# No matter what step you did, if you (or EM) copied the file specified 
+# above, you MUST delete it from your directory!!!
+# 
+# Please, do it NOW! Before editing phpBB files by EM or manually!!!
+# Otherwise, you may have an error message during your next
+# connection.
+#
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+admin/admin_board.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+$disable_board_no = ( !$new['board_disable'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Start add - Site warning MOD
+$enable_warning_yes = ( $new['warning_enable'] ) ? "checked=\"checked\"" : "";
+$enable_warning_no = ( !$new['warning_enable'] ) ? "checked=\"checked\"" : "";
+// End add - Site warning MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+	"L_SITE_WARNING" => $lang['Site_warning'], 
+	"L_SITE_WARNING_EXPLAIN" => $lang['Site_warning_explain'], 
+
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+// Start add - Site warning MOD
+	"L_ENABLE_WARNING" => $lang['Enable_warning'],
+	"L_ENABLE_WARNING_EXPLAIN" => $lang['Enable_warning_explain'],
+	"L_WARNING_TITLE" => $lang['Warning_title'],
+	"L_WARNING_TITLE_EXPLAIN" => $lang['Warning_title_explain'],
+	"L_WARNING_MSG" => $lang['Warning_msg'],
+// End add - Site warning MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+	"SITE_WARNING" => $new['site_warning'],
+
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+// Start add - Site warning MOD
+	"S_ENABLE_WARNING_YES" => $enable_warning_yes,
+	"S_ENABLE_WARNING_NO" => $enable_warning_no, 
+	"WARNING_TITLE" => $new['warning_title'],
+	"WARNING_MSG" => $new['warning_msg'],
+// End add - Site warning MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+includes/page_header.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+//
+// Warning to all users?
+//
+if ($board_config['site_warning'])
+{
+	$template->assign_block_vars('site_warning', array(
+		'SITE_WARNING' => $board_config['site_warning'])
+	);
+}
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+# This means that you should delete the part found before
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+//
+// Login box?
+//
+if ( !$userdata['session_logged_in'] )
+{
+	$template->assign_block_vars('switch_user_logged_out', array());
+}
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+#
+// Start add - Site warning MOD
+if ($board_config['warning_enable'] && $board_config['warning_msg'] != '')
+{
+	$template->assign_block_vars('site_warning', array(
+		'MSG' => $board_config['warning_msg'])
+	);
+	if ($board_config['warning_title'])
+	{
+		$template->assign_block_vars('site_warning.warning_title', array(
+			'TITLE' => $board_config['warning_title'])
+		);
+	}
+}
+// End add - Site warning MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+$lang['Site_warning'] = 'Warning';
+$lang['Site_warning_explain'] = 'Enter a warning which will be displayed at the top of every site. If you don\'t want to show a warning, leave this field empty.';
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+?>
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+#
+// Start add - Site warning MOD
+$lang['Enable_warning'] = 'Enable warning?';
+$lang['Enable_warning_explain'] = 'If you enable this, a warning will be displayed in the header';
+$lang['Warning_title'] = 'Warning title';
+$lang['Warning_title_explain'] = 'Enter a title for the warning. If you don\'t want this to be displayed, leave the field empty.';
+$lang['Warning_msg'] = 'Enter a warning message';
+// End add - Site warning MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_SITE_WARNING}<br /><span class="gensmall">{L_SITE_WARNING_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="40" maxlength="255" name="site_warning" value="{SITE_WARNING}" /></td>
+	</tr>
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<!-- Start add - Site warning MOD -->
+	<tr>
+		<td class="row1">{L_ENABLE_WARNING}<br /><span class="gensmall">{L_ENABLE_WARNING_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="warning_enable" value="1" {S_ENABLE_WARNING_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="warning_enable" value="0" {S_ENABLE_WARNING_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_WARNING_TITLE}<br /><span class="gensmall">{L_WARNING_TITLE_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" maxlength="255" size="40" name="warning_title" value="{WARNING_TITLE}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_WARNING_MSG}</td>
+		<td class="row2"><textarea name="warning_msg" rows="5" cols="30">{WARNING_MSG}</textarea></td>
+	</tr>
+<!-- Start add - Site warning MOD -->
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+<!-- BEGIN site_warning -->
+<table width="100%" border="0">
+  <tr>
+    <td>
+      <span class="gen" style="color:#FF0000; font-weight:bold;">{site_warning.SITE_WARNING}</span>
+    </td>
+  </tr>
+</table>
+<!-- END site_warning -->
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+
+#
+#-----[ FIND ]------------------------------------------
+#
+						<td height="25" align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_PROFILE}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_profile.gif" width="12" height="13" border="0" alt="{L_PROFILE}" hspace="3" />{L_PROFILE}</a>&nbsp; &nbsp;<a href="{U_PRIVATEMSGS}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_message.gif" width="12" height="13" border="0" alt="{PRIVATE_MESSAGE_INFO}" hspace="3" />{PRIVATE_MESSAGE_INFO}</a>&nbsp; &nbsp;<a href="{U_LOGIN_LOGOUT}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_login.gif" width="12" height="13" border="0" alt="{L_LOGIN_LOGOUT}" hspace="3" />{L_LOGIN_LOGOUT}</a>&nbsp;</span></td>
+					</tr>
+				</table></td>
+			</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# This can be added anywhere you want it to be
+# You can also modify the appearance
+<!-- Start add - Site warning MOD -->
+<!-- BEGIN site_warning -->
+			<tr> 
+				<td colspan="2">
+				<table  width="100%" cellpadding="2" cellspacing="1" border="0" class="forumline">
+				<!-- BEGIN warning_title -->
+				<tr>
+					<th class="thCornerL" height="25" nowrap="nowrap">{site_warning.warning_title.TITLE}</th>
+				</tr>
+				<!-- END warning_title -->
+				<tr>
+					<td align="center">
+					<span class="gen" style="color:#FF0000; font-weight:bold;">
+					<br />
+					{site_warning.MSG}
+					<br /><br />
+					</span>
+					</td>
+				</tr>
+				</table>
+				</td>
+			</tr>
+<!-- END site_warning -->
+<!-- End add - Site warning MOD -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM 

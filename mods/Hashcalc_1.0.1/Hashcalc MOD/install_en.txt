@@ -1,0 +1,229 @@
+######################################################## 
+## MOD Title: Hashcalc MOD
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This MOD will allow user to search for hash checksum for files that are on a selected location on the (phpBB) server
+##		Display MD5, SFV and SHA-1
+##		Admin can set the path where files to be searched are located (no subdir support)
+## MOD Version:	1.0.1
+## 
+## Installation Level: Easy 
+## Installation Time: 5 Minutes 
+##
+## Files To Edit: 8
+##	admin/admin_board.php
+##	includes/constants.php
+##	language/lang_english/lang_admin.php
+##	language/lang_english/lang_main.php
+##	includes/page_header.php
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/overall_header.tpl
+##	templates/subSilver/subSilver.css
+##
+## Included Files: 4
+##	hashcalc.php
+##	templates/subSilver/hashcalc_body.tpl
+##	templates/subSilver/hashcalc_results_body.tpl
+##	templates/subSilver/images/icon_hashcalc.gif
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 
+## 	Tested on 2.0.18. Can be installed using EasyMOD 0.3.0
+##
+##	If you want to show the hash info of all the files in the choosen folder, 
+##		you may use the add-on provided in the add-on folder
+## 
+############################################################## 
+## MOD History: 
+##
+##   2004-02-20 - Version 1.0.0
+##      - Initial Release
+##
+##   2005-12-11 - Version 1.0.1
+##      - MOD revised
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+INSERT INTO `phpbb_config` VALUES ('hashculc_file_path', '');
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy root/hashcalc.php to hashcalc.php
+copy root/templates/subSilver/hashcalc_body.tpl to templates/subSilver/hashcalc_body.tpl
+copy root/templates/subSilver/hashcalc_results_body.tpl to templates/subSilver/hashcalc_results_body.tpl
+copy root/templates/subSilver/images/icon_hashcalc.gif to templates/subSilver/images/icon_hashcalc.gif
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Hashcalc MOD
+$lang['Hashcalc_settings'] = 'Hash Calculation Setting';
+$lang['Hashcalc_path'] = 'File Storage Path';
+$lang['Hashcalc_explain'] = 'Path under your phpBB root dir, e.g. download or download/files';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Hashcalc MOD
+$lang['File'] = 'Filename';
+$lang['File_hash'] = 'File Hash';
+$lang['Hash_MD5'] = '<span class="hashcalc_md5">MD5</span>';
+$lang['Hash_SHA1'] = '<span class="hashcalc_sha1">SHA1</span>';
+$lang['Hash_SFV'] = '<span class="hashcalc_sfv">SFV</span>';
+$lang['Search_file_hash'] = 'Search File Hash';
+$lang['Search_file_hash_explained'] = 'Type in the exect file name to seach for the file\'s hash checksum';
+$lang['Hashcalc'] = 'Check File Hash';
+$lang['No_hash_match'] = 'The file you are searching is not found on the server';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/constants.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+define('PAGE_GROUPCP', -11);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+define('PAGE_HASHCALC', -2119);		// Hashcalc MOD
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+admin/admin_board.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"L_SMTP_PASSWORD_EXPLAIN" => $lang['SMTP_password_explain'], 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Hashcalc MOD
+	"L_HASHCALC_SETTING" => $lang['Hashcalc_settings'],
+	"L_HASHCALC_PATH" => $lang['Hashcalc_path'],
+	"L_HASHCALC_EXPLAIN" => $lang['Hashcalc_explain'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"SMTP_PASSWORD" => $new['smtp_password'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Hashcalc MOD
+	"HASHCALC_FILE_PATH" => $new['hashculc_file_path'],
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/page_header.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_USERGROUPS' => $lang['Usergroups'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Hashcalc MOD
+	'L_HASHCALC' => $lang['Hashcalc'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'U_GROUP_CP' => append_sid('groupcp.'.$phpEx),
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Hashcalc MOD
+	'U_HASHCALC' => append_sid('hashcalc.'.$phpEx),
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/overall_header.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+.helpline { background-color: {T_TR_COLOR2}; border-style: none; }
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+/* Hashcalc MOD */
+.hashcalc_md5 { color: #FF0000; font-size: 11px; }
+.hashcalc_sha1 { color: #0000FF; font-size: 11px; }
+.hashcalc_sfv { color: #006600; font-size: 11px; }
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+						<td align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_FAQ}" class="mainmenu">
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+{L_USERGROUPS}</a>&nbsp; 
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+&nbsp;<a href="{U_HASHCALC}" class="mainmenu"><img src="templates/subSilver/images/icon_hashcalc.gif" width="12" height="13" border="0" alt="{L_HASHCALC}" hspace="3" />{L_HASHCALC}</a>&nbsp;
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_COPPA_SETTINGS}</th>
+	</tr>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_HASHCALC_SETTING}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_HASHCALC_PATH} <br /><span class="gensmall">{L_HASHCALC_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="hashculc_file_path" value="{HASHCALC_FILE_PATH}" /></td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/subSilver.css
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+.helpline { background-color: #DEE3E7; border-style: none; }
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+/* Hashcalc MOD */
+.hashcalc_md5 { color: #FF0000; font-size: 11px; }
+.hashcalc_sha1 { color: #0000FF; font-size: 11px; }
+.hashcalc_sfv { color: #006600; font-size: 11px; }
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+#
+# EoM

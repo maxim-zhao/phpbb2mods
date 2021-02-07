@@ -1,0 +1,268 @@
+############################################################## 
+## MOD Title: News Block Mod 
+## MOD Author: dannyscats < admin@plug-world.net > (Danny) http://www.phpBB3.ws 
+## MOD Description: Adds a news block to the top of your forums that can be edited easily in the admin panel. 
+## MOD Version: 1.0.4
+## 
+## Installation Level: (Easy) 
+## Installation Time: 3 Minutes 
+## Files To Edit: index.php,
+##      language/lang_english/lang_main.php, 
+##      language/lang_english/lang_admin.php, 
+##      includes/page_header.php, 
+##      admin/admin_board.php, 
+##      templates/subSilver/admin/board_config_body.tpl,
+##      templates/subSilver/index_body.tpl,
+##      templates/subSilver/overall_header.tpl
+## Included Files: N/A 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2005-12-06 - Version 1.0.4
+##      - Added Smiley Addon, Only view on index and enable/disable option in the admin panel.
+##
+##   2005-12-06 - Version 1.0.3
+##      - Mod edited to suit validation requirements 
+##
+##   2005-12-06 - Version 1.0.2
+##      - Mod edited to suit validation requirements 
+##
+##   2005-12-06 - Version 1.0.1
+##      - Mod created 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+INSERT INTO phpbb_config (config_name, config_value) VALUES('news_status', '1'); 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+index.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+include($phpbb_root_path . 'common.'.$phpEx); 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+include($phpbb_root_path . 'includes/bbcode.'.$phpEx); 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+// 
+// Start page proper 
+// 
+$sql = "SELECT c.cat_id, c.cat_title, c.cat_order 
+   FROM " . CATEGORIES_TABLE . " c 
+   ORDER BY c.cat_order"; 
+if( !($result = $db->sql_query($sql)) ) 
+{ 
+   message_die(GENERAL_ERROR, 'Could not query categories list', '', __LINE__, __FILE__, $sql); 
+} 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// 
+// News Block Smilies Pass 
+// 
+$board_config['news_text'] = smilies_pass($board_config['news_text']); 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['News_text'] = 'Edit News'; 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$lang['News_text_status'] = 'Show News Block'; 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+// 
+// Login box? 
+// 
+if ( !$userdata['session_logged_in'] ) 
+{ 
+   $template->assign_block_vars('switch_user_logged_out', array()); 
+   // 
+   // Allow autologin? 
+   // 
+   if (!isset($board_config['allow_autologin']) || $board_config['allow_autologin'] ) 
+   { 
+      $template->assign_block_vars('switch_allow_autologin', array()); 
+      $template->assign_block_vars('switch_user_logged_out.switch_allow_autologin', array()); 
+   } 
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// 
+// News Block? 
+// 
+if($board_config['news_status'] == "1"){ 
+$template->assign_block_vars('show_news', array()); 
+} else { 
+$template->assign_block_vars('hide_news', array()); 
+} 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$disable_board_yes = ( $new['board_disable'] ) ? "checked=\"checked\"" : ""; 
+$disable_board_no = ( !$new['board_disable'] ) ? "checked=\"checked\"" : ""; 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$news_status_yes = ( $new['news_status'] ) ? "checked=\"checked\"" : ""; 
+$news_status_no = ( !$new['news_status'] ) ? "checked=\"checked\"" : ""; 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+        "L_NEWS_TEXT" => $lang['News_text'], 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+        "L_NEWS_TEXT_STATUS" => $lang['News_text_status'], 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+    "NEWS_TEXT" => $new['news_text'], 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+   "S_NEWS_STATUS_YES" => $news_status_yes, 
+   "S_NEWS_STATUS_NO" => $news_status_no, 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<tr> 
+            <td class="row1">{L_NEWS_TEXT}</td> 
+      <td class="row2"><textarea name="news_text" rows="5" cols="30">{NEWS_TEXT}</textarea></td> 
+   </tr> 
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+   <tr> 
+      <td class="row1">{L_NEWS_TEXT_STATUS}</td> 
+      <td class="row2"><input type="radio" name="news_status" value="1" {S_NEWS_STATUS_YES} /> 
+
+{L_YES}&nbsp;&nbsp;<input type="radio" name="news_status" value="0" {S_NEWS_STATUS_NO} /> {L_NO}</td> 
+   </tr> 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/index_body.tpl 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<table width="100%" cellspacing="0" cellpadding="2" border="0" align="center"> 
+  <tr> 
+   <td align="left" valign="bottom"><span class="gensmall"> 
+   <!-- BEGIN switch_user_logged_in --> 
+   {LAST_VISIT_DATE}<br /> 
+   <!-- END switch_user_logged_in --> 
+   {CURRENT_TIME}<br /></span><span class="nav"><a href="{U_INDEX}" class="nav">{L_INDEX}</a></span></td> 
+   <td align="right" valign="bottom" class="gensmall"> 
+      <!-- BEGIN switch_user_logged_in --> 
+      <a href="{U_SEARCH_NEW}" class="gensmall">{L_SEARCH_NEW}</a><br /><a href="{U_SEARCH_SELF}" class="gensmall">{L_SEARCH_SELF}</a><br /> 
+      <!-- END switch_user_logged_in --> 
+      <a href="{U_SEARCH_UNANSWERED}" class="gensmall">{L_SEARCH_UNANSWERED}</a></td> 
+  </tr> 
+</table> 
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+<!-- BEGIN show_news --> 
+<table width="100%" cellpadding="2" cellspacing="1" border="0" class="forumline"> 
+   <tr> 
+      <th class="thCornerL" height="25" nowrap="nowrap">&nbsp;{L_NEWS}&nbsp;</th> 
+   </tr> 
+   <tr> 
+      <td class="row1" width="100%"><span class="gen"><p align="center">{NEWS_BLOCK}</p></span></td> 
+   </tr> 
+</table><br /> 
+<!-- END show_news --> 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+</tr> 
+            </table></td> 
+         </tr> 
+      </table> 
+
+      <br /> 
+<table width="100%" cellpadding="2" cellspacing="1" border="0" class="forumline"> 
+   <tr> 
+      <th class="thCornerL" height="25" nowrap="nowrap">&nbsp;{L_NEWS}&nbsp;</th> 
+   </tr> 
+   <tr> 
+      <td class="row1" width="100%"><span class="gen"><p align="center">{NEWS_BLOCK}</p></span></td> 
+   </tr> 
+</table><br /> 
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+   </tr> 
+            </table></td> 
+         </tr> 
+      </table> 
+
+      <br />
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

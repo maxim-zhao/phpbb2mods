@@ -1,0 +1,523 @@
+##############################################################
+## MOD Title:		Date Format Evolved
+## MOD Author: reddog < N/A > (N/A) http://www.reddevboard.com/
+## MOD Description:	This MOD adds a new drop-down menu for the
+##			date format setting. The user can choose
+##			a date format in the list, or define a custom
+##			format (the syntax used is the same as the PHP
+##			date function). More informations available in
+##			the Author Notes.
+## MOD Version:		1.0.0
+##
+## Installation Level:	Easy
+## Installation Time:	10 Minutes
+## Files To Edit:	10
+##	admin/admin_board.php
+##	admin/admin_users.php
+##	admin/page_header_admin.php
+##	includes/functions.php
+##	includes/functions_selects.php
+##	includes/page_header.php
+##	includes/usercp_register.php
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/admin/user_edit_body.tpl
+## Included Files:	2
+##	root/includes/lang_extend_mac.php
+##	root/language/lang_english/lang_extend_dateformat.php
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## To show the date while using "today" and "yesterday" as relative days,
+## select a date format combined with [Relative days] option.
+##
+## This MOD will replace the generic time zone settings, with a 
+## more descriptive drop-down list.
+##
+## MOD Compatibility: 2.0.21
+##
+##############################################################
+## MOD History:
+##
+## 2006-10-09 - Version 1.0.0
+##	- first public release (no change)
+## 2006-09-08 - Version 0.0.1
+##      - first release (only for a private testing)
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ COPY ]------------------------------------------------
+#
+COPY root/*.* TO *.*
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+$template->pparse("body");
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : date format evolved -------------------------------------------------
+//-- add
+dateformat_select($new['default_dateformat']);
+//-- fin mod : date format evolved ---------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+	'S_PROFILE_ACTION' =>
+);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# Add these lines on a new blank line after the preceding line(s) to find
+#
+//-- mod : date format evolved -------------------------------------------------
+//-- add
+		dateformat_select($user_dateformat);
+//-- fin mod : date format evolved ---------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/page_header_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+$l_timezone = explode(
+$l_timezone =
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : date format evolved -------------------------------------------------
+//-- delete
+/*-MOD
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# Add these lines on a new blank line after the preceding line(s) to find
+#
+MOD-*/
+//-- add
+$tz = strval(doubleval($board_config['board_timezone']));
+$l_timezone = $lang['tz'][$tz];
+//-- fin mod : date format evolved ---------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+	//
+	// Set up style
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+# This part can already be existing : if so, just skip it
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+	include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+function create_date($format, $gmepoch, $tz)
+{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# Add these lines on a new blank line after the preceding line(s) to find
+#
+//-- mod : date format evolved -------------------------------------------------
+//-- delete
+/*-MOD
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+return ( !empty($translate) ) ?
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# Add these lines on a new blank line after the preceding line(s) to find
+#
+MOD-*/
+//-- add
+	return format_date($gmepoch, $format);
+//-- fin mod : date format evolved ---------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+//
+//
+//
+//
+function generate_pagination(
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : date format evolved -------------------------------------------------
+//-- add
+/**
+* format_date
+*
+* This function is inspired by format_date() function from phpBB3 (aka Olympus)
+* and by Ptirhiik's date() function from Categories Hierarchy 2.1.x
+* Used to create date/time from user/board preferences
+*/
+function format_date($time=0, $fmt='', $forcedate=false)
+{
+	global $board_config, $lang;
+
+	// fix parms with default
+	$fmt = empty($fmt) ? $board_config['default_dateformat'] : $fmt;
+	$time = empty($time) ? time() : $time;
+
+	// get user timezone
+	$time_zone = intval(doubleval($board_config['board_timezone']) * 3600);
+
+	// get date standard format
+	$d_day = $time + $time_zone;
+	$t_fmt = str_replace('|', '', $fmt);
+	$res = @gmdate($t_fmt, $d_day);
+
+	// is format combined with relative days (today or yesterday)?
+	if ( strpos($fmt, '|') !== false && !$forcedate )
+	{
+		// get user current day
+		$now = time() + $time_zone;
+		$today = @gmmktime(0, 0, 0, @gmdate('m', $now), @gmdate('d', $now), @gmdate('Y', $now));
+
+		// is the d day between user's yesterday and today?
+		if ( ($d_day >= $today - 86400) && ($d_day < $today + 86400) )
+		{
+			$fmt = substr($fmt, 0, strpos($fmt, '|')) . '||' . substr(strrchr($fmt, '|'), 1);
+			$res = str_replace('||', $lang['datetime'][($d_day >= $today) ? 'today' : 'yesterday'], @gmdate($fmt, $d_day));
+		}
+	}
+
+	return strtr($res, $lang['datetime']);
+}
+//-- fin mod : date format evolved ---------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+		}
+
+		if ( empty($template) || empty($theme) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+# This part can already be existing : if so, just skip it
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+			include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_selects.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+function tz_select($default, $select_name = 'timezone')
+{
+	global
+
+	if (
+	{
+		$default ==
+	}
+	$tz_select =
+
+	while(
+	{
+		$selected =
+		$tz_select .
+	}
+	$tz_select .=
+
+	return $tz_select;
+}
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : date format evolved -------------------------------------------------
+//-- delete
+/*-MOD
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# Add these lines on a new blank line after the preceding line(s) to find
+#
+MOD-*/
+//-- add
+function tz_select($default, $select_name = 'timezone', $truncate = true)
+{
+	global $board_config, $lang;
+
+	// fix parms with default
+	$default = doubleval($default);
+
+	$tz_select = '<select name="' . $select_name . '">';
+
+	foreach ( $lang['tz_zones'] as $offset => $zone )
+	{
+		if ( $truncate )
+		{
+			$zone = (strlen($zone) > 70) ? substr($zone, 0, 70) . '...' : $zone;
+		}
+
+		if ( is_numeric($offset) )
+		{
+			$selected = ($offset == $default) ? ' selected="selected"' : '';
+			$tz_select .= '<option value="' . doubleval($offset) . '"' . $selected . '>' . $zone . '</option>';
+		}
+	}
+
+	$tz_select .= '</select>';
+
+	return $tz_select;
+}
+
+/**
+* dateformat_select
+*
+* This function is inspired by date format setting from phpBB3 (aka Olympus)
+* Used to pick a date format from a dropdown menu (with a custom field)
+*/
+function dateformat_select($default, $select_name = 'dateoptions')
+{
+	global $board_config, $template, $lang;
+
+	// fix parms with default
+	$default = empty($default) ? $board_config['default_dateformat'] : $default;
+
+	$dateformat_options = '';
+
+	foreach ( $lang['dateformats'] as $format => $null )
+	{
+		$dateformat_options .= '<option value="' . $format . '"' . (($format == $default) ? ' selected="selected"' : '') . '>';
+		$dateformat_options .= format_date(time(), $format, true) . ((strpos($format, '|') !== false) ? ' [' . $lang['relative_days'] . ']' : '');
+		$dateformat_options .= '</option>';
+	}
+
+	$s_custom = false;
+
+	$dateformat_options .= '<option value="custom"';
+	if (!in_array($default, array_keys($lang['dateformats'])))
+	{
+		$dateformat_options .= ' selected="selected"';
+		$s_custom = true;
+	}
+	$dateformat_options .= '>' . $lang['custom_dateformat'] . '</option>';
+
+	$template->assign_vars(array(
+		'S_DATEFORMAT_OPTIONS' => $dateformat_options,
+		'S_CUSTOM_DATEFORMAT' => $s_custom ? '' : ' style="display:none;"',
+		'A_DEFAULT_DATEFORMAT' => addslashes($board_config['default_dateformat']),
+	));
+}
+//-- fin mod : date format evolved ---------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+$l_timezone = explode(
+$l_timezone =
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : date format evolved -------------------------------------------------
+//-- delete
+/*-MOD
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# Add these lines on a new blank line after the preceding line(s) to find
+#
+MOD-*/
+//-- add
+$tz = strval(doubleval($board_config['board_timezone']));
+$l_timezone = $lang['tz'][$tz];
+//-- fin mod : date format evolved ---------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+	'S_PROFILE_ACTION' =>
+);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# Add these lines on a new blank line after the preceding line(s) to find
+#
+//-- mod : date format evolved -------------------------------------------------
+//-- add
+	dateformat_select($user_dateformat);
+//-- fin mod : date format evolved ---------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+<form
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<script type="text/javascript">
+<!--
+	/**
+	* Set display of page element
+	* Borrowed from phpBB 3.0 (aka Olympus)
+	* s[-1,0,1] = hide,toggle display,show
+	*/
+	function dE(n,s)
+	{
+		var e = document.getElementById(n);
+		if (!s)
+		{
+			s = (e.style.display == '') ? -1 : 1;
+		}
+		e.style.display = (s == 1) ? 'block' : 'none';
+	}
+//-->
+</script>
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+<td
+{DATE_FORMAT}
+</td>
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+	  <td class="row2">
+		<select name="dateoptions" id="dateoptions" onchange="if (this.value=='custom') { dE('custom_date',1); } else { dE('custom_date',-1); } if (this.value == 'custom') { document.getElementById('dateformat').value = '{A_DEFAULT_DATEFORMAT}'; } else { document.getElementById('dateformat').value = this.value; }">
+			{S_DATEFORMAT_OPTIONS}
+		</select>
+		<div id="custom_date"{S_CUSTOM_DATEFORMAT}><input type="text" name="dateformat" id="dateformat" value="{DATE_FORMAT}" maxlength="30" class="post" style="margin-top: 3px;" /></div>
+	  </td>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+{DEFAULT_DATEFORMAT}
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+		<td class="row2"><span class="genmed">
+			<select name="dateoptions" id="dateoptions" onchange="if (this.value == 'custom') { document.getElementById('default_dateformat').value = '{A_DEFAULT_DATEFORMAT}'; } else { document.getElementById('default_dateformat').value = this.value; }">
+				{S_DATEFORMAT_OPTIONS}
+			</select><br />
+			<input type="text" name="default_dateformat" id="default_dateformat" value="{DEFAULT_DATEFORMAT}" maxlength="30" class="post" />
+		</span></td>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+<h1>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<script type="text/javascript">
+<!--
+	/**
+	* Set display of page element
+	* Borrowed from phpBB 3.0 (aka Olympus)
+	* s[-1,0,1] = hide,toggle display,show
+	*/
+	function dE(n,s)
+	{
+		var e = document.getElementById(n);
+		if (!s)
+		{
+			s = (e.style.display == '') ? -1 : 1;
+		}
+		e.style.display = (s == 1) ? 'block' : 'none';
+	}
+//-->
+</script>
+#
+#-----[ FIND ]------------------------------------------------
+#
+# This may be a partial find and not the whole line(s)
+#
+<td
+{DATE_FORMAT}
+</td>
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+	  <td class="row2">
+		<select name="dateoptions" id="dateoptions" onchange="if (this.value=='custom') { dE('custom_date',1); } else { dE('custom_date',-1); } if (this.value == 'custom') { document.getElementById('dateformat').value = '{A_DEFAULT_DATEFORMAT}'; } else { document.getElementById('dateformat').value = this.value; }">
+			{S_DATEFORMAT_OPTIONS}
+		</select>
+		<div id="custom_date"{S_CUSTOM_DATEFORMAT}><input type="text" name="dateformat" id="dateformat" value="{DATE_FORMAT}" maxlength="30" class="post" style="margin-top: 3px;" /></div>
+	  </td>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

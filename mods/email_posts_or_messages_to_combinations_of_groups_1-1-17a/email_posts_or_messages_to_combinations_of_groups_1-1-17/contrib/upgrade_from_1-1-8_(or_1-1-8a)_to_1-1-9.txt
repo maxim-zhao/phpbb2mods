@@ -1,0 +1,141 @@
+############################################################## 
+## MOD Title: email posts or messages to combinations of groups (upgrade from 1.1.8 or 1.1.8a to 1.1.9)
+## MOD Author: asinshesq < asinsh@speakeasy.net > (Alan Sinsheimer) N/A
+## MOD Description:	This upgardes an installation of email posts or messages to combinations of groups
+##			from version 1.1.8 or 1.1.8a to 1.1.9 
+##
+## MOD Version: 1.1.9
+## 
+## Installation Level: (Easy) 
+## Installation Time: 5 Minutes 
+## Files To Edit: 	includes/functions_post.php
+## Included Files: 	n/a
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 	Note: this is an upgrade mod that assumes you already have version 1.1.8 or 1.1.8a of email posts or messages
+##			to combinations	of groups installed
+##
+############################################################## 
+## MOD History: 
+## 
+##   2005-1-19 - Version 1.1.9
+##		 initial version of upgrade to 1.1.9 mod
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions_post.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			{
+				// ok, let's limit the recipients to users who are allowed to read this particular forum...
+				if( $group_id != -1 )
+				{
+				// if 'all users' is not checked (i.e. group_id !=-1), look up all users in the selected groups who are authorized to be in this forum
+					$sql = "SELECT DISTINCT u.user_id, u.user_email, u.user_lang, u.username, f.forum_name
+					FROM " . USERS_TABLE . " u, " . AUTH_ACCESS_TABLE . " aa, " . USER_GROUP_TABLE . " ug, " . GROUPS_TABLE . " g, " . FORUMS_TABLE . " f
+					WHERE g.group_notify = 1
+					AND ug.group_id = g.group_id
+					AND u.user_id = ug.user_id
+					AND u.user_id NOT IN (" . ANONYMOUS . $user_id_sql . ")
+					AND f.forum_id = $forum_id
+					AND u.user_active = 1
+					AND
+					(
+						(
+						aa.group_id = ug.group_id
+						AND aa.forum_id = f.forum_id
+						AND aa.auth_read = 1
+						)
+						OR f.auth_read <= " . AUTH_REG . "
+						OR (u.user_level = " . MOD . " AND f.auth_read = " . AUTH_MOD . ")
+						OR u.user_level = " . ADMIN . "
+					)";
+				}
+				else
+				{
+				// if 'all users' is checked (i.e. group_id =-1), look up all active users who are authorized to be in this forum
+					$sql = "SELECT DISTINCT u.user_id, u.user_email, u.user_lang, u.username, f.forum_name
+					FROM " . USERS_TABLE . " u, " . AUTH_ACCESS_TABLE . " aa, " . USER_GROUP_TABLE . " ug, " . FORUMS_TABLE . " f
+					WHERE u.user_id NOT IN (" . ANONYMOUS . $user_id_sql . ")
+					AND f.forum_id = $forum_id
+					AND u.user_active = 1
+					AND
+					(
+						(
+						ug.user_id = u.user_id
+						AND aa.group_id = ug.group_id
+						AND aa.forum_id = f.forum_id
+						AND aa.auth_read = 1
+						)
+						OR f.auth_read <= " . AUTH_REG . "
+						OR (u.user_level = " . MOD . " AND f.auth_read = " . AUTH_MOD . ")
+						OR u.user_level = " . ADMIN . "
+					)";
+				}
+			}
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+			{
+				// ok, let's limit the recipients to users who are allowed to read this particular forum...
+				if( $group_id != -1 )
+				{
+				// if 'all users' is not checked (i.e. group_id !=-1), look up all users in the selected groups who are authorized to be in this forum
+					$sql = "SELECT DISTINCT u.user_id, u.user_email, u.user_lang, u.username, f.forum_name
+					FROM " . USERS_TABLE . " u
+					INNER JOIN " . USER_GROUP_TABLE . " ug ON u.user_id = ug.user_id
+					LEFT OUTER JOIN " . AUTH_ACCESS_TABLE . " aa ON ug.group_id = aa.group_id,
+					" . FORUMS_TABLE . " f,
+					" . USER_GROUP_TABLE . " ug2,
+					" . GROUPS_TABLE . " g
+					WHERE u.user_id NOT IN (" . ANONYMOUS . $user_id_sql . ")
+					AND f.forum_id = $forum_id
+					AND u.user_active = 1
+					AND
+					(
+						( aa.forum_id = $forum_id AND aa.auth_read = 1 )
+						OR f.auth_read <= " . AUTH_REG . "
+						OR (u.user_level = " . MOD . " AND f.auth_read = " . AUTH_MOD . ")
+						OR u.user_level = " . ADMIN . "
+					)
+					AND ug2.user_id = u.user_id
+					AND g.group_id = ug2.group_id
+					AND g.group_notify = 1";
+				}
+				else
+				{
+				// if 'all users' is checked (i.e. group_id =-1), look up all active users who are authorized to be in this forum
+					$sql = "SELECT DISTINCT u.user_id, u.user_email, u.user_lang, u.username, f.forum_name
+					FROM " . USERS_TABLE . " u
+					INNER JOIN " . USER_GROUP_TABLE . " ug ON u.user_id = ug.user_id 
+					LEFT OUTER JOIN " . AUTH_ACCESS_TABLE . " aa ON ug.group_id = aa.group_id, 
+					" . FORUMS_TABLE . " f
+					WHERE u.user_id NOT IN (" . ANONYMOUS . $user_id_sql . ")
+					AND f.forum_id = $forum_id
+					AND u.user_active = 1
+					AND
+					(
+						( aa.forum_id = $forum_id AND aa.auth_read = 1	)
+						OR f.auth_read <= " . AUTH_REG . "
+						OR (u.user_level = " . MOD . " AND f.auth_read = " . AUTH_MOD . ")
+						OR u.user_level = " . ADMIN . "
+					)";
+				}
+			}
+			
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

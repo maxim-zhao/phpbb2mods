@@ -1,0 +1,216 @@
+######################################################## 
+## 外掛名稱: Delete User MOD
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 系統管理員可以從 viewtopic, userprofile 和 memberlist 刪除會員
+## 外掛版本: 1.0.1
+## 
+## 安裝難度: 簡單 
+## 安裝時間: 5 分鐘 
+##
+## 需要編輯的檔案: 7
+##	viewtopic.php
+##	memberlist.php
+##	includes/usercp_viewprofile.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	templates/subSilver/viewtopic_body.tpl
+##	templates/subSilver/memberlist_body.tpl
+##	templates/subSilver/profile_view_body.tpl
+##
+## 附加的檔案: 1
+##	delete_user.php
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+##############################################################
+## 作者留言:
+##	此外掛在 2.0.21 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##
+## 	監控更新進度: http://sourceforge.net/project/filemodule_monitor.php?filemodule_id=191291
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2005-05-20 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2006-06-24 - 版本 1.0.1
+##      - 修正了一個在 usercp_viewprofile.php 裡多餘 '}' 的問題
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ 複製 ]------------------------------------------ 
+#
+copy delete_user.php to delete_user.php
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+viewtopic.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$search = '<a href="' . $temp_url . '">' . sprintf($lang['Search_user_posts'], $postrow[$i]['username']) . '</a>';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// Delete User MOD
+	if ( $userdata['user_level'] == ADMIN && $poster_id != ANONYMOUS )
+	{
+		$temp_url = append_sid("delete_user.$phpEx?" . POST_USERS_URL . "=$poster_id&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id'] . "&amp;file=viewtopic&amp;sid=" . $userdata['session_id']);
+		$delete_user_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_delpost'] . '" alt="' . sprintf($lang['Delete_user'], $postrow[$i]['username']) . '" title="' . sprintf($lang['Delete_user'], $postrow[$i]['username']) . '" border="0" /></a>&nbsp;';
+		$delete_user = '<a href="' . $temp_url . '">' . sprintf($lang['Delete_user'], $postrow[$i]['username']) . '</a>&nbsp;';
+	}
+	else
+	{
+		$delete_user_img = '';
+		$delete_user = '';
+	}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		'ROW_COLOR' => '#' . $row_color,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		'DELETE_USER_IMAGE' => $delete_user_img,	// Delete User MOD
+		'DELETE_USER' => $delete_user,			// Delete User MOD
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+memberlist.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$search = '<a href="' . $temp_url . '">' . sprintf($lang['Search_user_posts'], $username) . '</a>';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		// Delete User MOD
+		if ( $userdata['user_level'] == ADMIN && $user_id != ANONYMOUS )
+		{
+			$temp_url = append_sid("delete_user.$phpEx?" . POST_USERS_URL . "=$user_id&amp;file=memberlist&amp;sid=" . $userdata['session_id']);
+			$delete_user_img = '&nbsp;<a href="' . $temp_url . '"><img src="' . $images['icon_delpost'] . '" alt="' . sprintf($lang['Delete_user'], $username) . '" title="' . sprintf($lang['Delete_user'], $username) . '" border="0" /></a>';
+			$delete_user = '&nbsp;<a href="' . $temp_url . '">' . sprintf($lang['Delete_user'], $username) . '</a>';
+		}
+		else
+		{
+			$delete_user_img = '';
+			$delete_user = '';
+		}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			'ROW_CLASS' => $row_class,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			'DELETE_USER_IMAGE' => $delete_user_img,	// Delete User MOD
+			'DELETE_USER' => $delete_user,			// Delete User MOD
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/usercp_viewprofile.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$search = '<a href="' . $temp_url . '">' . sprintf($lang['Search_user_posts'], $profiledata['username']) . '</a>';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+// Delete User MOD
+if ( $userdata['user_level'] == ADMIN && $profiledata['user_id'] != ANONYMOUS )
+{
+	$temp_url = append_sid("delete_user.$phpEx?" . POST_USERS_URL .'=' . $profiledata['user_id'] . "&amp;file=profile&amp;sid=" . $userdata['session_id']);
+	$delete_user_img = '&nbsp;<a href="' . $temp_url . '"><img src="' . $images['icon_delpost'] . '" alt="' . sprintf($lang['Delete_user'], $profiledata['username']) . '" title="' . sprintf($lang['Delete_user'], $profiledata['username']) . '" border="0" /></a>';
+	$delete_user = '&nbsp;<a href="' . $temp_url . '">' . sprintf($lang['Delete_user'], $profiledata['username']) . '</a>';
+}
+else
+{
+	$delete_user_img = '';
+	$delete_user = '';
+}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'USERNAME' => $profiledata['username'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	'DELETE_USER_IMAGE' => $delete_user_img,	// Delete User MOD
+	'DELETE_USER' => $delete_user,			// Delete User MOD
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/viewtopic_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		<td width="150" align="left" valign="top" class="{postrow.ROW_CLASS}"><span class="name"><a name="{postrow.U_POST_ID}"></a>
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+class="{postrow.ROW_CLASS}">
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+{postrow.DELETE_USER_IMAGE}
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/memberlist_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	  <td class="{memberrow.ROW_CLASS}" align="center"><span class="gen"><a href="{memberrow.U_VIEWPROFILE}" class="gen">{memberrow.USERNAME}</a></span></td>
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+{memberrow.USERNAME}</a></span>
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+{memberrow.DELETE_USER_IMAGE}
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/profile_view_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	<td class="catRight" width="60%"><b><span class="gen">{L_ABOUT_USER}</span></b></td>
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+{L_ABOUT_USER}</span></b>
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+{DELETE_USER_IMAGE}
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+language/lang_chinese_traditional_taiwan/lang_main.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Delete User MOD
+$lang['Delete_user'] = '刪除會員: %s';
+$lang['Confirm_delete_user'] = '您確定要刪除會員: %s';
+$lang['User_deleted'] = '會員被順利刪除';
+$lang['Click_return_memberlist'] = '點選 %s這裡%s 返回會員列表';
+$lang['Cannot_delete_self'] = '不能刪除自己';
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

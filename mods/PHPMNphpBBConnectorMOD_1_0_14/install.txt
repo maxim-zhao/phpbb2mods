@@ -1,0 +1,334 @@
+############################################################## 
+## MOD Title:   PHPMN phpBB Connector MOD 
+## MOD Author:  Martin Truckenbrodt < webmaster@martin-truckenbrodt.com > (Martin Truckenbrodt) http://martin-truckenbrodt.com 
+## MOD Description: 
+##   connects the PHP Multiple Newsletters 2.7 from Triangle Solutions Ltd. with the phpBB 
+##   the MOD includes a complete PHPMN user control panel into the phpBB 
+##   with the MOD no extra regsitration is neccessary for subscribing the newsletters
+##   uses only the user_email as idendity for the subscribings, so you can use one 
+##   PHPMN installation for several phpBBs in the same database
+##   
+##   PHP Multiple Newsletters 2.7 provides the creating of several newsletter templates twice 
+##   for sending HTML and Plain/Text emails
+##   user can subscribe and unsubscribe the newsletter be entering of a nick name and their email address optional 
+##   as HTML or Plain/Text emails
+##   former sent newsletters are archived to view them every time you want
+##   
+##   for more details about PHPMN and for the download of PHPMN please look at http://www.phpmultiplenewsletters.com 
+## 
+## MOD Version: 1.0.14 
+## 
+## Installation Level: Easy 
+## Installation Time:  5 Minutes 
+## Files To Edit: 
+##   admin/index.php
+##   includes/constants.php 
+##   includes/page_header.php 
+##   language/lang_english/lang_main.php 
+##   templates/subSilver/overall_header.tpl 
+##   templates/subSilver/subSilver.cfg 
+##   viewonline.php
+## 
+## Included Files: 
+##   root/phpmn.php 
+##   root/phpmn_archive.php 
+##   root/phpmn_archive_newsletter.php 
+##   root/includes/phpmn_constants.php 
+##   root/includes/phpmn_footer.php 
+##   root/language/lang_english/lang_main_phpmn.php 
+##   root/phpmn_connector_mod/phpmn_html.php 
+##   root/phpmn_connector_mod/phpmn_plain.php 
+##   root/templates/subSilver/phpmn.tpl 
+##   root/templates/subSilver/phpmn_archive.tpl 
+##   root/templates/subSilver/phpmn_archive_newsletter.tpl 
+##   root/templates/subSilver/phpmn_footer.tpl 
+##   root/templates/subSilver/images/icon_mini_phpmn.gif 
+##   root/templates/subSilver/images/icon_mini_select.gif 
+##   root/templates/subSilver/images/lang_english/icon_archive.gif 
+## 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##  Prerequirements: 
+##    PHP Multiple Newsletters V2.7 only supports MySQL, so this MOD runs only with MySQL
+##    needs the installation of PHP Multiple Newsletters V2.7 in the same database where phpBB is installed.
+## 
+##  DEMO: 
+##    http://martin-truckenbrodt.com/cgi/phpBB2/phpmn.php - this MOD
+##    http://martin-truckenbrodt.com/newsletter.php - the original PHPMN UCP
+## 
+##  Support: 
+##    http://martin-truckenbrodt.com/cgi/phpBB2
+## 
+##  Special Thanks: 
+##    to all of the members from the support forum on www.phpbb.de whom have been a great help for me on developing this MOD
+##    to Markus67 from www.phpbb.de for creating most of the gifs
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2005-08-14 - Version 0.1 
+##      - first release 
+## 
+##   2005-08-16 - Version 0.2 
+##      - anonymous user have to log in 
+## 
+##   2005-08-16 - Version 0.3 
+##      - fixes sql injection vulnerabilities 
+## 
+##   2005-08-21 - Version 0.4 
+##      - resolved problem with user language detection 
+## 
+##   2005-08-28 - Version 0.5.0 - unreleased
+##      - little changes in install.txt for MOD validation on www.phpbb.com 
+## 
+##   2005-09-16 - Version 1.0.0
+##      - deleting of all $_GET variable handliungs, now replaced with define() and phpBB technology 
+##      - adding of a constants file - phpmn_constants.php 
+##      - adding of some images and other cosmetic updates 
+## 
+##   2005-09-30 - Version 1.0.1
+##      - now uses phpBB DBAL 
+##      - other little optical changings for MOD validation on www.phpbb.com 
+## 
+##   2005-11-06 - Version 1.0.2
+##      - more little code changings for MOD validation on www.phpbb.com 
+## 
+##   2005-11-07 - Version 1.0.3
+##      - more little code changings for MOD validation on www.phpbb.com 
+##      - layout optimized
+## 
+##   2005-11-17 - Version 1.0.4
+##      - some commas added for MOD validation on www.phpbb.com 
+##      - layout optimized again 
+## 
+##   2005-12-08 - Version 1.0.5
+##      - some changings for MOD validation on www.phpbb.com 
+##      - layout optimized 
+##      - added advice that this MOD runs only with MySQL cause PHPMN only supports MySQL 
+##      - $username replaced with $userdata['username'] 
+##      - $useremail replaced with $userdata['user_email'] 
+##      - SQL codes optimized for ANSI standard 
+##      - more SQL injection prevention 
+##      - post variable values changed to numbers 
+##      - now displays date of archived newsletter with user setting 
+##      - HMTL and Plain/Text view for archived newsletters added 
+## 
+##   2005-12-17 - Version 1.0.6
+##      - fixed problem in phpmn.php with new members are not activated caused by too much SQL injection prevention in version 1.0.5 (the table field is ENUM and not INT) 
+##      - deactivatePHPMNUCP and DifferentTablePrefixMOD added to contrib folder
+## 
+##   2005-12-20 - Version 1.0.7
+##      - removed and changed some fileds in tpl files 
+##      - some modifications for MOD validation on www.phpbb.com 
+##      - prevention of potential XSS (ie. cookie-stealing) exploits in phpmn_html.php and phpmn_plain.php 
+## 
+##   2006-01-02 - Version 1.0.8
+##      - some modifications for MOD validation on www.phpbb.com 
+##      - now the tpl files should be XHTML compatible
+##      - phpmn_html.php and phpmn_plain.php added to installation to COPY and Included Files 
+## 
+##   2006-01-04 - Version 1.0.9
+##      - some modifications for MOD validation on www.phpbb.com 
+##      - made the install files of the contrib folder phpBB conform 
+## 
+##   2006-01-17 - Version 1.0.10
+##      - phpmn_footer.tpl updated 
+##      - lang_main_phpmn.php updated 
+## 
+##   2006-06-20 - Version 1.0.11
+##      - phpmn_html.php and phpmn_plain.php updated 
+## 
+##   2006-07-22 - Version 1.0.12
+##      - fixed some PHP undefined index issues 
+##      - now newsletter title and newsltter subject are displayed in nav links 
+## .....- now less lines to add to page_header.php
+##      - fixed little layout problem with newsletter.php
+## 
+##   2006-07-23 - Version 1.0.13
+##      - fixed a major bug in phpmn.php - then members changing from HTML to Plain/Text or in other direction their members_status has been set to '0'
+##      - fixed some PHP undefined variable issues in phpmn_html.php and phpmn_plain.php
+## 
+##   2006-07-24 - Version 1.0.14
+##      - fixed bugs in html.php and plain.php - most of the newsletter template variables have not been added to viewed newsletter
+##      - msal corrections on install.txt
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################  
+# 
+#-----[ COPY ]------------------------------------------------ 
+# 
+copy root/phpmn.php to phpmn.php
+copy root/phpmn_archive.php to phpmn_archive.php
+copy root/phpmn_archive_newsletter.php to phpmn_archive_newsletter.php
+copy root/includes/phpmn_constants.php to includes/phpmn_constants.php
+copy root/includes/phpmn_footer.php to includes/phpmn_footer.php
+copy root/language/lang_english/lang_main_phpmn.php to language/lang_english/lang_main_phpmn.php
+copy root/phpmn_connector_mod/phpmn_html.php to phpmn_connector_mod/phpmn_html.php
+copy root/phpmn_connector_mod/phpmn_plain.php to phpmn_connector_mod/phpmn_plain.php
+copy root/templates/subSilver/phpmn.tpl to templates/subSilver/phpmn.tpl
+copy root/templates/subSilver/phpmn_archive.tpl to templates/subSilver/phpmn_archive.tpl
+copy root/templates/subSilver/phpmn_archive_newsletter.tpl to templates/subSilver/phpmn_archive_newsletter.tpl
+copy root/templates/subSilver/phpmn_footer.tpl to templates/subSilver/phpmn_footer.tpl
+copy root/templates/subSilver/images/icon_mini_phpmn.gif to templates/subSilver/images/icon_mini_phpmn.gif
+copy root/templates/subSilver/images/icon_mini_select.gif to templates/subSilver/images/icon_mini_select.gif
+copy root/templates/subSilver/images/lang_english/icon_archive.gif to templates/subSilver/images/lang_english/icon_archive.gif
+
+#
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/index.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+						default:
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// PHPMN phpBB Connector MOD begin
+						case PAGE_NEWSLETTER:
+							$location = $lang['Viewing_NEWSLETTER'];
+							$location_url = "index.$phpEx?pane=right";
+							break;
+// PHPMN phpBB Connector MOD end
+						
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+					default:
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// PHPMN phpBB Connector MOD begin
+					case PAGE_NEWSLETTER:
+						$location = $lang['Viewing_NEWSLETTER'];
+						$location_url = "index.$phpEx?pane=right";
+						break;
+// PHPMN phpBB Connector MOD end
+					
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/constants.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('PAGE_TOPIC_OFFSET', 5000);
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// PHPMN phpBB Connector MOD begin
+define('PAGE_NEWSLETTER', -2145);
+// PHPMN phpBB Connector MOD end
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/page_header.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'U_GROUP_CP' => append_sid('groupcp.'.$phpEx),
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// PHPMN phpBB Connector MOD begin
+	'L_PHPMN' => $lang['PHPMN'],
+	'U_PHPMN' => append_sid('phpmn.'.$phpEx),
+// PHPMN phpBB Connector MOD end
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+//
+// Moderator Control Panel
+//
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// PHPMN phpBB Connector MOD begin
+$lang['Viewing_NEWSLETTER'] = 'Viewing or checking Newsletter';
+// PHPMN phpBB Connector MOD end
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// That's all, Folks!
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// PHPMN phpBB Connector MOD begin
+$lang['PHPMN'] = 'Newsletter';
+// PHPMN phpBB Connector MOD end
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<td align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+<td align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+<a href="{U_PHPMN}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_phpmn.gif" width="12" height="13" border="0" alt="{L_PHPMN}" hspace="3" />{L_PHPMN}</a>&nbsp;&nbsp;
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.cfg 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$images['icon_newest_reply'] = "$current_template_images/icon_newest_reply.gif";
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// PHPMN phpBB Connector MOD begin
+$images['icon_archive'] = "$current_template_images/{LANG}/icon_archive.gif";
+$images['icon_select'] = "$current_template_images/icon_mini_select.gif";
+// PHPMN phpBB Connector MOD end
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewonline.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				default:
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// PHPMN phpBB Connector MOD begin
+				case PAGE_NEWSLETTER:
+					$location = $lang['Viewing_NEWSLETTER'];
+					$location_url = "phpmn.$phpEx";
+					break;
+// PHPMN phpBB Connector MOD end
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

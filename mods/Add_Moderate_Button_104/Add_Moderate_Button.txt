@@ -1,0 +1,213 @@
+##############################################################
+## MOD Title: Add Moderate Button
+## MOD Author: tk102 < zxcvbnm6012@yahoo.com > (Travis Krumsick) N/A
+## MOD Description: Adds a "moderate" button if the user is a forum
+##                  moderator and is viewing that forum or a topic 
+##                  within that forum.
+## MOD Version: 1.0.4
+##
+## Installation Level: Easy
+## Installation Time: ~5 Minutes
+## Files To Edit:
+##               languages/lang_english/lang_main.php
+##               viewforum.php
+##               viewtopic.php
+##               templates/subSilver/subSilver.cfg
+##               templates/subSilver/viewforum_body.tpl
+##               templates/subSilver/viewtopic_body.tpl
+## Included Files:
+##               templates/subSilver/images/moderate.gif 
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##  Button has same functionality as "You can moderate this forum" link.
+##############################################################
+## MOD History:
+##
+##   2003-09-29 - Version 1.0.0
+##      - Initial release
+##   2003-10-6  - version 1.0.1
+##      - Fixed some typos and revised moderate.gif to incorporate better into subSilver theme.
+##   2003-10-18 - version 1.0.2
+##      - Added moderate button to bottom of topic/forum list, increased cell width to fit on one line in viewforum_body.tpl
+##   2003-10-18 - version 1.0.3
+##      - Fixed bug in viewtopic.php
+##   2003-10-29 - version 1.0.4
+##      - Fixed typos
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+############################################################## 
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Rules_moderate'] = 'You <b>can</b> %smoderate this forum%s'; // %s replaced by a href links, do not remove!
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Rules_moderate2'] = 'Moderate this forum';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewforum.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$s_auth_can .= sprintf($lang['Rules_moderate'], "<a href=\"modcp.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;start=" . $start . "&amp;sid=" . $userdata['session_id'] . '">', '</a>');
+
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+        $moderate_img="<a href=\"modcp.$phpEx?".POST_FORUM_URL."=$forum_id&amp;start=".$start."&amp;sid=".$userdata['session_id'].'" class="nav">';
+        $moderate_img.='<img src="'.$images['moderate'].'" border="0" alt="'.$lang{'Rules_moderate2'}.'">';
+        $moderate_img.='</a>';
+} else {
+        $moderate_img='';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+'POST_IMG' => ( $forum_row['forum_status'] == FORUM_LOCKED ) ? $images['post_locked'] : $images['post_new'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+'MODERATE_IMG' => $moderate_img,
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewtopic.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$s_auth_can .= sprintf($lang['Rules_moderate'], "<a href=\"modcp.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'] . '">', '</a>');
+
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+        $moderate_img="<a href=\"modcp.$phpEx?".POST_FORUM_URL."=$forum_id&amp;sid=".$userdata['session_id'].'" class="nav">';
+        $moderate_img.='<img src="'.$images['moderate'].'" border="0" alt="'.$lang{'Rules_moderate2'}.'" align="middle">';
+        $moderate_img.='</a>';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$topic_mod .= "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=split&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_mod_split'] . '" alt="' . $lang['Split_topic'] . '" title="' . $lang['Split_topic'] . '" border="0" /></a>&nbsp;';
+} 
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+else 
+{ 
+	$moderate_img=''; 
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'REPLY_IMG' => $reply_img,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+        'MODERATE_IMG'=>$moderate_img,
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.cfg
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$images['folder_announce_new'] = "$current_template_images/folder_announce_new.gif";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$images['moderate'] = "$current_template_images/moderate.gif";
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewforum_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+<td align="left" valign="middle" width="50"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" /></a></td>
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+<td align="left" valign="middle" width="250"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" /></a>&nbsp;&nbsp;&nbsp;{MODERATE_IMG}</td>
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+<td align="left" valign="middle" width="50"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" /></a></td>
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+<td align="left" valign="middle" width="250"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" /></a>&nbsp;&nbsp;&nbsp;{MODERATE_IMG}</td>
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewtopic_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+<td align="left" valign="bottom" nowrap="nowrap"><span class="nav"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" align="middle" /></a>&nbsp;&nbsp;&nbsp;<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" />
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+</a>
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+&nbsp;&nbsp;&nbsp;{MODERATE_IMG}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+<td align="left" valign="middle" nowrap="nowrap"><span class="nav"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" align="middle" /></a>&nbsp;&nbsp;&nbsp;<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" />
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+</a>
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+&nbsp;&nbsp;&nbsp;{MODERATE_IMG}
+
+#
+#-----[ COPY ]------------------------------------------
+# 
+copy templates/subSilver/images/moderate.gif to templates/subSilver/images/moderate.gif
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

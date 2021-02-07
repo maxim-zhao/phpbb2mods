@@ -1,0 +1,296 @@
+##############################################################
+## MOD Title: Show_Hide Avatar via ACP
+## MOD Author: lefty74 < lefty@lefty74.com > (Heiko Carstens) http://www.lefty74.com
+## MOD Description: With this MOD admins can decide whether avatars can be seen
+## by everyone or or only by registered members that are logged in.
+## Options can be set from the ACP.
+##
+## MOD Version: 1.0.0a
+##
+## Installation Level: Easy
+## Installation Time: 15 Minutes
+## Files To Edit:	(8)
+##				groupcp.php
+##				memberlist.php
+##				viewtopic.php
+##				admin/admin_board.php
+##				includes/constants.php
+##				includes/usercp_viewprofile.php
+##				language/lang_english/lang_admin.php
+##				templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files: (N/A)
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## Although avatars are not viewable by default in the memberlist
+## and the usergroup page, these pages are also changed in this mod
+## in case the avatars get 'activated' at some stage.
+## Package includes already changed files for v2.0.22
+##############################################################
+## MOD History:
+##
+##   2007-01-01 - 1.0.0
+##      - 	      Submitted for validation 
+##
+##   2006-11-25 - 0.2.0
+##      - 	      Reduced some lines of code in memberlist.php, 
+##				  viewtopic.php and includes/usercp_viewprofile.php
+##
+##   2006-11-24 - 0.1.0
+##      - 	      Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------------------------
+#
+INSERT INTO `phpbb_config` ( `config_name` , `config_value` ) VALUES ( 'show_avatar', '0' );
+#
+#-----[ OPEN ]------------------------------------------
+#
+groupcp.php
+#
+#
+#-----[ FIND ]------------------------------------------
+#
+	generate_user_info($group_moderator
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin Show_Hide Avatar ACP MOD
+	if ( $board_config['show_avatar'] == SHOW_AVATAR_REG && $userdata['session_logged_in'] )
+	{
+	}
+	else if ( $board_config['show_avatar'] == SHOW_AVATAR_ALL )
+	{
+	}
+	else
+	{
+	$poster_avatar = '';
+	}
+// End Show_Hide Avatar ACP MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+		generate_user_info($group_members[$i]
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin Show_Hide Avatar ACP MOD
+		if ( $board_config['show_avatar'] == SHOW_AVATAR_REG && $userdata['session_logged_in'] )
+		{
+		}
+		else if ( $board_config['show_avatar'] == SHOW_AVATAR_ALL )
+		{
+		}
+		else
+		{
+		$poster_avatar = '';
+		}
+// End Show_Hide Avatar ACP MOD
+#
+#-----[ FIND ]------------------------------------------
+#		
+				generate_user_info($modgroup_pending_list[$i]
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin Show_Hide Avatar ACP MOD
+				if ( $board_config['show_avatar'] == SHOW_AVATAR_REG && $userdata['session_logged_in'] )
+				{
+				}
+				else if ( $board_config['show_avatar'] == SHOW_AVATAR_ALL )
+				{
+				}
+				else
+				{
+				$poster_avatar = '';
+				}
+// End Show_Hide Avatar ACP MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+memberlist.php
+#
+#-----[ FIND ]------------------------------------------
+#
+				case USER_AVATAR_GALLERY:
+					$poster_avatar = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $row['user_avatar'] . '" alt="" border="0" />' : '';
+					break;
+			}
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin Show_Hide Avatar ACP MOD
+if ( $board_config['show_avatar'] == SHOW_AVATAR_REG && $userdata['session_logged_in'] )
+{
+}
+else if ( $board_config['show_avatar'] == SHOW_AVATAR_ALL )
+{
+}
+else
+{
+$poster_avatar = '';
+}
+// End Show_Hide Avatar ACP MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------
+#
+			case USER_AVATAR_GALLERY:
+				$poster_avatar = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $postrow[$i]['user_avatar'] . '" alt="" border="0" />' : '';
+				break;
+		}
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin Show_Hide Avatar ACP MOD
+if ( $board_config['show_avatar'] == SHOW_AVATAR_REG && $userdata['session_logged_in'] )
+{
+}
+else if ( $board_config['show_avatar'] == SHOW_AVATAR_ALL )
+{
+}
+else
+{
+$poster_avatar = '';
+}
+// End Show_Hide Avatar ACP MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$avatars_upload_no = ( !$new['allow_avatar_upload'] ) ? "checked=\"checked\"" : "";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin Show_Hide Avatar ACP MOD
+$show_avatar_all = ( $new['show_avatar'] == SHOW_AVATAR_ALL ) ? "checked=\"checked\"" : "";
+$show_avatar_reg = ( $new['show_avatar'] == SHOW_AVATAR_REG ) ? "checked=\"checked\"" : "";
+// End Show_Hide Avatar ACP MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_AVATAR_GALLERY_PATH_EXPLAIN" => 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin Show_Hide Avatar ACP MOD
+	"L_SHOW_AVATAR" => $lang['show_avatar'],
+	"L_ALL" => $lang['All'],
+	"L_REG" => $lang['Reg'],
+// End Show_Hide Avatar ACP MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+	"AVATAR_GALLERY_PATH" => $new['avatar_gallery_path'], 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin Show_Hide Avatar ACP MOD
+	"SHOW_AVATAR_ALL" => SHOW_AVATAR_ALL,
+	"SHOW_AVATAR_ALL_CHECKED" => $show_avatar_all,
+	"SHOW_AVATAR_REG" => SHOW_AVATAR_REG,
+	"SHOW_AVATAR_REG_CHECKED" => $show_avatar_reg,
+// End Show_Hide Avatar ACP MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------
+#
+
+// Table names
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Begin Show_Hide Avatar ACP MOD
+// Show Avatar
+define('SHOW_AVATAR_ALL', 0);
+define('SHOW_AVATAR_REG', 1);
+// End Show_Hide Avatar ACP MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		case USER_AVATAR_GALLERY:
+			$avatar_img = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $profiledata['user_avatar'] . '" alt="" border="0" />' : '';
+			break;
+	}
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin Show_Hide Avatar ACP MOD
+if ( $board_config['show_avatar'] == SHOW_AVATAR_REG && $userdata['session_logged_in'] )
+{
+}
+else if ( $board_config['show_avatar'] == SHOW_AVATAR_ALL )
+{
+}
+else
+{
+$avatar_img = '';
+}
+// End Show_Hide Avatar ACP MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Avatar_gallery_path_explain'] = 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin Show_Hide Avatar ACP MOD
+$lang['show_avatar'] = 'Who is allowed to view Avatars?';
+$lang['All'] = 'Everyone';
+$lang['Reg'] = 'Registered Users only';
+// End Show_Hide Avatar ACP MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_AVATAR_GALLERY_PATH} <br /><span class="gensmall">{L_AVATAR_GALLERY_PATH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="avatar_gallery_path" value="{AVATAR_GALLERY_PATH}" /></td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_SHOW_AVATAR}</td>
+		<td class="row2"><input type="radio" name="show_avatar" value="{SHOW_AVATAR_ALL}" {SHOW_AVATAR_ALL_CHECKED} />{L_ALL}&nbsp; &nbsp;<input type="radio" name="show_avatar" value="{SHOW_AVATAR_REG}" {SHOW_AVATAR_REG_CHECKED} />{L_REG}&nbsp; &nbsp;<br />
+	</tr>
+#
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

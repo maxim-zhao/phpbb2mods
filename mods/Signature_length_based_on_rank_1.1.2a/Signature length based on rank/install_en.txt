@@ -1,0 +1,394 @@
+######################################################## 
+## MOD Title: Signature length based on rank
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: Admin can set different signature lengths based on user's rank in ACP.
+## MOD Version:	1.1.2
+## 
+## Installation Level:	Intermediate 
+## Installation Time:	10 Minutes 
+##
+## Files To Edit:	8
+##	includes/usercp_register.php
+##	includes/functions_validate.php
+##	admin/admin_ranks.php
+##	admin/admin_users.php
+##	language/lang_english/lang_admin.php
+##	language/lang_english/lang_main.php
+##	templates/subSilver/admin/ranks_list_body.tpl
+##	templates/subSilver/admin/ranks_edit_body.tpl
+##
+## Included Files: 	0
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.20. Can be installed using EasyMOD 0.3.0
+## 
+############################################################## 
+## MOD History: 
+##
+##   2005-01-10 - Version 1.0.0
+##      - Initial Release
+##
+##   2005-01-23 - Version 1.0.1
+##      - Fix a bug in usercp_register.php
+##
+##   2005-01-24 - Version 1.0.2
+##      - Fix a bug in usercp_register.php
+##
+##   2005-02-18 - Version 1.0.3
+##      - Bug fix in admin_ranks.php (Thanks to bebe2803) and usercp_register.php (Thanks to PCTalk)
+##	- Display signature too long by how many characters
+##
+##   2005-08-21 - Version 1.1.0
+##	- Added the MOD to admin_users.php
+##	- Move signature length validation to functions_validate.php
+##      - Bug fix in $lang output in usercp_register.php (Thanks to PCTalk)
+##
+##   2006-04-02 - Version 1.1.1
+##	- Fix a bug in admin_users.php for not displaying the signature char limit correctly
+##	- Fix a bug in validate_sig_length() for not checking user_rank correctly
+##
+##   2006-04-09 - Version 1.1.2
+##	- Update some codes to become 2.0.20 competible
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+ALTER TABLE `phpbb_ranks` ADD `rank_sig_length` SMALLINT (3) NOT NULL;
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_ranks.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			"MINIMUM" => ( $rank_is_special ) ? "" : $rank_info['rank_min'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			"SIG_LENGTH" => $rank_info['rank_sig_length'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			"L_RANK_MINIMUM" => $lang['Rank_minimum'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			"L_RANK_SIG_LENGTH" => $lang['Rank_sig_length'],
+			"L_RANK_SIG_LENGTH_EXPLAIN" => $lang['Rank_sig_length_explain'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$min_posts = ( isset($HTTP_POST_VARS['min_posts']) ) ? intval($HTTP_POST_VARS['min_posts']) : -1;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$sig_length = ( isset($HTTP_POST_VARS['sig_length']) ) ? intval($HTTP_POST_VARS['sig_length']) : 0;
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+SET rank_title = '" . str_replace
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+rank_min = $min_posts,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ rank_sig_length = $sig_length,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "INSERT INTO " . RANKS_TABLE . "
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+rank_min,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ rank_sig_length,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+VALUES ('" . str_replace("\'", "''", $rank_title)
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$min_posts,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ $sig_length,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"L_SPECIAL_RANK" => $lang['Rank_special'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	"L_RANK_SIG_LENGTH" => $lang['Rank_sig_length'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$rank_min = $rank_rows[$i]['rank_min'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$rank_sig_length = (!empty($rank_rows[$i]['rank_sig_length'])) ? $rank_rows[$i]['rank_sig_length'] : $lang['Rank_default_sig_length'];
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		"RANK_MIN" => $rank_min,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		"RANK_SIG_LENGTH" => $rank_sig_length,
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_users.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			if ( strlen($sig_length_check) > $board_config['max_sig_chars'] )
+			{ 
+				$error = TRUE;
+				$error_msg .=  ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Signature_too_long'];
+			}
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+			$sig_length = validate_sig_length($this_userdata['user_rank']);
+			if ( strlen($sig_length_check) > $sig_length )
+			{
+				$extracha = strlen($sig_length_check) - $sig_length;
+				$error = TRUE;
+				$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . sprintf($lang['Signature_too_long'], $extracha);
+			}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$template->set_filenames(array(
+			"body" => "admin/user_edit_body.tpl")
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+		$sig_length = validate_sig_length($this_userdata['user_rank']);
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'L_SIGNATURE_EXPLAIN' => sprintf($lang['Signature_explain'], $board_config['max_sig_chars'] ),
+# 
+#-----[ REPLACE WITH ]----------------------------------
+#
+			'L_SIGNATURE_EXPLAIN' => ( !empty($sig_length) ) ? sprintf($lang['Signature_explain'], $sig_length) : sprintf($lang['Signature_explain'], $board_config['max_sig_chars']),
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/ranks_list_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<th class="thTop">{L_SPECIAL_RANK}</th>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		<th class="thTop">{L_RANK_SIG_LENGTH}</th>
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<td class="{ranks.ROW_CLASS}" align="center">{ranks.SPECIAL_RANK}</td>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		<td class="{ranks.ROW_CLASS}" align="center">{ranks.RANK_SIG_LENGTH}</td>
+# 
+#-----[ FIND ]------------------------------------------ 
+# Read "The INCREMENT Action" at http://www.phpbb.com/kb/article.php?article_id=39
+		<td class="catBottom" align="center" colspan="{%:1}">
+#
+#-----[ INCREMENT ]-------------------------------------
+# Read "The INCREMENT Action" at http://www.phpbb.com/kb/article.php?article_id=39
+%:1 +1
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/ranks_edit_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<td class="row2"><input class="post" type="text" name="min_posts" size="5" maxlength="10" value="{MINIMUM}" /></td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr>
+		<td class="row1" width="38%"><span class="gen">{L_RANK_SIG_LENGTH}:</span><br />
+		<span class="gensmall">{L_RANK_SIG_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" name="sig_length" size="5" maxlength="3" value="{SIG_LENGTH}" /></td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Rank_image_explain']
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$lang['Rank_sig_length'] = 'Signature Length';
+$lang['Rank_sig_length_explain'] = 'Specify the maximum signiture legnth this rank is allowed. If set to <b>0</b>, this rank will use the value specified in <b>General Admin -> Configuration</b>';
+$lang['Rank_default_sig_length'] = 'Default length';
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Signature_too_long']
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+$lang['Signature_too_long'] = 'Your signature is too long by %s character(s).';
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_register.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	message_die(GENERAL_MESSAGE, $lang['Username_taken'], '', __LINE__, __FILE__);
+}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+if ( $mode == 'editprofile' )
+{
+	include_once($phpbb_root_path . 'includes/functions_validate.'.$phpEx);
+	$sig_length = validate_sig_length($userdata['user_rank']);
+}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	if ( $signature != '' )
+	{
+		if ( strlen($signature) > $board_config['max_sig_chars'] )
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	if ( $mode == 'editprofile' )
+	{
+		if ( $signature != '' )
+		{
+			if ( strlen($signature) > $sig_length )
+			{
+				$extracha = strlen($signature) - $sig_length;
+				$error = TRUE;
+				$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . sprintf($lang['Signature_too_long'], $extracha);
+			}
+
+			if ( $signature_bbcode_uid == '' )
+			{
+				$signature_bbcode_uid = ( $allowbbcode ) ? make_bbcode_uid() : '';
+			}
+			$signature = prepare_message($signature, $allowhtml, $allowbbcode, $allowsmilies, $signature_bbcode_uid);
+		}
+	}
+
+	if ( $mode == 'register' )
+	{
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$signature = prepare_message($signature, $allowhtml, $allowbbcode, $allowsmilies, $signature_bbcode_uid);
+	}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'L_SIGNATURE_EXPLAIN' => sprintf($lang['Signature_explain'], $board_config['max_sig_chars']),
+# 
+#-----[ REPLACE WITH ]----------------------------------
+#
+		'L_SIGNATURE_EXPLAIN' => ( !empty($sig_length) ) ? sprintf($lang['Signature_explain'], $sig_length) : sprintf($lang['Signature_explain'], $board_config['max_sig_chars']),
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions_validate.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+//
+// Check to signiture length
+//
+function validate_sig_length($user_rank)
+{
+	global $db, $board_config, $userdata;
+
+	$sql = "SELECT *
+		FROM " . RANKS_TABLE . "
+		ORDER BY rank_special, rank_min";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, "Could not obtain ranks information.", '', __LINE__, __FILE__, $sql);
+	}
+	$ranksrow = array();
+	while ( $row = $db->sql_fetchrow($result) )
+	{
+		$ranksrow[] = $row;
+	}
+	$db->sql_freeresult($result);
+
+	// Special Ranks
+	if ( $user_rank )
+	{
+		for($j = 0; $j < count($ranksrow); $j++)
+		{
+			if ( $user_rank == $ranksrow[$j]['rank_id'] && $ranksrow[$j]['rank_special'] )
+			{
+				$rank_sig_length = $ranksrow[$j]['rank_sig_length'];
+				$sig_length = ( empty($rank_sig_length) ) ? $board_config['max_sig_chars'] : $rank_sig_length;
+			}
+		}
+	}
+	// Normal Ranks
+	else
+	{
+		for($j = 0; $j < count($ranksrow); $j++)
+		{
+			if ( $userdata['user_posts'] >= $ranksrow[$j]['rank_min'] && !$ranksrow[$j]['rank_special'] )
+			{
+				$rank_sig_length = $ranksrow[$j]['rank_sig_length'];
+				$sig_length = ( empty($rank_sig_length) ) ? $board_config['max_sig_chars'] : $rank_sig_length;
+			}
+		}
+	}
+
+	return $sig_length;
+}
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

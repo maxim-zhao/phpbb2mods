@@ -1,0 +1,148 @@
+############################################################## 
+## MOD Title:          Faster groupcp
+## MOD Author:         Niels < ncr@db9.dk > (Niels Chr. Rød) http://mods.db9.dk
+## MOD Description:    This mod will make groupcp faster, when looking up group members of large groups
+##                     NOTE: you will only see the different on usergroups with meny users
+##                     on my demo site, the time whent from +30 sek, down to 1 sek on a usergroup with +6000 members....
+##
+## MOD Version:        1.0.0.
+## Compatibility:      2.0.3->2.0.6
+##
+## Installation Level: easy
+## Installation Time:  2 Minutes (1mn by EasyMOD of Nuttzy)
+## Files To Edit:      1
+##      groupcp.php
+##
+## Included Files:     0
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+## This MOD is compatible and can be installed by EasyMOD
+## of Nuttzy (but is not officially EasyMOD Compliant)!
+## http://www.phpbb.com/phpBB/viewtopic.php?t=124436
+##
+##
+############################################################## 
+## MOD History: 
+##
+##   2003-09-05 - Version 1.0.0.
+##      - Initial release phpBB2
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+groupcp.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+ORDER BY u.username
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+# 
+";
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------ 
+# 
+ LIMIT $start, ".$board_config['topics_per_page'];
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+$members_count = count($group_members);
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------------ 
+# 
+// $members_count code removed
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+$sql = "SELECT
+FROM
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+# 
+FROM " . GROUPS_TABLE . " g, " .
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------ 
+# 
+FROM " .
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+WHERE ug.group_id = $group_id
+AND g.group_id = ug.group_id
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------------ 
+# 
+WHERE ug.group_id = $group_id
+	
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+ORDER BY u.username
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+# 
+";
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------ 
+# 
+ LIMIT $start, ".$board_config['topics_per_page'];
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+$modgroup_pending_count = count($modgroup_pending_list);
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------------ 
+# 
+$sql = "SELECT count(*) as total
+	FROM " . USER_GROUP_TABLE . " 
+	WHERE group_id = $group_id AND user_id <> " . $group_moderator['user_id'] . " 
+		GROUP BY user_pending ASC"; 
+if ( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, 'Error getting user count information', '', __LINE__, __FILE__, $sql);
+}
+$counting_list = $db->sql_fetchrowset($result);
+$db->sql_freeresult($result);
+$members_count = $counting_list['0']['total'];
+$modgroup_pending_count = $counting_list['1']['total'];
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+for($i = $start; $i < min($board_config['topics_per_page'] + $start, $members_count); $i++)
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------------ 
+# 
+$i = -1;
+while(!empty($group_members[++$i]['username']))
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------- 
+# 
+# EoM 

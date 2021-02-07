@@ -1,0 +1,1668 @@
+############################################################## 
+## MOD Title:          Advanced time management
+## MOD Author:         -=ET=- < N/A > (N/A) http://www.golfexpert.net/phpbb
+## MOD Description:    This MOD allow the board administrator(s)
+##                     and each user to manage the times displayed
+##                     on the board.
+##                     They can use...
+##                     - the user's computer time
+##                     - the server UTC time & the user's computer settings
+##                     - the server local time
+##                     - a manual mode which allow to enable/disable
+##                       the Daylight Saving Time (manually or
+##                       synchronized with the serveur) and set
+##                       the DST time lag of their state/country
+## MOD Version:        2.2.0
+##
+## Installation Level: Intermediate
+## Installation Time:  15 Minutes (1mn by EasyMOD)
+## Files To Edit:
+##      common.php
+##      admin/admin_board.php
+##      admin/admin_users.php
+##      includes/constants.php
+##      includes/functions.php
+##      includes/functions_selects.php
+##      includes/page_header.php
+##      includes/sessions.php
+##      includes/usercp_avatar.php 
+##      includes/usercp_register.php
+##      templates/subSilver/formIE.css
+##      templates/subSilver/index_body.tpl
+##      templates/subSilver/overall_header.tpl
+##      templates/subSilver/profile_add_body.tpl
+##      templates/subSilver/simple_header.tpl
+##      templates/subSilver/subSilver.css
+##      templates/subSilver/admin/board_config_body.tpl
+##      templates/subSilver/admin/page_header.tpl
+##      templates/subSilver/admin/user_edit_body.tpl
+## Included Files:
+##      root/language/lang_dutch/lang_adv_time.php 
+##      root/language/lang_english/lang_adv_time.php 
+##      root/language/lang_french/lang_adv_time.php
+##      root/language/lang_german/lang_adv_time.php 
+##      root/language/lang_italian/lang_adv_time.php
+##      root/language/lang_russian/lang_adv_time.php
+##      root/language/lang_spanish/lang_adv_time.php
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+## 
+## 1. EasyMOD
+## -----------
+## This MOD is compatible with EasyMOD and can be installed
+## by it but is not yet certified EMC (EasyMOD Compliant)!
+## http://area51.phpbb.com/phpBB22/viewforum.php?sid=&f=15
+##
+## Warning 1! At the minimum, you need EasyMOD beta 1 (0.2.1a) or
+## more recent to install this MOD by EM!
+##
+## Warning 2! At the present time, EM is not able to install
+## automatically other languages than English.
+## This gap will be solved in future releases but in the meantime,
+## if you need to install any other language than English provides
+## with this MOD, please proceed manually (cf. comments in
+## the DIY action).
+##
+## 2. Compatibility
+## -----------
+## - This MOD is phpBB 2.0.17 compliant (prior release not tested)
+## - This MOD is NOT compliant and will not be compliant
+##   with PCP (Profile Control Panel)!
+##   On the other hand, it will be compliant with the UCP (User
+##   Control Panel) of phpBB 3.0.0 as soon as it will be available.
+## - This MOD is NOT compliant and will not be compliant
+##   with Category Hierarchy 2.1.0 and more recent!
+##   On the other hand, it will be compliant with the sub forum
+##   functionality of phpBB 3.0.0 as soon as it will be available.
+##
+## 3. Special note for www.free.fr
+## -----------
+## This MOD uses session variables but with this host you must
+## create a "sessions" directory in your FTP root directory in
+## order to make this kind of variable available.
+##
+## 4. Official last version link
+## -----------
+## Meanwhile the phpBB group validation and as the MOD is not yet
+## in the phpBB MOD database, check this official link for updates...
+## http://www.golfexpert.net/phpBB
+##
+## 5. More information about UTC/GMT times and DST
+## -----------
+## UTC means "Coordinated Universal Time" and is the legal
+## world time since 1972. It's calculated by the BIPM in Sevres
+## (France), and is the average of data collected from more
+## than 200 atomic time with a precision of 0.000 000 1 second!!!
+## It's the modern successor of the GMT time (Greenwich Mean Time)
+## which was used when the unit of time was the mean solar day.
+## But GMT officially no longer exists even if the term GMT is
+## still incorrectly used by the general public.
+## http://www.bipm.fr/en/home/
+## http://tf.nist.gov/general/enc-ch.htm#utc
+## http://tf.nist.gov/general/enc-g.htm#gmt
+## http://www.atomicclockrugbymsf.co.uk/UTC.htm
+##
+## DST means "Daylight Saving Time" (or Summer Time as it is
+## called in many countries) and refers to the fact to advance
+## the clocks by generaly one hour during the summer.
+## This was imagined to save energy (less artificial light is
+## needed during the evening) and make the countries more efficient
+## in addition to the pleasing effect of lighter evenings.
+## But the decision to apply the DST or not belongs to the politic
+## of each country. There is no universal rule!
+## http://www.timeanddate.com/time/aboutdst.html
+## http://www.worldtimezone.com/daylight.htm
+##
+## Special thanks!
+## -----------
+## A very big thank you to "Mara's dad" from the Hardware.fr forums
+## for its advices in JavaScript!
+## He prevents me from becoming crazy with computer settings modes! lol ;-)
+##
+############################################################## 
+## MOD History: 
+## 
+##   2005-07-31 - Version 2.2.0
+##      - New version number & security disclaimer to be compliant
+##        with the new MOD template
+##      - Fix again: date/time variables inserted before "#"
+##        (if there is one) in the url
+##      - Use ' instead of " for some variable
+##
+##   2005-07-17 - Version 2.1.2
+##      - Add uninstall DB modifications file
+##      - Fix: forum/topic titles replaced by an url if they
+##        start by a web link (http:// or www.)
+##      - Fix: date/time variables inserted before "#" (if there
+##        is one) in the url
+##      - Fix: use of $HTTP_SESSION_VARS instead of $_SESSION
+##
+##   2005-06-04 - Version 2.1.1
+##      - Fix: default mode not displayed for manual DST Yes/No
+##      - Replace $_SESSION by $HTTP_SESSION_VARS
+##      - Switch $pc_dateTime_update from string to boolean
+##      - Use constants instead of the mode code
+##      - English translation improvements
+##      - MOD instructions enhancement
+##      - Add information about UTC/GMT times and DST in the
+##        Author notes
+##
+##   2005-05-25 - Version 2.1.0
+##      - Don't use iFrame anymore
+##      - Much more compliant with non subSilver clone styles
+##      - New setting design
+##      - Simplified session management
+##      - pc_time_data.php removed
+##      - Better computer synchro modes management
+##      - The user's computer time mode is now set by default
+##
+##   2004-08-15 - Version 2.0.2
+##      - SQL instructions now performed by EM beta 1 (0.1.13)
+##        or more recent.
+##      - Language file include not needed in includes/usercp_register.php
+##      - Add Dutch & Russian translation (thanks to Cr3ep3r!)
+##
+##   2003-12-06 - Version 2.0.1
+##      - $lang['server_pc_mode'] language entry modified
+##      - Add a language_change_log.txt file in the archive
+##      - Italian translation improved
+##      - For the language file include(), the code now test if the
+##        translation file exist and otherwise use the English file.
+##      - Comments has been add in every FIND instruction on part of code
+##        line(s) to help identifying those lines in manual installations
+##
+##   2003-11-07 - Version 2.0.0
+##      - Fix: modes choices alignment in ACP with IE
+##      - Fix: little height space inserted on the index page when 1st seen
+##      - Fix: error message on 5th & 6th mode with GZip compression enabled
+##      - Instructions rewrite for adv_time_db_update.php use
+##      - MOD now provide with German, Italian and Spanish translations
+##
+##   2003-09-30 - Version 2.0.0 Release Candidate 1
+##      - MOD rename from DST time management to Advanced time management
+##      - A new user's computer time mode has been add
+##      - The 2 old modes using the server UTC time & the user's
+##        computer settings have been merge in a new one which
+##        does not need a cookie or a page reload anymore
+##      - In user's profile, the default board mode is now bring to the fore by an "*"
+##      - Replace "GMT" by "UTC" in timezone drop down lists
+##      - Fix: modes choices alignment with Mozilla
+##
+##   2003-08-21 - Version 1.1.1
+##      - Fix reload not executed for the 5th mode with Mozilla
+##      - Minor improvements to be fully W3C compliant
+##        (in session management & form attributes)
+##      - Change the 5th mode information message on the index page
+##      - dst_db_update.php updated to ask to delete it after use
+##
+##   2003-08-17 - Version 1.1.0
+##      - Add the ability to set a default dst mode and a default
+##        dst time lag for anonymous users and new accounts
+##      - Replace "GMT" by "UTC" in the time status line as the "GMT"
+##        time is not the official universal time anymore since 1985
+##      - Several improvements in page_header.php & overall_header.tpl
+##        for the 5th mode
+##
+##   2003-08-05 - Version 1.0.1
+##      - Fix a minor issue in an input attribute of overall_header.tpl
+##      - Update "Author notes" for EasyMOD 0.0.10a
+##      - Release confirmed as phpBB 2.0.6 compliant (no change needed)
+##
+##   2003-07-12 - Version 1.0.0
+##      - Initial final release
+##      - Beta & RC releases are not supported anymore
+##        (no update available - reinstall the MOD)
+##
+##   2003-07-12 - Version 0.4.2 - Release candidate 4c
+##      - The MOD can now be installed by EasyMOD 0.0.9c
+##        of Nutzzy (but is not yet an officially EasyMOD
+##        Compliant MOD)!
+##
+##   2003-07-09 - Version 0.4.1 - Release candidate 4b
+##      - Fix: correct the DST modes choice alignment
+##      - Reduce DST time lag field width
+##      - Minor messages update
+##
+##   2003-07-09 - Version 0.4.0 - Release candidate 4
+##      - Minor messages update
+##      - Add 2 news modes and rename all 5 modes
+##
+##   2003-07-08 - Version 0.3.0 - Release candidate 3
+##      - Add specific time information messages on index page
+##      - PC synchro mode does not use cookies anymore
+##
+##   2003-07-04 - Version 0.2.1 - Release candidate 2
+##      - Modify Server synchro mode to be fully synchronized
+##      - Minor messages update
+##      - Fix: messages not displayed
+##
+##   2003-07-02 - Version 0.2.0 - Release candidate 1
+##      - Add DST time lag validity control
+##      - Add PC synchro mode
+##
+##   2003-06-26 - Version 0.1.0 - Initial beta release
+##      - No DST time lag validity control
+##      - No PC synchro mode
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+#
+#-----[ SQL ]-------------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('default_time_mode', '6');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('default_dst_time_lag', '60');
+ALTER TABLE phpbb_users ADD user_time_mode TINYINT not null DEFAULT '6';
+ALTER TABLE phpbb_users ADD user_dst_time_lag TINYINT not null DEFAULT '60';
+ALTER TABLE phpbb_users ADD user_pc_timeOffsets VARCHAR(11) not null DEFAULT '0';
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy root/language/lang_english/lang_adv_time.php to language/lang_english/lang_adv_time.php
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+common.php 
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+$nav_links = array();
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+$pc_dateTime = array();
+// End add - Advanced time management MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+admin/admin_board.php 
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+include($phpbb_root_path . 'includes/functions_selects.'.$phpEx);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+if ( !file_exists(@phpbb_realpath($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_adv_time.' . $phpEx)) ) 
+{ 
+	include($phpbb_root_path . 'language/lang_english/lang_adv_time.' . $phpEx); 
+} else 
+{ 
+	include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_adv_time.' . $phpEx); 
+} 
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $gzip_yes = ( $new['gzip_compress'] ) ? "checked=\"checked\"" : "";
+#
+$gzip_yes = (
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+# 
+
+// Start add - Advanced time management MOD
+switch ($new['default_time_mode']) 
+{ 
+	case MANUAL_DST:
+		$time_mode_manual_dst_checked='checked="checked"';
+		break; 
+	case SERVER_SWITCH:
+		$time_mode_server_switch_checked='checked="checked"';
+		break; 
+	case FULL_SERVER:
+		$time_mode_full_server_checked='checked="checked"';
+		break; 
+	case SERVER_PC:
+		$time_mode_server_pc_checked='checked="checked"';
+		break; 
+	case FULL_PC:
+		$time_mode_full_pc_checked='checked="checked"';
+		break; 
+	default:
+		$time_mode_manual_checked='checked="checked"';
+} 
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# "L_SYSTEM_TIMEZONE" => $lang['System_timezone'],
+#
+"L_SYSTEM_TIMEZONE" =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Advanced time management MOD
+'L_TIME_MODE' => $lang['time_mode'],
+'L_TIME_MODE_TEXT' => $lang['time_mode_text'],
+'L_TIME_MODE_MANUAL' => $lang['time_mode_manual'],
+'L_TIME_MODE_DST' => $lang['time_mode_dst'],
+'L_TIME_MODE_DST_SERVER' => $lang['time_mode_dst_server'],
+'L_TIME_MODE_DST_TIME_LAG' => $lang['time_mode_dst_time_lag'],
+'L_TIME_MODE_DST_MN' => $lang['time_mode_dst_mn'],
+'L_TIME_MODE_TIMEZONE' => $lang['time_mode_timezone'],
+'L_TIME_MODE_AUTO' => $lang['time_mode_auto'],
+'L_TIME_MODE_FULL_SERVER' => $lang['time_mode_full_server'],
+'L_TIME_MODE_SERVER_PC' => $lang['time_mode_server_pc'],
+'L_TIME_MODE_FULL_PC' => $lang['time_mode_full_pc'],
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# "TIMEZONE_SELECT" => $timezone_select,
+#
+"TIMEZONE_SELECT" =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Advanced time management MOD
+'TIME_MODE' => $time_mode,
+'TIME_MODE_MANUAL_CHECKED' => $time_mode_manual_checked,
+'TIME_MODE_MANUAL_DST_CHECKED' => $time_mode_manual_dst_checked,
+'TIME_MODE_SERVER_SWITCH_CHECKED' => $time_mode_server_switch_checked,
+'TIME_MODE_FULL_SERVER_CHECKED' => $time_mode_full_server_checked,
+'TIME_MODE_SERVER_PC_CHECKED' => $time_mode_server_pc_checked,
+'TIME_MODE_FULL_PC_CHECKED' => $time_mode_full_pc_checked,
+'DST_TIME_LAG' => $new['default_dst_time_lag'],
+// End add - Advanced time management MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------
+# 
+admin/admin_users.php
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+require($phpbb_root_path . 'includes/functions_validate.'.$phpEx);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+if ( !file_exists(@phpbb_realpath($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_adv_time.' . $phpEx)) ) 
+{ 
+	include($phpbb_root_path . 'language/lang_english/lang_adv_time.' . $phpEx); 
+} else 
+{ 
+	include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_adv_time.' . $phpEx); 
+} 
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $user_timezone = ( isset( $HTTP_POST_VARS['timezone']) ) ? doubleval( $HTTP_POST_VARS['timezone'] ) : $board_config['board_timezone'];
+#
+$user_timezone = ( isset(
+
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+$time_mode = ( isset($HTTP_POST_VARS['time_mode']) ) ? intval($HTTP_POST_VARS['time_mode']) : $board_config['default_time_mode'];
+if ( !eregi("[^0-9]",$HTTP_POST_VARS['dst_time_lag']) )
+{
+	$dst_time_lag = ( isset($HTTP_POST_VARS['dst_time_lag']) ) ? intval($HTTP_POST_VARS['dst_time_lag']) : $board_config['default_dst_time_lag'];
+}
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+//
+// Avatar stuff
+
+#
+#-----[ BEFORE, ADD ]----------------------------------------- 
+# 
+
+// Start add - Advanced time management MOD
+if ( eregi("[^0-9]",$HTTP_POST_VARS['dst_time_lag']) || $dst_time_lag<0 || $dst_time_lag>120 )
+{
+	$error = TRUE;
+	$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['dst_time_lag_error'];
+}
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "UPDATE " . USERS_TABLE . "
+# 	SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) . "', user_icq = ...
+#
+$sql = "UPDATE " . USERS_TABLE . "
+SET
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+$user_timezone
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+, user_time_mode = '$time_mode', user_dst_time_lag = '$dst_time_lag'
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+$user_timezone = $this_userdata['user_timezone'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+$time_mode = $this_userdata['user_time_mode'];
+$dst_time_lag = $this_userdata['user_dst_time_lag'];
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+$s_hidden_fields .= '<input type="hidden" name="timezone" value="' . $user_timezone . '" />';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+$s_hidden_fields .= '<input type="hidden" name="time_mode" value="' . $time_mode . '" />';
+$s_hidden_fields .= '<input type="hidden" name="dst_time_lag" value="' . $dst_time_lag . '" />';
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+//
+// Let's do an overall check for settings/versions which would prevent
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+# 
+
+// Start add - Advanced time management MOD
+$l_time_mode_0 = "";
+$l_time_mode_1 = "";
+$l_time_mode_2 = $lang['time_mode_dst_server'];
+$l_time_mode_3 = $lang['time_mode_full_server'];
+$l_time_mode_4 = $lang['time_mode_server_pc'];
+$l_time_mode_6 = $lang['time_mode_full_pc'];
+
+switch ($board_config['default_time_mode']) 
+{ 
+	case MANUAL_DST:
+		$l_time_mode_1 = $l_time_mode_1 . "*";
+		break;
+	case SERVER_SWITCH:
+		$l_time_mode_2 = $l_time_mode_2 . "*";
+		break;
+	case FULL_SERVER:
+		$l_time_mode_3 = $l_time_mode_3 . "*";
+		break;
+	case SERVER_PC:
+		$l_time_mode_4 = $l_time_mode_4 . "*";
+		break;
+	case FULL_PC:
+		$l_time_mode_6 = $l_time_mode_6 . "*";
+		break;
+	default:
+		$l_time_mode_0 = $l_time_mode_0 . "*";
+		break;
+} 
+
+switch ($time_mode) 
+{ 
+	case MANUAL_DST:
+		$time_mode_manual_dst_checked='checked="checked"';
+		break;
+	case SERVER_SWITCH:
+		$time_mode_server_switch_checked='checked="checked"';
+		break;
+	case FULL_SERVER:
+		$time_mode_full_server_checked='checked="checked"';
+		break;
+	case SERVER_PC:
+		$time_mode_server_pc_checked='checked="checked"';
+		break;
+	case FULL_PC:
+		$time_mode_full_pc_checked='checked="checked"';
+		break;
+	default:
+		$time_mode_manual_checked='checked="checked"';
+		break;
+} 
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'TIMEZONE_SELECT' => tz_select($user_timezone),
+#
+'TIMEZONE_SELECT' =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+'TIME_MODE' => $time_mode,
+'TIME_MODE_MANUAL_CHECKED' => $time_mode_manual_checked,
+'TIME_MODE_MANUAL_DST_CHECKED' => $time_mode_manual_dst_checked,
+'TIME_MODE_SERVER_SWITCH_CHECKED' => $time_mode_server_switch_checked,
+'TIME_MODE_FULL_SERVER_CHECKED' => $time_mode_full_server_checked,
+'TIME_MODE_SERVER_PC_CHECKED' => $time_mode_server_pc_checked,
+'TIME_MODE_FULL_PC_CHECKED' => $time_mode_full_pc_checked,
+'DST_TIME_LAG' => $dst_time_lag,
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'L_TIMEZONE' => $lang['Timezone'],
+#
+'L_TIMEZONE' =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+'L_TIME_MODE' => $lang['time_mode'],
+'L_TIME_MODE_TEXT' => $lang['time_mode_text'],
+'L_TIME_MODE_MANUAL' => $lang['time_mode_manual'],
+'L_TIME_MODE_DST' => $lang['time_mode_dst'],
+'L_TIME_MODE_DST_OFF' => $l_time_mode_0,
+'L_TIME_MODE_DST_ON' => $l_time_mode_1,
+'L_TIME_MODE_DST_SERVER' => $l_time_mode_2,
+'L_TIME_MODE_DST_TIME_LAG' => $lang['time_mode_dst_time_lag'],
+'L_TIME_MODE_DST_MN' => $lang['time_mode_dst_mn'],
+'L_TIME_MODE_TIMEZONE' => $lang['time_mode_timezone'],
+'L_TIME_MODE_AUTO' => $lang['time_mode_auto'],
+'L_TIME_MODE_FULL_SERVER' => $l_time_mode_3,
+'L_TIME_MODE_SERVER_PC' => $l_time_mode_4,
+'L_TIME_MODE_FULL_PC' => $l_time_mode_6,
+// End add - Advanced time management MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+includes/constants.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+?>
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+#
+
+// Start add - Advanced time management MOD
+define('MANUAL', 0);
+define('MANUAL_DST', 1);
+define('SERVER_SWITCH', 2);
+define('FULL_SERVER', 3);
+define('SERVER_PC', 4);
+define('FULL_PC', 6);
+// End add - Advanced time management MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+includes/functions.php 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# global $board_config, $lang;
+#
+global $board_config, $lang
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+$lang
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+, $userdata, $pc_dateTime
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+	return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+
+// Start replacement - Advanced time management MOD
+if ( $userdata['user_id'] != ANONYMOUS )
+{
+	switch ( $userdata['user_time_mode'] )
+	{
+		case MANUAL_DST:
+			$dst_sec = $userdata['user_dst_time_lag'] * 60;
+			return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec), $translate) : @gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec);
+			break;
+		case SERVER_SWITCH:
+			$dst_sec = date('I', $gmepoch) * $userdata['user_dst_time_lag'] * 60;
+			return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec), $translate) : @gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec);
+			break;
+		case FULL_SERVER:
+			return ( !empty($translate) ) ? strtr(@date($format, $gmepoch), $translate) : @date($format, $gmepoch);
+			break;
+		case SERVER_PC:
+			if ( isset($pc_dateTime['pc_timezoneOffset']) )
+			{
+				$tzo_sec = $pc_dateTime['pc_timezoneOffset'];
+			} else
+			{
+				$user_pc_timeOffsets = explode("/", $userdata['user_pc_timeOffsets']);
+				$tzo_sec = $user_pc_timeOffsets[0];
+			}
+			return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + $tzo_sec), $translate) : @gmdate($format, $gmepoch + $tzo_sec); 
+			break;
+		case FULL_PC:
+			if ( isset($pc_dateTime['pc_timeOffset']) )
+			{
+				$tzo_sec = $pc_dateTime['pc_timeOffset'];
+			} else
+			{
+				$user_pc_timeOffsets = explode("/", $userdata['user_pc_timeOffsets']);
+				$tzo_sec = $user_pc_timeOffsets[1];
+			}
+			return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + $tzo_sec), $translate) : @gmdate($format, $gmepoch + $tzo_sec); 
+			break;
+		default:
+			return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz)); 
+			break;
+	}
+} else
+{
+	switch ( $board_config['default_time_mode'] )
+	{
+		case MANUAL_DST:
+			$dst_sec = $board_config['default_dst_time_lag'] * 60;
+			return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec), $translate) : @gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec);
+			break;
+		case SERVER_SWITCH:
+			$dst_sec = date('I', $gmepoch) * $board_config['default_dst_time_lag'] * 60; 
+			return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec), $translate) : @gmdate($format, $gmepoch + (3600 * $tz) + $dst_sec);
+			break;
+		case FULL_SERVER:
+			return ( !empty($translate) ) ? strtr(@date($format, $gmepoch), $translate) : @date($format, $gmepoch);
+			break;
+		case SERVER_PC:
+			if ( isset($pc_dateTime['pc_timezoneOffset']) )
+			{
+				$tzo_sec = $pc_dateTime['pc_timezoneOffset'];
+			} else
+			{
+				$tzo_sec = 0;
+			}
+			return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + $tzo_sec), $translate) : @gmdate($format, $gmepoch + $tzo_sec); 
+			break;
+		case FULL_PC:
+			if ( isset($pc_dateTime['pc_timeOffset']) )
+			{
+				$tzo_sec = $pc_dateTime['pc_timeOffset'];
+			} else
+			{
+				$tzo_sec = 0;
+			}
+			return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + $tzo_sec), $translate) : @gmdate($format, $gmepoch + $tzo_sec); 
+			break;
+		default:
+			return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz)); 
+			break;
+	} 
+}
+// End replacement - Advanced time management MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+includes/functions_selects.php 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $tz_select .= '<option value="' . $offset . '"' . $selected . '>' . $zone . '</option>';
+#
+$zone . '</option>'
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+$zone
+
+# 
+#-----[ IN-LINE REPLACE WITH ]-------------------------------- 
+# 
+str_replace('GMT', 'UTC', $zone)
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+includes/page_header.php 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+//
+// Parse and show the overall header.
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+# 
+
+// Start add - Advanced time management MOD
+if ( !file_exists(@phpbb_realpath($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_adv_time.' . $phpEx)) ) 
+{ 
+	include($phpbb_root_path . 'language/lang_english/lang_adv_time.' . $phpEx); 
+} else 
+{ 
+	include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_adv_time.' . $phpEx); 
+} 
+
+if ( ($userdata['user_id'] != ANONYMOUS && $userdata['user_time_mode'] >= 4)
+  || ($userdata['user_id'] == ANONYMOUS && $board_config['default_time_mode'] >= 4) )
+{
+	if ( !isset($pc_dateTime['pc_timezoneOffset']) && !isset($HTTP_GET_VARS['pc_tzo']) )
+	{
+		$template->assign_block_vars('switch_send_pc_dateTime', array());
+		if ( $userdata['user_pc_timeOffsets'] != '0' )
+		{
+			$template->assign_block_vars('switch_valid_time', array());
+		}
+	} else
+	{
+		$template->assign_block_vars('switch_valid_time', array());
+	}
+} else
+{
+	$template->assign_block_vars('switch_valid_time', array());
+}
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+//
+// The following assigns all _common_ variables that may be used at any point
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+# 
+
+// Start add - Advanced time management MOD
+if ( $userdata['user_id'] != ANONYMOUS )
+{
+	switch ( $userdata['user_time_mode'] ) 
+	{ 
+		case MANUAL_DST:
+			$time_message = sprintf($lang['All_times'], $l_timezone) . $lang['dst_enabled_mode'];
+			break;
+		case SERVER_SWITCH:
+			$time_message = sprintf($lang['All_times'], $l_timezone);
+			if ( date('I', time()) )
+			{
+				$time_message = $time_message . $lang['dst_enabled_mode'];
+			}
+			break;
+		case FULL_SERVER:
+			$time_message = $lang['full_server_mode'];
+			break;
+		case SERVER_PC:
+			$time_message = $lang['server_pc_mode'];
+			break;
+		case FULL_PC:
+			$time_message = $lang['full_pc_mode'];
+			break;
+		default:
+			$time_message = sprintf($lang['All_times'], $l_timezone);
+			break;
+	}
+} else
+{
+	switch ( $board_config['default_time_mode'] ) 
+	{ 
+		case MANUAL_DST:
+			$time_message = sprintf($lang['All_times'], $l_timezone) . $lang['dst_enabled_mode'];
+			break;
+		case SERVER_SWITCH:
+			$time_message = sprintf($lang['All_times'], $l_timezone);
+			if ( date('I', time()) )
+			{
+				$time_message = $time_message . $lang['dst_enabled_mode'];
+			}
+			break;
+		case FULL_SERVER:
+			$time_message = $lang['full_server_mode'];
+			break;
+		case SERVER_PC:
+			$time_message = $lang['server_pc_mode'];
+			break;
+		case FULL_PC:
+			$time_message = $lang['full_pc_mode'];
+			break;
+		default:
+			$time_message = sprintf($lang['All_times'], $l_timezone);
+			break;
+	}
+}
+
+$time_message = str_replace('GMT', 'UTC', $time_message);
+
+$script_name = preg_replace('/^\/?(.*?)\/?$/', '\1', trim($board_config['script_path']));
+$server_name = trim($board_config['server_name']);
+$server_protocol = ( $board_config['cookie_secure'] ) ? 'https://' : 'http://';
+$server_port = ( $board_config['server_port'] <> 80 ) ? ':' . trim($board_config['server_port']) . '/' : '/';
+
+$server_url = $server_protocol . $server_name . $server_port . $script_name;
+// End add - Advanced time management MOD
+
+# 
+#-------[ FIND ]---------------------------------------------- 
+#
+'U_GROUP_CP' =>
+
+# 
+#------[ AFTER, ADD ]----------------------------------------- 
+#
+
+// Start add - Advanced time management MOD
+'U_SELF' => $server_url,
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+	'S_TIMEZONE' => sprintf($lang['All_times'], $l_timezone),
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+
+// Start replacement - Advanced time management MOD
+'S_TIMEZONE' => $time_message,
+// End replacement - Advanced time management MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+includes/sessions.php 
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+function session_pagestart(
+{
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Start add - Advanced time management MOD
+@ini_set('arg_separator.output', '&amp;');
+session_start();
+global $pc_dateTime, $HTTP_SESSION_VARS;
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+//
+// Does a session exist?
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+// Start add - Advanced time management MOD
+$pc_dateTime_update = False;
+
+if ( isset($HTTP_GET_VARS['pc_tzo']) )
+{
+	$HTTP_SESSION_VARS['pc_timezoneOffset'] = intval($HTTP_GET_VARS['pc_tzo']);
+	$pc_dateTime['pc_timezoneOffset'] = $HTTP_SESSION_VARS['pc_timezoneOffset'];
+
+	$server_time = @gmdate(G)*3600 + @gmdate(i)*60 + @gmdate(s);
+
+	if ( intval($HTTP_GET_VARS['pc_d']) == @gmdate(Ymd) )
+	{
+		$HTTP_SESSION_VARS['pc_timeOffset'] = intval($HTTP_GET_VARS['pc_t']) - $server_time;
+	} else
+	{
+		$HTTP_SESSION_VARS['pc_timeOffset'] = 86400 - $server_time + intval($HTTP_GET_VARS['pc_t']);
+	}
+
+	$pc_dateTime['pc_timeOffset'] = $HTTP_SESSION_VARS['pc_timeOffset'];
+
+	$pc_dateTime_update = True;
+
+} else if ( isset($HTTP_SESSION_VARS['pc_timezoneOffset']) )
+{
+	$pc_dateTime['pc_timezoneOffset'] = $HTTP_SESSION_VARS['pc_timezoneOffset'];
+	$pc_dateTime['pc_timeOffset'] = $HTTP_SESSION_VARS['pc_timeOffset'];
+}
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+if ( $current_time - $userdata['session_time'] > 60 )
+
+# 
+#-----[ IN-LINE FIND ]----------------------------------------
+# 
+)
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+# 
+|| $pc_dateTime_update == True
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+$sql = "UPDATE " . USERS_TABLE . "
+SET
+WHERE user_id = " . $userdata['user_id'];
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+// Start add - Advanced time management MOD
+if ( isset($pc_dateTime['pc_timeOffset']) )
+{
+	$update_pc_timeOffsets = ", user_pc_timeOffsets = '" . $pc_dateTime['pc_timezoneOffset'] . "/" . $pc_dateTime['pc_timeOffset'] . "'";
+} else
+{
+	$update_pc_timeOffsets = "";
+}
+// End add - Advanced time management MOD
+
+# 
+#-----[ IN-LINE FIND ]----------------------------------------
+# 
+user_session_page = $thispage_id
+
+# 
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+# 
+" . $update_pc_timeOffsets . "
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+includes/usercp_avatar.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# function display_avatar_gallery($mode, &$category, &$user_id, &$email, &$current_email, &$coppa, &$username, &$email, ...
+#
+function display_avatar_gallery(
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+&$timezone
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+, &$time_mode, &$dst_time_lag
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $params = array('coppa', 'user_id', 'username', 'email', 'current_email', 'cur_password', 'new_password', 'password_confirm', ...
+#
+$params = array(
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+'timezone'
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+, 'time_mode', 'dst_time_lag'
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+includes/usercp_register.php 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $user_timezone = ( isset($HTTP_POST_VARS['timezone']) ) ? doubleval($HTTP_POST_VARS['timezone']) : $board_config['board_timezone'];
+#
+$user_timezone = ( isset(
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+$time_mode = ( isset($HTTP_POST_VARS['time_mode']) ) ? intval($HTTP_POST_VARS['time_mode']) : $board_config['default_time_mode'];
+
+if ( eregi("[^0-9]",$HTTP_POST_VARS['dst_time_lag']) || $dst_time_lag<0 || $dst_time_lag>120 )
+{
+	$error = TRUE;
+	$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['dst_time_lag_error'];
+}
+else
+{
+	$dst_time_lag = ( isset($HTTP_POST_VARS['dst_time_lag']) ) ? intval($HTTP_POST_VARS['dst_time_lag']) : $board_config['default_dst_time_lag'];
+}
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "UPDATE " . USERS_TABLE . "
+# 	SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) ."', user_icq = ...
+#
+$sql = "UPDATE " . USERS_TABLE . "
+SET
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+$user_timezone
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+, user_time_mode = $time_mode, user_dst_time_lag = $dst_time_lag
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "INSERT INTO " . USERS_TABLE . "	(user_id, username, user_regdate, user_password, user_email, ...
+# 	VALUES ($user_id, '" . str_replace("\'", "''", $username) . "', " . time() . ", '" . str_replace("\'", ...
+#
+$sql = "INSERT INTO " . USERS_TABLE . "
+VALUES (
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+, user_timezone
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+, user_time_mode, user_dst_time_lag
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+$user_timezone
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+, $time_mode, $dst_time_lag
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+$user_timezone = $userdata['user_timezone'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+$time_mode=$userdata['user_time_mode']; 
+$dst_time_lag=$userdata['user_dst_time_lag']; 
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# display_avatar_gallery($mode, $avatar_category, $user_id, $email, $current_email, $coppa, $username, $email, ...
+#
+display_avatar_gallery(
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+$user_timezone
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+, $time_mode, $dst_time_lag
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $smilies_status = ( $userdata['user_allowsmile'] && $board_config['allow_smilies']  ) ? $lang['Smilies_are_ON'] : $lang['Smilies_are_OFF'];
+#
+$smilies_status = (
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+$l_time_mode_0 = "";
+$l_time_mode_1 = "";
+$l_time_mode_2 = $lang['time_mode_dst_server'];
+$l_time_mode_3 = $lang['time_mode_full_server'];
+$l_time_mode_4 = $lang['time_mode_server_pc'];
+$l_time_mode_6 = $lang['time_mode_full_pc'];
+
+switch ($board_config['default_time_mode']) 
+{ 
+	case MANUAL_DST:
+		$l_time_mode_1 = $l_time_mode_1 . "*";
+		break;
+	case SERVER_SWITCH:
+		$l_time_mode_2 = $l_time_mode_2 . "*";
+		break;
+	case FULL_SERVER:
+		$l_time_mode_3 = $l_time_mode_3 . "*";
+		break;
+	case SERVER_PC:
+		$l_time_mode_4 = $l_time_mode_4 . "*";
+		break;
+	case FULL_PC:
+		$l_time_mode_6 = $l_time_mode_6 . "*";
+		break;
+	default:
+		$l_time_mode_0 = $l_time_mode_0 . "*";
+		break;
+} 
+
+switch ($time_mode) 
+{ 
+	case MANUAL_DST:
+		$time_mode_manual_dst_checked='checked="checked"';
+		break;
+	case SERVER_SWITCH:
+		$time_mode_server_switch_checked='checked="checked"';
+		break;
+	case FULL_SERVER:
+		$time_mode_full_server_checked='checked="checked"';
+		break;
+	case SERVER_PC:
+		$time_mode_server_pc_checked='checked="checked"';
+		break;
+	case FULL_PC:
+		$time_mode_full_pc_checked='checked="checked"';
+		break;
+	default:
+		$time_mode_manual_checked='checked="checked"';
+		break;
+} 
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'TIMEZONE_SELECT' => tz_select($user_timezone, 'timezone'),
+#
+'TIMEZONE_SELECT' =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+'TIME_MODE' => $time_mode,
+'TIME_MODE_MANUAL_CHECKED' => $time_mode_manual_checked,
+'TIME_MODE_MANUAL_DST_CHECKED' => $time_mode_manual_dst_checked,
+'TIME_MODE_SERVER_SWITCH_CHECKED' => $time_mode_server_switch_checked,
+'TIME_MODE_FULL_SERVER_CHECKED' => $time_mode_full_server_checked,
+'TIME_MODE_SERVER_PC_CHECKED' => $time_mode_server_pc_checked,
+'TIME_MODE_FULL_PC_CHECKED' => $time_mode_full_pc_checked,
+'DST_TIME_LAG' => $dst_time_lag,
+// End add - Advanced time management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'L_TIMEZONE' => $lang['Timezone'],
+#
+'L_TIMEZONE' =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Advanced time management MOD
+'L_TIME_MODE' => $lang['time_mode'],
+'L_TIME_MODE_TEXT' => $lang['time_mode_text'],
+'L_TIME_MODE_MANUAL' => $lang['time_mode_manual'],
+'L_TIME_MODE_DST' => $lang['time_mode_dst'],
+'L_TIME_MODE_DST_OFF' => $l_time_mode_0,
+'L_TIME_MODE_DST_ON' => $l_time_mode_1,
+'L_TIME_MODE_DST_SERVER' => $l_time_mode_2,
+'L_TIME_MODE_DST_TIME_LAG' => $lang['time_mode_dst_time_lag'],
+'L_TIME_MODE_DST_MN' => $lang['time_mode_dst_mn'],
+'L_TIME_MODE_TIMEZONE' => $lang['time_mode_timezone'],
+'L_TIME_MODE_AUTO' => $lang['time_mode_auto'],
+'L_TIME_MODE_FULL_SERVER' => $l_time_mode_3,
+'L_TIME_MODE_SERVER_PC' => $l_time_mode_4,
+'L_TIME_MODE_FULL_PC' => $l_time_mode_6,
+// End add - Advanced time management MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/formIE.css
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# If you can't find this line in one of your style, never mind.
+# You can ignore this instruction.
+#
+input { text-indent : 2px; }
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+# 
+
+/* Start replacement - Advanced time management MOD */
+/* input { text-indent : 2px; }
+/* End replacement - Advanced time management MOD */
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/index_body.tpl 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+{CURRENT_TIME}<br />
+
+# 
+#-----[ BEFORE, ADD ]-----------------------------------------
+# 
+<!-- Start add - Advanced time management MOD -->
+<!-- BEGIN switch_valid_time -->
+{CURRENT_TIME}
+<!-- END switch_valid_time -->
+<!-- End add - Advanced time management MOD -->
+
+# 
+#-----[ IN-LINE FIND ]----------------------------------------
+# 
+{CURRENT_TIME}<br />
+
+# 
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+# 
+<br />
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# If you can't find this line in one of your style, never mind.
+# You can ignore this instruction.
+#
+input { text-indent : 2px; }
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+# 
+
+/* Start replacement - Advanced time management MOD */
+/* input { text-indent : 2px; }
+/* End replacement - Advanced time management MOD */
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+</head>
+
+# 
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+<!-- Start add - Advanced time management MOD -->
+<!-- BEGIN switch_send_pc_dateTime -->
+<script type="text/javascript">
+window.onload = send_pc_dateTime
+
+function send_pc_dateTime() {
+	var pc_dateTime = new Date()
+	pc_timezoneOffset = pc_dateTime.getTimezoneOffset()*(-60);
+	pc_date = pc_dateTime.getFullYear()*10000 + (pc_dateTime.getMonth()+1)*100 + pc_dateTime.getDate();
+	pc_time = pc_dateTime.getHours()*3600 + pc_dateTime.getMinutes()*60 + pc_dateTime.getSeconds();
+
+	for ( i = 0; document.links.length > i; i++ ) {
+		with ( document.links[i] ) {
+			if ( href.indexOf('{U_SELF}') == 0 ) {
+				textLink = '' + document.links[i].firstChild.data
+				if ( textLink.indexOf('http://') != 0 && textLink.indexOf('www.') != 0 && (textLink.indexOf('@') == -1 || textLink.indexOf('@') == 0 || textLink.indexOf('@') == textLink.length-1 )) {
+					if ( href.indexOf('?') == -1 ) {
+						pc_data = '?pc_tzo=' + pc_timezoneOffset + '&pc_d=' + pc_date + '&pc_t=' + pc_time;
+					} else {
+						pc_data = '&pc_tzo=' + pc_timezoneOffset + '&pc_d=' + pc_date + '&pc_t=' + pc_time;
+					}
+					if ( href.indexOf('#') == -1 ) {
+						href += pc_data;
+					} else {
+						href = href.substring(0, href.indexOf('#')) + pc_data + href.substring(href.indexOf('#'), href.length);
+					}
+				}
+			}
+		}
+	}
+}
+</script>
+<!-- END switch_send_pc_dateTime -->
+<!-- End add - Advanced time management MOD -->
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl 
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# <tr> 
+#   <td class="row1"><span class="gen">{L_TIMEZONE}:</span></td>
+#   <td class="row2"><span class="gensmall">{TIMEZONE_SELECT}</span></td>
+# </tr>
+#
+<tr>
+{L_TIMEZONE}
+{TIMEZONE_SELECT}
+</tr>
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+# 
+
+<!-- Start replacement - Advanced time management MOD -->
+<tr>
+	<td class="row1"><span class="gen">{L_TIME_MODE}:</span><br />
+		<span class="gensmall">{L_TIME_MODE_TEXT}</span></td>
+	<td class="row2">
+		<span class="gen">{L_TIME_MODE_AUTO}</span><br />
+		<input type="radio" name="time_mode" value="6" {TIME_MODE_FULL_PC_CHECKED}/>
+		<span class="gen">{L_TIME_MODE_FULL_PC}</span>&nbsp;&nbsp;<br />
+		<input type="radio" name="time_mode" value="4" {TIME_MODE_SERVER_PC_CHECKED}/>
+		<span class="gen">{L_TIME_MODE_SERVER_PC}</span>&nbsp;&nbsp;<br />
+		<input type="radio" name="time_mode" value="3" {TIME_MODE_FULL_SERVER_CHECKED}/>
+		<span class="gen">{L_TIME_MODE_FULL_SERVER}</span>
+		<br /><br />
+		<span class="gen">{L_TIME_MODE_MANUAL}</span><br />
+		<span class="gen">&nbsp;&nbsp;{L_TIME_MODE_DST}:</span><input type="radio" name="time_mode" value="1" {TIME_MODE_MANUAL_DST_CHECKED}/><span class="gen">{L_YES}{L_TIME_MODE_DST_ON}</span>&nbsp;<input type="radio" name="time_mode" value="0" {TIME_MODE_MANUAL_CHECKED}/><span class="gen">{L_NO}{L_TIME_MODE_DST_OFF}</span>&nbsp;<input type="radio" name="time_mode" value="2" {TIME_MODE_SERVER_SWITCH_CHECKED}/><span class="gen">{L_TIME_MODE_DST_SERVER}</span><br />
+		<span class="gen">&nbsp;&nbsp;{L_TIME_MODE_DST_TIME_LAG}: </span><input type="text" name="dst_time_lag" value="{DST_TIME_LAG}" maxlength="3" size="3" class="post" /><span class="gen">{L_TIME_MODE_DST_MN}</span><br />
+		<span class="gen">&nbsp;&nbsp;{L_TIME_MODE_TIMEZONE}: </span><span class="gensmall">{TIMEZONE_SELECT}</span></td>
+</tr>
+<!-- End replacement - Advanced time management MOD -->
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/simple_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# If you can't find this line in one of your style, never mind.
+# You can ignore this instruction.
+#
+input { text-indent : 2px; }
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+# 
+
+/* Start replacement - Advanced time management MOD */
+/* input { text-indent : 2px; }
+/* End replacement - Advanced time management MOD */
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/subSilver.css
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# If you can't find this line in one of your style, never mind.
+# You can ignore this instruction.
+#
+input { text-indent : 2px; }
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+# 
+
+/* Start replacement - Advanced time management MOD */
+/* input { text-indent : 2px; }
+/* End replacement - Advanced time management MOD */
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# <tr>
+# 	<td class="row1">{L_SYSTEM_TIMEZONE}</td>
+# 	<td class="row2">{TIMEZONE_SELECT}</td>
+# </tr>
+#
+<tr>
+{L_SYSTEM_TIMEZONE}
+{TIMEZONE_SELECT}
+</tr>
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+#
+
+<!-- Start replacement - Advanced time management MOD -->
+<tr>
+	<td class="row1"><span class="gen">{L_TIME_MODE}</span><br />
+		<span class="gensmall">{L_TIME_MODE_TEXT}</span></td>
+	<td class="row2" nowrap="nowrap">
+		<span class="gen">{L_TIME_MODE_AUTO}</span><br />
+		<input type="radio" name="default_time_mode" value="6" {TIME_MODE_FULL_PC_CHECKED}/>
+		<span class="gen">{L_TIME_MODE_FULL_PC}</span>&nbsp;&nbsp;<br />
+		<input type="radio" name="default_time_mode" value="4" {TIME_MODE_SERVER_PC_CHECKED}/>
+		<span class="gen">{L_TIME_MODE_SERVER_PC}</span>&nbsp;&nbsp;<br />
+		<input type="radio" name="default_time_mode" value="3" {TIME_MODE_FULL_SERVER_CHECKED}/>
+		<span class="gen">{L_TIME_MODE_FULL_SERVER}</span>
+		<br /><br />
+		<span class="gen">{L_TIME_MODE_MANUAL}</span><br />
+		<span class="gen">&nbsp;&nbsp;{L_TIME_MODE_DST}:</span><input type="radio" name="default_time_mode" value="1" {TIME_MODE_MANUAL_DST_CHECKED}/><span class="gen">{L_YES}</span>&nbsp;<input type="radio" name="default_time_mode" value="0" {TIME_MODE_MANUAL_CHECKED}/><span class="gen">{L_NO}</span>&nbsp;<input type="radio" name="default_time_mode" value="2" {TIME_MODE_SERVER_SWITCH_CHECKED}/><span class="gen">{L_TIME_MODE_DST_SERVER}</span><br />
+		<span class="gen">&nbsp;&nbsp;{L_TIME_MODE_DST_TIME_LAG}: </span><input type="text" name="dst_time_lag" value="{DST_TIME_LAG}" maxlength="3" size="3" class="post" /><span class="gen">{L_TIME_MODE_DST_MN}</span><br />
+		<span class="gen">&nbsp;&nbsp;{L_TIME_MODE_TIMEZONE}: </span><span class="gensmall">{TIMEZONE_SELECT}</span></td>
+</tr>
+<!-- End replacement - Advanced time management MOD -->
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/admin/page_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# If you can't find this line in one of your style, never mind.
+# You can ignore this instruction.
+#
+input { text-indent : 2px; }
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+# 
+
+/* Start replacement - Advanced time management MOD */
+/* input { text-indent : 2px; }
+/* End replacement - Advanced time management MOD */
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/admin/user_edit_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# <tr> 
+#   <td class="row1"><span class="gen">{L_TIMEZONE}</span></td>
+#   <td class="row2">{TIMEZONE_SELECT}</td>
+# </tr>
+#
+<tr>
+{L_TIMEZONE}
+{TIMEZONE_SELECT}
+</tr>
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+#
+
+<!-- Start replacement - Advanced time management MOD -->
+<tr>
+	<td class="row1"><span class="gen">{L_TIME_MODE}</span><br />
+		<span class="gensmall">{L_TIME_MODE_TEXT}</span></td>
+	<td class="row2" nowrap="nowrap">
+		<span class="gen">{L_TIME_MODE_AUTO}</span><br />
+		<input type="radio" name="time_mode" value="6" {TIME_MODE_FULL_PC_CHECKED}/>
+		<span class="gen">{L_TIME_MODE_FULL_PC}</span>&nbsp;&nbsp;<br />
+		<input type="radio" name="time_mode" value="4" {TIME_MODE_SERVER_PC_CHECKED}/>
+		<span class="gen">{L_TIME_MODE_SERVER_PC}</span>&nbsp;&nbsp;<br />
+		<input type="radio" name="time_mode" value="3" {TIME_MODE_FULL_SERVER_CHECKED}/>
+		<span class="gen">{L_TIME_MODE_FULL_SERVER}</span>
+		<br /><br />
+		<span class="gen">{L_TIME_MODE_MANUAL}</span><br />
+		<span class="gen">&nbsp;&nbsp;{L_TIME_MODE_DST}:</span><input type="radio" name="time_mode" value="1" {TIME_MODE_MANUAL_DST_CHECKED}/><span class="gen">{L_YES}{L_TIME_MODE_DST_ON}</span>&nbsp;<input type="radio" name="time_mode" value="0" {TIME_MODE_MANUAL_CHECKED}/><span class="gen">{L_NO}{L_TIME_MODE_DST_OFF}</span>&nbsp;<input type="radio" name="time_mode" value="2" {TIME_MODE_SERVER_SWITCH_CHECKED}/><span class="gen">{L_TIME_MODE_DST_SERVER}</span><br />
+		<span class="gen">&nbsp;&nbsp;{L_TIME_MODE_DST_TIME_LAG}: </span><input type="text" name="dst_time_lag" value="{DST_TIME_LAG}" maxlength="3" size="3" class="post" /><span class="gen">{L_TIME_MODE_DST_MN}</span><br />
+		<span class="gen">&nbsp;&nbsp;{L_TIME_MODE_TIMEZONE}: </span><span class="gensmall">{TIMEZONE_SELECT}</span></td>
+</tr>
+<!-- End replacement - Advanced time management MOD -->
+
+# 
+#-----[ DIY INSTRUCTIONS ]------------------------------------
+#
+Regardless how you've installed this MOD (by EasyMOD or manually), if you want to install other languages than English please copy manually the corresponding language files to the right phpBB language directories. If you have used EasyMOD, it will replace the English file duplicated by EM in every language directory (as for the moment EasyMOD is not able to install every available language automatically).
+=> copy root/language/lang_xxxxx/lang_adv_time.php to language/lang_xxxxx/lang_adv_time.php
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------- 
+# 
+# EoM

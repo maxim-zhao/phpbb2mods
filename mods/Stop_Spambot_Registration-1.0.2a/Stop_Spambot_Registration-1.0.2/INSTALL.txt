@@ -1,0 +1,185 @@
+##############################################################
+## MOD Title: Stop Spambot Registration
+## MOD Author: Martian < N/A > (Martijn) N/A
+## MOD Description: This MOD stops spambots that provide Profile Information during registration
+##                  in spite of a message saying "leave the Profile Information blank". An e-mail
+##                  notification will be send every time there was a spambot registration attempt.
+##                  NOTE: the e-mail notification can easily be left out if you wish.
+##
+## MOD Version: 1.0.2
+##
+## Installation Level: Easy
+## Installation Time: ~ 5 Minutes
+## Files To Edit: templates/subSilver/profile_add_body.tpl,
+##      includes/usercp_register.php,
+##      language/lang_english/lang_main.php.
+## Included File: root/spambot_notify.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: This MOD came into existence after discussion about the 
+## MOD Easy BotStopper: http://www.phpbb.com/phpBB/viewtopic.php?t=375262
+##
+##############################################################
+## MOD History:
+##
+##   2006-09-24 - Version 1.0.2
+##      - [Change] "'SPAMBOT_IP' => $client_ip" in code for ../usercp_register.php
+##
+##   2006-09-19 - Version 1.0.1a
+##      - [Fix] style attribute instead of font tag in code for ../profile_add_body.tpl
+##
+##   2006-08-29 - Version 1.0.1
+##      - [Fix] missing ";" at end of code for ../lang_main.php
+##
+##   2006-08-28 - Version 1.0.0
+##      - I did several tests and it worked well
+##      - Only tested on phpBB 2.0.21
+##      - Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/profile_add_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_PROFILE_INFO}</th>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	<!-- BEGIN switch_register -->
+	<tr bgcolor="#FF0000">	
+	  <td colspan="2">
+		<span class="h1" style="color: white">{SPAMBOT_MESSAGE}</span><br /><br />
+		<span class="gen" style="color: white">{SPAMBOT_MESSAGE_EXPLAIN}</span>
+	  </td>
+	</tr>
+	<!-- END switch_register -->
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+			$user_id = $row['total'] + 1;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//----BEGIN Stop Spambot Registration MOD
+	if( $icq!= '' || $aim != '' || $msn != '' || $yim != '' || $website != '' || $location != '' || $occupation != '' || $interests != '' || $signature != '' )
+	{
+//----BEGIN E-mail Notification
+//----NOTE: Remove the code between "BEGIN/END E-mail Notification" if you don't want to receive e-mail notifications.
+		include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+		$emailer = new emailer($board_config['smtp_delivery']);
+
+		$emailer->from($board_config['board_email']);
+		$emailer->replyto($board_config['board_email']);
+
+		$emailer->use_template('spambot_notify', $board_config['default_lang']);
+		$emailer->email_address($board_config['board_email']);
+		$emailer->set_subject($lang['Spambot_registration_attempt']);
+
+		$emailer->assign_vars(array(
+			'SITENAME' => $board_config['sitename'],
+			'ATTEMPT_DATE' => date($board_config['default_dateformat']),
+			'SPAMBOT_IP' => $client_ip,
+			'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+			'EMAIL_ADDRESS' => $email,
+			'ICQ' => $icq,
+			'AIM' => $aim,
+			'YIM' => $yim,
+			'MSN' => $msn,
+			'WEB_SITE' => $website,
+			'FROM' => $location,
+			'OCC' => $occupation,
+			'INTERESTS' => $interests,
+			'SIGNATURE' => str_replace('<br />', "\n", $signature),
+			'EMAIL_SIG' => str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']))
+		);
+		$emailer->send();
+		$emailer->reset();
+//----END E-mail Notification
+		message_die(GENERAL_MESSAGE, $lang['Spambot_registration_attempt']);
+	}
+//----END Stop Spambot Registration MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+		$template->assign_block_vars('switch_edit_profile', array());
+	}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//----BEGIN Stop Spambot Registration MOD
+	if ( $mode == 'register' )
+	{
+		$template->assign_block_vars('switch_register', array());
+		$template->assign_vars(array(
+			'SPAMBOT_MESSAGE' => $lang['Spambot_message'],
+			'SPAMBOT_MESSAGE_EXPLAIN' => $lang['Spambot_message_explain'])
+		);
+	}
+//----END Stop Spambot Registration MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+//
+// That's all, Folks!
+// -------------------------------------------------
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+// Stop Spambot Registration MOD
+$lang['Spambot_registration_attempt'] = 'Spambot Registration Attempt';
+$lang['Spambot_message'] = '<b>IMPORTANT: leave the Profile Information blank!</b>';
+$lang['Spambot_message_explain'] = 'Do <b>not</b> fill in any of the following Profile Information fields, else it will cause the registration process to fail. This is for security purposes; it prevents automatic sign-up robots (spambots) from registering, because they always fill in some of the fields.<br /><br /><b>Note:</b> you can still provide Profile Information after your account has been created.';
+
+#
+#-----[ COPY ]------------------------------------------
+#
+
+copy root/spambot_notify.tpl to language/lang_english/email/spambot_notify.tpl
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

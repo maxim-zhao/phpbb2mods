@@ -1,0 +1,617 @@
+##############################################################
+## MOD Title:           Moderator Tags
+## MOD Author:          Coagulant < baryshev@gmail.com > (Baryshev Ilya) http://coagulant.com.ru
+## MOD Description:     Adds moderator tags [mod][/mod], allowing easily to mark up
+##                      moderator messages (e.g. in other users' moderated posts).
+##                      Moderated posts with such tags are only editable
+##                      by moderators and admins.
+##                      You must have Multiple BBCode MOD installed for this to work.
+##                      Get it here: http://www.phpbb.com/phpBB/viewtopic.php?p=821728
+## MOD Version:         1.3.0
+##
+## Installation Level:  Easy
+## Installation Time:   15 Minutes
+## Files To Edit:       (12)
+##                      privmsg.php,
+##                      posting.php,
+##                      includes/functions_validate.php,
+##                      includes/functions_post.php,
+##                      includes/functions.php,
+##                      includes/bbcode.php,
+##                      templates/subSilver/bbcode.tpl,
+##                      templates/subSilver/posting_body.tpl,
+##                      templates/subSilver/subSilver.css,
+##                      templates/subSilver/overall_header.tpl,
+##                      templates/subSilver/simple_header.tpl,
+##                      language/lang_english/lang_main.php
+## Included Files:      N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##  You must have Multiple BBCode MOD installed for this to work.
+##  Get it here: http://www.phpbb.com/phpBB/viewtopic.php?p=821728
+##
+##  You can install this mod with help of EasyMOD
+##
+##  Original idea of the BBcode moderation (BB code & mod) belongs
+##  to Ralendil < ralendil(at)hotmail.com > Ravaille Franck
+##  Some parts of code from his mod were used. Moderator tags
+##  visualisation taken from IPB Moderator Tags Mod (by Vanish)
+##
+## Features:
+##    - Moderators can use [mod] tags only in forums which they moderate,
+##      but every moderator can use them in private messages
+##    - Moderator tags removed when quoting whole post
+##    - Moderator tags are not allowed in signatures
+##    - [mod="Moderator name"][/mod] tag supported. Looks like like [quote="user"][/quote]
+##    - Button in posting.php with automatic insertion of moderator name (above feature)
+##
+##############################################################
+## MOD History:
+##
+##   2006-01-04 - Version 1.3.0
+##              - Mod updated to work with phpbb 2.0.19 (security issue in bbcode.php)
+##              - Minor changes in mod code and installation instructions
+##   2005-09-08 - Version 1.2.2
+##              - Fixed: now moderator tags are prohibited in signatures
+##   2005-08-05 - Version 1.2.1
+##              - Installation instructions fixed to meet mod requirements
+##   2005-07-26 - Version 1.2.0
+##              - Installation instructions fixed to meet mod requirements
+##              - Fixed: now using constant USER instead of 0, also useless lines removed
+##              - Fixed: check_mod_tags works correctly with moderator names containing spaces
+##   2005-06-20 - Version 1.1.0
+##              - Button in posting.php with automatic insertion of moderator name
+##              - Fixed: corrections in lang_main.php
+##   2005-03-29 - Version 1.0.5
+##              - Fixed: using $HTTP_SERVER_VARS instead of $_SERVER
+##   2005-03-10 - Version 1.0.4
+##              - Multiply changes in style sheet
+##   2005-03-05 - Version 1.0.3
+##              - Installation instructions fixed to meet mod requirements
+##   2005-02-24 - Version 1.0.2
+##              - Installation instructions fixed to meet mod requirements
+##   2005-02-15 - Version 1.0.1
+##              - Mod code slightly changed (variables renamed)
+##   2005-02-13 - Version 1.0.0
+##              - Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$privmsg_message = prepare_message($HTTP_POST_VARS['message'], $html_on, $bbcode_on, $smilies_on, $bbcode_uid);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// BEGIN Moderator Tags
+		// Tags [mod] [/mod] are prohibited for everyone except moderators and administrators (private message posting)
+		if ( check_mod_tags( $userdata['user_level'], $privmsg_message) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['Mod_reserved'], $lang['Mod_restrictions']);
+		}
+		// END Moderator Tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			if ( $mode == 'quote' )
+			{
+				$privmsg_message = $privmsg['privmsgs_text'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// BEGIN Moderator Tags
+				// Remove mod tags when quoting (private message)
+				$privmsg_message = preg_replace("/\[mod.*?\].*?\[\/mod.*?\]/si", '', $privmsg_message);
+				// END Moderator Tags
+#
+#-----[ FIND ]------------------------------------------
+#
+		$preview_message = stripslashes(prepare_message($privmsg_message, $html_on, $bbcode_on, $smilies_on, $bbcode_uid));
+		$privmsg_message = stripslashes(preg_replace($html_entities_match, $html_entities_replace, $privmsg_message));
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// BEGIN Moderator Tags
+		// Tags [mod] [/mod] are prohibited for everyone except moderators and administrators (private message preview)
+		if ( check_mod_tags( $userdata['user_level'], $preview_message) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['Mod_reserved'], $lang['Mod_restrictions']); 
+		}
+		// END Moderator Tags
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		else if ( !$post_data['edit_poll'] && !$is_auth['auth_mod'] && ( $mode == 'poll_delete' || $poll_delete ) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['Cannot_delete_poll']);
+		}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// BEGIN Moderator Tags
+		// Ordinary users can't delete moderated posts
+		else if ( check_mod_tags($is_auth['auth_mod'], $post_info['post_text']) && ( $mode == 'delete' || $delete ) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['Mod_no_delete'], $lang['Mod_restrictions']);
+		}
+		// END Moderator Tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$bbcode_uid = ( $bbcode_on ) ? make_bbcode_uid() : '';
+		$preview_message = stripslashes(prepare_message(addslashes(unprepare_message($message)), $html_on, $bbcode_on, $smilies_on, $bbcode_uid));
+		$preview_subject = $subject;
+		$preview_username = $username;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// BEGIN Moderator Tags
+		// Tags [mod] [/mod] are prohibited for everyone except moderators and administrators (preview)
+		if ( check_mod_tags($is_auth['auth_mod'], $preview_message) )
+		{ 
+			message_die(GENERAL_MESSAGE, $lang['Mod_reserved'], $lang['Mod_restrictions']);
+		} 
+		// END Moderator Tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ( $mode == 'editpost' )
+		{
+			$attach_sig = ( $post_info['enable_sig'] && $post_info['user_sig'] != '' ) ? TRUE : 0;
+			$user_sig = $post_info['user_sig'];
+
+			$html_on = ( $post_info['enable_html'] ) ? true : false;
+			$bbcode_on = ( $post_info['enable_bbcode'] ) ? true : false;
+			$smilies_on = ( $post_info['enable_smilies'] ) ? true : false;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// BEGIN Moderator Tags 
+			// Ordinary users can't edit moderated posts
+			if ( check_mod_tags($is_auth['auth_mod'], $message) )
+			{
+				message_die(GENERAL_MESSAGE, $lang['Mod_no_edit'], $lang['Mod_restrictions']);
+			}
+			// END Moderator Tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			if ( !empty($orig_word) )
+			{
+				$subject = ( !empty($subject) ) ? preg_replace($orig_word, $replace_word, $subject) : '';
+				$message = ( !empty($message) ) ? preg_replace($orig_word, $replace_word, $message) : '';
+			}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// BEGIN Moderator Tags
+			// Remove mod tags when quoting
+			if ( !empty($message) ) 
+			{
+			$message = preg_replace("/\[mod.*?\].*?\[\/mod.*?\]/si", '', $message);
+			}
+			// END Moderator Tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+'USERNAME' => $username,
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	// BEGIN Moderator Tags
+	'EDITOR_NAME' => $userdata['username'],
+	// END Moderator Tags
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions_validate.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	if (!preg_match('/^[0-9]+$/', $icq))
+	{
+		$icq = '';
+	}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+   // BEGIN Moderator Tags 
+   // Tags [mod] [/mod] are prohibited in signatures for everyone 
+   if (preg_match("/\[mod.*?\]/si", $sig)) 
+   { 
+      $sig = ''; 
+   } 
+   // END Moderator Tags
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+global $board_config, $userdata, $lang,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$phpbb_root_path
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $is_auth
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	// Check message
+	if (!empty($message))
+	{
+		$bbcode_uid = ($bbcode_on) ? make_bbcode_uid() : '';
+		$message = prepare_message(trim($message), $html_on, $bbcode_on, $smilies_on, $bbcode_uid);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// BEGIN Moderator Tags
+		// Tags [mod] [/mod] are prohibited for everyone except moderators and administrators (post)
+		if ( check_mod_tags($is_auth['auth_mod'], $message) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['Mod_reserved'], $lang['Mod_restrictions']);
+		}
+		// END Moderator Tags
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// BEGIN Moderator Tags
+// Function checks whether user is authorized to use moderator tags
+// $mod_permission not 0 for admins and moderators
+function check_mod_tags ($mod_permission, $message)
+{
+	if ( (!$mod_permission) && (preg_match("/\[mod\:.*?\]/si", $message)) )
+	{
+		return true;
+	}
+}
+// END Moderator Tags
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+
+#
+#-----[ FIND ]------------------------------------------
+# NOTE: If you can't find this line, it probably means that you have not installed Multiple BBCode MOD yet
+# Read installation notes for details
+#
+global $template,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $is_auth, $userdata, $HTTP_SERVER_VARS
+
+#
+#-----[ FIND ]---------------------------------
+#
+	//NOTE: the first element of each array must be ''   Add new elements AFTER the ''
+	$EMBB_widths = array('') ;
+	$EMBB_values = array('') ;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// BEGIN Moderator Tags
+	if ( ($is_auth['auth_mod']) || ( ($userdata['user_level'] != USER) && ( strpos( basename($HTTP_SERVER_VARS['PHP_SELF']), 'privmsg') !== false ) ) )
+	{
+		$EMBB_widths[] = '40';
+		$EMBB_values[] = 'MOD';
+	}
+	// END Moderator Tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$bbcode_tpl['quote_username_open'] = str_replace('{L_QUOTE}', $lang['Quote'], $bbcode_tpl['quote_username_open']);
+	$bbcode_tpl['quote_username_open'] = str_replace('{L_WROTE}', $lang['wrote'], $bbcode_tpl['quote_username_open']);
+	$bbcode_tpl['quote_username_open'] = str_replace('{USERNAME}', '\\1', $bbcode_tpl['quote_username_open']);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// BEGIN Moderator Tags
+	$bbcode_tpl['mod_open'] = str_replace('{MOD_WARN}', $lang['Mod_warning'], $bbcode_tpl['mod_open']);
+	$bbcode_tpl['mod_username_open'] = str_replace('{MOD_WARN}', $lang['Mod_warning'], $bbcode_tpl['mod_username_open']);
+	$bbcode_tpl['mod_username_open'] = str_replace('{USERNAME}', '\\1', $bbcode_tpl['mod_username_open']);
+	// END Moderator Tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// colours
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	// BEGIN Moderator Tags
+	// [mod] Moderator code [/mod]
+	$text = str_replace("[mod:$uid]", $bbcode_tpl['mod_open'], $text);
+	$text = str_replace("[/mod:$uid]", $bbcode_tpl['mod_close'], $text);
+	$text = preg_replace("/\[mod:$uid=\"(.*?)\"\]/si", $bbcode_tpl['mod_username_open'], $text);
+	// END Moderator Tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// [color] and [/color] for setting text color
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	// BEGIN Moderator Tags
+	$text = bbencode_first_pass_pda($text, $uid, '[mod]', '[/mod]', '', false, '');
+	$text = bbencode_first_pass_pda($text, $uid, '/\[mod=\\\\&quot;(.*?)\\\\&quot;\]/is', '[/mod]', '', false, '', "[mod:$uid=\\\"\\1\\\"]");
+	// END Moderator Tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// Now compare, either using regexp or not.
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+				// BEGIN Moderator Tags
+				//
+				// We're going to try and catch usernames with "[' characters.
+				//
+				if( preg_match('#\[mod=\\\&quot;#si', $possible_start, $match) && !preg_match('#\[mod=\\\&quot;(.*?)\\\&quot;\]#si', $possible_start) )
+				{
+					// OK we are in a mod tag that probably contains a ] bracket.
+					// Grab a bit more of the string to hopefully get all of it..
+					if ($close_pos = strpos($text, '&quot;]', $curr_pos + 14))
+					{
+						if (strpos(substr($text, $curr_pos + 14, $close_pos - ($curr_pos + 14)), '[mod') === false)
+						{
+							$possible_start = substr($text, $curr_pos, $close_pos - $curr_pos + 7);
+						}
+					}
+				}
+				// END Moderator Tags
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/bbcode.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+# NOTE: Full line to look for is:
+# <!-- BEGIN b_open --><span style="font-weight: bold"><!-- END b_open -->
+#
+<!-- BEGIN b_open -->
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+<!-- BEGIN mod_username_open --></span>
+<table width="90%" cellspacing="1" cellpadding="3" border="0" align="center">
+   <tr>
+      <td class="ModTable" rowspan="2" align="middle" vAlign="center" width="1%">
+        <span class="exclamation" title="{MOD_WARN}">
+        &nbsp;!&nbsp;</span></td>
+      <td><span class="genmed"><b>{USERNAME}:</b></span></td>
+   </tr>
+   <tr>
+      <td class="mod"><!-- END mod_open -->
+<!-- BEGIN mod_close --></td>
+   </tr>
+</table>
+<span class="postbody"><!-- END mod_username_close -->
+<!-- BEGIN mod_open --></span>
+<table width="90%" cellspacing="1" cellpadding="3" border="0" align="center">
+   <tr>
+      <td class="ModTable" rowspan="2" align="middle" vAlign="center" width="1%">
+        <span class="exclamation"  title="{MOD_WARN}">
+        &nbsp;!&nbsp;</span></td>
+      <td class="mod"><!-- END mod_open -->
+<!-- BEGIN mod_close --></td>
+   </tr>
+</table>
+<span class="postbody"><!-- END mod_close -->
+
+#
+#-----[ OPEN ]------------------------------------------
+# NOTE: You need to do this for all of your installed template styles
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]---------------------------------
+# NOTE: the actual line to find is MUCH longer, containing all the bbcode tags
+#
+bbtags = new Array(
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+'[url]','[/url]'
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+,'[mod="{EDITOR_NAME}"]','[/mod]'
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/subSilver.css
+
+#
+#-----[ FIND ]------------------------------------------
+#
+.quote { 
+   font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; color: #444444; line-height: 125%; 
+   background-color: #FAFAFA; border: #D1D7DC; border-style: solid; 
+   border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px 
+} 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+.mod {
+	font-family: {T_FONTFACE1}; font-size: {T_FONTSIZE2}px; color: {T_BODY_TEXT}; line-height: 125%;
+}
+
+.exclamation {
+	font-weight: bold; font-family: Times New Roman, Verdana; font-size : 45px; color: #ffffff;
+}
+
+td.ModTable { background-color: #ff6060; }
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+.quote { 
+   font-family: {T_FONTFACE1}; font-size: {T_FONTSIZE2}px; color: {T_FONTCOLOR1}; line-height: 125%; 
+   background-color: {T_TD_COLOR1}; border: {T_TR_COLOR3}; border-style: solid; 
+   border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px 
+} 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+.mod { 
+	font-family: {T_FONTFACE1}; font-size: {T_FONTSIZE2}px; color: {T_BODY_TEXT}; line-height: 125%;
+}
+
+.exclamation {
+	font-weight: bold; font-family: Times New Roman, Verdana; font-size : 45px; color: #ffffff;
+}
+
+td.ModTable { background-color: #ff6060; }
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/simple_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+.quote { 
+   font-family: {T_FONTFACE1}; font-size: {T_FONTSIZE2}px; color: {T_FONTCOLOR1}; line-height: 125%; 
+   background-color: {T_TD_COLOR1}; border: {T_TR_COLOR3}; border-style: solid; 
+   border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px 
+} 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+.mod { 
+	font-family: {T_FONTFACE1}; font-size: {T_FONTSIZE2}px; color: {T_BODY_TEXT}; line-height: 125%;
+}
+
+.exclamation {
+	font-weight: bold; font-family: Times New Roman, Verdana; font-size : 45px; color: #ffffff;
+}
+
+td.ModTable { background-color: #ff6060; }
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['bbcode_f_help'] =
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['bbcode_help']['mod'] = 'Moderator message: [mod]text[/mod]';
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// BEGIN Moderator Tags
+$lang['Mod_no_edit'] = 'Sorry, your post has been moderated so you can\'t edit it.';
+$lang['Mod_no_delete'] = 'Sorry, your post has been moderated so you can\'t delete it.';
+$lang['Mod_reserved'] = 'Sorry, you are not allowed to use moderator tags!';
+$lang['Mod_restrictions'] = 'Moderation restrictions';
+$lang['Mod_warning'] = 'Moderator warning';
+// END Moderator Tags
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

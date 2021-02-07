@@ -1,0 +1,809 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html dir="ltr">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<title>phpBB 2.0.11 to phpBB 2.0.12 Code Changes</title>
+
+<style type="text/css">
+<!--
+/* General page style. The scroll bar colours only visible in IE5.5+ */
+body {
+	background-color: #E5E5E5;
+	scrollbar-face-color: #DEE3E7;
+	scrollbar-highlight-color: #FFFFFF;
+	scrollbar-shadow-color: #DEE3E7;
+	scrollbar-3dlight-color: #D1D7DC;
+	scrollbar-arrow-color:  #006699;
+	scrollbar-track-color: #EFEFEF;
+	scrollbar-darkshadow-color: #98AAB1;
+}
+
+/* General font families for common tags */
+font,th,td,p { font-family: Verdana, Arial, Helvetica, sans-serif }
+a:link,a:active,a:visited { color : #006699; }
+a:hover		{ text-decoration: underline; color : #DD6900; }
+hr	{ height: 0px; border: solid #D1D7DC 0px; border-top-width: 1px;}
+
+/* This is the border line & background colour round the entire page */
+.bodyline	{ background-color: #FFFFFF; border: 1px #98AAB1 solid; }
+
+/* This is the outline round the main forum tables */
+.forumline	{ background-color: #FFFFFF; border: 2px #006699 solid; }
+
+/* Main table cell colours and backgrounds */
+td.row1	{ background-color: #EFEFEF; }
+td.row2	{ background-color: #DEE3E7; }
+td.row3	{ background-color: #D1D7DC; }
+
+/*
+  This is for the table cell above the Topics, Post & Last posts on the index.php page
+  By default this is the fading out gradiated silver background.
+  However, you could replace this with a bitmap specific for each forum
+*/
+td.rowpic {
+		background-color: #FFFFFF;
+		background-image: url(templates/subSilver/images/cellpic2.jpg);
+		background-repeat: repeat-y;
+}
+
+/* Header cells - the blue and silver gradient backgrounds */
+th	{
+	color: #FFA34F; font-size: 11px; font-weight : bold;
+	background-color: #006699; height: 25px;
+	background-image: url(templates/subSilver/images/cellpic3.gif);
+}
+
+td.cat,td.catHead,td.catSides,td.catLeft,td.catRight,td.catBottom {
+			background-image: url(templates/subSilver/images/cellpic1.gif);
+			background-color:#D1D7DC; border: #FFFFFF; border-style: solid; height: 28px;
+}
+
+/*
+  Setting additional nice inner borders for the main table cells.
+  The names indicate which sides the border will be on.
+  Don't worry if you don't understand this, just ignore it :-)
+*/
+td.cat,td.catHead,td.catBottom {
+	height: 29px;
+	border-width: 0px 0px 0px 0px;
+}
+th.thHead,th.thSides,th.thTop,th.thLeft,th.thRight,th.thBottom,th.thCornerL,th.thCornerR {
+	font-weight: bold; border: #FFFFFF; border-style: solid; height: 28px;
+}
+td.row3Right,td.spaceRow {
+	background-color: #D1D7DC; border: #FFFFFF; border-style: solid;
+}
+
+th.thHead,td.catHead { font-size: 12px; border-width: 1px 1px 0px 1px; }
+th.thSides,td.catSides,td.spaceRow	 { border-width: 0px 1px 0px 1px; }
+th.thRight,td.catRight,td.row3Right	 { border-width: 0px 1px 0px 0px; }
+th.thLeft,td.catLeft	  { border-width: 0px 0px 0px 1px; }
+th.thBottom,td.catBottom  { border-width: 0px 1px 1px 1px; }
+th.thTop	 { border-width: 1px 0px 0px 0px; }
+th.thCornerL { border-width: 1px 0px 0px 1px; }
+th.thCornerR { border-width: 1px 1px 0px 0px; }
+
+/* The largest text used in the index page title and toptic title etc. */
+.maintitle	{
+	font-weight: bold; font-size: 22px; font-family: "Trebuchet MS",Verdana, Arial, Helvetica, sans-serif;
+	text-decoration: none; line-height : 120%; color : #000000;
+}
+
+/* General text */
+.gen { font-size : 12px; }
+.genmed { font-size : 11px; }
+.gensmall { font-size : 10px; }
+.gen,.genmed,.gensmall { color : #000000; }
+a.gen,a.genmed,a.gensmall { color: #006699; text-decoration: none; }
+a.gen:hover,a.genmed:hover,a.gensmall:hover	{ color: #DD6900; text-decoration: underline; }
+
+/* The register, login, search etc links at the top of the page */
+.mainmenu		{ font-size : 11px; color : #000000 }
+a.mainmenu		{ text-decoration: none; color : #006699;  }
+a.mainmenu:hover{ text-decoration: underline; color : #DD6900; }
+
+/* Forum category titles */
+.cattitle		{ font-weight: bold; font-size: 12px ; letter-spacing: 1px; color : #006699}
+a.cattitle		{ text-decoration: none; color : #006699; }
+a.cattitle:hover{ text-decoration: underline; }
+
+/* Forum title: Text and link to the forums used in: index.php */
+.forumlink		{ font-weight: bold; font-size: 12px; color : #006699; }
+a.forumlink 	{ text-decoration: none; color : #006699; }
+a.forumlink:hover{ text-decoration: underline; color : #DD6900; }
+
+/* Used for the navigation text, (Page 1,2,3 etc) and the navigation bar when in a forum */
+.nav			{ font-weight: bold; font-size: 11px; color : #000000;}
+a.nav			{ text-decoration: none; color : #006699; }
+a.nav:hover		{ text-decoration: underline; }
+
+/* titles for the topics: could specify viewed link colour too */
+.topictitle,h1,h2	{ font-weight: bold; font-size: 11px; color : #000000; }
+a.topictitle:link   { text-decoration: none; color : #006699; }
+a.topictitle:visited { text-decoration: none; color : #5493B4; }
+a.topictitle:hover	{ text-decoration: underline; color : #DD6900; }
+
+/* Name of poster in viewmsg.php and viewtopic.php and other places */
+.name			{ font-size : 11px; color : #000000;}
+
+/* Location, number of posts, post date etc */
+.postdetails		{ font-size : 10px; color : #000000; }
+
+/* The content of the posts (body of text) */
+.postbody { font-size : 12px; line-height: 18px}
+a.postlink:link	{ text-decoration: none; color : #006699 }
+a.postlink:visited { text-decoration: none; color : #5493B4; }
+a.postlink:hover { text-decoration: underline; color : #DD6900}
+
+/* Quote & Code blocks */
+.code {
+	font-family: Courier, 'Courier New', sans-serif; font-size: 11px; color: #006600;
+	background-color: #FAFAFA; border: #D1D7DC; border-style: solid;
+	border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px
+}
+
+.quote {
+	font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; color: #444444; line-height: 125%;
+	background-color: #FAFAFA; border: #D1D7DC; border-style: solid;
+	border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px
+}
+
+/* Copyright and bottom info */
+.copyright		{ font-size: 10px; font-family: Verdana, Arial, Helvetica, sans-serif; color: #444444; letter-spacing: -1px;}
+a.copyright		{ color: #444444; text-decoration: none;}
+a.copyright:hover { color: #000000; text-decoration: underline;}
+
+/* Form elements */
+input,textarea, select {
+	color : #000000;
+	font: normal 11px Verdana, Arial, Helvetica, sans-serif;
+	border-color : #000000;
+}
+
+/* The text input fields background colour */
+input.post, textarea.post, select {
+	background-color : #FFFFFF;
+}
+
+input { text-indent : 2px; }
+
+/* The buttons used for bbCode styling in message post */
+input.button {
+	background-color : #EFEFEF;
+	color : #000000;
+	font-size: 11px; font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
+/* The main submit button option */
+input.mainoption {
+	background-color : #FAFAFA;
+	font-weight : bold;
+}
+
+/* None-bold submit button */
+input.liteoption {
+	background-color : #FAFAFA;
+	font-weight : normal;
+}
+
+/* This is the line in the posting page which shows the rollover
+  help line. This is actually a text box, but if set to be the same
+  colour as the background no one will know ;)
+*/
+.helpline { background-color: #DEE3E7; border-style: none; }
+
+-->
+</style>
+</head>
+<body bgcolor="#E5E5E5" text="#000000" link="#006699" vlink="#5493B4">
+
+<table class="forumline" width="100%" cellspacing="1" cellpadding="4" border="0">
+	<tr>
+		<td class="row1"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td>
+<span class="postbody"><span style="font-size: 18px; line-height: normal">phpBB 2.0.11 to phpBB 2.0.12 Code Changes</span>
+<br /><br /><br />
+<br />
+These are the Changes from phpBB 2.0.11 to phpBB 2.0.12 summed up into a little Mod. This might be very helpful if you want to update your Board and have installed a bunch of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.<br />
+<br />
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.<br />
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.<br />
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in the 'REPLACE WITH'-Statement.<br />
+When you find a 'DELETE'-Statement, the Code have to be deleted.<br />
+<br />
+After you have finished this tutorial, you have to upload the update_to_latest.php file, execute it and then delete it from your webspace.<br />
+<br />
+Ok, lets start:<br />
+<br />
+<br />
+<span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>admin/admin_db_utilities.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 696</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$tables = array&#40;'auth_access', 'banlist', 'categories', 'config', 'disallow', 'forums', 'forum_prune', 'groups', 'posts', 'posts_text', 'privmsgs', 'privmsgs_text', 'ranks', 'search_results', 'search_wordlist', 'search_wordmatch', 'sessions', 'smilies', 'themes', 'themes_name', 'topics', 'topics_watch', 'user_group', 'users', 'vote_desc', 'vote_results', 'vote_voters', 'words'&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$tables = array&#40;'auth_access', 'banlist', 'categories', 'config', 'disallow', 'forums', 'forum_prune', 'groups', 'posts', 'posts_text', 'privmsgs', 'privmsgs_text', 'ranks', 'search_results', 'search_wordlist', 'search_wordmatch', 'sessions', 'smilies', 'themes', 'themes_name', 'topics', 'topics_watch', 'user_group', 'users', 'vote_desc', 'vote_results', 'vote_voters', 'words', 'confirm'&#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>admin/index.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 562</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&quot;L_NO_GUESTS_BROWSING&quot; =&gt; $lang&#91;'No_users_browsing'&#93;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#41;;<br />
+&nbsp; &nbsp;&#125;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+<br />
+&nbsp; &nbsp;// Check for new version<br />
+&nbsp; &nbsp;$current_version = explode&#40;'.', '2' . $board_config&#91;'version'&#93;&#41;;<br />
+&nbsp; &nbsp;$minor_revision = &#40;int&#41; $current_version&#91;2&#93;;<br />
+<br />
+&nbsp; &nbsp;$errno = 0;<br />
+&nbsp; &nbsp;$errstr = $version_info = '';<br />
+<br />
+&nbsp; &nbsp;if &#40;$fsock = @fsockopen&#40;'www.phpbb.com', 80, $errno, $errstr&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;@fputs&#40;$fsock, &quot;GET /updatecheck/20x.txt HTTP/1.1\r\n&quot;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;@fputs&#40;$fsock, &quot;HOST&#58; www.phpbb.com\r\n&quot;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;@fputs&#40;$fsock, &quot;Connection&#58; close\r\n\r\n&quot;&#41;;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$get_info = false;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;while &#40;!@feof&#40;$fsock&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;$get_info&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$version_info .= @fread&#40;$fsock, 1024&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;else<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;@fgets&#40;$fsock, 1024&#41; == &quot;\r\n&quot;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$get_info = true;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;@fclose&#40;$fsock&#41;;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$version_info = explode&#40;&quot;\n&quot;, $version_info&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$latest_head_revision = &#40;int&#41; $version_info&#91;0&#93;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$latest_minor_revision = &#40;int&#41; $version_info&#91;2&#93;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$latest_version = &#40;int&#41; $version_info&#91;0&#93; . '.' . &#40;int&#41; $version_info&#91;1&#93; . '.' . &#40;int&#41; $version_info&#91;2&#93;;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;$latest_head_revision == 2 &amp;&amp; $minor_revision == $latest_minor_revision&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$version_info = '&lt;p style=&quot;color&#58;green&quot;&gt;' . $lang&#91;'Version_up_to_date'&#93; . '&lt;/p&gt;';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;else<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$version_info = '&lt;p style=&quot;color&#58;red&quot;&gt;' . $lang&#91;'Version_not_up_to_date'&#93;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$version_info .= '&lt;br /&gt;' . sprintf&#40;$lang&#91;'Latest_version_info'&#93;, $latest_version&#41; . sprintf&#40;$lang&#91;'Current_version_info'&#93;, '2' . $board_config&#91;'version'&#93;&#41; . '&lt;/p&gt;';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;else<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;$errstr&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$version_info = '&lt;p style=&quot;color&#58;red&quot;&gt;' . sprintf&#40;$lang&#91;'Connect_socket_error'&#93;, $errstr&#41; . '&lt;/p&gt;';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;else<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$version_info = '&lt;p&gt;' . $lang&#91;'Socket_functions_disabled'&#93; . '&lt;/p&gt;';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;<br />
+&nbsp; &nbsp;$version_info .= '&lt;p&gt;' . $lang&#91;'Mailing_list_subscribe_reminder'&#93; . '&lt;/p&gt;';<br />
+&nbsp; &nbsp;<br />
+<br />
+&nbsp; &nbsp;$template-&gt;assign_vars&#40;array&#40;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;'VERSION_INFO'&nbsp; &nbsp;=&gt; $version_info,<br />
+&nbsp; &nbsp;&nbsp; &nbsp;'L_VERSION_INFORMATION'&nbsp; &nbsp;=&gt; $lang&#91;'Version_information'&#93;&#41;<br />
+&nbsp; &nbsp;&#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>common.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 56</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$test = array&#40;'HTTP_GET_VARS' =&gt; NULL, 'HTTP_POST_VARS' =&gt; NULL, 'HTTP_COOKIE_VARS' =&gt; NULL, 'HTTP_SERVER_VARS' =&gt; NULL, 'HTTP_ENV_VARS' =&gt; NULL, 'HTTP_POST_FILES' =&gt; NULL&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$test = array&#40;'HTTP_GET_VARS' =&gt; NULL, 'HTTP_POST_VARS' =&gt; NULL, 'HTTP_COOKIE_VARS' =&gt; NULL, 'HTTP_SERVER_VARS' =&gt; NULL, 'HTTP_ENV_VARS' =&gt; NULL, 'HTTP_POST_FILES' =&gt; NULL, 'phpEx' =&gt; NULL, 'phpbb_root_path' =&gt; NULL&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 75</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+else if &#40;@ini_get&#40;'register_globals'&#41; == '1' || strtolower&#40;@ini_get&#40;'register_globals'&#41;&#41; == 'on'&#41;<br />
+&#123;<br />
+&nbsp; &nbsp;// PHP4+ path<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$not_unset = array&#40;'HTTP_GET_VARS', 'HTTP_POST_VARS', 'HTTP_COOKIE_VARS', 'HTTP_SERVER_VARS', 'HTTP_SESSION_VARS', 'HTTP_ENV_VARS', 'HTTP_POST_FILES', 'phpEx', 'phpbb_root_path'&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 92</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;unset&#40;$input&#91;'input'&#93;&#41;;<br />
+&nbsp; &nbsp;<br />
+&nbsp; &nbsp;while &#40;list&#40;$var,&#41; = @each&#40;$input&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;unset&#40;$$var&#41;;<br />
+&nbsp; &nbsp;&#125;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;unset&#40;$input&#91;'input'&#93;&#41;;<br />
+&nbsp; &nbsp;unset&#40;$input&#91;'not_unset'&#93;&#41;;<br />
+<br />
+&nbsp; &nbsp;while &#40;list&#40;$var,&#41; = @each&#40;$input&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!in_array&#40;$var, $not_unset&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;unset&#40;$$var&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&#125;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 207</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+$client_ip = &#40; !empty&#40;$HTTP_SERVER_VARS&#91;'REMOTE_ADDR'&#93;&#41; &#41; ? $HTTP_SERVER_VARS&#91;'REMOTE_ADDR'&#93; &#58; &#40; &#40; !empty&#40;$HTTP_ENV_VARS&#91;'REMOTE_ADDR'&#93;&#41; &#41; ? $HTTP_ENV_VARS&#91;'REMOTE_ADDR'&#93; &#58; $REMOTE_ADDR &#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+$client_ip = &#40; !empty&#40;$HTTP_SERVER_VARS&#91;'REMOTE_ADDR'&#93;&#41; &#41; ? $HTTP_SERVER_VARS&#91;'REMOTE_ADDR'&#93; &#58; &#40; &#40; !empty&#40;$HTTP_ENV_VARS&#91;'REMOTE_ADDR'&#93;&#41; &#41; ? $HTTP_ENV_VARS&#91;'REMOTE_ADDR'&#93; &#58; getenv&#40;'REMOTE_ADDR'&#41; &#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/functions.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 80</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$username = htmlspecialchars&#40;rtrim&#40;trim&#40;$username&#41;, &quot;\\&quot;&#41;&#41;;<br />
+&nbsp; &nbsp;$username = substr&#40;str_replace&#40;&quot;\\'&quot;, &quot;'&quot;, $username&#41;, 0, 25&#41;;<br />
+&nbsp; &nbsp;$username = str_replace&#40;&quot;'&quot;, &quot;\\'&quot;, $username&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$username = substr&#40;htmlspecialchars&#40;str_replace&#40;&quot;\'&quot;, &quot;'&quot;, trim&#40;$username&#41;&#41;&#41;, 0, 25&#41;;<br />
+&nbsp; &nbsp;$username = phpbb_rtrim&#40;$username, &quot;\\&quot;&#41;;&nbsp; &nbsp;<br />
+&nbsp; &nbsp;$username = str_replace&#40;&quot;'&quot;, &quot;\'&quot;, $username&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 83</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+<br />
+&nbsp; &nbsp;return $username;<br />
+&#125;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+<br />
+// added at phpBB 2.0.12 to fix a bug in PHP 4.3.10 &#40;only supporting charlist in php &gt;= 4.1.0&#41;<br />
+function phpbb_rtrim&#40;$str, $charlist = false&#41;<br />
+&#123;<br />
+&nbsp; &nbsp;if &#40;$charlist === false&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;return rtrim&#40;$str&#41;;<br />
+&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;<br />
+&nbsp; &nbsp;$php_version = explode&#40;'.', PHP_VERSION&#41;;<br />
+<br />
+&nbsp; &nbsp;// php version &lt; 4.1.0<br />
+&nbsp; &nbsp;if &#40;&#40;int&#41; $php_version&#91;0&#93; &lt; 4 || &#40;&#40;int&#41; $php_version&#91;0&#93; == 4 &amp;&amp; &#40;int&#41; $php_version&#91;1&#93; &lt; 1&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;while &#40;$str&#123;strlen&#40;$str&#41;-1&#125; == $charlist&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$str = substr&#40;$str, 0, strlen&#40;$str&#41;-1&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;else<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$str = rtrim&#40;$str, $charlist&#41;;<br />
+&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;return $str;<br />
+&#125;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 608</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$debug_text .= '&lt;/br /&gt;&lt;br /&gt;Line &#58; ' . $err_line . '&lt;br /&gt;File &#58; ' . $err_file;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$debug_text .= '&lt;/br /&gt;&lt;br /&gt;Line &#58; ' . $err_line . '&lt;br /&gt;File &#58; ' . basename&#40;$err_file&#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/page_tail.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 38</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;'PHPBB_VERSION' =&gt; '2' . $board_config&#91;'version'&#93;,<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+//&nbsp; &nbsp;'PHPBB_VERSION' =&gt; '2' . $board_config&#91;'version'&#93;,<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/template.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 233</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$filename = phpbb_realpath&#40;$this-&gt;root . '/' . $filename&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$filename = &#40;$rp_filename = phpbb_realpath&#40;$this-&gt;root . '/' . $filename&#41;&#41; ? $rp_filename &#58; $filename;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/usercp_avatar.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 54</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&#123;<br />
+&nbsp; &nbsp;global $board_config, $userdata;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$avatar_file = basename&#40;$avatar_file&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 69</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+function user_avatar_gallery&#40;$mode, &amp;$error, &amp;$error_msg, $avatar_filename&#41;<br />
+&#123;<br />
+&nbsp; &nbsp;global $board_config;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+<br />
+&nbsp; &nbsp;$avatar_filename = str_replace&#40;array&#40;'../', '..\\', './', '.\\'&#41;, '', $avatar_filename&#41;;<br />
+&nbsp; &nbsp;if &#40;$avatar_filename&#123;0&#125; == '/' || $avatar_filename&#123;0&#125; == &quot;\\&quot;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;return '';<br />
+&nbsp; &nbsp;&#125;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 235</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$move_file = 'copy';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!is_uploaded_file&#40;$avatar_filename&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_ERROR, 'Unable to upload file', '', __LINE__, __FILE__&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/usercp_register.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 462</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$avatar_mode = &#40; !empty&#40;$user_avatar_name&#41; &#41; ? 'local' &#58; 'remote';<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$avatar_mode = &#40;empty&#40;$user_avatar_name&#41;&#41; ? 'remote' &#58; 'local';<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>language/lang_english/lang_admin.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+//<br />
+// That's all Folks!<br />
+// -------------------------------------------------<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">BEFORE, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+//<br />
+// Version Check<br />
+//<br />
+$lang&#91;'Version_up_to_date'&#93; = 'Your installation is up to date, no updates are available for your version of phpBB.';<br />
+$lang&#91;'Version_not_up_to_date'&#93; = 'Your installation does &lt;b&gt;not&lt;/b&gt; seem to be up to date. Updates are available for your version of phpBB, please visit &lt;a href=&quot;http&#58;//www.phpbb.com/downloads.php&quot; target=&quot;_new&quot;&gt;http&#58;//www.phpbb.com/downloads.php&lt;/a&gt; to obtain the latest version.';<br />
+$lang&#91;'Latest_version_info'&#93; = 'The latest available version is &lt;b&gt;phpBB %s&lt;/b&gt;.';<br />
+$lang&#91;'Current_version_info'&#93; = 'You are running &lt;b&gt;phpBB %s&lt;/b&gt;.';<br />
+$lang&#91;'Connect_socket_error'&#93; = 'Unable to open connection to phpBB Server, reported error is&#58;&lt;br /&gt;%s';<br />
+$lang&#91;'Socket_functions_disabled'&#93; = 'Unable to use socket functions.';<br />
+$lang&#91;'Mailing_list_subscribe_reminder'&#93; = 'For the latest information on updates to phpBB, why not &lt;a href=&quot;http&#58;//www.phpbb.com/support/&quot; target=&quot;_new&quot;&gt;subscribe to our mailing list&lt;/a&gt;.';<br />
+$lang&#91;'Version_information'&#93; = 'Version Information';<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>templates/subSilver/admin/index_body.tpl</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 80</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&lt;/table&gt;<br />
+<br />
+&lt;br /&gt;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+<br />
+&lt;h1&gt;&#123;L_VERSION_INFORMATION&#125;&lt;/h1&gt;<br />
+<br />
+&#123;VERSION_INFO&#125;<br />
+<br />
+&lt;br /&gt;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>templates/subSilver/overall_footer.tpl</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 8</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;Powered by phpBB &#123;PHPBB_VERSION&#125; line, with phpBB linked to www.phpbb.com. If you refuse<br />
+&nbsp; &nbsp;to include even this then support on our forums may be affected. <br />
+<br />
+&nbsp; &nbsp;The phpBB Group &#58; 2002<br />
+// --&gt;<br />
+Powered by &lt;a href=&quot;http&#58;//www.phpbb.com/&quot; target=&quot;_phpbb&quot; class=&quot;copyright&quot;&gt;phpBB&lt;/a&gt; &#123;PHPBB_VERSION&#125; &amp;copy; 2001, 2002 phpBB Group&lt;br /&gt;&#123;TRANSLATION_INFO&#125;&lt;/span&gt;&lt;/div&gt;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;Powered by phpBB line, with phpBB linked to www.phpbb.com. If you refuse<br />
+&nbsp; &nbsp;to include even this then support on our forums may be affected.<br />
+<br />
+&nbsp; &nbsp;The phpBB Group &#58; 2002<br />
+// --&gt;<br />
+Powered by &lt;a href=&quot;http&#58;//www.phpbb.com/&quot; target=&quot;_phpbb&quot; class=&quot;copyright&quot;&gt;phpBB&lt;/a&gt; &amp;copy; 2001, 2005 phpBB Group&lt;br /&gt;&#123;TRANSLATION_INFO&#125;&lt;/span&gt;&lt;/div&gt;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>templates/subSilver/simple_footer.tpl</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 8</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;Powered by phpBB &#123;PHPBB_VERSION&#125; line, with phpBB linked to www.phpbb.com. If you refuse<br />
+&nbsp; &nbsp;to include even this then support on our forums may be affected. <br />
+<br />
+&nbsp; &nbsp;The phpBB Group &#58; 2002<br />
+// --&gt;<br />
+Powered by &lt;a href=&quot;http&#58;//www.phpbb.com/&quot; target=&quot;_phpbb&quot; class=&quot;copyright&quot;&gt;phpBB&lt;/a&gt; &#123;PHPBB_VERSION&#125; &amp;copy; 2001,2002 phpBB Group&lt;/span&gt;&lt;/div&gt;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;Powered by phpBB line, with phpBB linked to www.phpbb.com. If you refuse<br />
+&nbsp; &nbsp;to include even this then support on our forums may be affected. <br />
+<br />
+&nbsp; &nbsp;The phpBB Group &#58; 2002<br />
+// --&gt;<br />
+Powered by &lt;a href=&quot;http&#58;//www.phpbb.com/&quot; target=&quot;_phpbb&quot; class=&quot;copyright&quot;&gt;phpBB&lt;/a&gt; &amp;copy; 2001, 2005 phpBB Group&lt;/span&gt;&lt;/div&gt;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>viewtopic.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 498</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;unset&#40;$words&#41;;<br />
+<br />
+&nbsp; &nbsp;$highlight = urlencode&#40;$HTTP_GET_VARS&#91;'highlight'&#93;&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.12 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$highlight_match = phpbb_rtrim&#40;$highlight_match, &quot;\\&quot;&#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol>					</td>
+			</tr>
+		</table></td>
+	</tr>
+</table></html>

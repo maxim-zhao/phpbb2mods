@@ -1,0 +1,218 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en" dir="ltr">
+<head>
+<meta http-equiv="Content-Type" content="text/html">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<title>common.php</title>
+<link rel="stylesheet" type="text/css" href="css/styles.css" />
+</head>
+<body bgcolor="#FFFFFF" text="#000000" link="#006699" vlink="#006699">
+<script type="text/javascript" src="js/toggle_frame.js"></script>
+<script type="text/javascript"><!--
+toggle_frame.init(
+	['images/toggle_frame_hide.gif','images/toggle_frame_show.gif'],
+	['Hide Navigation!','Show Navigation!']
+);
+//--></script>
+<table cellpadding="10" cellspacing="0" border="0" width="100%">
+	<tr>
+		<td>
+			<table cellpadding="10" cellspacing="0" border="0" width="100%" class="bodyline">
+				<tr>
+					<td align="center" colspan="2"><span class="maintitle">common.php</span></td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+</table>
+<script type="text/javascript" src="js/select_onclick.js"></script>
+<script type="text/javascript" src="js/dom_page_state.js"></script>
+<script type="text/javascript"><!--
+select_onclick.init(
+	'Click me to select the text!'
+);
+dom_page_state.init(
+	'action_139',
+	['buttonswrapper','buttoncheckoff','buttoncheckon'],
+	['checkmousedown','checkmouseup']
+);
+//--></script>
+<table cellpadding="10" cellspacing="0" border="0" width="100%">
+	<tr>
+		<td>
+			<ul>
+			<li><h3 class="h3">FIND:</h3>
+				<pre class="code" id="code0">// The following code (unsetting globals) was contributed by Matt Kavanagh
+</pre>
+			</li>
+			<li><h3 class="h3">REPLACE WITH:</h3>
+				<pre class="code" id="code1">// The following code (unsetting globals)
+// Thanks to Matt Kavanagh and Stefan Esser for providing feedback as well as patch files
+</pre>
+			</li>
+			<li><h3 class="h3">FIND:</h3>
+				<pre class="code" id="code2">// PHP5 with register_long_arrays off?
+if (!isset($HTTP_POST_VARS) &amp;&amp; isset($_POST))
+{
+	$HTTP_POST_VARS = $_POST;
+	$HTTP_GET_VARS = $_GET;
+	$HTTP_SERVER_VARS = $_SERVER;
+	$HTTP_COOKIE_VARS = $_COOKIE;
+	$HTTP_ENV_VARS = $_ENV;
+	$HTTP_POST_FILES = $_FILES;
+
+	// _SESSION is the only superglobal which is conditionally set
+	if (isset($_SESSION))
+	{
+		$HTTP_SESSION_VARS = $_SESSION;
+	}
+}
+</pre>
+			</li>
+			<li><h3 class="h3">REPLACE WITH:</h3>
+				<pre class="code" id="code3">// PHP5 with register_long_arrays off?
+if (@phpversion() &gt;= '5.0.0' &amp;&amp; (!@ini_get('register_long_arrays') || @ini_get('register_long_arrays') == '0' || strtolower(@ini_get('register_long_arrays')) == 'off'))
+{
+	$HTTP_POST_VARS = $_POST;
+	$HTTP_GET_VARS = $_GET;
+	$HTTP_SERVER_VARS = $_SERVER;
+	$HTTP_COOKIE_VARS = $_COOKIE;
+	$HTTP_ENV_VARS = $_ENV;
+	$HTTP_POST_FILES = $_FILES;
+
+	// _SESSION is the only superglobal which is conditionally set
+	if (isset($_SESSION))
+	{
+		$HTTP_SESSION_VARS = $_SESSION;
+	}
+}
+
+// Protect against GLOBALS tricks
+if (isset($HTTP_POST_VARS['GLOBALS']) || isset($HTTP_POST_FILES['GLOBALS']) || isset($HTTP_GET_VARS['GLOBALS']) || isset($HTTP_COOKIE_VARS['GLOBALS']))
+{
+	die(&quot;Hacking attempt&quot;);
+}
+
+// Protect against HTTP_SESSION_VARS tricks
+if (isset($HTTP_SESSION_VARS) &amp;&amp; !is_array($HTTP_SESSION_VARS))
+{
+	die(&quot;Hacking attempt&quot;);
+}
+</pre>
+			</li>
+			<li><h3 class="h3">FIND:</h3>
+				<pre class="code" id="code4">if (@phpversion() &lt; '4.0.0')
+{
+	// PHP3 path; in PHP3, globals are _always_ registered
+	
+	// We 'flip' the array of variables to test like this so that
+	// we can validate later with isset($test[$var]) (no in_array())
+	$test = array('HTTP_GET_VARS' =&gt; NULL, 'HTTP_POST_VARS' =&gt; NULL, 'HTTP_COOKIE_VARS' =&gt; NULL, 'HTTP_SERVER_VARS' =&gt; NULL, 'HTTP_ENV_VARS' =&gt; NULL, 'HTTP_POST_FILES' =&gt; NULL, 'phpEx' =&gt; NULL, 'phpbb_root_path' =&gt; NULL);
+
+	// Loop through each input array
+	@reset($test);
+	while (list($input,) = @each($test))
+	{
+		while (list($var,) = @each($$input))
+		{
+			// Validate the variable to be unset
+			if (!isset($test[$var]) &amp;&amp; $var != 'test' &amp;&amp; $var != 'input')
+			{
+				unset($$var);
+			}
+		}
+	}
+}
+else if (@ini_get('register_globals') == '1' || strtolower(@ini_get('register_globals')) == 'on')
+{
+</pre>
+			</li>
+			<li><h3 class="h3">REPLACE WITH:</h3>
+				<pre class="code" id="code5">if (@ini_get('register_globals') == '1' || strtolower(@ini_get('register_globals')) == 'on')
+{
+</pre>
+			</li>
+			<li><h3 class="h3">FIND:</h3>
+				<pre class="code" id="code6">	if (!isset($HTTP_SESSION_VARS))
+	{
+		$HTTP_SESSION_VARS = array();
+	}
+
+	// Merge all into one extremely huge array; unset
+	// this later
+	$input = array_merge($HTTP_GET_VARS, $HTTP_POST_VARS, $HTTP_COOKIE_VARS, $HTTP_SERVER_VARS, $HTTP_SESSION_VARS, $HTTP_ENV_VARS, $HTTP_POST_FILES);
+
+	unset($input['input']);
+	unset($input['not_unset']);
+
+	while (list($var,) = @each($input))
+	{
+		if (!in_array($var, $not_unset))
+		{
+			unset($$var);
+		}
+	}
+
+	unset($input);
+}
+</pre>
+			</li>
+			<li><h3 class="h3">REPLACE WITH:</h3>
+				<pre class="code" id="code7">	if (!isset($HTTP_SESSION_VARS) || !is_array($HTTP_SESSION_VARS))
+	{
+		$HTTP_SESSION_VARS = array();
+	}
+
+	// Merge all into one extremely huge array; unset
+	// this later
+	$input = array_merge($HTTP_GET_VARS, $HTTP_POST_VARS, $HTTP_COOKIE_VARS, $HTTP_SERVER_VARS, $HTTP_SESSION_VARS, $HTTP_ENV_VARS, $HTTP_POST_FILES);
+
+	unset($input['input']);
+	unset($input['not_unset']);
+
+	while (list($var,) = @each($input))
+	{
+		if (!in_array($var, $not_unset))
+		{
+			unset($$var);
+		}
+	}
+
+	unset($input);
+}
+</pre>
+			</li>
+			<li><h3 class="h3">FIND:</h3>
+				<pre class="code" id="code8">	header(&quot;Location: install/install.$phpEx&quot;);
+</pre>
+			</li>
+			<li><h3 class="h3">REPLACE WITH:</h3>
+				<pre class="code" id="code9">	header('Location: ' . $phpbb_root_path . 'install/install.' . $phpEx);
+</pre>
+			</li>
+			<li><h3 class="h3">FIND:</h3>
+				<pre class="code" id="code10">include($phpbb_root_path . 'includes/db.'.$phpEx);
+</pre>
+			</li>
+			<li><h3 class="h3">AFTER, ADD:</h3>
+				<pre class="code" id="code11">// We do not need this any longer, unset for safety purposes
+unset($dbpasswd);
+</pre>
+			</li>
+			</ul>
+		</td>
+	</tr>
+</table>
+<div id="buttonswrapper" style="display:none;"><table cellpadding="10" cellspacing="0" border="0" width="100%">
+	<tr>
+		<td align="center">
+			<img src="images/spacer.gif" width="1" height="40" alt="" />
+			<hr /><br />
+			<div id="buttoncheckoff" class="checkmouseup" style="display:none;">Mark as Unprocessed <img src="images/icon_check_off.gif" border="0" alt="" /></div>
+			<div id="buttoncheckon"  class="checkmouseup" style="display:none;">Mark as Processed <img src="images/icon_check_on.gif" border="0" alt="" /></div>
+		</td>
+	</tr>
+</table></div>
+<div style="margin:10px;"><hr /><div class="copyright" style="text-align:center;">Copyright &copy; phpBB Group, 2005, All Rights Reserved</div></div>
+</body>
+</html>

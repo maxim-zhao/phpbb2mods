@@ -1,0 +1,182 @@
+############################################################################### 
+## MOD Title: Disable Post Editing After X Hours
+## MOD Author: Throckmorton < n/a > (n/a) n/a
+## MOD Description: Allows you to set a time limit for how long users may edit their posts.
+##                  Configurable in General Admin -> Configuration
+##                  Administrators and moderators can still edit all posts.
+##
+## MOD Version: 1.1.1
+##
+## Installation Level: Easy
+## Installation Time: 5 Minutes
+##
+## Files To Edit: posting.php
+##                viewtopic.php
+##                admin/admin_board.php
+##                language/lang_english/lang_admin.php
+##                language/lang_english/lang_main.php
+##                templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files: n/a
+##                 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+###############################################################################
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+###############################################################################
+## Author Notes: This mod is compatible with EasyMOD.
+##
+##############################################################################
+## MOD History:
+##               
+## 2006-07-10 - Version 1.1.1
+##            - Fixed bug that prevented admins and moderators from editing posts
+##              introduced in v1.1.0
+##
+## 2006-07-09 - Version 1.1.0
+##            - Added check in posting.php to prevent users from editing posts
+##              by manipulating URLs
+##
+## 2006-05-22 - Version 1.0.0
+##            - Initial Release 
+##
+###############################################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+###############################################################################
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+INSERT INTO phpbb_config VALUES ('post_edit_time_limit', '4');
+#
+#-----[ OPEN ]-----------------------------------------------------------------
+# 
+posting.php
+# 
+#-----[ FIND ]-----------------------------------------------------------------
+#
+		$sql = "SELECT f.*, t.topic_id, t.topic_status, t.topic_type, t.topic_first_post_id, t.topic_last_post_id, t.topic_vote, p.post_id, p.poster_id
+# 
+#-----[ IN-LINE FIND ]-----------------------------------------------------------------
+# 
+, p.poster_id
+# 
+#-----[ IN-LINE AFTER, ADD ]-----------------------------------------------------------------
+# 
+, p.post_time
+# 
+#-----[ FIND ]-----------------------------------------------------------------
+#
+	if ( $mode == 'editpost' || $mode == 'delete' || $mode == 'poll_delete' )
+# 
+#-----[ BEFORE, ADD ]-----------------------------------------------------------------
+#
+	if ( $mode == 'editpost' && !$is_auth['auth_mod'] )
+	{
+		$edit_time_expired = ( time() - $post_info['post_time'] < $board_config['post_edit_time_limit'] * 3600 ) ? false : true;
+		$edit_time_expired = ( $board_config['post_edit_time_limit'] == -1 ) ? false : $edit_time_expired;		
+
+		if ( $edit_time_expired ) 
+		{ 
+			$topic_id = $post_info['topic_id'];
+			$message = sprintf($lang['Edit_own_posts_expired'], $board_config['post_edit_time_limit'] );
+			$message .= '<br /><br />' . sprintf($lang['Click_return_topic'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id") . '">', '</a>');
+
+			message_die(GENERAL_MESSAGE, $message);
+		}
+	}
+
+#
+#-----[ OPEN ]-----------------------------------------------------------------
+# 
+viewtopic.php
+# 
+#-----[ FIND ]-----------------------------------------------------------------
+#
+	if ( ( $userdata['user_id'] == $poster_id && $is_auth['auth_edit'] ) || $is_auth['auth_mod'] )
+# 
+#-----[ BEFORE, ADD ]-----------------------------------------------------------------
+#
+	$edit_time_expired = ( time() - $postrow[$i]['post_time'] < $board_config['post_edit_time_limit'] * 3600 ) ? false : true;
+	$edit_time_expired = ( $board_config['post_edit_time_limit'] == -1 ) ? false : $edit_time_expired;
+
+# 
+#-----[ IN-LINE FIND ]-----------------------------------------------------------------
+# 
+&& $is_auth['auth_edit']
+# 
+#-----[ IN-LINE AFTER, ADD ]-----------------------------------------------------------------
+# 
+ && !$edit_time_expired
+#
+#-----[ OPEN ]-----------------------------------------------------------------
+# 
+admin/admin_board.php
+# 
+#-----[ FIND ]-----------------------------------------------------------------
+#
+	"L_ALLOW_NAME_CHANGE" => $lang['Allow_name_change'],
+# 
+#-----[ AFTER, ADD ]-----------------------------------------------------------------
+#
+	"L_DISABLE_POST_EDITING" => $lang['Disable_post_editing'],
+	"L_DISABLE_POST_EDITING_EXPLAIN" => $lang['Disable_post_editing_explain'],
+# 
+#-----[ FIND ]-----------------------------------------------------------------
+#
+	"NAMECHANGE_YES" => $namechange_yes,
+	"NAMECHANGE_NO" => $namechange_no,
+# 
+#-----[ AFTER, ADD ]-----------------------------------------------------------------
+#
+	"EDITING_TIME" => $new['post_edit_time_limit'], 
+#
+#-----[ OPEN ]-----------------------------------------------------------------
+# 
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]-----------------------------------------------------------------
+# 
+$lang['Allow_name_change'] = 'Allow Username changes';
+# 
+#-----[ AFTER, ADD ]-----------------------------------------------------------------
+#
+$lang['Disable_post_editing'] = 'Disable Post Editing After X Hours';
+$lang['Disable_post_editing_explain'] = 'Number of hours users have to edit their posts before editing is disabled.<br />Set to zero to completely disable post editing. Set to -1 to disable the mod.';
+#
+#-----[ OPEN ]-----------------------------------------------------------------
+# 
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]-----------------------------------------------------------------
+# 
+$lang['Edit_own_posts'] = 'Sorry, but you can only edit your own posts.';
+# 
+#-----[ AFTER, ADD ]-----------------------------------------------------------------
+#
+$lang['Edit_own_posts_expired'] = 'Sorry, but you can only edit your posts for %s hours.';
+#
+#-----[ OPEN ]-----------------------------------------------------------------
+# 
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ FIND ]-----------------------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ALLOW_NAME_CHANGE}</td>
+		<td class="row2"><input type="radio" name="allow_namechange" value="1" {NAMECHANGE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_namechange" value="0" {NAMECHANGE_NO} /> {L_NO}</td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]-----------------------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_DISABLE_POST_EDITING}<br /><span class="gensmall">{L_DISABLE_POST_EDITING_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="4" maxlength="3" name="post_edit_time_limit" value="{EDITING_TIME}" /></td>
+	</tr>
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------------ 
+# 
+# EoM

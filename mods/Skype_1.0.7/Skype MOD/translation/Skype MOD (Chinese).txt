@@ -1,0 +1,637 @@
+######################################################## 
+## 外掛名稱: Skype MOD
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: This mod display a skype (http://www.skype.com/) button in your forum's viewtopic, viewprofile and admin can edit user's skype setting in user management panel
+## 外掛版本: 1.0.7
+## 
+## 安裝難度: 中等 
+## 安裝時間: 10 分鐘 
+##
+## 需要編輯的檔案: 12
+##	viewtopic.php
+##	includes/usercp_register.php
+##	includes/functions_validate.php
+##	includes/usercp_avatar.php
+##	includes/usercp_viewprofile.php
+##	admin/admin_users.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	templates/subSilver/subSilver.cfg
+##	templates/subSilver/profile_view_body.tpl
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/viewtopic_body.tpl
+##	templates/subSilver/admin/user_edit_body.tpl
+##
+## 附加的檔案: 3
+##	icon_skype.gif
+##	contrib/blue/icon_skype.gif
+##	contrib/green/icon_skype.gif
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+##############################################################
+## 作者留言:
+##	此外掛在 2.0.19 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##	No button in memberlist and usergroup listing because there isn't enough space,
+##		more button can distort the table.
+##
+##	Skype: http://www.skype.com/
+##
+##	Skype is free Internet telephony that just works.
+##	Skype is for calling other people on their computers or phones. 
+##	Download Skype and start calling for free all over the world.
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2004-12-21 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2005-01-10 - 版本 1.0.1
+##      - 更換 Skype 圖示的位置到 ICQ 的前面.
+##
+##   2005-05-02 - 版本 1.0.2
+##      - 更換 "Skype USERNAME" 為 'Skype 帳號' 來修正個小蟲
+##
+##   2005-10-02 - 版本 1.0.3
+##	- 更新至新 MOD template 並且通過 2.0.17 上的測試
+##	- 增加了兩個 skype 圖示
+##	- 增加了 add-on: "在私人訊息中顯示 Skype 圖示"
+##
+##   2006-01-08 - 版本 1.0.4
+##      - 做了小小的修改讓這個外掛可以在 2.0.19 上安裝
+##
+##   2006-01-17 - 版本 1.0.5
+##      - 把 "callto://" 改成 "skype:" 因為 <引用>callto:// 協定已是作廢的 (因為安全考量和其他原因)</引用>
+##
+##   2006-01-22 - 版本 1.0.6
+##      - 忘了從 user_edit_body.tpl 刪除 {USERNAME}. 現在已修正.
+##
+##   2006-04-02 - Version 1.0.7
+##      - 移出多餘的 "/"
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+ALTER TABLE `phpbb_users` ADD `user_skype` VARCHAR( 255 ) ;
+
+# 
+#-----[ 複製 ]------------------------------------------ 
+# 
+copy icon_skype.gif to templates/subSilver/images/lang_chinese_traditional_taiwan/icon_skype.gif
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+viewtopic.php
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+$sql = "SELECT u.username, u.user_id,
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+u.user_yim,
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ u.user_skype,
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		$yim = ( $postrow[$i]['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $postrow[$i]['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		$skype_img = ( $postrow[$i]['user_skype'] ) ? '<a href="skype:' . $postrow[$i]['user_skype'] . '"><img src="' . $images['icon_skype'] . '" alt="' . $lang['SKYPE'] . '" title="' . $lang['SKYPE'] . '" border="0" /></a>' : '';
+		$skype = ( $postrow[$i]['user_skype'] ) ? '<a href="skype:' . $postrow[$i]['user_skype'] . '">' . $lang['SKYPE'] . '</a>' : '';
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		$yim_img = '';
+		$yim = '';
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		$skype_img = '';
+		$skype = '';
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		'YIM_IMG' => $yim_img,
+		'YIM' => $yim,
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		'SKYPE_IMG' => $skype_img,
+		'SKYPE' => $skype,
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/usercp_register.php
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+# 
+	$strip_var_list = array('
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+'yim' => 'yim',
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ 'skype' => 'skype',
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+validate_optional_fields($icq,
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+$yim,
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ $skype,
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		$yim = stripslashes($yim);
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		$skype = stripslashes($skype);
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+user_msnm = '" . str_replace("\'", "''", $msn) . "',
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ user_skype = '" . str_replace("\'", "''", $skype) . "',
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+$sql = "INSERT INTO " . USERS_TABLE . "	(user_id, username
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+user_msnm,
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ user_skype,
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+VALUES ($user_id, '" . str_replace("\'", "''", $username)
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+'" . str_replace("\'", "''", $msn) . "',
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ '" . str_replace("\'", "''", $skype) . "',
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+					'YIM' => $yim,
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+					'SKYPE' => $skype,
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+	$yim = stripslashes($yim);
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	$skype = stripslashes($skype);
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+	$yim = $userdata['user_yim'];
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	$skype = $userdata['user_skype'];
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+display_avatar_gallery($mode, $avatar_category,
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+$yim,
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ $skype,
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		'YIM' => $yim,
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		'SKYPE' => $skype,
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		'L_RESET' => $lang['Reset'],
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		'L_SKYPE' => $lang['SKYPE'],
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/functions_validate.php
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+function validate_optional_fields(&$icq,
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+&$yim,
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ &$skype,
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+$check_var_length = array('aim'
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+'yim',
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ 'skype',
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/usercp_avatar.php
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+function display_avatar_gallery($mode, &$category,
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+&$yim,
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ &$skype,
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+$params = array('coppa', 'user_id', 'username',
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+'yim',
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ 'skype',
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/usercp_viewprofile.php
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+$yim = ( $profiledata['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $profiledata['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+$skype_img = ( $profiledata['user_skype'] ) ? '<a href="skype:' . $profiledata['user_skype'] . '"><img src="' . $images['icon_skype'] . '" alt="' . $lang['SKYPE'] . '" title="' . $lang['SKYPE'] . '" border="0" /></a>' : '';
+$skype = ( $profiledata['user_skype'] ) ? '<a href="skype:' . $profiledata['user_skype'] . '">' . $lang['SKYPE'] . '</a>' : '';
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+	'YIM_IMG' => $yim_img,
+	'YIM' => $yim,
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	'SKYPE_IMG' => $skype_img,
+	'SKYPE' => $skype,
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+	'L_YAHOO' => $lang['YIM'],
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	'L_SKYPE' => $lang['SKYPE'],
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/profile_add_body.tpl
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		<input type="text" class="post" style="width: 150px"  name="yim" size="20" maxlength="255" value="{YIM}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_SKYPE}:</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post"style="width: 150px"  name="skype" size="20" maxlength="255" value="{SKYPE}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/profile_view_body.tpl
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		<tr> 
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_YAHOO}:</span></td>
+		  <td class="row1" valign="middle"><span class="gen">{YIM_IMG}</span></td>
+		</tr>
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		<tr> 
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_SKYPE}:</span></td>
+		  <td class="row1" valign="middle"><span class="gen">{SKYPE_IMG}</span></td>
+		</tr>
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/subSilver.cfg
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+$images['icon_yim'] = "$current_template_images/{LANG}/icon_yim.gif";
+
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+$images['icon_skype'] = "$current_template_images/{LANG}/icon_skype.gif";
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/admin/user_edit_body.tpl
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_YAHOO}</span></td>
+	  <td class="row2"> 
+		<input class="post" type="text" name="yim" size="20" maxlength="255" value="{YIM}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_SKYPE}</span></td>
+	  <td class="row2"> 
+		<input class="post" type="text" name="skype" size="20" maxlength="255" value="{SKYPE}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/viewtopic_body.tpl
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+<td valign="middle" nowrap="nowrap">{postrow.PROFILE_IMG}
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+{postrow.MSN_IMG}
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ {postrow.SKYPE_IMG}
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+admin/admin_users.php
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		$yim = ( !empty($HTTP_POST_VARS['yim']) ) ? trim(strip_tags( $HTTP_POST_VARS['yim'] ) ) : '';
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		$skype = ( !empty($HTTP_POST_VARS['skype']) ) ? trim(strip_tags( $HTTP_POST_VARS['skype'] ) ) : '';
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+validate_optional_fields($icq,
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+$yim,
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ $skype,
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+			$yim = htmlspecialchars(stripslashes($yim));
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			$skype = htmlspecialchars(stripslashes($skype));
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+user_msnm = '" . str_replace("\'", "''", $msn) . "',
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ user_skype = '" . str_replace("\'", "''", $skype) . "',
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+			$yim = htmlspecialchars(stripslashes($yim));
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			$skype = htmlspecialchars(stripslashes($skype));
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		$yim = htmlspecialchars($this_userdata['user_yim']);
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		$skype = htmlspecialchars($this_userdata['user_skype']);
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="yim" value="' . str_replace("\"", "&quot;", $yim) . '" />';
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="skype" value="' . str_replace("\"", "&quot;", $skype) . '" />';
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+			'YIM' => $yim,
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			'SKYPE' => $skype,
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+			'L_YAHOO' => $lang['YIM'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			'L_SKYPE' => $lang['SKYPE'],
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+language/lang_chinese_traditional_taiwan/lang_main.php
+
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+$lang['YIM'] = '雅虎訊息通';
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+$lang['SKYPE'] = 'Skype 帳號';
+
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

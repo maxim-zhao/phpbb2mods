@@ -1,0 +1,184 @@
+############################################################## 
+## MOD Title: Tabulated survey at topic head (upgrade from version 1.0.2 to 1.0,3)
+## MOD Author: asinshesq < asinsh@speakeasy.net > (Alan Sinsheimer) N/A
+## MOD Description:	Allow users to design surveys that will appear at the top of a topic.  Users will be able to .
+##			respond to the survey by clicking a button...each user response will appear at the topic head
+##
+## MOD Version:		1.0.3
+## 
+## Installation Level:	Easy
+## Installation Time:	20 Minutes ( 1 minute with easymod) 
+## Files To Edit:
+##			posting.php
+##			viewtopic.php
+##			language/lang_english/lang_main.php
+##
+## Included Files:	survey.php
+##			templates/subSilver/survey_result_viewtopic.tpl
+##			templates/subSilver/survey_posting_body.tpl
+##			templates/subSilver/survey_answer.tpl
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:	This is just an upgrade mod.  To use it, you must have tabulated survey at top head version 1.0.2 already installed
+##			If you haven't already installed that mod, install the latest version of this mod directly and don't use this mod at all.
+##
+##
+############################################################## 
+## MOD History:
+##
+##   2005-3-08	- Version 1.0.3
+##		  Added protection against double submission of survey answers when user quickly clicks submit twice; fixed sort by first answer so that it 
+##		  looks only at the first answer and then alphabetizes; added reverse sort by first answer
+##
+##   2005-2-28	- Version 1.0.2
+##		  In the design survey form, added option to sort the tabulated results by first answer with secondary sort by username. 
+##		  Also changed things so that anyone who is authorized to post a poll will be authorized to post a survey (but it's easy to change this 
+##		  back so that only admins are authorized to post surveys if you want).
+##
+##   2005-2-26	- Version 1.0.1
+##		  initial version...still need to build in that previeiwng a post does not kill a new survey in that post, and
+##		  still need to add code so that you can use the delete survey function and, if you delete a post with a survey in it, 
+##		  it will delete the survey and survey answer info tied to that post.
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy survey.php to survey.php
+copy survey_result_viewtopic.tpl to templates/subSilver/survey_result_viewtopic.tpl
+copy survey_posting_body.tpl to templates/subSilver/survey_posting_body.tpl
+copy survey_answer.tpl to templates/subSilver/survey_answer.tpl
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$select_sort_by_first_answer = ( $survey_info['show_order'] == 2 ) ? 'selected' : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		$select_sort_by_first_answer_descending_order = ( $survey_info['show_order'] == 3 ) ? 'selected' : '';
+		
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$select_sort_by_first_answer = '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		$select_sort_by_first_answer_descending_order = '';
+		
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'L_SORT_BY_FIRST_ANSWER' => $lang['Sort_by_first_answer'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	'L_SORT_BY_FIRST_ANSWER_DESCENDING_ORDER' => $lang['Sort_by_first_answer_descending_order'],
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'S_SELECT_SORT_BY_FIRST_ANSWER' => $select_sort_by_first_answer,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	'S_SELECT_SORT_BY_FIRST_ANSWER_DESCENDING_ORDER' => $select_sort_by_first_answer_descending_order,
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$select_sort_by_first_answer = ( $show_order == 2 ) ? 'selected' : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		$select_sort_by_first_answer_descending_order = ( $show_order == 3 ) ? 'selected' : '';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			'S_SELECT_SORT_BY_FIRST_ANSWER' => $select_sort_by_first_answer,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+			'S_SELECT_SORT_BY_FIRST_ANSWER_DESCENDING_ORDER' => $select_sort_by_first_answer_descending_order,
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if($survey_info['show_order'] == 2)
+	{
+		$order_sql = 'sa.answers, u.username';
+	}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+	if($survey_info['show_order'] == 2)
+	{
+		$order_sql = 'substring_index(sa.answers,' . "'|'" . ',1), u.username';
+	}
+
+	if($survey_info['show_order'] == 3)
+	{
+		$order_sql = 'substring_index(sa.answers,' . "'|'" . ',1) DESC, u.username';
+	}
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['Sorry_enough_responses'] = 'Sorry, but there are already<br />enough responses to this question';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+$lang['Sending'] = 'Sending';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['Sort_by_first_answer'] = 'by first answer';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+$lang['Sort_by_first_answer'] = 'by order of first answer';
+$lang['Sort_by_first_answer_descending_order'] = 'by descending order of first answer';
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

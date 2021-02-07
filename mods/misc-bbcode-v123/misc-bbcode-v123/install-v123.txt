@@ -1,0 +1,577 @@
+##############################################################
+## MOD Title: Misc. BBcode
+## MOD Author: Twintree < mods@twintreeac.com > (n/a) http://www.twintreeac.com
+## MOD Description: Adds 12 new BBcodes to your forums. Please read the author notes BEFORE installing!
+## MOD Version: 1.2.3
+## 
+## Installation Level: Easy
+## Installation Time: 15 minutes
+## Files To Edit: includes/bbcode.php
+##	templates/subSilver/bbcode.tpl
+##	templates/subSilver/posting_body.tpl
+##	language/lang_english/lang_main.php
+##	posting.php
+##	privmsg.php
+## Included Files: n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+## Generator: Phpbb.ModTeam.Tools
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+## 
+## IMPORTANT: You MUST first have already installed the Multi BBCode MOD
+## available at http://www.phpbb.com/mods/
+## v1.4.0c is supported, later or earlier versions may not be supported by this MOD
+## 
+## This MOD installs the following BBcodes:
+## *[s] and [/s] for strikethrough text
+## *[ol] and [/ol] for overline text
+## *[sup] and [/sup] for superscript text
+## *[sub] and [/sub] for subscript text
+## *[smcaps] and [/smcaps] for small caps text
+## *[reverse] and [/reverse] for reversed text
+## *[area] and [/area] for borders/areas
+## *[spoiler] and [/spoiler] for marking possible spoilers
+## *[note] and [/note] for putting notes in posts
+## *[hr] and [/hr] for horizontal rules
+## *[font] and [/font] for changing the font
+## *[align] and [/align] for changing the text alignment
+## 
+## This file was generated using MOD Studio v4.
+## 
+##############################################################
+## MOD History:
+## 
+## 2007-01-15 - Version 1.0.0
+##	- Written
+## 
+## 2007-01-16 - Version 1.0.1
+##	- Changed (unnoted)
+## 
+## 2007-01-27 - Version 1.2.0
+##	- Changed (unnoted)
+## 
+## 2007-02-06 - Version 1.2.1
+##	- Added ol
+## 
+## 2007-02-15 - Version 1.2.2
+##	- Added smcaps
+##	- Cleaned up file
+## 
+## 2007-03-09 - Version 1.2.3
+##	- Completely rewritten from scratch
+##	- Added a very simple spoiler bbcode
+##	- Changed the font bbcode to be more secure
+##	- Temporarily removed the highlight bbcode because of a possible XSS issue
+##	- Added the align bbcode
+##	- Added dropdown menus for font and align
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+#
+#-----[ FIND ]------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# This step is optional.
+// mod : Misc. BBcode
+#
+#-----[ FIND ]------------------------------------------
+#
+	$EMBB_widths = array(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+) ;
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+,'30','30','40','40','55','60','45','60','45','30'
+#
+#-----[ FIND ]------------------------------------------
+#
+	$EMBB_values = array(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+) ;
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+,'s','ol','sup','sub','smcaps','reverse','area','spoiler','note','hr'
+#
+#-----[ FIND ]------------------------------------------
+#
+	$bbcode_tpl['email'] = str_replace('{EMAIL}', '\\1', $bbcode_tpl['email']);
+	
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// mod : Misc. BBcode : add
+	
+	// [area] and [/area] for borders/areas
+	$bbcode_tpl['area1_open'] = str_replace('{AREA}', '\\1', $bbcode_tpl['area1_open']);
+	
+	// [note] and [/note] for putting notes in posts
+	$bbcode_tpl['note'] = str_replace('{NOTE}', '\\1', $bbcode_tpl['note']);
+	
+	// [hr] and [/hr] for horizontal rules
+	$bbcode_tpl['hr'] = str_replace('{HR}', '\\1', $bbcode_tpl['hr']);
+	
+	// [font] and [/font] for changing the font
+	$bbcode_tpl['font_open'] = str_replace('{FONT}', '\\1', $bbcode_tpl['font_open']);
+	
+	// [align] and [/align] for changing the text alignment
+	$bbcode_tpl['align_open'] = str_replace('{ALIGN}', '\\1', $bbcode_tpl['align_open']);
+	
+	// mod : Misc. BBcode : end
+	
+#
+#-----[ FIND ]------------------------------------------
+#
+	$text = str_replace("[/i:$uid]", $bbcode_tpl['i_close'], $text);
+	
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// mod : Misc. BBcode : add
+	
+	// [s] and [/s] for strikethrough text
+	$text = str_replace("[s:$uid]", $bbcode_tpl['s_open'], $text);
+	$text = str_replace("[/s:$uid]", $bbcode_tpl['s_close'], $text);
+	
+	// [ol] and [/ol] for overline text
+	$text = str_replace("[ol:$uid]", $bbcode_tpl['ol_open'], $text);
+	$text = str_replace("[/ol:$uid]", $bbcode_tpl['ol_close'], $text);
+	
+	// [sup] and [/sup] for superscript text
+	$text = str_replace("[sup:$uid]", $bbcode_tpl['sup_open'], $text);
+	$text = str_replace("[/sup:$uid]", $bbcode_tpl['sup_close'], $text);
+	
+	// [sub] and [/sub] for subscript text
+	$text = str_replace("[sub:$uid]", $bbcode_tpl['sub_open'], $text);
+	$text = str_replace("[/sub:$uid]", $bbcode_tpl['sub_close'], $text);
+	
+	// [smcaps] and [/smcaps] for small caps text
+	$text = str_replace("[smcaps:$uid]", $bbcode_tpl['smcaps_open'], $text);
+	$text = str_replace("[/smcaps:$uid]", $bbcode_tpl['smcaps_close'], $text);
+	
+	// [reverse] and [/reverse] for reversed text
+	$text = str_replace("[reverse:$uid]", $bbcode_tpl['reverse_open'], $text);
+	$text = str_replace("[/reverse:$uid]", $bbcode_tpl['reverse_close'], $text);
+	
+	// [area] and [/area] for borders/areas
+	$text = str_replace("[area:$uid]", $bbcode_tpl['area_open'], $text);
+	$text = str_replace("[/area:$uid]", $bbcode_tpl['area_close'], $text);
+	
+	// [area=] and [/area] for borders/areas
+	$text = preg_replace("/\[area=(.*?):$uid\]/si", $bbcode_tpl['area1_open'], $text);
+	$text = str_replace("[/area:$uid]", $bbcode_tpl['area1_close'], $text);
+	
+	// [spoiler] and [/spoiler] for marking possible spoilers
+	$text = str_replace("[spoiler:$uid]", $bbcode_tpl['spoiler_open'], $text);
+	$text = str_replace("[/spoiler:$uid]", $bbcode_tpl['spoiler_close'], $text);
+	
+	// [font] and [/font] for changing the font
+	$text = preg_replace("/\[font=(Arial|Arial Black|Arial Narrow|Century Gothic|Comic Sans MS|Courier New|Georgia|Lucida Console|Lucida Handwriting|Microsoft Sans Serif|Symbol|Tahoma|Trebuchet MS|Times New Roman|Verdana):$uid\]/si", $bbcode_tpl['font_open'], $text);
+	$text = str_replace("[/font:$uid]", $bbcode_tpl['font_close'], $text);
+	
+	// [align] and [/align] for changing the text alignment
+	$text = preg_replace("/\[align=(left|right|center|justify):$uid\]/si", $bbcode_tpl['align_open'], $text);
+	$text = str_replace("[/align:$uid]", $bbcode_tpl['align_close'], $text);
+	
+	// mod : Misc. BBcode : end
+	
+#
+#-----[ FIND ]------------------------------------------
+#
+	$replacements[] = $bbcode_tpl['email'];
+	
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// mod : Misc. BBcode : add
+	
+	// [note] and [/note] for putting notes in posts
+	$patterns[] = "#\[note:$uid\](.*?)\[/note:$uid\]#i";
+	$replacements[] = $bbcode_tpl['note'];
+	
+	// [hr] and [/hr] for horizontal rules
+	$patterns[] = "#\[hr:$uid\]([0-9]?[0-9])\[/hr:$uid\]#i";
+	$replacements[] = $bbcode_tpl['hr'];
+	
+	// mod : Misc. BBcode : end
+	
+#
+#-----[ FIND ]------------------------------------------
+#
+	$text = preg_replace("#\[i\](.*?)\[/i\]#si", "[i:$uid]\\1[/i:$uid]", $text);
+	
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// mod : Misc. BBcode : add
+	
+	// [s] and [/s] for strikethrough text
+	$text = preg_replace("#\[s\](.*?)\[/s\]#si", "[s:$uid]\\1[/s:$uid]", $text);
+	
+	// [ol] and [/ol] for overline text
+	$text = preg_replace("#\[ol\](.*?)\[/ol\]#si", "[ol:$uid]\\1[/ol:$uid]", $text);
+	
+	// [sup] and [/sup] for superscript text
+	$text = preg_replace("#\[sup\](.*?)\[/sup\]#si", "[sup:$uid]\\1[/sup:$uid]", $text);
+	
+	// [sub] and [/sub] for subscript text
+	$text = preg_replace("#\[sub\](.*?)\[/sub\]#si", "[sub:$uid]\\1[/sub:$uid]", $text);
+	
+	// [smcaps] and [/smcaps] for small caps text
+	$text = preg_replace("#\[smcaps\](.*?)\[/smcaps\]#si", "[smcaps:$uid]\\1[/smcaps:$uid]", $text);
+	
+	// [reverse] and [/reverse] for reversed text
+	$text = preg_replace("#\[reverse\](.*?)\[/reverse\]#si", "[reverse:$uid]\\1[/reverse:$uid]", $text);
+	
+	// [area] and [/area] for borders/areas
+	$text = preg_replace("#\[area\](.*?)\[/area\]#si", "[area:$uid]\\1[/area:$uid]", $text);
+	
+	// [area=] and [/area] for borders/areas
+	$text = preg_replace("#\[area=(.*?)\](.*?)\[/area\]#si", "[area=\\1:$uid]\\2[/area:$uid]", $text);
+	
+	// [spoiler] and [/spoiler] for marking possible spoilers
+	$text = preg_replace("#\[spoiler\](.*?)\[/spoiler\]#si", "[spoiler:$uid]\\1[/spoiler:$uid]", $text);
+	
+	// [note] and [/note] for putting notes in posts
+	$text = preg_replace("#\[note\](.*?)\[/note\]#si", "[note:$uid]\\1[/note:$uid]", $text);
+	
+	// [hr] and [/hr] for horizontal rules
+	$text = preg_replace("#\[hr\]([0-9]?[0-9])\[/hr\]#si", "[hr:$uid]\\1[/hr:$uid]", $text);
+	
+	// [font] and [/font] for changing the font
+	$text = preg_replace("#\[font=(Arial|Arial Black|Arial Narrow|Century Gothic|Comic Sans MS|Courier New|Georgia|Lucida Console|Lucida Handwriting|Microsoft Sans Serif|Symbol|Tahoma|Trebuchet MS|Times New Roman|Verdana)\](.*?)\[/font\]#si", "[font=\\1:$uid]\\2[/font:$uid]", $text);
+	
+	// [align] and [/align] for changing the text alignment
+	$text = preg_replace("#\[align=(left|right|center|justify)\](.*?)\[/align\]#si", "[align=\\1:$uid]\\2[/align:$uid]", $text);
+	
+	// mod : Misc. BBcode : end
+	
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/bbcode.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is not the whole line.
+<!-- END i_close -->
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# Add this on a new line after the line above.
+<!-- BEGIN s_open --><span style="text-decoration:line-through"><!-- END s_open -->
+<!-- BEGIN s_close --></span><!-- END s_close -->
+
+<!-- BEGIN ol_open --><span style="text-decoration:overline"><!-- END ol_open -->
+<!-- BEGIN ol_close --></span><!-- END ol_close -->
+
+<!-- BEGIN sub_open --><sub><!-- END sub_open -->
+<!-- BEGIN sub_close --></sub><!-- END sub_close -->
+
+<!-- BEGIN sup_open --><sup><!-- END sup_open -->
+<!-- BEGIN sup_close --></sup><!-- END sup_close -->
+
+<!-- BEGIN smcaps_open --><span style="font-variant:small-caps"><!-- END smcaps_open -->
+<!-- BEGIN smcaps_close --></span><!-- END smcaps_close -->
+
+<!-- BEGIN reverse_open --><bdo dir="rtl"><!-- END reverse_open -->
+<!-- BEGIN reverse_close --></bdo><!-- END reverse_close -->
+
+<!-- BEGIN area_open --><fieldset><!-- END area_open -->
+<!-- BEGIN area_close --></fieldset><!-- END area_close -->
+
+<!-- BEGIN area1_open --><fieldset><legend>{AREA}</legend><!-- END area1_open -->
+<!-- BEGIN area1_close --></fieldset><!-- END area1_close -->
+
+<!-- BEGIN spoiler_open --><span style="color:#000000; background-color:#000000"><!-- END spoiler_open -->
+<!-- BEGIN spoiler_close --></span><!-- END spoiler_close -->
+
+<!-- BEGIN note --><!-- {NOTE} --><!-- END note -->
+
+<!-- BEGIN hr --><hr width="{HR}%" /><!-- END hr -->
+
+<!-- BEGIN font_open --><span style="font-family:{FONT}"><!-- END font_open -->
+<!-- BEGIN font_close --></span><!-- END font_close -->
+
+<!-- BEGIN align_open --><div style="text-align:{ALIGN};"><!-- END align_open -->
+<!-- BEGIN align_close --></div><!-- END align_close -->
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+f_help = "{L_BBCODE_F_HELP}";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+t_help = "{L_BBCODE_T_HELP}";
+n_help = "{L_BBCODE_N_HELP}";
+#
+#-----[ FIND ]------------------------------------------
+#
+bbtags = new Array(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+# Please note that if you have the moderator tags installed, you need to in-line find
+# ,'[mod="{EDITOR_NAME}"]'
+# instead.
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+,'[s]','[/s]','[ol]','[/ol]','[sup]','[/sup]','[sub]','[/sub]','[smcaps]','[/smcaps]','[reverse]','[/reverse]','[area]','[/area]','[spoiler]','[/spoiler]','[note]','[/note]','[hr]','[/hr]'
+#
+#-----[ FIND ]------------------------------------------
+#
+					  <option  value="24" class="genmed">{L_FONT_HUGE}</option>
+					</select>
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+</select>
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ &nbsp;{L_FONT_FAMILY}:<select name="addbbcodefontfamily" onChange="bbfontstyle('[font=' + this.form.addbbcodefontfamily.options[this.form.addbbcodefontfamily.selectedIndex].value + ']', '[/font]')" onMouseOver="helpline('t')">
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					  <option style="font-family:Verdana" value="Verdana" class="genmed">{L_FONT_VERDANA}</option>
+					  <option style="font-family:Arial" value="Arial" class="genmed">{L_FONT_ARIAL}</option>
+					  <option style="font-family:Arial Black" value="Arial Black" class="genmed">{L_FONT_ARIALBLACK}</option>
+					  <option style="font-family:Arial Narrow" value="Arial Narrow" class="genmed">{L_FONT_ARIALNARROW}</option>
+					  <option style="font-family:Century Gothic" value="Century Gothic" class="genmed">{L_FONT_CENTURYGOTHIC}</option>
+					  <option style="font-family:Comic Sans MS" value="Comic Sans MS" class="genmed">{L_FONT_COMICSANS}</option>
+					  <option style="font-family:Courier New" value="Courier New" class="genmed">{L_FONT_COURIERNEW}</option>
+					  <option style="font-family:Georgia" value="Georgia" class="genmed">{L_FONT_GEORGIA}</option>
+					  <option style="font-family:Lucida Console" value="Lucida Console" class="genmed">{L_FONT_LUCIDACONSOLE}</option>
+					  <option style="font-family:Lucida Handwriting" value="Lucida Handwriting" class="genmed">{L_FONT_LUCIDAHANDWRITING}</option>
+					  <option style="font-family:Microsoft Sans Serif" value="Microsoft Sans Serif" class="genmed">{L_FONT_MSS}</option>
+					  <option style="font-family:Symbol" value="Symbol" class="genmed">{L_FONT_SYMBOL}</option>
+					  <option style="font-family:Tahoma" value="Tahoma" class="genmed">{L_FONT_TAHOMA}</option>
+					  <option style="font-family:Trebuchet MS" value="Trebuchet MS" class="genmed">{L_FONT_TREBUCHET}</option>
+					  <option style="font-family:Times New Roman" value="Times New Roman" class="genmed">{L_FONT_TIMESNEWROMAN}</option>
+					</select> &nbsp;{L_FONT_ALIGNMENT}:<select name="addbbcodefontalign" onChange="bbfontstyle('[align=' + this.form.addbbcodefontalign.options[this.form.addbbcodefontalign.selectedIndex].value + ']', '[/align]')" onMouseOver="helpline('n')">
+					  <option value="left" selected="selected" class="genmed">{L_ALIGN_LEFT}</option>
+					  <option value="center" class="genmed">{L_ALIGN_CENTER}</option>
+					  <option value="right" class="genmed">{L_ALIGN_RIGHT}</option>
+					  <option value="justify" class="genmed">{L_ALIGN_JUSTIFY}</option>
+					</select>
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# This step is optional.
+// mod : Misc. BBcode
+#
+#-----[ FIND ]------------------------------------------
+#
+// %s gets replaced with the automatic hotkey that the bbcode gets assigned
+//
+$lang['bbcode_help']['value'] = 'BBCode Name: Info (Alt+%s)';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// mod : Misc. BBcode : add
+$lang['bbcode_t_help'] = 'Font family: [font=font]text[/font]';
+$lang['bbcode_n_help'] = 'Text alignment: [align=alignment]text[/align]';
+
+$lang['bbcode_help']['s'] = 'Strikethrough text: [s]text[/s] (alt+%s)';
+$lang['bbcode_help']['ol'] = 'Overline text: [ol]text[/ol] (alt+%s)';
+$lang['bbcode_help']['sup'] = 'Superscript text: [sup]text[/sup] (alt+%s)';
+$lang['bbcode_help']['sub'] = 'Subscript text: [sub]text[/sub] (alt+%s)';
+$lang['bbcode_help']['smcaps'] = 'Small caps text: [smcaps]text[/smcaps] (alt+%s)';
+$lang['bbcode_help']['spoiler'] = 'Spoiler mark: [spoiler]text[/spoiler] (alt+%s)';
+$lang['bbcode_help']['reverse'] = 'Reverse text: [reverse]text[/reverse] (alt+%s)';
+$lang['bbcode_help']['reverse'] = 'Reverse text: [reverse]text[/reverse] (alt+%s)';
+$lang['bbcode_help']['area'] = 'Text in an area: [area]text[/area] (alt+%s)  Tip: use [area=title]text[/area] to add a title to the area';
+$lang['bbcode_help']['note'] = 'Posting notes: [note]text[/note] (alt+%s)';
+$lang['bbcode_help']['hr'] = 'Adds a horizontal rule: [hr]width in percent[/hr] (alt+%s)';
+// mod : Misc. BBcode : end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is not the whole line.
+$lang['font_huge']
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// mod : Misc. BBcode : add
+$lang['font_family'] = 'Font family';
+$lang['font_arial'] = 'Arial';
+$lang['font_arialblack'] = 'Arial Black';
+$lang['font_arialnarrow'] = 'Arial Narrow';
+$lang['font_centurygothic'] = 'Century Gothic';
+$lang['font_comicsans'] = 'Comic Sans MS';
+$lang['font_couriernew'] = 'Courier New';
+$lang['font_georgia'] = 'Georgia';
+$lang['font_lucidaconsole'] = 'Lucida Console';
+$lang['font_lucidahandwriting'] = 'Lucida Handwriting';
+$lang['font_mss'] = 'Microsoft Sans Serif';
+$lang['font_symbol'] = 'Symbol';
+$lang['font_tahoma'] = 'Tahoma';
+$lang['font_trebuchet'] = 'Trebuchet MS';
+$lang['font_timesnewroman'] = 'Times New Roman';
+$lang['font_verdana'] = 'Verdana (default)';
+
+$lang['font_alignment'] = 'Alignment';
+$lang['align_left'] = 'left';
+$lang['align_center'] = 'center';
+$lang['align_right'] = 'right';
+$lang['align_justify'] = 'justify';
+// mod : Misc. BBcode : end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# This step is optional.
+// mod : Misc. BBcode
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_BBCODE_F_HELP' => $lang['bbcode_f_help'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// mod : Misc. BBcode : add
+	'L_BBCODE_T_HELP' => $lang['bbcode_t_help'],
+	'L_BBCODE_N_HELP' => $lang['bbcode_n_help'],
+	// mod : Misc. BBcode : end
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_FONT_HUGE' => $lang['font_huge'], 
+	
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// mod : Misc. BBcode : add
+	'L_FONT_FAMILY' => $lang['font_family'],
+	'L_FONT_ARIAL' => $lang['font_arial'],
+	'L_FONT_ARIALBLACK' => $lang['font_arialblack'],
+	'L_FONT_ARIALNARROW' => $lang['font_arialnarrow'],
+	'L_FONT_CENTURYGOTHIC' => $lang['font_centurygothic'],
+	'L_FONT_COMICSANS' => $lang['font_comicsans'],
+	'L_FONT_COURIERNEW' => $lang['font_couriernew'],
+	'L_FONT_GEORGIA' => $lang['font_georgia'],
+	'L_FONT_LUCIDACONSOLE' => $lang['font_lucidaconsole'],
+	'L_FONT_LUCIDAHANDWRITING' => $lang['font_lucidahandwriting'],
+	'L_FONT_MSS' => $lang['font_mss'],
+	'L_FONT_SYMBOL' => $lang['font_symbol'],
+	'L_FONT_TAHOMA' => $lang['font_tahoma'],
+	'L_FONT_TREBUCHET' => $lang['font_trebuchet'],
+	'L_FONT_TIMESNEWROMAN' => $lang['font_timesnewroman'],
+	'L_FONT_VERDANA' => $lang['font_verdana'],
+	
+	'L_FONT_ALIGNMENT' => $lang['font_alignment'],
+	'L_ALIGN_LEFT' => $lang['align_left'],
+	'L_ALIGN_RIGHT' => $lang['align_right'],
+	'L_ALIGN_CENTER' => $lang['align_center'],
+	'L_ALIGN_JUSTIFY' => $lang['align_justify'],
+	// mod : Misc. BBcode : end
+	
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+#
+#-----[ FIND ]------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# This step is optional.
+// mod : Misc. BBcode
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_BBCODE_F_HELP' => $lang['bbcode_f_help'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// mod : Misc. BBcode : add
+	'L_BBCODE_T_HELP' => $lang['bbcode_t_help'],
+	'L_BBCODE_N_HELP' => $lang['bbcode_n_help'],
+	// mod : Misc. BBcode : end
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_FONT_HUGE' => $lang['font_huge'], 
+	
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// mod : Misc. BBcode : add
+	'L_FONT_FAMILY' => $lang['font_family'],
+	'L_FONT_ARIAL' => $lang['font_arial'],
+	'L_FONT_ARIALBLACK' => $lang['font_arialblack'],
+	'L_FONT_ARIALNARROW' => $lang['font_arialnarrow'],
+	'L_FONT_CENTURYGOTHIC' => $lang['font_centurygothic'],
+	'L_FONT_COMICSANS' => $lang['font_comicsans'],
+	'L_FONT_COURIERNEW' => $lang['font_couriernew'],
+	'L_FONT_GEORGIA' => $lang['font_georgia'],
+	'L_FONT_LUCIDACONSOLE' => $lang['font_lucidaconsole'],
+	'L_FONT_LUCIDAHANDWRITING' => $lang['font_lucidahandwriting'],
+	'L_FONT_MSS' => $lang['font_mss'],
+	'L_FONT_SYMBOL' => $lang['font_symbol'],
+	'L_FONT_TAHOMA' => $lang['font_tahoma'],
+	'L_FONT_TREBUCHET' => $lang['font_trebuchet'],
+	'L_FONT_TIMESNEWROMAN' => $lang['font_timesnewroman'],
+	'L_FONT_VERDANA' => $lang['font_verdana'],
+	
+	'L_FONT_ALIGNMENT' => $lang['font_alignment'],
+	'L_ALIGN_LEFT' => $lang['align_left'],
+	'L_ALIGN_RIGHT' => $lang['align_right'],
+	'L_ALIGN_CENTER' => $lang['align_center'],
+	'L_ALIGN_JUSTIFY' => $lang['align_justify'],
+	// mod : Misc. BBcode : end
+	
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

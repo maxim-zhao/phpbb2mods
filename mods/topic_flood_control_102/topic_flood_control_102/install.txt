@@ -1,0 +1,162 @@
+##############################################################
+## MOD Title: Topic flood control
+## MOD Author: Dr DLP < > ( Malicious Rabbit ) http://www.web-lapin.levillage.org/forum/
+## MOD Description: Allows to control the time between two posts on the same topic for a user .
+## This limitation isn't applied to admins or moderators .
+##
+## MOD Version: 1.0.2
+##
+## Installation Level: easy
+## Installation Time: 10 Minutes
+## Files To Edit: 
+##		admin/admin_board.php
+##		includes/functions_post.php
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##     		templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files: N/A
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##
+##
+############################################################## 
+## MOD History:
+##
+## 04/12/03 : Version 1.0.2
+## Fix made by the phpbb.com mods team : typo error about user level check
+##
+## 18/11/03 : Version 1.0.1 
+## No flood limit for admins and moderators
+##
+## 29/10/03 : Version 1.0.0
+## First release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ SQL ]---------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('topic_flood_interval', '60');
+
+#
+#--------------[ OPEN ]-------------
+#
+admin/admin_board.php
+
+#
+#--------------[ FIND ]-------------
+#
+	"L_FLOOD_INTERVAL_EXPLAIN" => $lang['Flood_Interval_explain'],
+
+#
+#--------------[ AFTER, ADD ]-------------
+#
+	"L_TOPIC_FLOOD_INTERVAL" => $lang['Topic_Flood_Interval'],
+	"L_TOPIC_FLOOD_INTERVAL_EXPLAIN" => $lang['Topic_Flood_Interval_explain'],
+
+#
+#--------------[ FIND ]-------------
+#
+	"FLOOD_INTERVAL" => $new['flood_interval'],
+
+#
+#--------------[ AFTER, ADD ]-------------
+#
+	"TOPIC_FLOOD_INTERVAL" => $new['topic_flood_interval'],
+
+#
+#--------------[ OPEN ]-------------
+#
+includes/functions_post.php
+
+#
+#--------------[ FIND ]-------------
+#
+	if ($mode == 'newtopic' || $mode == 'reply' || $mode == 'editpost')
+
+#
+#--------------[ BEFORE, ADD ]-------------
+#
+	if ( $mode == 'reply' ) 
+	{
+		$sql = "SELECT poster_id , post_time
+			FROM " . POSTS_TABLE . "
+			WHERE topic_id = $topic_id 
+			ORDER BY post_time DESC";
+		if (!($result = $db->sql_query($sql)))
+		{
+			message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+		}
+		$row = $db->sql_fetchrowset($result);
+		$last_poster_id = $row[0]['poster_id']; 
+		$last_post_time = $row[0]['post_time'];
+
+		if ( $userdata['user_id'] != ANONYMOUS && ($userdata['user_level'] != ADMIN && $userdata['user_level'] != MOD ) && intval($last_post_time) > 0 && ($current_time - intval($last_post_time)) < intval(60*($board_config['topic_flood_interval'])) && ( $last_poster_id == $userdata['user_id'] ))
+		{
+			message_die(GENERAL_MESSAGE, $lang['Topic_Flood_Error']);
+		}
+	}
+
+#
+#--------------[ OPEN ]-------------
+#
+language/lang_english/lang_admin.php
+
+#
+#--------------[ FIND ]-------------
+#
+?>
+
+#
+#--------------[ BEFORE, ADD ]-------------
+#
+$lang['Topic_Flood_Interval']='Topic flood interval';
+$lang['Topic_Flood_Interval_explain']='Time in minutes in the course of which a user cannot answer his own message';
+
+#
+#--------------[ OPEN ]-------------
+#
+language/lang_english/lang_main.php
+
+#
+#--------------[ FIND ]-------------
+#
+?>
+
+#
+#--------------[ BEFORE, ADD ]-------------
+#
+$lang['Topic_Flood_Error']='You cannot answer your own message so a short time later to have posted it . <br /><br />Please rather edit your previous message .';
+
+#
+#--------------[ OPEN ]-------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#--------------[ FIND ]-------------
+#
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="flood_interval" value="{FLOOD_INTERVAL}" /></td>
+	</tr>
+
+#
+#--------------[ AFTER, ADD ]-------------
+#
+	<tr>
+		<td class="row1">{L_TOPIC_FLOOD_INTERVAL} <br /><span class="gensmall">{L_TOPIC_FLOOD_INTERVAL_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="topic_flood_interval" value="{TOPIC_FLOOD_INTERVAL}" /></td>
+	</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

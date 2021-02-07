@@ -1,0 +1,1368 @@
+############################################################## 
+## MOD Title:          Upgrade to Signatures control 1.2.1
+## MOD Author:         -=ET=- < space_et@tiscali.fr > (n/a) http://www.golfexpert.net/phpbb
+## MOD Description:    This MOD will allow you to upgrade your
+##                     Signatures control MOD from 1.0.0
+##                     to 1.2.1
+## MOD Version:        1.0.0
+## MOD Compatibility:  2.0.6->2.0.10 (prior release not tested)
+## 
+## Installation Level: Easy
+## Installation Time:  10 Minutes (1mn by EasyMOD of Nuttzy)
+## Files To Edit:      7
+##      posting.php
+##      viewtopic.php
+##      admin/admin_board.php
+##      admin/admin_users.php
+##      includes/usercp_register.php
+##      templates/subSilver/admin/board_config_body.tpl
+##      templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files:     2
+##      root/admin/sig_reset.php
+##      root/language/lang_english/lang_sig_control.php
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+## Signatures control 1.0.0 needs to be already installed!!!
+##
+## For the other author notes, please read the ones on the
+## full install MOD in the root dir of this MOD archive.
+##
+##############################################################
+## MOD History: 
+## 
+##   2004-08-14 - Version 1.0.0
+##      - Initial release 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+# 
+#-----[ SQL ]-------------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('sig_exotic_bbcodes_disallowed', '');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('sig_allow_smilies', '1');
+ALTER TABLE phpbb_users ADD user_allowsignature TINYINT not null DEFAULT '1';
+
+# 
+#-----[ COPY ]------------------------------------------------ 
+#
+copy root/admin/sig_reset.php to admin/sig_reset.php
+copy root/language/lang_english/lang_sig_control.php to language/lang_english/lang_sig_control.php
+
+#
+# Warning! At the present time, the current release of EM is
+# not able to install automatically another language than English.
+# This gap will be solved in the future but in the meantime, if
+# you need to install any other language than English provides
+# with this MOD, please copy the corresponding language file
+# manually to switch with the English file duplicated in every
+# language directory by EM:
+# copy root/language/lang_xxxxx/lang_sig_control.php to language/lang_xxxxx/lang_sig_control.php
+#
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+posting.php
+
+# 
+#-----[ FIND ]------------------------------------------------
+#
+$user_sig = ( $userdata['user_sig'] != '' && $board_config['allow_sig']
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+$board_config['allow_sig']
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+ && $userdata['user_allowsignature']
+
+# 
+#-----[ FIND ]------------------------------------------------
+#
+$user_sig = ( $post_info['user_sig'] != '' && $board_config['allow_sig']
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+$board_config['allow_sig']
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+ && $userdata['user_allowsignature']
+
+# 
+#-----[ FIND ]------------------------------------------------
+#
+if( $user_sig != '' && $board_config['allow_sig'] )
+{
+	$template->assign_block_vars('switch_signature_checkbox', array());
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+$board_config['allow_sig']
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+ && $userdata['user_allowsignature']
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+viewtopic.php 
+
+# 
+#-----[ FIND ]------------------------------------------------
+#
+# Warning! These instructions as is are not compliant if Anti-Spam 1.1.1
+# is already installed. To use this MOD with Anti-Spam 1.1.1, apply
+# the instructions "FIND+AFTER, ADD" above 4 times!
+# You must find 4 times the code mentionned, and after each one
+# add the new code mentionned!
+#
+// Start add - Signatures control MOD
+if ( $board_config['sig_allow_font_sizes'] == 0 )
+{
+	$user_sig = '[size=' . $board_config['sig_max_font_size'] . ':' . $user_sig_bbcode_uid . ']' . $user_sig . '[/size:' . $user_sig_bbcode_uid . ']';
+}
+// End add - Signatures control MOD
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+# 
+// Start add - Signatures control MOD
+if ( $userdata['user_allowsignature'] != 2 && $board_config['sig_allow_font_sizes'] == 0 )
+{
+	$user_sig = '[size=' . $board_config['sig_max_font_size'] . ':' . $user_sig_bbcode_uid . ']' . $user_sig . '[/size:' . $user_sig_bbcode_uid . ']';
+}
+// End add - Signatures control MOD
+# 
+#-----[ FIND ]------------------------------------------------
+#
+if ( $postrow[$i]['user_allowsmile'] && $user_sig != '' )
+
+# 
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+''
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+ && $board_config['sig_allow_smilies'] != 0
+
+# 
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# if ( $user_sig != '' )
+# {
+# 	$user_sig = '<br />_________________<br />' . str_replace("\n", "\n<br />\n", $user_sig);
+# }
+#
+if ( $user_sig != '' )
+{
+	$user_sig =
+}
+
+# 
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+''
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+ && $userdata['user_allowsignature'] != 0
+
+# 
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+}
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+ else $user_sig = '';
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+admin/admin_board.php 
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+$sig_allow_url_no = ( !$new['sig_allow_url'] ) ? "checked=\"checked\"" : "";
+
+$sig_allow_images_yes = ( $new['sig_allow_images'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+# 
+$sig_allow_url_no = ( !$new['sig_allow_url'] ) ? "checked=\"checked\"" : "";
+
+$sig_allow_smilies_yes = ( $new['sig_allow_smilies'] ) ? "checked=\"checked\"" : "";
+$sig_allow_smilies_no = ( !$new['sig_allow_smilies'] ) ? "checked=\"checked\"" : "";
+
+$sig_allow_images_yes = ( $new['sig_allow_images'] ) ? "checked=\"checked\"" : "";
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+'L_SIG_KBYTES' => $lang['sig_Kbytes'],
+// End add - Signatures control MOD
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+# 
+'L_SIG_KBYTES' => $lang['sig_Kbytes'],
+'L_SIG_EXOTIC_BBCODES_DISALLOWED' => $lang['sig_exotic_bbcodes_disallowed'],
+'L_SIG_EXOTIC_BBCODES_DISALLOWED_EXPLAIN' => $lang['sig_exotic_bbcodes_disallowed_explain'],
+'L_SIG_ALLOW_SMILIES' => $lang['sig_allow_smilies'],
+'L_SIG_RESET' => $lang['sig_reset'],
+'L_SIG_RESET_EXPLAIN' => $lang['sig_reset_explain'],
+// End add - Signatures control MOD
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+'SIG_MAX_IMG_AV_FILES_SIZE' => $new['sig_max_img_av_files_size'],
+// End add - Signatures control MOD
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+# 
+'SIG_MAX_IMG_AV_FILES_SIZE' => $new['sig_max_img_av_files_size'],
+'SIG_EXOTIC_BBCODES_DISALLOWED' => $new['sig_exotic_bbcodes_disallowed'],
+'SIG_ALLOW_SMILIES_YES' => $sig_allow_smilies_yes,
+'SIG_ALLOW_SMILIES_NO' => $sig_allow_smilies_no,
+
+'U_SIG_RESET' => append_sid("./sig_reset.$phpEx?mode=confirm_all"),
+// End add - Signatures control MOD
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+admin/admin_users.php 
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+require($phpbb_root_path . 'includes/functions_validate.'.$phpEx);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Start add - Signatures control MOD
+if ( !file_exists(@phpbb_realpath($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_sig_control.' . $phpEx)) ) 
+{ 
+	include($phpbb_root_path . 'language/lang_english/lang_sig_control.' . $phpEx); 
+} else 
+{ 
+	include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_sig_control.' . $phpEx); 
+} 
+// End add - Signatures control MOD
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $user_allowavatar = ( !empty($HTTP_POST_VARS['user_allowavatar']) ) ? intval( $HTTP_POST_VARS['user_allowavatar'] ) : 0;
+#
+$user_allowpm = ( !empty(
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Signatures control MOD
+$user_allowsignature = ( !empty($HTTP_POST_VARS['user_allowsignature']) ) ? intval( $HTTP_POST_VARS['user_allowsignature'] ) : 0;
+// End add - Signatures control MOD
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "UPDATE " . USERS_TABLE . "
+# 	SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) . "', user_icq = '" ...
+#
+$sql = "UPDATE " . USERS_TABLE . "
+SET
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+$user_allowavatar
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, user_allowsignature = $user_allowsignature
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+$user_allowpm = $this_userdata['user_allow_pm'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Signatures control MOD
+$user_allowsignature = $this_userdata['user_allowsignature'];
+// End add - Signatures control MOD
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+$s_hidden_fields .= '<input type="hidden" name="user_allowpm" value="' . $user_allowpm . '" />';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Signatures control MOD
+$s_hidden_fields .= '<input type="hidden" name="user_allowsignature" value="' . $user_allowsignature . '" />';
+// End add - Signatures control MOD
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'ALLOW_PM_NO' => (!$user_allowpm) ? 'checked="checked"' : '',
+#
+'ALLOW_PM_NO' =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Signatures control MOD
+'ALLOW_SIGNATURE_YES_NOT_CONTROLED' => ($user_allowsignature == 2) ? 'checked="checked"' : '',
+'ALLOW_SIGNATURE_YES_CONTROLED' => ($user_allowsignature == 1) ? 'checked="checked"' : '',
+'ALLOW_SIGNATURE_NO' => ($user_allowsignature == 0) ? 'checked="checked"' : '',
+// End add - Signatures control MOD
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'L_ALLOW_PM' => $lang['User_allowpm'],
+#
+'L_ALLOW_PM' =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Signatures control MOD
+'L_SIG_ALLOW_SIGNATURE' => $lang['sig_allow_signature'],
+'L_SIG_YES_NOT_CONTROLED' => $lang['sig_yes_not_controled'],
+'L_SIG_YES_CONTROLED' => $lang['sig_yes_controled'],
+// End add - Signatures control MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+includes/usercp_register.php 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+if ( $signature != '' )
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+''
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+ && $userdata['user_allowsignature'] == 1
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+// Start add - Signatures control MOD
+$sig_error_list = '';
+
+// BBCodes control
+$bbcode_error_list = '';
+$bbcode_error_list .= ( !$board_config['sig_allow_font_sizes'] && substr_count(strtolower($signature), '[/size]') > 0 ) ? '[size]' : '';
+$bbcode_error_list .= ( !$board_config['sig_allow_bold'] && substr_count(strtolower($signature), '[/b]') > 0 ) ? '[b]' : '';
+$bbcode_error_list .= ( !$board_config['sig_allow_italic'] && substr_count(strtolower($signature), '[/i]') > 0 ) ? '[i]' : '';
+$bbcode_error_list .= ( !$board_config['sig_allow_underline'] && substr_count(strtolower($signature), '[/u]') > 0 ) ? '[u]' : '';
+$bbcode_error_list .= ( !$board_config['sig_allow_colors'] && substr_count(strtolower($signature), '[/color]') > 0 ) ? '[color]' : '';
+$bbcode_error_list .= ( !$board_config['sig_allow_quote'] && substr_count(strtolower($signature), '[/quote]') > 0 ) ? '[quote]' : '';
+$bbcode_error_list .= ( !$board_config['sig_allow_code'] && substr_count(strtolower($signature), '[/code]') > 0 ) ? '[code]' : '';
+$bbcode_error_list .= ( !$board_config['sig_allow_list'] && substr_count(strtolower($signature), '[/list]') > 0 ) ? '[list]' : '';
+$bbcode_error_list .= ( !$board_config['sig_allow_url'] && substr_count(strtolower($signature), '[/url]') > 0 ) ? '[url]' : '';
+$bbcode_error_list .= ( !$board_config['sig_allow_images'] && substr_count(strtolower($signature), '[/img]') > 0 ) ? '[img]' : '';
+
+if ( $bbcode_error_list != '' )
+{
+	$error = TRUE;
+	$sig_error_list .= '<br />' . sprintf($lang['sig_error_bbcode'], '<span style="color: #800000">' . $bbcode_error_list . '</span>');
+}
+
+// Number of lines control
+if ( $board_config['sig_max_lines'] )
+{
+	if ( count(explode("\n", $signature)) > $board_config['sig_max_lines'] ) 
+	{ 
+		$error = TRUE;
+		$sig_error_list .= '<br />' . sprintf($lang['sig_error_max_lines'], count(explode("\n", $signature)), $board_config['sig_max_lines']);
+	}
+}
+
+// Wordwrap control
+if ( $board_config['sig_wordwrap'] )
+{
+	$signature_no_url = preg_replace("#\[img\].*?\[/img\]|\[\/?(size.*?|b|i|u|color.*?|quote.*?|code|list.*?|url.*?)\]#si", "", $signature);
+	$signature_splited = preg_split("/[\s,]+/", $signature_no_url);
+
+	foreach($signature_splited as $key => $word)
+	{
+		$length = strlen($word);
+		if( $length > $board_config['sig_wordwrap'] )
+		{
+			$words[$key] = $word;
+		}
+	}
+
+	if ( count($words) ) 
+	{ 
+		$error = TRUE;
+		$sig_error_list .= '<br />' . sprintf($lang['sig_error_wordwrap'], count($words), $board_config['sig_wordwrap']);
+	}
+}
+
+// Font size limit control (imposed font size is managed in viewtopic.php)
+if ( $board_config['sig_allow_font_sizes'] == 2 )
+{
+	if( preg_match_all("#\[size=([0-9]+?)\](.*?)\[/size\]#si", $signature, $sig_sizes_list) )
+	{
+		if ( $board_config['sig_min_font_size'] && min($sig_sizes_list[1]) < $board_config['sig_min_font_size'] )
+		{
+			$error = TRUE;
+			$sig_error_list .= '<br />' . sprintf($lang['sig_error_font_size_min'], min($sig_sizes_list[1]), $board_config['sig_min_font_size']);
+		}
+		if ( $board_config['sig_max_font_size'] && max($sig_sizes_list[1]) > $board_config['sig_max_font_size'] )
+		{
+			$error = TRUE;
+			$sig_error_list .= '<br />' . sprintf($lang['sig_error_font_size_max'], max($sig_sizes_list[1]), $board_config['sig_max_font_size']);
+		}
+	}
+}
+
+// Images control (except file the size error message)
+$total_image_files_size = 0;
+
+if( $board_config['sig_allow_images'] && preg_match_all("#\[img\]((ht|f)tp://)([^\r\n\t<\"]*?)\[/img\]#si", $signature, $sig_images_list) )
+{
+	if( count($sig_images_list[0]) > $board_config['sig_max_images'] && $board_config['sig_max_images'] != 0 )
+	{
+		$error = TRUE;
+		$sig_error_list .= '<br />' . sprintf($lang['sig_error_num_images'], count($sig_images_list[0]), $board_config['sig_max_images']);
+	}
+
+	for( $i = 0; $i < count($sig_images_list[0]); $i++ )
+	{
+		$image_url = $sig_images_list[1][$i].$sig_images_list[3][$i];
+
+		preg_match('/^(http:\/\/)?([\w\-\.]+)\:?([0-9]*)\/(.*)$/', $image_url, $image_url_ary);
+
+		if ( empty($image_url_ary[4]) )
+		{
+			$error = true;
+			$sig_error_list .= '<br />' . $lang['Incomplete_URL'] . ': ' . '<span style="color: #800000">' . $image_url . '"</span>';
+		} else
+		{
+			$image_size_control = false;
+			if ( $board_config['sig_max_img_height'] != 0 || $board_config['sig_max_img_width'] != 0 )
+			{
+				usleep(1500);
+				if ( list($image_width, $image_height) = @getimagesize($image_url) )
+				{
+					$image_size_control = true;
+					if( ($board_config['sig_max_img_height'] != 0 && $image_height > $board_config['sig_max_img_height']) ||
+					    ($board_config['sig_max_img_width'] != 0 && $image_width > $board_config['sig_max_img_width']) )
+					{
+						$error = TRUE;
+						$sig_error_list .= '<br />' . sprintf($lang['sig_error_images_size'], '<span style="color: #800000">' . $image_url . '"</span>', $image_height, $image_width, ( $board_config['sig_max_img_height'] ) ? $board_config['sig_max_img_height'] : $lang['sig_unlimited'], ( $board_config['sig_max_img_width'] ) ? $board_config['sig_max_img_width'] : $lang['sig_unlimited']);
+					}
+				}
+			}
+	
+			$image_data = '';
+			$image_file_size_control = 0;
+			if( $board_config['sig_max_img_files_size'] != 0 || $board_config['sig_max_img_av_files_size'] != 0 ||
+				(($board_config['sig_max_img_height'] != 0 || $board_config['sig_max_img_width'] != 0) && $image_size_control == false) )
+			{
+				if( $image_fd = @fopen($image_url, "rb") )
+				{
+					while (!feof($image_fd))
+					{
+						$image_data .= fread($image_fd, 1024);
+					}
+					fclose($image_fd);
+
+					$total_image_files_size += strlen($image_data);
+					$image_file_size_control = 3;
+				} else		
+				{
+					$base_get = '/' . $image_url_ary[4];
+					$port = ( !empty($image_url_ary[3]) ) ? $image_url_ary[3] : 80;
+
+					if ( !($image_fsock = @fsockopen($image_url_ary[2], $port, $errno, $errstr)) )
+					{
+						$error = true;
+						$sig_error_list .= '<br />' . $lang['No_connection_URL'] . ': ' . '<span style="color: #800000">' . $image_url . '"</span>';
+					} else
+					{
+						@fputs($image_fsock, "GET $base_get HTTP/1.1\r\n");
+						@fputs($image_fsock, "HOST: " . $image_url_ary[2] . "\r\n");
+						@fputs($image_fsock, "Connection: close\r\n\r\n");
+
+						while( !@feof($image_fsock) )
+						{
+							$image_data .= @fread($image_fsock, 1024);
+						}
+						@fclose($image_fsock);		
+
+						if ( preg_match('#Content-Length\: ([0-9]+)[^ /][\s]+#i', $image_data, $image_file_data) )
+						{
+							$total_image_files_size += $image_file_data[1]; 
+							$image_file_size_control = 2;
+						} else
+						{
+							$total_image_files_size += strlen($image_data)-307; 
+							$image_file_size_control = 1;
+						}
+					}
+				}
+			}
+
+			if( ($board_config['sig_max_img_height'] != 0 || $board_config['sig_max_img_width'] != 0) && $image_size_control == false )
+			{
+				if( $image_file_size_control == 2 )
+				{
+					$image_data = substr($image_data, strlen($image_data) - $image_file_data[1], $image_file_data[1]);
+				}
+
+				if( function_exists('ImageCreateFromString') )
+				{
+					if( $image_string = @ImageCreateFromString($image_data) )
+					{
+						$image_width = ImageSX($image_string);
+						$image_height = ImageSY($image_string);
+
+						if( ($board_config['sig_max_img_height'] != 0 && $image_height > $board_config['sig_max_img_height']) ||
+						    ($board_config['sig_max_img_width'] != 0 && $image_width > $board_config['sig_max_img_width']) )
+						{
+							$error = TRUE;
+							$sig_error_list .= '<br />' . sprintf($lang['sig_error_images_size'], '<span style="color: #800000">' . $image_url . '"</span>', $image_height, $image_width, ( $board_config['sig_max_img_height'] ) ? $board_config['sig_max_img_height'] : $lang['sig_unlimited'], ( $board_config['sig_max_img_width'] ) ? $board_config['sig_max_img_width'] : $lang['sig_unlimited']);
+						}
+
+						ImageDestroy($image_string);
+					} else
+					{
+						if( $board_config['sig_allow_on_max_img_size_fail'] == 0 )
+						{
+							$error = TRUE;
+							$sig_error_list .= '<br />' . sprintf($lang['sig_error_images_size_control'], '<span style="color: #800000">' . $image_url . '"</span>');
+						}
+					}
+				}else
+				{
+					if( $board_config['sig_allow_on_max_img_size_fail'] == 0 )
+					{
+						$error = TRUE;
+						$sig_error_list .= '<br />' . sprintf($lang['sig_error_images_size_control'], '<span style="color: #800000">' . $image_url . '"</span>');
+					}
+				}
+			}
+		}
+	}
+}
+// End add - Signatures control MOD
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------
+#
+// Start add - Signatures control MOD
+	$sig_error_list = '';
+
+	// BBCodes control
+	$bbcode_error_list = '';
+	$bbcode_error_list .= ( !$board_config['sig_allow_font_sizes'] && substr_count(strtolower($signature), '[/size]') > 0 ) ? '[size]' : '';
+	$bbcode_error_list .= ( !$board_config['sig_allow_bold'] && substr_count(strtolower($signature), '[/b]') > 0 ) ? '[b]' : '';
+	$bbcode_error_list .= ( !$board_config['sig_allow_italic'] && substr_count(strtolower($signature), '[/i]') > 0 ) ? '[i]' : '';
+	$bbcode_error_list .= ( !$board_config['sig_allow_underline'] && substr_count(strtolower($signature), '[/u]') > 0 ) ? '[u]' : '';
+	$bbcode_error_list .= ( !$board_config['sig_allow_colors'] && substr_count(strtolower($signature), '[/color]') > 0 ) ? '[color]' : '';
+	$bbcode_error_list .= ( !$board_config['sig_allow_quote'] && substr_count(strtolower($signature), '[/quote]') > 0 ) ? '[quote]' : '';
+	$bbcode_error_list .= ( !$board_config['sig_allow_code'] && substr_count(strtolower($signature), '[/code]') > 0 ) ? '[code]' : '';
+	$bbcode_error_list .= ( !$board_config['sig_allow_list'] && substr_count(strtolower($signature), '[/list]') > 0 ) ? '[list]' : '';
+	$bbcode_error_list .= ( !$board_config['sig_allow_url'] && substr_count(strtolower($signature), '[/url]') > 0 ) ? '[url]' : '';
+	$bbcode_error_list .= ( !$board_config['sig_allow_images'] && substr_count(strtolower($signature), '[/img]') > 0 ) ? '[img]' : '';
+
+	$exotic_bbcodes_list = explode(",", $board_config['sig_exotic_bbcodes_disallowed']);
+	while ( list($bbckey, $exotic_bbcode) = @each($exotic_bbcodes_list) )
+	{
+		$exotic_bbcode = trim(strtolower($exotic_bbcode));
+		if ( $exotic_bbcode != '' )
+		{
+			$bbcode_error_list .= ( substr_count(strtolower($signature), '[/'.$exotic_bbcode.']') > 0 ) ? '['.$exotic_bbcode.']' : '';
+		}
+	}
+
+	if ( $bbcode_error_list != '' )
+	{
+		$error = TRUE;
+		$sig_error_list .= '<br />' . sprintf($lang['sig_error_bbcode'], '<span style="color: #800000">' . $bbcode_error_list . '</span>');
+	}
+
+	// Number of lines control
+	if ( $board_config['sig_max_lines'] )
+	{
+		if ( count(explode("\n", $signature)) > $board_config['sig_max_lines'] ) 
+		{ 
+			$error = TRUE;
+			$sig_error_list .= '<br />' . sprintf($lang['sig_error_max_lines'], count(explode("\n", $signature)), $board_config['sig_max_lines']);
+		}
+	}
+
+	// Wordwrap control
+	if ( $board_config['sig_wordwrap'] )
+	{
+		$signature_no_url = preg_replace("#\[img\].*?\[/img\]|\[\/?(size.*?|b|i|u|color.*?|quote.*?|code|list.*?|url.*?)\]#si", "", $signature);
+		$signature_splited = preg_split("/[\s,]+/", $signature_no_url);
+
+		foreach($signature_splited as $key => $word)
+		{
+			$length = strlen($word);
+			if( $length > $board_config['sig_wordwrap'] )
+			{
+				$words[$key] = $word;
+			}
+		}
+
+		if ( count($words) ) 
+		{ 
+			$error = TRUE;
+			$sig_error_list .= '<br />' . sprintf($lang['sig_error_wordwrap'], count($words), $board_config['sig_wordwrap']);
+		}
+	}
+
+	// Font size limit control (imposed font size is managed in viewtopic.php)
+	if ( $board_config['sig_allow_font_sizes'] == 2 )
+	{
+		if( preg_match_all("#\[size=([0-9]+?)\](.*?)\[/size\]#si", $signature, $sig_sizes_list) )
+		{
+			if ( $board_config['sig_min_font_size'] && min($sig_sizes_list[1]) < $board_config['sig_min_font_size'] )
+			{
+				$error = TRUE;
+				$sig_error_list .= '<br />' . sprintf($lang['sig_error_font_size_min'], min($sig_sizes_list[1]), $board_config['sig_min_font_size']);
+			}
+			if ( $board_config['sig_max_font_size'] && max($sig_sizes_list[1]) > $board_config['sig_max_font_size'] )
+			{
+				$error = TRUE;
+				$sig_error_list .= '<br />' . sprintf($lang['sig_error_font_size_max'], max($sig_sizes_list[1]), $board_config['sig_max_font_size']);
+			}
+		}
+	}
+
+	// Images control (except file the size error message)
+	$total_image_files_size = 0;
+
+	if( $board_config['sig_allow_images'] && preg_match_all("#\[img\]((ht|f)tp://)([^\r\n\t<\"]*?)\[/img\]#si", $signature, $sig_images_list) )
+	{
+		if( count($sig_images_list[0]) > $board_config['sig_max_images'] && $board_config['sig_max_images'] != 0 )
+		{
+			$error = TRUE;
+			$sig_error_list .= '<br />' . sprintf($lang['sig_error_num_images'], count($sig_images_list[0]), $board_config['sig_max_images']);
+		}
+
+		for( $i = 0; $i < count($sig_images_list[0]); $i++ )
+		{
+			$image_url = $sig_images_list[1][$i].$sig_images_list[3][$i];
+
+			preg_match('/^(http:\/\/)?([\w\-\.]+)\:?([0-9]*)\/(.*)$/', $image_url, $image_url_ary);
+
+			if ( empty($image_url_ary[4]) )
+			{
+				$error = true;
+				$sig_error_list .= '<br />' . $lang['Incomplete_URL'] . ': ' . '<span style="color: #800000">' . $image_url . '"</span>';
+			} else
+			{
+				$image_size_control = false;
+				if ( $board_config['sig_max_img_height'] != 0 || $board_config['sig_max_img_width'] != 0 )
+				{
+					usleep(1500);
+					if ( list($image_width, $image_height) = @getimagesize($image_url) )
+					{
+						$image_size_control = true;
+						if( ($board_config['sig_max_img_height'] != 0 && $image_height > $board_config['sig_max_img_height']) ||
+						    ($board_config['sig_max_img_width'] != 0 && $image_width > $board_config['sig_max_img_width']) )
+						{
+							$error = TRUE;
+							$sig_error_list .= '<br />' . sprintf($lang['sig_error_images_size'], '<span style="color: #800000">' . $image_url . '"</span>', $image_height, $image_width, ( $board_config['sig_max_img_height'] ) ? $board_config['sig_max_img_height'] : $lang['sig_unlimited'], ( $board_config['sig_max_img_width'] ) ? $board_config['sig_max_img_width'] : $lang['sig_unlimited']);
+						}
+					}
+				}
+	
+				$image_data = '';
+				$image_file_size_control = 0;
+				if( $board_config['sig_max_img_files_size'] != 0 || $board_config['sig_max_img_av_files_size'] != 0 ||
+					(($board_config['sig_max_img_height'] != 0 || $board_config['sig_max_img_width'] != 0) && $image_size_control == false) )
+				{
+					if( $image_fd = @fopen($image_url, "rb") )
+					{
+						while (!feof($image_fd))
+						{
+							$image_data .= fread($image_fd, 1024);
+						}
+						fclose($image_fd);
+
+						$total_image_files_size += strlen($image_data);
+						$image_file_size_control = 3;
+					} else		
+					{
+						$base_get = '/' . $image_url_ary[4];
+						$port = ( !empty($image_url_ary[3]) ) ? $image_url_ary[3] : 80;
+
+						if ( !($image_fsock = @fsockopen($image_url_ary[2], $port, $errno, $errstr)) )
+						{
+							$error = true;
+							$sig_error_list .= '<br />' . $lang['No_connection_URL'] . ': ' . '<span style="color: #800000">' . $image_url . '"</span>';
+						} else
+						{
+							@fputs($image_fsock, "GET $base_get HTTP/1.1\r\n");
+							@fputs($image_fsock, "HOST: " . $image_url_ary[2] . "\r\n");
+							@fputs($image_fsock, "Connection: close\r\n\r\n");
+
+							while( !@feof($image_fsock) )
+							{
+								$image_data .= @fread($image_fsock, 1024);
+							}
+							@fclose($image_fsock);		
+
+							if ( preg_match('#Content-Length\: ([0-9]+)[^ /][\s]+#i', $image_data, $image_file_data) )
+							{
+								$total_image_files_size += $image_file_data[1]; 
+								$image_file_size_control = 2;
+							} else
+							{
+								$total_image_files_size += strlen($image_data)-307; 
+								$image_file_size_control = 1;
+							}
+						}
+					}
+				}
+
+				if( ($board_config['sig_max_img_height'] != 0 || $board_config['sig_max_img_width'] != 0) && $image_size_control == false )
+				{
+					if( $image_file_size_control == 2 )
+					{
+						$image_data = substr($image_data, strlen($image_data) - $image_file_data[1], $image_file_data[1]);
+					}
+
+					if( function_exists('ImageCreateFromString') )
+					{
+						if( $image_string = @ImageCreateFromString($image_data) )
+						{
+							$image_width = ImageSX($image_string);
+							$image_height = ImageSY($image_string);
+
+							if( ($board_config['sig_max_img_height'] != 0 && $image_height > $board_config['sig_max_img_height']) ||
+							    ($board_config['sig_max_img_width'] != 0 && $image_width > $board_config['sig_max_img_width']) )
+							{
+								$error = TRUE;
+								$sig_error_list .= '<br />' . sprintf($lang['sig_error_images_size'], '<span style="color: #800000">' . $image_url . '"</span>', $image_height, $image_width, ( $board_config['sig_max_img_height'] ) ? $board_config['sig_max_img_height'] : $lang['sig_unlimited'], ( $board_config['sig_max_img_width'] ) ? $board_config['sig_max_img_width'] : $lang['sig_unlimited']);
+							}
+
+							ImageDestroy($image_string);
+						} else
+						{
+							if( $board_config['sig_allow_on_max_img_size_fail'] == 0 )
+							{
+								$error = TRUE;
+								$sig_error_list .= '<br />' . sprintf($lang['sig_error_images_size_control'], '<span style="color: #800000">' . $image_url . '"</span>');
+							}
+						}
+					}else
+					{
+						if( $board_config['sig_allow_on_max_img_size_fail'] == 0 )
+						{
+							$error = TRUE;
+							$sig_error_list .= '<br />' . sprintf($lang['sig_error_images_size_control'], '<span style="color: #800000">' . $image_url . '"</span>');
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+if ( $signature != '' )
+{
+// End add - Signatures control MOD
+# 
+#-----[ FIND ]------------------------------------------------
+#
+if ( $error = TRUE && $sig_error_list )
+{
+	$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['sig_error'] . '<br />' . $sig_error_list;
+}
+// End add - Signatures control MOD
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+#
+if ( $error == TRUE && $sig_error_list )
+{
+	$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['sig_error'] . '<br />' . $sig_error_list;
+}
+// End add - Signatures control MOD
+# 
+#-----[ FIND ]------------------------------------------------
+#
+$sql = "UPDATE " . USERS_TABLE . "
+
+# 
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+// Start add - Signatures control MOD
+if ( $board_config['allow_sig'] && $userdata['user_allowsignature'] != 0 )
+{
+	$sig_update = "user_sig = '" . str_replace("\'", "''", $signature) . "', user_sig_bbcode_uid = '$signature_bbcode_uid',";
+	$attachsig_update = "user_attachsig = $attachsig,";
+} else
+{
+	$sig_update = "";
+	$attachsig_update = "";
+}
+// End add - Signatures control MOD
+
+# 
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) ."', user_icq = '" . str_replace("\'", "''", $icq) . "', user_website = '" . str_replace( ...
+#
+SET " . $username_sql . $passwd_sql .
+
+# 
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+user_sig = '" . str_replace("\'", "''", $signature) . "', user_sig_bbcode_uid = '$signature_bbcode_uid',
+
+# 
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+" . $sig_update . "
+
+# 
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+user_attachsig = $attachsig,
+
+# 
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+" . $attachsig_update . "
+
+# 
+#-----[ FIND ]------------------------------------------------
+#
+// Start replacement - Signatures control MOD
+if ( $board_config['sig_max_lines'] )
+{
+	$sig_explain_max_lines = sprintf($lang['sig_explain_max_lines'], $board_config['sig_max_lines']);
+} else
+{
+	$sig_explain_max_lines = '';
+}
+
+if ( $board_config['sig_allow_font_sizes'] == 2 && !(!$board_config['sig_min_font_size'] && !$board_config['sig_max_font_size']) )
+{
+	if ( $board_config['sig_min_font_size'] )
+	{
+		if ( $board_config['sig_max_font_size'] )
+		{
+			$sig_explain_font_size_limit = sprintf($lang['sig_explain_font_size_limit'], $board_config['sig_min_font_size'], $board_config['sig_max_font_size']);
+		} else
+		{
+			$sig_explain_font_size_limit = sprintf($lang['sig_explain_font_size_limit'], $board_config['sig_min_font_size'], '29');
+		}
+	} else
+	{
+		$sig_explain_font_size_limit = sprintf($lang['sig_explain_font_size_max'], $board_config['sig_max_font_size']);
+	}
+} else
+{
+	$sig_explain_font_size_limit = '';
+}
+
+if ( $board_config['sig_allow_images'] )
+{
+	if ( $board_config['sig_max_images'] )
+	{
+		$sig_explain_images_limit = sprintf($lang['sig_explain_images_limit'], $board_config['sig_max_images'], ( $board_config['sig_max_img_height'] ) ? $board_config['sig_max_img_height'] : $lang['sig_explain_unlimited'], ( $board_config['sig_max_img_width'] ) ? $board_config['sig_max_img_width'] : $lang['sig_explain_unlimited'], ( $board_config['sig_max_img_av_files_size'] ) ? $board_config['sig_max_img_av_files_size'] : $board_config['sig_max_img_files_size']);
+	} else
+	{
+		$sig_explain_images_limit = sprintf($lang['sig_explain_unlimited_images'] , ( $board_config['sig_max_img_height'] ) ? $board_config['sig_max_img_height'] : $lang['sig_explain_unlimited'], ( $board_config['sig_max_img_width'] ) ? $board_config['sig_max_img_width'] : $lang['sig_explain_unlimited'], ( $board_config['sig_max_img_av_files_size'] ) ? $board_config['sig_max_img_av_files_size'] : $board_config['sig_max_img_files_size']);
+	}
+} else
+{
+	$sig_explain_images_limit = $lang['sig_explain_no_image'];
+}
+
+if ( $board_config['sig_max_img_av_files_size'] )
+{
+	$sig_explain_images_limit .= $lang['sig_explain_avatar_included'];
+}
+
+$signature_explain = sprintf($lang['sig_explain'], $board_config['max_sig_chars'], $sig_explain_font_size_limit, $sig_explain_max_lines, $sig_explain_images_limit);
+
+if ( $board_config['sig_wordwrap'] )
+{
+	$signature_explain .= ' ' . sprintf($lang['sig_explain_wordwrap'], $board_config['sig_wordwrap']);
+}
+
+
+if ( $userdata['user_allowbbcode'] && $board_config['allow_bbcode']  )
+{
+	if ( !$board_config['sig_allow_font_sizes'] &&
+	     !$board_config['sig_allow_bold'] &&
+	     !$board_config['sig_allow_italic'] &&
+	     !$board_config['sig_allow_underline'] &&
+	     !$board_config['sig_allow_colors'] &&
+	     !$board_config['sig_allow_quote'] &&
+	     !$board_config['sig_allow_code'] &&
+	     !$board_config['sig_allow_list'] &&
+	     !$board_config['sig_allow_url'] &&
+	     !$board_config['sig_allow_images'] )
+	{
+		$lang['sig_bbcodes_on'] .= $lang['sig_none'];
+		$lang['sig_bbcodes_off'] .= $lang['sig_all'];
+	} else
+	{
+		if ( $board_config['sig_allow_font_sizes'] &&
+		     $board_config['sig_allow_bold'] &&
+		     $board_config['sig_allow_italic'] &&
+		     $board_config['sig_allow_underline'] &&
+		     $board_config['sig_allow_colors'] &&
+		     $board_config['sig_allow_quote'] &&
+		     $board_config['sig_allow_code'] &&
+		     $board_config['sig_allow_list'] &&
+		     $board_config['sig_allow_url'] &&
+		     $board_config['sig_allow_images'] )
+		{
+			$lang['sig_bbcodes_off'] .= $lang['sig_none'];
+			$lang['sig_bbcodes_on'] .= $lang['sig_all'];
+		} else
+		{
+			$lang['sig_bbcodes_on'] .= '<span style="color: #008000">';
+			$lang['sig_bbcodes_on'] .= ( $board_config['sig_allow_font_sizes'] ) ? '[size]' : '';
+			$lang['sig_bbcodes_on'] .= ( $board_config['sig_allow_bold'] ) ? '[b]' : '';
+			$lang['sig_bbcodes_on'] .= ( $board_config['sig_allow_italic'] ) ? '[i]' : '';
+			$lang['sig_bbcodes_on'] .= ( $board_config['sig_allow_underline'] ) ? '[u]' : '';
+			$lang['sig_bbcodes_on'] .= ( $board_config['sig_allow_colors'] ) ? '[color]' : '';
+			$lang['sig_bbcodes_on'] .= ( $board_config['sig_allow_quote'] ) ? '[quote]' : '';
+			$lang['sig_bbcodes_on'] .= ( $board_config['sig_allow_code'] ) ? '[code]' : '';
+			$lang['sig_bbcodes_on'] .= ( $board_config['sig_allow_list'] ) ? '[list]' : '';
+			$lang['sig_bbcodes_on'] .= ( $board_config['sig_allow_url'] ) ? '[url]' : '';
+			$lang['sig_bbcodes_on'] .= ( $board_config['sig_allow_images'] ) ? '[img]' : '';
+			$lang['sig_bbcodes_on'] .= '</span>';
+
+			$lang['sig_bbcodes_off'] .= '<span style="color: #800000">';
+			$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_font_sizes'] ) ? '[size]' : '';
+			$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_bold'] ) ? '[b]' : '';
+			$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_italic'] ) ? '[i]' : '';
+			$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_underline'] ) ? '[u]' : '';
+			$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_colors'] ) ? '[color]' : '';
+			$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_quote'] ) ? '[quote]' : '';
+			$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_code'] ) ? '[code]' : '';
+			$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_list'] ) ? '[list]' : '';
+			$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_url'] ) ? '[url]' : '';
+			$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_images'] ) ? '[img]' : '';
+			$lang['sig_bbcodes_off'] .= '</span>';
+		}
+	}
+
+	$bbcode_status = sprintf($lang['sig_bbcodes_on'], '<a href="' . append_sid("faq.$phpEx?mode=bbcode") . '" target="_phpbbcode">', '</a>') . '<br />' . $lang['sig_bbcodes_off'];
+} else
+{
+	$bbcode_status = $lang['sig_BBCodes_are_OFF'];
+}
+
+if ( $board_config['allow_sig'] )
+{
+	$template->assign_block_vars('switch_signature_allowed', array());
+}
+// End replacement - Signatures control MOD
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+// Start replacement - Signatures control MOD
+if ( $board_config['sig_max_lines'] )
+{
+	$sig_explain_max_lines = sprintf($lang['sig_explain_max_lines'], $board_config['sig_max_lines']);
+} else
+{
+	$sig_explain_max_lines = '';
+}
+
+if ( $board_config['sig_allow_font_sizes'] == 2 && !(!$board_config['sig_min_font_size'] && !$board_config['sig_max_font_size']) )
+{
+	if ( $board_config['sig_min_font_size'] )
+	{
+		if ( $board_config['sig_max_font_size'] )
+		{
+			$sig_explain_font_size_limit = sprintf($lang['sig_explain_font_size_limit'], $board_config['sig_min_font_size'], $board_config['sig_max_font_size']);
+		} else
+		{
+			$sig_explain_font_size_limit = sprintf($lang['sig_explain_font_size_limit'], $board_config['sig_min_font_size'], '29');
+		}
+	} else
+	{
+		$sig_explain_font_size_limit = sprintf($lang['sig_explain_font_size_max'], $board_config['sig_max_font_size']);
+	}
+} else
+{
+	$sig_explain_font_size_limit = '';
+}
+
+if ( $board_config['sig_allow_images'] )
+{
+	if ( $board_config['sig_max_images'] )
+	{
+		$sig_explain_images_limit = sprintf($lang['sig_explain_images_limit'], $board_config['sig_max_images'], ( $board_config['sig_max_img_height'] ) ? $board_config['sig_max_img_height'] : $lang['sig_explain_unlimited'], ( $board_config['sig_max_img_width'] ) ? $board_config['sig_max_img_width'] : $lang['sig_explain_unlimited'], ( $board_config['sig_max_img_av_files_size'] ) ? $board_config['sig_max_img_av_files_size'] : $board_config['sig_max_img_files_size']);
+	} else
+	{
+		$sig_explain_images_limit = sprintf($lang['sig_explain_unlimited_images'] , ( $board_config['sig_max_img_height'] ) ? $board_config['sig_max_img_height'] : $lang['sig_explain_unlimited'], ( $board_config['sig_max_img_width'] ) ? $board_config['sig_max_img_width'] : $lang['sig_explain_unlimited'], ( $board_config['sig_max_img_av_files_size'] ) ? $board_config['sig_max_img_av_files_size'] : $board_config['sig_max_img_files_size']);
+	}
+} else
+{
+	$sig_explain_images_limit = $lang['sig_explain_no_image'];
+}
+
+if ( $board_config['sig_max_img_av_files_size'] )
+{
+	$sig_explain_images_limit .= $lang['sig_explain_avatar_included'];
+}
+
+$signature_explain = $lang['sig_explain'];
+
+if ( $userdata['user_allowsignature'] != 2 )
+{
+	$signature_explain .= ' ' . sprintf($lang['sig_explain_limits'], $board_config['max_sig_chars'], $sig_explain_font_size_limit, $sig_explain_max_lines, $sig_explain_images_limit);
+
+	if ( $board_config['sig_wordwrap'] )
+	{
+		$signature_explain .= ' ' . sprintf($lang['sig_explain_wordwrap'], $board_config['sig_wordwrap']);
+	}
+}
+
+if ( $userdata['user_allowbbcode'] && $board_config['allow_bbcode']  )
+{
+	if (($board_config['sig_allow_font_sizes'] &&
+	     $board_config['sig_allow_bold'] &&
+	     $board_config['sig_allow_italic'] &&
+	     $board_config['sig_allow_underline'] &&
+	     $board_config['sig_allow_colors'] &&
+	     $board_config['sig_allow_quote'] &&
+	     $board_config['sig_allow_code'] &&
+	     $board_config['sig_allow_list'] &&
+	     $board_config['sig_allow_url'] &&
+	     $board_config['sig_allow_images'] &&
+	     $board_config['sig_exotic_bbcodes_disallowed']=='') || $userdata['user_allowsignature'] == 2)
+	{
+		$lang['sig_bbcodes_off'] .= $lang['sig_none'];
+		$lang['sig_bbcodes_on'] .= $lang['sig_all'];
+		$bbcode_status = sprintf($lang['sig_bbcodes_on'], '<a href="' . append_sid("faq.$phpEx?mode=bbcode") . '" target="_phpbbcode">', '</a>') . '<br />' . sprintf($lang['sig_bbcodes_off'], '', '');
+	} else
+	{
+		$lang['sig_bbcodes_off'] .= '<span style="color: #800000">';
+		$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_font_sizes'] ) ? '[size]' : '';
+		$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_bold'] ) ? '[b]' : '';
+		$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_italic'] ) ? '[i]' : '';
+		$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_underline'] ) ? '[u]' : '';
+		$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_colors'] ) ? '[color]' : '';
+		$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_quote'] ) ? '[quote]' : '';
+		$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_code'] ) ? '[code]' : '';
+		$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_list'] ) ? '[list]' : '';
+		$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_url'] ) ? '[url]' : '';
+		$lang['sig_bbcodes_off'] .= ( !$board_config['sig_allow_images'] ) ? '[img]' : '';
+
+		$exotic_bbcodes_list = explode(",", $board_config['sig_exotic_bbcodes_disallowed']);
+		while ( list($bbckey, $exotic_bbcode) = @each($exotic_bbcodes_list) )
+		{
+			$exotic_bbcode = trim(strtolower($exotic_bbcode));
+			if ( $exotic_bbcode != '' )
+			{
+				$lang['sig_bbcodes_off'] .= '['.$exotic_bbcode.']';
+			}
+		}
+
+		$lang['sig_bbcodes_off'] .= '</span>';
+		$bbcode_status = sprintf($lang['sig_bbcodes_off'], '<a href="' . append_sid("faq.$phpEx?mode=bbcode") . '" target="_phpbbcode">', '</a>');
+	}
+} else
+{
+	$bbcode_status = $lang['sig_BBCodes_are_OFF'];
+}
+
+if ( $board_config['allow_sig'] && $userdata['user_allowsignature'] )
+{
+	$template->assign_block_vars('switch_signature_allowed', array());
+}
+// End replacement - Signatures control MOD
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $smilies_status = ( $userdata['user_allowsmile'] && $board_config['allow_smilies'] ) ? $lang['Smilies_are_ON'] : $lang['Smilies_are_OFF'];
+#
+$smilies_status = ( $userdata['user_allowsmile']
+
+# 
+#-----[ IN-LINE FIND ]----------------------------------------
+# 
+$board_config['allow_smilies']
+
+# 
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+# 
+ && $board_config['sig_allow_smilies']
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+<!-- Start replacement - Signatures control MOD -->
+<tr>
+	<td class="row1">{L_SIG_MAX_LINES}</td>
+	<td class="row2"><input type="text" name="sig_max_lines" value="{SIG_MAX_LINES}" maxlength="3" size="3" class="post" /></td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_WORDWRAP}</td>
+	<td class="row2"><input type="text" name="sig_wordwrap" value="{SIG_WORDWRAP}" maxlength="3" size="3" class="post" /></td>
+</tr>
+
+<tr> 
+	<td class="row1">{L_SIG_ALLOW_FONT_SIZES}</td>
+	<td class="row2"><input type="radio" name="sig_allow_font_sizes" value="1" {SIG_ALLOW_FONT_SIZES_YES} /> {L_SIG_ALLOW_FONT_SIZES_YES}&nbsp; &nbsp;<input type="radio" name="sig_allow_font_sizes" value="2" {SIG_ALLOW_FONT_SIZES_MAX} /> {L_SIG_ALLOW_FONT_SIZES_MAX}&nbsp; &nbsp;<input type="radio" name="sig_allow_font_sizes" value="0" {SIG_ALLOW_FONT_SIZES_IMPOSED} /> {L_SIG_ALLOW_FONT_SIZES_IMPOSED}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_FONT_SIZE_LIMIT}<br /><span class="gensmall">{L_SIG_FONT_SIZE_LIMIT_EXPLAIN}</td>
+	<td class="row2"><input type="text" name="sig_min_font_size" value="{SIG_MIN_FONT_SIZE}" maxlength="3" size="3" class="post" /> {L_SIG_MIN_FONT_SIZE} <input type="text" name="sig_max_font_size" value="{SIG_MAX_FONT_SIZE}" maxlength="3" size="3" class="post" /> {L_SIG_MAX_FONT_SIZE}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_TEXT_ENHANCEMENT}</td>
+	<td class="row2"><input style="text-indent: 0px" type="checkbox" name="sig_allow_bold" value="1" {SIG_ALLOW_BOLD_YES}> {L_SIG_ALLOW_BOLD}<br />
+			 <input type="checkbox" name="sig_allow_italic" value="1" {SIG_ALLOW_ITALIC_YES}> {L_SIG_ALLOW_ITALIC}<br />
+			 <input type="checkbox" name="sig_allow_underline" value="1" {SIG_ALLOW_UNDERLINE_YES}> {L_SIG_ALLOW_UNDERLINE}<br />
+			 <input type="checkbox" name="sig_allow_colors" value="1" {SIG_ALLOW_COLORS_YES}> {L_SIG_ALLOW_COLORS}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_TEXT_PRESENTATION}</td>
+	<td class="row2"><input style="text-indent: 0px" type="checkbox" name="sig_allow_quote" value="1" {SIG_ALLOW_QUOTE_YES} /> {L_SIG_ALLOW_QUOTE}<br />
+			 <input type="checkbox" name="sig_allow_code" value="1" {SIG_ALLOW_CODE_YES} /> {L_SIG_ALLOW_CODE}<br />
+			 <input type="checkbox" name="sig_allow_list" value="1" {SIG_ALLOW_LIST_YES} /> {L_SIG_ALLOW_LIST}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_ALLOW_URL}</td>
+	<td class="row2"><input type="radio" name="sig_allow_url" value="1" {SIG_ALLOW_URL_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="sig_allow_url" value="0" {SIG_ALLOW_URL_NO} /> {L_NO}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_ALLOW_IMAGES}</td>
+	<td class="row2"><input type="radio" name="sig_allow_images" value="1" {SIG_ALLOW_IMAGES_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="sig_allow_images" value="0" {SIG_ALLOW_IMAGES_NO} /> {L_NO}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_MAX_IMAGES}</td>
+	<td class="row2"><input type="text" name="sig_max_images" value="{SIG_MAX_IMAGES}" maxlength="2" size="3" class="post" /></td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_MAX_IMG_SIZE}<br /><span class="gensmall">{L_SIG_MAX_IMG_SIZE_EXPLAIN}</span></td>
+	<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="sig_max_img_height" value="{SIG_MAX_IMG_HEIGHT}" /> x <input class="post" type="text" size="3" maxlength="4" name="sig_max_img_width" value="{SIG_MAX_IMG_WIDTH}"> {L_SIG_IMG_SIZE_LEGEND}<br />
+			 <input type="checkbox" name="sig_allow_on_max_img_size_fail" value="1" {SIG_ALLOW_ON_MAX_IMG_SIZE_FAIL_YES} /> {L_SIG_ALLOW_ON_MAX_IMG_SIZE_FAIL}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_MAX_IMG_FILES_SIZE}</td>
+	<td class="row2"><input type="text" name="sig_max_img_files_size" value="{SIG_MAX_IMG_FILES_SIZE}" maxlength="10" size="3" class="post" /> {L_SIG_KBYTES}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_MAX_IMG_AV_FILES_SIZE}<br /><span class="gensmall">{L_SIG_MAX_IMG_AV_FILES_SIZE_EXPLAIN}</span></td>
+	<td class="row2"><input type="text" name="sig_max_img_av_files_size" value="{SIG_MAX_IMG_AV_FILES_SIZE}" maxlength="10" size="3" class="post" /> {L_SIG_KBYTES}</td>
+</tr>
+<!-- End replacement - Signatures control MOD -->
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+#
+<!-- Start replacement - Signatures control MOD -->
+<tr>
+	<td class="row1">{L_SIG_MAX_LINES}</td>
+	<td class="row2"><input type="text" name="sig_max_lines" value="{SIG_MAX_LINES}" maxlength="2" size="3" class="post" /></td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_WORDWRAP}</td>
+	<td class="row2"><input type="text" name="sig_wordwrap" value="{SIG_WORDWRAP}" maxlength="3" size="3" class="post" /></td>
+</tr>
+
+<tr> 
+	<td class="row1">{L_SIG_ALLOW_FONT_SIZES}</td>
+	<td class="row2"><input type="radio" name="sig_allow_font_sizes" value="1" {SIG_ALLOW_FONT_SIZES_YES} /> {L_SIG_ALLOW_FONT_SIZES_YES}&nbsp; &nbsp;<input type="radio" name="sig_allow_font_sizes" value="2" {SIG_ALLOW_FONT_SIZES_MAX} /> {L_SIG_ALLOW_FONT_SIZES_MAX}&nbsp; &nbsp;<input type="radio" name="sig_allow_font_sizes" value="0" {SIG_ALLOW_FONT_SIZES_IMPOSED} /> {L_SIG_ALLOW_FONT_SIZES_IMPOSED}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_FONT_SIZE_LIMIT}<br /><span class="gensmall">{L_SIG_FONT_SIZE_LIMIT_EXPLAIN}</td>
+	<td class="row2"><input type="text" name="sig_min_font_size" value="{SIG_MIN_FONT_SIZE}" maxlength="2" size="3" class="post" /> {L_SIG_MIN_FONT_SIZE} <input type="text" name="sig_max_font_size" value="{SIG_MAX_FONT_SIZE}" maxlength="2" size="3" class="post" /> {L_SIG_MAX_FONT_SIZE}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_TEXT_ENHANCEMENT}</td>
+	<td class="row2"><input style="text-indent: 0px" type="checkbox" name="sig_allow_bold" value="1" {SIG_ALLOW_BOLD_YES}> {L_SIG_ALLOW_BOLD}<br />
+			 <input type="checkbox" name="sig_allow_italic" value="1" {SIG_ALLOW_ITALIC_YES}> {L_SIG_ALLOW_ITALIC}<br />
+			 <input type="checkbox" name="sig_allow_underline" value="1" {SIG_ALLOW_UNDERLINE_YES}> {L_SIG_ALLOW_UNDERLINE}<br />
+			 <input type="checkbox" name="sig_allow_colors" value="1" {SIG_ALLOW_COLORS_YES}> {L_SIG_ALLOW_COLORS}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_TEXT_PRESENTATION}</td>
+	<td class="row2"><input style="text-indent: 0px" type="checkbox" name="sig_allow_quote" value="1" {SIG_ALLOW_QUOTE_YES} /> {L_SIG_ALLOW_QUOTE}<br />
+			 <input type="checkbox" name="sig_allow_code" value="1" {SIG_ALLOW_CODE_YES} /> {L_SIG_ALLOW_CODE}<br />
+			 <input type="checkbox" name="sig_allow_list" value="1" {SIG_ALLOW_LIST_YES} /> {L_SIG_ALLOW_LIST}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_ALLOW_URL}</td>
+	<td class="row2"><input type="radio" name="sig_allow_url" value="1" {SIG_ALLOW_URL_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="sig_allow_url" value="0" {SIG_ALLOW_URL_NO} /> {L_NO}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_ALLOW_IMAGES}</td>
+	<td class="row2"><input type="radio" name="sig_allow_images" value="1" {SIG_ALLOW_IMAGES_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="sig_allow_images" value="0" {SIG_ALLOW_IMAGES_NO} /> {L_NO}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_MAX_IMAGES}</td>
+	<td class="row2"><input type="text" name="sig_max_images" value="{SIG_MAX_IMAGES}" maxlength="2" size="3" class="post" /></td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_MAX_IMG_SIZE}<br /><span class="gensmall">{L_SIG_MAX_IMG_SIZE_EXPLAIN}</span></td>
+	<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="sig_max_img_height" value="{SIG_MAX_IMG_HEIGHT}" /> x <input class="post" type="text" size="3" maxlength="4" name="sig_max_img_width" value="{SIG_MAX_IMG_WIDTH}"> {L_SIG_IMG_SIZE_LEGEND}<br />
+			 <input type="checkbox" name="sig_allow_on_max_img_size_fail" value="1" {SIG_ALLOW_ON_MAX_IMG_SIZE_FAIL_YES} /> {L_SIG_ALLOW_ON_MAX_IMG_SIZE_FAIL}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_MAX_IMG_FILES_SIZE}</td>
+	<td class="row2"><input type="text" name="sig_max_img_files_size" value="{SIG_MAX_IMG_FILES_SIZE}" maxlength="3" size="3" class="post" /> {L_SIG_KBYTES}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_MAX_IMG_AV_FILES_SIZE}<br /><span class="gensmall">{L_SIG_MAX_IMG_AV_FILES_SIZE_EXPLAIN}</span></td>
+	<td class="row2"><input type="text" name="sig_max_img_av_files_size" value="{SIG_MAX_IMG_AV_FILES_SIZE}" maxlength="3" size="3" class="post" /> {L_SIG_KBYTES}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_EXOTIC_BBCODES_DISALLOWED}<br /><span class="gensmall">{L_SIG_EXOTIC_BBCODES_DISALLOWED_EXPLAIN}</span></td>
+	<td class="row2"><input type="text" name="sig_exotic_bbcodes_disallowed" value="{SIG_EXOTIC_BBCODES_DISALLOWED}" maxlength="255" size="40" class="post" /></td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_ALLOW_SMILIES}</td>
+	<td class="row2"><input type="radio" name="sig_allow_smilies" value="1" {SIG_ALLOW_SMILIES_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="sig_allow_smilies" value="0" {SIG_ALLOW_SMILIES_NO} /> {L_NO}</td>
+</tr>
+
+<tr>
+	<td class="row1">{L_SIG_RESET}<br /><span class="gensmall">{L_SIG_RESET_EXPLAIN}</span></td>
+	<td class="row2"><input type="button" name="sig_reset" value="{L_RESET}" class="liteoption" onClick="window.open('{U_SIG_RESET}', '_phpbbsig_reset', 'HEIGHT=155,resizable=no,WIDTH=350');return false;" /></td>
+</tr>
+<!-- End replacement - Signatures control MOD -->
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/admin/user_edit_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# <tr> 
+# 	  <td class="row1"><span class="gen">{L_ALLOW_AVATAR}</span></td>
+#
+<tr> 
+{L_ALLOW_AVATAR}
+
+# 
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+<!-- Start add - Signatures control MOD -->
+<tr> 
+  <td class="row1"><span class="gen">{L_SIG_ALLOW_SIGNATURE}</span></td>
+  <td class="row2"> 
+	<input type="radio" name="user_allowsignature" value="2" {ALLOW_SIGNATURE_YES_NOT_CONTROLED} />
+	<span class="gen">{L_SIG_YES_NOT_CONTROLED}</span>&nbsp;
+	<input type="radio" name="user_allowsignature" value="1" {ALLOW_SIGNATURE_YES_CONTROLED} />
+	<span class="gen">{L_SIG_YES_CONTROLED}</span>&nbsp;
+	<input type="radio" name="user_allowsignature" value="0" {ALLOW_SIGNATURE_NO} />
+	<span class="gen">{L_NO}</span></td>
+</tr>
+<!-- End replacement - Signatures control MOD -->
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------- 
+# 
+# EoM

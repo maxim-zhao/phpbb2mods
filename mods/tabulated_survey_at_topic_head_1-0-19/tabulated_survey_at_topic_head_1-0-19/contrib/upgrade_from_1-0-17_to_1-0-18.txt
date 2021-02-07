@@ -1,0 +1,424 @@
+##############################################################
+## MOD Title:		Tabulated survey at topic head (upgrade from version 1.0.17 to 1.0.18)
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Description:	Allow users to design surveys that will appear at the top of a topic.  Users will be able to
+##			respond to the survey by clicking a button...each user response will appear at the topic head
+##
+## MOD Version:		1.0.18
+##
+## Installation Level:	Easy
+## Installation Time:	5 Minute
+##
+## Files To Edit:	posting.php
+##			survey.php
+##			includes/constants.php
+##			language/lang_english/lang_main.php
+##			templates/subSilver/survey_posting_body.tpl
+##
+## Included Files:	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:	This is just an upgrade mod.  To use it, you must have tabulated survey at topic head version 1.0.17 already installed
+##			If you haven't already installed any version of this mod, install the latest version of this mod directly and don't use this mod at all.
+##
+##############################################################
+## MOD History:
+##
+##   2006-07-21	- Version 1.0.18
+##		  initial version of upgrade to 1.0.18
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+						$next_question = ( $survey_question[$i] ) ? htmlspecialchars( $survey_question[$i] ) : '';
+						$next_question = str_replace("\'", "''", $next_question);
+						$next_selection = ( $survey_question_selection[$i] ) ? htmlspecialchars( $survey_question_selection[$i] ) : '';
+						$next_selection = str_replace("\'", "''", $next_selection);
+						$next_selected_text = ( $survey_question_selected_text[$i] ) ? htmlspecialchars( $survey_question_selected_text[$i] ) : '';
+						$next_selected_text = str_replace("\'", "''", $next_selected_text);
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+						// for the next three variables, since questions get separated in the db by '|', we change '|' to '/' so that 
+						// if the user inserts a '|' in the text the code won't mistakenly think what follows is another question 
+						$next_question = ( $survey_question[$i] ) ? htmlspecialchars( $survey_question[$i] ) : '';
+						$next_question = str_replace("\'", "''", $next_question);
+						$next_question = str_replace("|", "/", $next_question);
+						$next_selection = ( $survey_question_selection[$i] ) ? htmlspecialchars( $survey_question_selection[$i] ) : '';
+						$next_selection = str_replace("\'", "''", $next_selection);
+						$next_selection = str_replace("|", "/", $next_selection);
+						$next_selected_text = ( $survey_question_selected_text[$i] ) ? htmlspecialchars( $survey_question_selected_text[$i] ) : '';
+						$next_selected_text = str_replace("\'", "''", $next_selected_text);
+						$next_selected_text = str_replace("|", "/", $next_selected_text);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_CHECKBOX_OR_RADIO_BUTTONS' => $lang['Checkbox_or_radio_buttons'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'L_MULTIPLE_CHOICE_CHECKBOXES' => $lang['Multiple_choice_checkboxes'],
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'CHECKBOX_OR_RADIO_BUTTONS' => SURVEY_CHECKBOX_OR_RADIO_BUTTONS,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'MULTIPLE_CHOICE_CHECKBOXES' => SURVEY_MULTIPLE_CHOICE_CHECKBOXES,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					$selected_checkbox_or_radio_buttons = '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					$selected_multiple_choice_checkboxes = '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+						case SURVEY_DROP_DOWN_MENU:
+							$selected_drop_down_menu = 'selected="selected"';
+							break;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+						case SURVEY_MULTIPLE_CHOICE_CHECKBOXES:
+							$selected_multiple_choice_checkboxes = 'selected="selected"';
+							break;
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				'S_SELECTED_CHECKBOX_OR_RADIO_BUTTONS' => $selected_checkbox_or_radio_buttons,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				'S_SELECTED_MULTIPLE_CHOICE_CHECKBOXES' => $selected_multiple_choice_checkboxes,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				'S_SELECTIONS' => ( $selected_checkbox_or_radio_buttons || $selected_drop_down_menu ) ? $question_selections[$i] : '',
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				'S_SELECTIONS' => ( $selected_checkbox_or_radio_buttons || $selected_multiple_choice_checkboxes || $selected_drop_down_menu ) ? $question_selections[$i] : '',
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'S_SELECTED_CHECKBOX_OR_RADIO_BUTTONS' => '',
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'S_SELECTED_MULTIPLE_CHOICE_CHECKBOXES' => '',
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				$selected_checkbox_or_radio_buttons = '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				$selected_multiple_choice_checkboxes = '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					case SURVEY_DROP_DOWN_MENU:
+						$selected_drop_down_menu = 'selected="selected"';
+						break;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					case SURVEY_MULTIPLE_CHOICE_CHECKBOXES:
+						$selected_multiple_choice_checkboxes = 'selected="selected"';
+						break;
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'S_SELECTED_CHECKBOX_OR_RADIO_BUTTONS' => $selected_checkbox_or_radio_buttons,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'S_SELECTED_MULTIPLE_CHOICE_CHECKBOXES' => $selected_multiple_choice_checkboxes,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'S_SELECTIONS' => ( $selected_checkbox_or_radio_buttons || $selected_drop_down_menu ) ? $question_selections[$i] : '',
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			'S_SELECTIONS' => ( $selected_checkbox_or_radio_buttons || $selected_multiple_choice_checkboxes || $selected_drop_down_menu ) ? $question_selections[$i] : '',
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'S_SELECTED_CHECKBOX_OR_RADIO_BUTTONS' => '',
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'S_SELECTED_MULTIPLE_CHOICE_CHECKBOXES' => '',
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+survey.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// define function
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//
+// define functions for the page
+
+// the function below (copied from the php manual) reverses htmlspecialchars.  We need this
+// so we can temporarily reverse htmlspecialchars in order to avoid having the script mistakenly
+// think that semicolons at the end of htmlspecialchars like &amp;
+// signal the start of a new selection in a checkbox, radio button or drop down menu question (but
+// of course we restore htmlspecialchars when we reinsert the answer into the db)
+function htmlspecialchars_uncode($str, $quote_style = ENT_COMPAT)
+{
+	return strtr($str, array_flip(get_html_translation_table(HTML_SPECIALCHARS, $quote_style)));
+}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	// collect the answers the user has specified
+	for( $i=0; $i<$number_of_questions; $i++)
+	{
+		$answer[$i] = ( isset($HTTP_POST_VARS['answer'][$i]) ) ? htmlspecialchars($HTTP_POST_VARS['answer'][$i]) : '';
+		$answer[$i] = str_replace("\'", "''", $answer[$i]);
+
+		// test to see if any question is being answered for which the answer cap has already been hit
+		if( $answer[$i] && !$questions_can_be_answered[$i] )
+		{
+			$msg = $lang['Sorry_question_cap_hit'] . '<br /><br />' . sprintf($lang['Click_return_topic_survey'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id") . '">', '</a> ') . '<br /><br />' . sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+			message_die(GENERAL_MESSAGE, $msg);
+		}
+	}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	// now fetch the question types and selections so that we can treat multiple chocie selections specially
+	$question_types = explode("|", $survey_info['question_types']);
+	
+	// collect the answers the user has specified
+	for( $i=0; $i<$number_of_questions; $i++)
+	{
+		// when we are looking at answers to muliple choice checkboxes we need to loop through to compile the full answer so we'll treat that specially...
+		if( $question_types[$i] == SURVEY_MULTIPLE_CHOICE_CHECKBOXES )
+		{
+			$answer[$i] = '';
+			$answer_array = ( !empty($HTTP_POST_VARS['answer' . $i]) ) ? $HTTP_POST_VARS['answer' . $i] : '';
+			for ($j = 0; $j < count($answer_array); $j++ )
+			{
+				$temp = ( isset($answer_array[$j]) ) ? htmlspecialchars($answer_array[$j]) : '';
+				$temp = str_replace("\'", "''", $temp);
+				// separate each selection in the answer to a given question by '&&'
+				$answer[$i] .= ($answer[$i]) ? '&&' . $temp : $temp;
+			}
+		}
+		else
+		{
+			$answer[$i] = ( isset($HTTP_POST_VARS['answer'][$i]) ) ? htmlspecialchars($HTTP_POST_VARS['answer'][$i]) : '';
+			$answer[$i] = str_replace("\'", "''", $answer[$i]);
+			// since questions get separated in the db by '|', we change '|' to '/' in the answer so that 
+			// if the user inserts a '|' in the text the code won't mistakenly think what follows is the answer to another question 
+			$answer[$i] = str_replace("|", "/", $answer[$i]);
+		}
+
+		// test to see if any question is being answered for which the answer cap has already been hit
+		if( $answer[$i] && !$questions_can_be_answered[$i] )
+		{
+			$msg = $lang['Sorry_question_cap_hit'] . '<br /><br />' . sprintf($lang['Click_return_topic_survey'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id") . '">', '</a> ') . '<br /><br />' . sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+			message_die(GENERAL_MESSAGE, $msg);
+		}
+	}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			case SURVEY_CHECKBOX_OR_RADIO_BUTTONS:
+				$selections = explode(";", $question_selections[$i]);
+				for ($j = 0; $j < count($selections); $j++ )
+				{
+				$checked = ( $old_answers[$i] == $selections[$j]) ? 'checked="checked"' : '';
+				$answer = ( count($selections) == 1 ) ? $answer . '<input class="post" type="checkbox" name="answer[' . $i . ']" value="' . $selections[$j] . '" ' . $checked . ' />' . $selections[$j] . '<br />' : $answer . '<input class="post" type="radio" name="answer[' . $i . ']" value="' . $selections[$j] . '" ' . $checked . ' />' . $selections[$j] . '<br />';
+				}
+				break;
+
+			case SURVEY_DROP_DOWN_MENU:
+				$selections = explode(";", $question_selections[$i]);
+				$answer = '<select name="answer[' . $i . ']" size="1" class="gensmall" />';
+				for ($j = 0; $j < count($selections); $j++ )
+				{
+				$selected = ( $old_answers[$i] == $selections[$j]) ? 'selected="selected"' : '';
+				$answer = $answer . '<option value="' . $selections[$j] . '" ' . $selected . ' />&nbsp;' . $selections[$j] . '&nbsp;</option>';
+				}
+				$answer = $answer . '</select>';
+				break;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			case SURVEY_CHECKBOX_OR_RADIO_BUTTONS:
+				// since htmlspecial chars like & get saved in db with a semicolon at the end (e.g. &amp;) and the semicolon
+				// is used in this mod to mark where a selection ends and a new one begins, we need to unconvert htmlspecial chars in order to avoid confusing the script 
+				$selection_string = htmlspecialchars_uncode($question_selections[$i]);
+				$selections = explode(";", $selection_string);
+				for ($j = 0; $j < count($selections); $j++ )
+				{
+				$checked = ( $old_answers[$i] == htmlspecialchars($selections[$j]) ) ? 'checked="checked"' : '';
+				$answer = ( count($selections) == 1 ) ? $answer . '<input class="post" type="checkbox" name="answer[' . $i . ']" value="' . htmlspecialchars($selections[$j]) . '" ' . $checked . ' />' . $selections[$j] . '<br />' : $answer . '<input class="post" type="radio" name="answer[' . $i . ']" value="' . htmlspecialchars($selections[$j]) . '" ' . $checked . ' />' . $selections[$j] . '<br />';
+				}
+				break;
+
+			case SURVEY_MULTIPLE_CHOICE_CHECKBOXES:
+				// since htmlspecial chars like & get saved in db with a semicolon at the end (e.g. &amp;) and the semicolon
+				// is used in this mod to mark where a selection ends and a new one begins, we need to unconvert htmlspecial chars in order to avoid confusing the script 
+				$selection_string = htmlspecialchars_uncode($question_selections[$i]);
+				$selections = explode(";", $selection_string);
+				// stick '&&' at beginning and end of the old answer string for this question so that we can test whether a particular selection surrounded by '&&' matches
+				// answer selection surrounded by '&&' (otherwise the first and last selections in the question will not be treated properly) 
+				$old_answers_in_amps = '&&' . $old_answers[$i] . '&&';
+				for ($j = 0; $j < count($selections); $j++ )
+				{
+				$checked = ( strpos( $old_answers_in_amps, '&&' . htmlspecialchars($selections[$j]) . '&&' ) !== false ) ? 'checked="checked"' : '';
+				$answer = $answer . '<input class="post" type="checkbox" name="answer' . $i . '[]" value="' . htmlspecialchars($selections[$j]) . '" ' . $checked . ' />' . $selections[$j] . '<br />';
+				}
+				break;
+
+			case SURVEY_DROP_DOWN_MENU:
+				// since htmlspecial chars like & get saved in db with a semicolon at the end (e.g. &amp;) and the semicolon
+				// is used in this mod to mark where a selection ends and a new one begins, we need to unconvert htmlspecial chars in order to avoid confusing the script 
+				$selection_string = htmlspecialchars_uncode($question_selections[$i]);
+				$selections = explode(";", $selection_string);
+				$answer = '<select name="answer[' . $i . ']" size="1" class="gensmall" />';
+				for ($j = 0; $j < count($selections); $j++ )
+				{
+				$selected = ( $old_answers[$i] == htmlspecialchars($selections[$j]) ) ? 'selected="selected"' : '';
+				$answer = $answer . '<option value="' . htmlspecialchars($selections[$j]) . '" ' . $selected . ' />&nbsp;' . $selections[$j] . '&nbsp;</option>';
+				}
+				$answer = $answer . '</select>';
+				break;
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				'ANSWER' => nl2br($answers[$j])
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				'ANSWER' => nl2br( str_replace('&&', ' || ', $answers[$j]) )
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+define('SURVEY_DROP_DOWN_MENU', 4);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+define('SURVEY_MULTIPLE_CHOICE_CHECKBOXES', 5);
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['If_selections'] = 'If checkbox, radio buttons or drop down<br />menu, specify selections separated by semicolons<br />(if drop down menu, beginning with semicolon allows user to make no selection): &nbsp;&nbsp';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+$lang['If_selections'] = 'If checkbox, radio buttons, multiple choice checkboxes<br />or drop down menu, specify selections separated by semicolons<br />(if drop down menu, beginning with semicolon allows user to make no selection): &nbsp;&nbsp';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Max_number_of_questions'] = 'Max number of questions<br />(change takes effect after click preview): &nbsp;&nbsp';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Multiple_choice_checkboxes'] = 'multiple choice checkboxes';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/survey_posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		<option value="{CHECKBOX_OR_RADIO_BUTTONS}" {questions.S_SELECTED_CHECKBOX_OR_RADIO_BUTTONS} />{L_CHECKBOX_OR_RADIO_BUTTONS}</option>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<option value="{MULTIPLE_CHOICE_CHECKBOXES}" {questions.S_SELECTED_MULTIPLE_CHOICE_CHECKBOXES} />{L_MULTIPLE_CHOICE_CHECKBOXES}</option>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

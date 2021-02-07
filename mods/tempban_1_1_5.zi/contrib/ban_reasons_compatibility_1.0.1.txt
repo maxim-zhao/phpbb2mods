@@ -1,0 +1,106 @@
+##############################################################
+## MOD Title: Ban reasons compatibility
+## MOD Author: eviL3 < evil@phpbbmodders.org > (Igor Wiedler) http://phpbbmodders.org
+## MOD Description: This "addon" includes the changes required to get the Temp ban MOD
+##                  working with ban reasons.
+##
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+## Files To Edit: includes/sessions.php
+##
+## Included Files: n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## This change is required, if you have ban reasons installed.
+## Without it, the temporary ban reasons will not be displayed
+## correctly.
+##############################################################
+## MOD History:
+##
+##   2006-10-31 - Version 1.0.0
+##      - First release
+##
+##   2007-01-14 - Version 1.0.1
+##      - Fixed a small (big) error
+##      - Enhanced
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/sessions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(CRITICAL_ERROR, 'Could not obtain ban information', '', __LINE__, __FILE__, $sql);
+	}
+
+	if ( $ban_info = $db->sql_fetchrow($result) )
+	{
+		if ( $ban_info['ban_ip'] || $ban_info['ban_userid'] || $ban_info['ban_email'] )
+		{
+			if (isset ($ban_info['ban_reason']) AND ($ban_info['ban_reason'] != '') AND ($ban_info['ban_userid']))
+			{
+				message_die(CRITICAL_MESSAGE, $ban_info['ban_reason']);
+			}
+			else
+			{
+				message_die(CRITICAL_MESSAGE, 'You_been_banned');
+			}
+		}
+	}
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(CRITICAL_ERROR, 'Could not obtain ban information', '', __LINE__, __FILE__, $sql);
+	}
+	
+	if ( $ban_info = $db->sql_fetchrow($result) )
+	{
+		if ( $ban_info['ban_ip'] || $ban_info['ban_userid'] || $ban_info['ban_email'] )
+		{
+			if (isset ($ban_info['ban_reason']) && !empty($ban_info['ban_reason']))
+			{
+				if ( $ban_info['ban_until'] > 0 )
+				{
+					$ban_until = create_date( $lang['Expires_format_banned'], $ban_info['ban_until'], $board_config['board_timezone'] );
+					
+					message_die(CRITICAL_MESSAGE, $ban_info['ban_reason'] . '<br /><br />' . $lang['Expires_msg_banned'] . $ban_until);
+				}
+				
+				message_die(CRITICAL_MESSAGE, $ban_info['ban_reason']);
+			}
+			else
+			{
+				if ( $ban_info['ban_until'] > 0 )
+				{
+					$ban_until = create_date( $lang['Expires_format_banned'], $ban_info['ban_until'], $board_config['board_timezone'] );
+					
+					message_die(CRITICAL_MESSAGE, $lang['You_been_banned'] . '<br /><br />' . $lang['Expires_msg_banned'] . $ban_until);
+				}
+				
+				message_die(CRITICAL_MESSAGE, 'You_been_banned');
+			}
+		}
+	}
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

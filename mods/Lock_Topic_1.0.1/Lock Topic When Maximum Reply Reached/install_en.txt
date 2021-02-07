@@ -1,0 +1,463 @@
+######################################################## 
+## MOD Title: Lock Topic When Maximum Reply Reached
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This MOD allows admin to enable/disable topic auto lock. A topic can be allowed to be auto locked when a certain number of replies has been reached.
+##			The auto lock settings are configurable inside ACP and on a per forum basis.
+##			With auto lock enabled, author can decide if the topic he/she is making should be allowed to be auto locked.
+## MOD Version:	1.0.1
+## 
+## Installation Level: Easy 
+## Installation Time: 10 Minutes 
+##
+## Files To Edit: 9
+##	posting.php
+##	viewforum.php
+##	viewtopic.php 
+##	admin/admin/admin_forums.php
+##	includes/functions_post.php
+##	language/lang_english/lang_admin.php
+##	language/lang_english/lang_main.php
+##	templates/subSilver/posting_body.tpl
+##	templates/subSilver/admin/forum_edit_body.tpl
+##
+## Included Files: 1
+##	includes/functions_auto_lock.php
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 
+## 	Tested on 2.0.19. Can be installed using EasyMOD 0.3.0
+##
+##	Not a bug: If a previously auto lock enabled forum is set to become auto lock disabled, 
+##		then topics that were lockeded by auto lock will remain locked.
+##	Not a bug: If maximum reply number is increased (e.g. from 20 to 30 replies),
+##		topics previously locked using the old setting will remain locked.
+## 
+############################################################## 
+## MOD History: 
+##
+##   2005-12-22 - Version 1.0.0
+##      - Initial Release
+##
+##   2005-12-26 - Version 1.0.1
+##	- Fix an error in includes/functions_post.php
+##	- Added codes in viewtopic.php (Thanks to ¤ßÆF®·¤â from phpbb-tw)
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+ALTER TABLE phpbb_forums ADD auto_lock_enable TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE phpbb_forums ADD auto_lock_reply_number SMALLINT(5) NOT NULL DEFAULT 30;
+ALTER TABLE phpbb_topics ADD enable_auto_lock TINYINT(1) NOT NULL DEFAULT 0;
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy root/includes/functions_auto_lock.php to includes/functions_auto_lock.php
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Lock Topic When Maximum Reply Reached
+$lang['Auto_lock'] = 'Auto Lock Topic';
+$lang['Auto_lock_reply_number'] = 'Lock topics that have more than';
+$lang['Empty_auto_lock_reply_number'] = 'You have turned on auto-lock for this forum but did not set maximum number of replies for topic to be auto-locked. Please go back and do so.';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Lock Topic When Maximum Reply Reached
+$lang['L_AUTO_LOCK'] = 'Enable Lock Topic when %s replies are reached';
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+admin/admin_forums.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$forumstatus = $row['forum_status'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+				// Lock Topic When Maximum Reply Reached
+				if( $row['auto_lock_enable'] )
+				{
+					$auto_lock_enable = "checked=\"checked\"";
+				}
+				else
+				{
+					$auto_lock_enable = '';
+				}
+				$auto_lock_reply_number = $row['auto_lock_reply_number'];
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				$forumstatus = FORUM_UNLOCKED;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+				// Lock Topic When Maximum Reply Reached
+				$auto_lock_enable = '';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				'L_DAYS' => $lang['Days'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+				// Lock Topic When Maximum Reply Reached
+				'L_AUTO_LOCK' => $lang['Auto_lock'],
+				'L_AUTO_LOCK_REPLY_NUMBER' => $lang['Auto_lock_reply_number'],
+				'L_REPLIES' => $lang['Replies'],
+				'S_AUTO_LOCK_ENABLED' => $auto_lock_enable,
+				'AUTO_LOCK_REPLY_NUMBER' => ( !empty($auto_lock_reply_number) ) ? $auto_lock_reply_number : 30,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				$value_sql .= ", $value";
+
+			}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			// Lock Topic When Maximum Reply Reached
+			if( $HTTP_POST_VARS['auto_lock_enable'] )
+			{
+				if( empty($HTTP_POST_VARS['auto_lock_reply_number']) )
+				{
+					message_die(GENERAL_MESSAGE, $lang['Empty_auto_lock_reply_number']);
+				}
+			}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "INSERT INTO " . FORUMS_TABLE . " (forum_id, forum_name
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, forum_status
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, auto_lock_enable, auto_lock_reply_number
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				VALUES ('" . $next_id . "', '" . str_replace
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, " . intval($HTTP_POST_VARS['forumstatus']) . "
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, " . intval($HTTP_POST_VARS['auto_lock_enable']) . ", " . intval($HTTP_POST_VARS['auto_lock_reply_number']) . "
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+					$HTTP_POST_VARS['prune_enable'] = 0;
+				}
+			}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			// Lock Topic When Maximum Reply Reached
+			if( isset($HTTP_POST_VARS['auto_lock_enable']))
+			{
+				if( $HTTP_POST_VARS['auto_lock_enable'] != 1 )
+				{
+					$HTTP_POST_VARS['auto_lock_enable'] = 0;
+				}
+			}
+
+			if( $HTTP_POST_VARS['auto_lock_enable'] )
+			{
+				if( empty($HTTP_POST_VARS['auto_lock_reply_number']) )
+				{
+					message_die(GENERAL_MESSAGE, $lang['Empty_auto_lock_reply_number']);
+				}
+			}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "',
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . "
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, auto_lock_enable = " . intval($HTTP_POST_VARS['auto_lock_enable']) . ", auto_lock_reply_number = " . intval($HTTP_POST_VARS['auto_lock_reply_number']) . "
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions_post.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+function submit_post($mode, &$post_data,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, &$poll_length
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, &$enable_auto_lock
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$topic_vote = (!empty($poll_title) && count($poll_options) >= 2) ? 1 : 0;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Lock Topic When Maximum Reply Reached
+		$topic_status = "";
+		if (!empty($enable_auto_lock))
+		{
+			$topic_status = ', topic_status = ' . TOPIC_LOCKED;
+		}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, topic_vote
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, enable_auto_lock
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, $topic_vote
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, $enable_auto_lock
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$topic_vote : "") . "
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, enable_auto_lock = " . $enable_auto_lock ." " . $topic_status . "
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+posting.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$attach_sig = ( $submit || $refresh ) ? ( ( !empty($HTTP_POST_VARS['attach_sig']) ) ? TRUE : 0 ) : ( ( $userdata['user_id'] == ANONYMOUS ) ? 0 : $userdata['user_attachsig'] );
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Lock Topic When Maximum Reply Reached
+$enable_auto_lock = ( !empty($HTTP_POST_VARS['enable_auto_lock']) ) ? TRUE : 0;
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				submit_post($mode, $post_data, $return_message,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, $poll_length
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, $enable_auto_lock
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$template->assign_block_vars('switch_delete_checkbox', array());
+}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+//
+// Lock Topic When Maximum Reply Reached
+// Auto Lock checkbox - only show if user is logged in
+//
+$auto_lock_toggle = '';
+if ( $userdata['session_logged_in'] && $is_auth['auth_read'] )
+{
+	if ( $refresh || $mode == 'newtopic' || ( $mode == 'editpost' && $post_data['first_post'] && $post_info['poster_id'] != ANONYMOUS ) )
+	{
+		include($phpbb_root_path . 'includes/functions_auto_lock.'.$phpEx);
+
+		if ($mode == 'newtopic')
+		{
+			$auto_lock = array();
+			$auto_lock = auto_lock_status_newtopic($forum_id);
+
+			if ($auto_lock['auto_lock_enable'])
+			{
+				$template->assign_block_vars('switch_auto_lock_toggle', array());
+			}
+		}
+
+		if ($mode == 'editpost' && $post_data['first_post'])
+		{
+			$auto_lock = array();
+			$auto_lock = auto_lock_status_editpost($topic_id);
+
+			if ($auto_lock['auto_lock_enable'])
+			{
+				$template->assign_block_vars('switch_auto_lock_toggle', array());
+				if ( $auto_lock['enable_auto_lock'] )
+				{
+					$auto_lock_toggle = ' checked="checked"';
+				}
+			}
+		}
+	}
+}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_DELETE_POST' => $lang['Delete_post'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Lock Topic When Maximum Reply Reached
+	'L_AUTO_LOCK' => sprintf($lang['L_AUTO_LOCK'], $auto_lock['auto_lock_reply_number']),
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'S_NOTIFY_CHECKED' => ( $notify_user ) ? 'checked="checked"' : '', 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Lock Topic When Maximum Reply Reached
+	'S_AUTO_LOCK_CHECKED' => ( $auto_lock ) ? 'checked="checked"' : '', 
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'S_TYPE_TOGGLE' => $topic_type_toggle, 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Lock Topic When Maximum Reply Reached
+	'S_AUTO_LOCK_TOGGLE' => $auto_lock_toggle, 
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+viewforum.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+// End of forum prune
+//
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+//
+// Lock Topic When Maximum Reply Reached
+// Check and do Auto Lock
+//
+include($phpbb_root_path . 'includes/functions_auto_lock.'.$phpEx);
+topic_auto_lock($forum_id);
+//
+// End of Auto Lock
+//
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+viewtopic.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+// End session management
+// 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+//
+// Lock Topic When Maximum Reply Reached
+// Check and do Auto Lock
+//
+include($phpbb_root_path . 'includes/functions_auto_lock.'.$phpEx);
+topic_auto_lock($forum_id);
+//
+// End of Auto Lock
+//
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/posting_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		  <!-- END switch_notify_checkbox -->
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		  <!-- BEGIN switch_auto_lock_toggle -->
+		  <tr> 
+			<td> 
+			  <input type="checkbox" name="enable_auto_lock" {S_AUTO_LOCK_TOGGLE} />
+			</td>
+			<td><span class="gen">{L_AUTO_LOCK}</span></td>
+		  </tr>
+		  <!-- END switch_auto_lock_toggle -->
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/forum_edit_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	  <td class="row2"><select name="forumstatus">{S_STATUS_LIST}</select></td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr> 
+	  <td class="row1">{L_AUTO_LOCK}</td>
+	  <td class="row2"><table cellspacing="0" cellpadding="1" border="0">
+		  <tr> 
+			<td align="right" valign="middle">{L_ENABLED}</td>
+			<td align="left" valign="middle"><input type="checkbox" name="auto_lock_enable" value="1" {S_AUTO_LOCK_ENABLED} /></td>
+		  </tr>
+		  <tr> 
+			<td align="right" valign="middle">{L_AUTO_LOCK_REPLY_NUMBER}</td>
+			<td align="left" valign="middle">&nbsp;<input type="text" name="auto_lock_reply_number" value="{AUTO_LOCK_REPLY_NUMBER}" size="5" class="post" />&nbsp;{L_REPLIES}</td>
+		  </tr>
+	  </table></td>
+	</tr>
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+#
+#
+# EoM

@@ -1,0 +1,262 @@
+[b][size=24]MOD Information[/size][/b]
+
+[size=14][b]Title:[/b] Forced login
+[b]Description:[/b] When a guest visits, he will be redirected to login, where a message is displayed stating login is required and providing a register link. This can be turned on and off in the board configuration in the ACP.
+[b]Version:[/b] 2.0.2
+
+[b]Installation Level:[/b] [i]Easy[/i]
+[b]Installation Time:[/b] [i]5 minutes[/i]
+
+[b]Files to edit:[/b] (9) [list][*]login.php
+[*]profile.php
+[*]admin/admin_board.php
+[*]includes/functions_search.php
+[*]includes/page_header.php
+[*]language/lang_english/lang_admin.php
+[*]language/lang_english/lang_main.php
+[*]templates/subSilver/login_body.tpl
+[*]templates/subSilver/admin/board_config_body.tpl[/list]
+[b]Included files:[/b] (N/A) 
+
+[b]Author:[/b] Lord Le Brand < lordlebrand@hotmail.com > (N/A) 
+[/size]
+
+
+[b][size=24]Author Notes[/size][/b]
+Before installing his MOD you should make a backup of all files and the database
+
+
+[b][size=24]MOD History[/size][/b]
+[quote="[color=green]2007-1-10 - Version 2.0.2[/color]"][list]
+[*]Fixed 'Find username' problem
+[/list][/quote]
+[quote="[color=green]2006-9-13 - Version 2.0.1[/color]"][list]
+[*]Fixed configuration
+[/list][/quote]
+[quote="[color=green]2006-9-12 - Version 2.0.0[/color]"][list]
+[*]Rewrote how it handles things
+[*]Renamed from 'Login required message' to 'Forced login'
+[/list][/quote]
+[quote="[color=green]2006-9-11 - Version 1.2.0[/color]"][list]
+[*]Added switch in board configuration
+[/list][/quote]
+[quote="[color=green]2006-9-10 - Version 1.0.0[/color]"][list]
+[*]Got it working
+[/list][/quote]
+
+[b][size=24]Installation Instructions[/size][/b]
+[code]
+
+#
+#-----[ SQL ]------------------------------------------
+#
+INSERT INTO `phpbb_config` (`config_name`, `config_value`) VALUES ('login_required', 0);
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+login.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'USERNAME' => $username,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Forced login ----------------------------------------------------
+//-- add
+			'LOGIN_REQUIRED'   => ( ! $userdata['session_logged_in'] && $board_config['login_required'] ) ? $lang['Login_required'] . '<br /><br />' . sprintf($lang['Click_register'], '<a href="' . append_sid("profile.$phpEx?mode=register") . '">', '</a>') . '<br />&nbsp;' : '',
+//-- fin mod : Forced login ------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+profile.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$mode = htmlspecialchars($mode);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Forced login ----------------------------------------------------
+//-- add
+	if ( $mode != 'viewprofile' )
+	{
+		define('IN_PROFILE', true);
+	}
+//-- fin mod : Forced login ------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$disable_board_yes = ( $new['board_disable'] ) ? "checked=\"checked\"" : "";
+$disable_board_no = ( !$new['board_disable'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Forced login ----------------------------------------------------
+//-- add
+$require_login_yes = ( $new['login_required'] ) ? "checked=\"checked\"" : "";
+$require_login_no = ( !$new['login_required'] ) ? "checked=\"checked\"" : "";
+//-- fin mod : Forced login ------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_DISABLE_BOARD_EXPLAIN" => $lang['Board_disable_explain'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Forced login ----------------------------------------------------
+//-- add
+	"L_LOGIN_REQUIRED" => $lang['Require_login'],
+//-- fin mod : Forced login ------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"S_DISABLE_BOARD_NO" => $disable_board_no,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Forced login ----------------------------------------------------
+//-- add
+	"S_REQUIRE_LOGIN_YES" => $require_login_yes,
+	"S_REQUIRE_LOGIN_NO" => $require_login_no,
+//-- fin mod : Forced login ------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_search.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+function username_search($search_match)
+{
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Forced login ----------------------------------------------------
+//-- add
+	global $userdata;
+//-- fin mod : Forced login ------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+define('HEADER_INC', TRUE);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Forced login ----------------------------------------------------
+//-- add
+if ( ! $userdata['session_logged_in'] && $board_config['login_required'] && ! defined('IN_PROFILE') && ! defined('IN_LOGIN') )
+{
+	redirect(append_sid("login.$phpEx"));	
+}
+//-- fin mod : Forced login ------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all Folks!
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//-- mod : Forced login ----------------------------------------------------
+//-- add
+$lang['Require_login'] = 'Require login';
+//-- fin mod : Forced login ------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all, Folks!
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//-- mod : Forced login ----------------------------------------------------
+//-- add
+$lang['Login_required'] = 'The Administrator requires all users to login.';
+$lang['Click_register'] = 'Click %sHere%s to register a new account';
+//-- fin mod : Forced login ------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/login_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		  <tr> 
+			<td width="45%" align="right"><span class="gen">{L_USERNAME}:</span></td>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+		  <tr> 
+				<td align="center" colspan="2"><span class="gen">{LOGIN_REQUIRED}</span></td>
+		  </tr>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		<td class="row2"><input type="radio" name="board_disable" value="1" {S_DISABLE_BOARD_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="board_disable" value="0" {S_DISABLE_BOARD_NO} /> {L_NO}</td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_LOGIN_REQUIRED}</td>
+		<td class="row2"><input type="radio" name="login_required" value="1" {S_REQUIRE_LOGIN_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="login_required" value="0" {S_REQUIRE_LOGIN_NO} /> {L_NO}</td>
+	</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM[/code]
+
+[i]Please remember to backup all files and databases before installation.[/i]

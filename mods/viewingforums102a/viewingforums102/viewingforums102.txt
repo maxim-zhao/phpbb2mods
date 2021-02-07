@@ -1,0 +1,134 @@
+##############################################################
+## MOD Title: Number Viewing Forums
+## MOD Author: digitaltsai < digitaltsai@gmail.com > (Tsai) N/A
+## MOD Description: Shows the number of people viewing each forum.
+## MOD Version: 1.0.2
+## 
+## Installation Level: Easy
+## Installation Time: 9 minutes
+## Files To Edit: index.php
+##                language/lang_english/lang_main.php
+##                templates/subSilver/index_body.tpl
+##                includes/sessions.php
+## Included Files: N/A
+## Generator: MOD Studio 3.0 Alpha 1 [mod functions 0.2.1677.25348]
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: This MOD will install using EasyMOD!
+## This MOD is EasyMOD Friendly!
+## Use EasyMOD to install this MOD!
+##############################################################
+## MOD History:
+## 
+##   2006-01-07 - Version 1.0.2
+## 
+##      -More changes made to fix mod.
+## 
+##   2005-12-13 - Version 1.0.1
+## 
+##      - Apprently I had some mistakes in my mod in the first "stable" release.
+## 
+##   2005-12-11 - Version 1.0.0
+## 
+##      - First Stable release. Version 1.0.0 of a MOD is always it's first stable release.
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+index.php
+#
+#-----[ FIND ]------------------------------------------
+#
+								$moderator_list = '&nbsp;';
+							}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+							//Start Forum Viewers Mod
+							$limit_time = 5; //Gets sessions in the last five minutes
+							$limit_time = time() - ($limit_time * 60);
+							$sql = "SELECT * FROM " . SESSIONS_TABLE . "
+								WHERE session_page = '" . $forum_id . "' AND session_time > $limit_time";
+            				if (!($result = $db->sql_query($sql)) )
+			                {
+			                	message_die(GENERAL_ERROR, 'Could not retrieve session data', __LINE__, __FILE__, $sql);
+               				}
+							$temp_num = $db->sql_numrows($result);
+							$view_num_text = '';
+							if ($temp_num > 0)
+							{
+								$view_num_text = '(' . $temp_num . ' ' . $lang['viewing'] . ')';
+							}
+							//End Forum Viewers Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+								'MODERATORS' => $moderator_list,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+								'FORUM_VIEWERS' => $view_num_text, 
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Viewing_FAQ'] = 'Viewing FAQ';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['viewing'] = ' people are currently viewing';
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/index_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<td class="row1" width="100%" height="50"><span class="forumlink"> <a href="{catrow.forumrow.U_VIEWFORUM}"
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+{catrow.forumrow.FORUM_NAME}</a>
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ <span class="gensmall">{catrow.forumrow.FORUM_VIEWERS}</span>
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+includes/sessions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+				if ( $current_time - $userdata['session_time'] > 60 )
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+60
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+0
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

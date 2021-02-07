@@ -1,0 +1,561 @@
+######################################################## 
+## 外掛名稱: Gravatar (全球認許頭像)
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 這個外掛允許管理員在控制台內增加一個新的頭像選項讓使用者使用他們的 Gravatar. 如果啟用, 會員可以選擇使用他們的 Gravatar.
+## 外掛版本: 1.2.0
+## 
+## 安裝難度: 中等 
+## 安裝時間: 10 分鐘 
+##
+## 需要編輯的檔案: 14
+##	viewtopic.php
+##	admin/admin_board.php
+##	admin/admin_users.php
+##	includes/constants.php
+##	includes/usercp_register.php
+##	includes/usercp_viewprofile.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/subSilver.css
+##	templates/subSilver/overall_header.tpl
+##	templates/subSilver/subSilver.cfg
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/admin/user_edit_body.tpl
+##
+## 附加的檔案: 2
+##	root/functions_gravatar.php
+##	root/images/gravatar_default.gif
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+##############################################################
+## 作者留言:
+##	此外掛在 2.0.19 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##
+##	什麼是 gravatar?
+##	http://www.gravatar.com/
+##	Gravatar, 或是全球認許頭像, 是一個可以跟著你在允許使用 gravatar 的網誌 (或網站) 中以 80 乘 80 畫素的頭像圖示顯示在你的文章旁
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2006-01-09 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2006-01-17 - 版本 1.1.0
+##      - 修正英文版內的安全宣告
+##	- 增加了頭像等級和大小設定並且也加入了預設圖像讓頭像無法顯示時使用
+##
+##   2006-03-06 - 版本 1.1.1
+##      - 把所有的 include() 改成 include_once().
+##
+##   2006-04-02 - 版本 1.2.0
+##      - 當 Gravatar 允許使用並且被會員使用時，在編輯個人資料中顯示會員使用的 Gravatar 電子信箱
+##	- 在編輯個人資料的頁面中顯示 http://www.gravatar.com/ 連結
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 請記得修改成你的資料表名稱
+INSERT INTO `phpbb_config` VALUES ('allow_gravatar', '0');
+INSERT INTO `phpbb_config` VALUES ('allow_gravatar_only', '0');
+INSERT INTO `phpbb_config` VALUES ('allow_gravatar_rating', '1');
+# 
+#-----[ 複製 ]------------------------------------------ 
+#
+copy root/images/gravatar_default.gif to templates/subSilver/images/gravatar_default.gif
+copy root/functions_gravatar.php to includes/functions_gravatar.php
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+language/lang_english/lang_admin.php
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+$lang['Avatar_gallery_path_explain'] =
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+// Gravatar MOD
+$lang['Allow_gravatar'] = '啟用 Gravatar';
+$lang['Allow_gravatar_explain'] = '允許會員使用他們的 Gravatars';
+$lang['Allow_gravatar_only'] = '只允許使用 Gravatar';
+$lang['Allow_gravatar_only_explain'] = '啟用這個選項代表會員只能使用他們的 Gravatars 但無法使用其他 phpBB 的預設頭像選項';
+$lang['Gravatar_user_email'] = '會員 <a href="http://www.gravatar.com/" target="_blank">Gravatar</a> 的註冊電子郵件';
+$lang['Allow_gravatar_rating'] = '允許的頭像等級';
+$lang['Allow_gravatar_rating_explain'] = '選擇頭像顯示最大的允許等級.<br />例如, PG 的等級會允許被評估為 G 以及 PG 的頭像.';
+$lang['Gravatar_rating_G'] = '普級';
+$lang['Gravatar_rating_PG'] = '輔導級';
+$lang['Gravatar_rating_R'] = '限制級';
+$lang['Gravatar_rating_X'] = '限制級 (色情)';
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+$lang['Avatar_gallery'] =
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+// Gravatar MOD
+$lang['Gravatar_panel'] = 'Gravatar 控制面板';
+$lang['Gravatar_email'] = '你的 <a href="http://www.gravatar.com/" target="_blank">Gravatar</a> 註冊電子郵件';
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+admin/admin_board.php
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+$avatars_upload_no = ( !$new['allow_avatar_upload'] ) ? "checked=\"checked\"" : "";
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+// Gravatar MOD
+$gravatar_yes = ( $new['allow_gravatar'] ) ? "checked=\"checked\"" : "";
+$gravatar_no = ( !$new['allow_gravatar'] ) ? "checked=\"checked\"" : "";
+$gravatar_only_yes = ( $new['allow_gravatar_only'] ) ? "checked=\"checked\"" : "";
+$gravatar_only_no = ( !$new['allow_gravatar_only'] ) ? "checked=\"checked\"" : "";
+$gravatar_G = ( $new['allow_gravatar_rating'] == GRAVATAR_G ) ? "checked=\"checked\"" : "";
+$gravatar_PG = ( $new['allow_gravatar_rating'] == GRAVATAR_PG ) ? "checked=\"checked\"" : "";
+$gravatar_R = ( $new['allow_gravatar_rating'] == GRAVATAR_R ) ? "checked=\"checked\"" : "";
+$gravatar_X = ( $new['allow_gravatar_rating'] == GRAVATAR_X ) ? "checked=\"checked\"" : "";
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+	"L_AVATAR_GALLERY_PATH_EXPLAIN" => $lang['Avatar_gallery_path_explain'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// Gravatar MOD
+	"L_ALLOW_GRAVATAR" => $lang['Allow_gravatar'],
+	"L_ALLOW_GRAVATAR_EXPLAIN" => $lang['Allow_gravatar_explain'],
+	"L_ALLOW_GRAVATAR_ONLY" => $lang['Allow_gravatar_only'],
+	"L_ALLOW_GRAVATAR_ONLY_EXPLAIN" => $lang['Allow_gravatar_only_explain'],
+	"L_ALLOW_GRAVATAR_RATING" => $lang['Allow_gravatar_rating'],
+	"L_ALLOW_GRAVATAR_RATING_EXPLAIN" => $lang['Allow_gravatar_rating_explain'],
+	"L_GRAVATAR_RATING_G" => $lang['Gravatar_rating_G'],
+	"L_GRAVATAR_RATING_PG" => $lang['Gravatar_rating_PG'],
+	"L_GRAVATAR_RATING_R" => $lang['Gravatar_rating_R'],
+	"L_GRAVATAR_RATING_X" => $lang['Gravatar_rating_X'],
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+	"AVATARS_UPLOAD_NO" => $avatars_upload_no,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// Gravatar MOD
+	"GRAVATAR_YES" => $gravatar_yes,
+	"GRAVATAR_NO" => $gravatar_no,
+	"GRAVATAR_ONLY_YES" => $gravatar_only_yes,
+	"GRAVATAR_ONLY_NO" => $gravatar_only_no,
+	"GRAVATAR_RATING_G" => GRAVATAR_G, 
+	"GRAVATAR_RATING_G_CHECKED" => $gravatar_G,
+	"GRAVATAR_RATING_PG" => GRAVATAR_PG, 
+	"GRAVATAR_RATING_PG_CHECKED" => $gravatar_PG,
+	"GRAVATAR_RATING_R" => GRAVATAR_R, 
+	"GRAVATAR_RATING_R_CHECKED" => $gravatar_R, 
+	"GRAVATAR_RATING_X" => GRAVATAR_X, 
+	"GRAVATAR_RATING_X_CHECKED" => $gravatar_X, 
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+admin/admin_users.php
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		$user_avatar_filetype = ( !empty($HTTP_POST_FILES['avatar']['type']) ) ? $HTTP_POST_FILES['avatar']['type'] : '';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		$user_gravatar_email = ( !empty($HTTP_POST_VARS['gravatar_email']) ) ? trim(htmlspecialchars($HTTP_POST_VARS['gravatar_email'])) : '';	// Gravatar MOD
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+			$avatar_sql = ", user_avatar = '" . str_replace("\'", "''", phpbb_ltrim(basename($user_avatar_category), "'") . '/' . phpbb_ltrim(basename($user_avatar_local), "'")) . "', user_avatar_type = " . USER_AVATAR_GALLERY;
+		}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		// Gravatar MOD
+		else if( $user_gravatar_email != "" && $avatar_sql == "" && !$error )
+		{
+			if (preg_match('/^[a-z0-9&\'\.\-_\+]+@[a-z0-9\-]+\.([a-z0-9\-]+\.)*?[a-z]+$/is', $user_gravatar_email))
+			{
+				$sql = "SELECT ban_email
+						FROM " . BANLIST_TABLE;
+				if ($result = $db->sql_query($sql))
+				{
+					if ($row = $db->sql_fetchrow($result))
+					{
+						do
+						{
+							$match_email = str_replace('*', '.*?', $row['ban_email']);
+							if (preg_match('/^' . $match_email . '$/is', $user_gravatar_email))
+							{
+								$db->sql_freeresult($result);
+
+								$error = true;
+								$error_msg = ( !empty($error_msg) ) ? $error_msg . '<br />' . $lang['Email_banned'] : $lang['Email_banned'];
+							}
+						}
+						while($row = $db->sql_fetchrow($result));
+					}
+				}
+				$db->sql_freeresult($result);
+
+				$avatar_sql = ", user_avatar = '" . str_replace("\'", "''", $user_gravatar_email) . "', user_avatar_type = " . USER_GRAVATAR;
+			}
+		}
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+					$avatar = '<img src="../' . $board_config['avatar_gallery_path'] . '/' . $user_avatar . '" alt="" />';
+					break;
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+				// Gravatar MOD
+				case USER_GRAVATAR:
+					include_once($phpbb_root_path . 'includes/functions_gravatar.'.$phpEx);
+					$avatar = gravatar_output($user_avatar);
+					$gravatar_mail = $user_avatar;
+					break;
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			'RANK_SELECT_BOX' => $rank_select_box,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			'GRAVATAR_MAIL' => ($gravatar_mail) ? $gravatar_mail : '',	// Gravatar MOD
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+			'L_LINK_REMOTE_AVATAR' => $lang['Link_remote_Avatar'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			'L_GRAVATAR_USER_EMAIL' => $lang['Gravatar_user_email'],	// Gravatar MOD
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+			$template->assign_block_vars('avatar_remote_link', array() );
+		}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		// Gravatar MOD
+		if( $board_config['allow_gravatar'] == TRUE )
+		{
+			$template->assign_block_vars('gravatar', array() );
+		}
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/constants.php
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+define('USER_AVATAR_GALLERY', 3);
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+// Gravatar MOD
+define('USER_GRAVATAR', 4);
+define('GRAVATAR_G', 0);
+define('GRAVATAR_PG', 1);
+define('GRAVATAR_R', 2);
+define('GRAVATAR_X', 3);
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/usercp_register.php
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+	$user_avatar_filetype = ( !empty($HTTP_POST_FILES['avatar']['type']) ) ? $HTTP_POST_FILES['avatar']['type'] : '';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	$user_gravatar_email = ( !empty($HTTP_POST_VARS['gravatar_email']) ) ? trim(htmlspecialchars($HTTP_POST_VARS['gravatar_email'])) : '';	// Gravatar MOD
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		$avatar_sql = user_avatar_gallery($mode, $error, $error_msg, $user_avatar_local, $user_avatar_category);
+	}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// Gravatar MOD
+	else if ( $user_gravatar_email != '' && $board_config['allow_gravatar'] )
+	{
+		user_avatar_delete($userdata['user_avatar_type'], $userdata['user_avatar']);
+		include_once($phpbb_root_path . 'includes/functions_gravatar.'.$phpEx);
+		$avatar_sql = user_gravatar($mode, $error, $error_msg, $user_gravatar_email);
+	}
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+				$avatar_img = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $user_avatar . '" alt="" />' : '';
+				break;
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			// Gravatar MOD
+			case USER_GRAVATAR:
+				include_once($phpbb_root_path . 'includes/functions_gravatar.'.$phpEx);
+				$avatar_img = gravatar_output($user_avatar);
+				$gravatar_mail = $user_avatar;
+				break;
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		'SMILIES_STATUS' => $smilies_status,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		'GRAVATAR_MAIL' => ($gravatar_mail) ? $gravatar_mail : '',	// Gravatar MOD
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		'L_LINK_REMOTE_AVATAR_EXPLAIN' => $lang['Link_remote_Avatar_explain'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		// Gravatar MOD
+		'L_GRAVATAR_PANEL' => $lang['Gravatar_panel'],
+		'L_GRAVATAR_EMAIL' => $lang['Gravatar_email'],
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		'S_ALLOW_AVATAR_REMOTE' => $board_config['allow_avatar_remote'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		'S_ALLOW_GRAVATAR' => $board_config['allow_gravatar'],	// Gravatar MOD
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		if ( $userdata['user_allowavatar'] &&
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+if ( $userdata['user_allowavatar'] &&
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ !$board_config['allow_gravatar_only'] &&
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+$board_config['allow_avatar_remote']
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ || $board_config['allow_gravatar']
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+				$template->assign_block_vars('switch_avatar_block.switch_avatar_local_gallery', array() );
+			}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			// Gravatar MOD
+			if ( $board_config['allow_gravatar'] )
+			{
+				$template->assign_block_vars('switch_gravatar', array() );
+			}
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+	}
+}
+
+$template->pparse('body');
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+		// Gravatar MOD
+		else
+		{
+			if ( $userdata['user_allowavatar'] && $board_config['allow_gravatar_only'] && $board_config['allow_gravatar'] )
+			{
+				$template->assign_block_vars('switch_gravatar', array());
+				if ( !empty($user_avatar) )
+				{
+					$template->assign_block_vars('switch_gravatar.switch_gravatar_only', array());
+				}
+			}
+		}
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+viewtopic.php
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+				$poster_avatar = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $postrow[$i]['user_avatar'] . '" alt="" border="0" />' : '';
+				break;
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			// Gravatar MOD
+			case USER_GRAVATAR:
+				include_once($phpbb_root_path . 'includes/functions_gravatar.'.$phpEx);
+				$poster_avatar = gravatar_output($postrow[$i]['user_avatar']);
+				break;
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/usercp_viewprofile.php
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+			$avatar_img = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $profiledata['user_avatar'] . '" alt="" border="0" />' : '';
+			break;
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		// Gravatar MOD
+		case USER_GRAVATAR:
+			include_once($phpbb_root_path . 'includes/functions_gravatar.'.$phpEx);
+			$avatar_img = gravatar_output($profiledata['user_avatar']);
+			break;
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+	<!-- END switch_avatar_block -->
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	<!-- BEGIN switch_gravatar -->
+	<tr> 
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+	<tr> 
+	  <th class="thSides" colspan="2" height="12" valign="middle">{L_GRAVATAR_PANEL}</th>
+	</tr>
+	<!-- BEGIN switch_gravatar_only -->
+	<tr> 
+		<td class="row1" colspan="2"><table width="70%" cellspacing="2" cellpadding="0" border="0" align="center">
+			<tr> 
+				<td align="center" colspan="2"><span class="gensmall">{L_CURRENT_IMAGE}</span><br />{AVATAR}<br /><input type="checkbox" name="avatardel" />&nbsp;<span class="gensmall">{L_DELETE_AVATAR}</span></td>
+			</tr>
+		</table></td>
+	</tr>
+	<!-- END switch_gravatar_only -->
+	<tr> 
+		<td class="row1"><span class="gen">{L_GRAVATAR_EMAIL}:</span></td>
+		<td class="row2"><input type="text" class="post" style="width:200px" name="gravatar_email" size="25" maxlength="255" value="{GRAVATAR_MAIL}" /></td>
+	</tr>
+	<!-- END switch_gravatar -->
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="avatar_gallery_path" value="{AVATAR_GALLERY_PATH}" /></td>
+	</tr>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	<tr>
+		<td class="row1">{L_ALLOW_GRAVATAR} <br /><span class="gensmall">{L_ALLOW_GRAVATAR_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="allow_gravatar" value="1" {GRAVATAR_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_gravatar" value="0" {GRAVATAR_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ALLOW_GRAVATAR_ONLY} <br /><span class="gensmall">{L_ALLOW_GRAVATAR_ONLY_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="allow_gravatar_only" value="1" {GRAVATAR_ONLY_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_gravatar_only" value="0" {GRAVATAR_ONLY_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ALLOW_GRAVATAR_RATING} <br /><span class="gensmall">{L_ALLOW_GRAVATAR_RATING_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="allow_gravatar_rating" value="{GRAVATAR_RATING_G}" {GRAVATAR_RATING_G_CHECKED} />{L_GRAVATAR_RATING_G}&nbsp; &nbsp;<input type="radio" name="allow_gravatar_rating" value="{GRAVATAR_RATING_PG}" {GRAVATAR_RATING_PG_CHECKED} />{L_GRAVATAR_RATING_PG}&nbsp; &nbsp;<input type="radio" name="allow_gravatar_rating" value="{GRAVATAR_RATING_R}" {GRAVATAR_RATING_R_CHECKED} />{L_GRAVATAR_RATING_R}&nbsp; &nbsp;<input type="radio" name="allow_gravatar_rating" value="{GRAVATAR_RATING_X}" {GRAVATAR_RATING_X_CHECKED} />{L_GRAVATAR_RATING_X}</td>
+	</tr>
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/admin/user_edit_body.tpl
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+	<!-- END avatar_local_gallery -->
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	<!-- BEGIN gravatar -->
+	<tr> 
+	  <td class="row1"><span class="gen">{L_GRAVATAR_USER_EMAIL}</span></td>
+	  <td class="row2"> 
+		<input class="post" type="text" name="gravatar_email" size="40" style="width: 200px" value="{GRAVATAR_MAIL}" />
+	  </td>
+	</tr>
+	<!-- END gravatar -->
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/subSilver.css
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+.helpline
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+/* Gravatar MOD */
+img.gravatar {
+    border: 1px solid #000000;
+    background: #FFFFFF;
+}
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/overall_header.tpl
+# 
+#-----[ 尋找 ] ------------------------------------------ 
+#
+.helpline
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+/* Gravatar MOD */
+img.gravatar {
+    border: 1px solid #000000;
+    background: #FFFFFF;
+}
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/subSilver.cfg
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+/* Gravatar MOD */
+$images['icon_gravatar_default'] = "$current_template_images/gravatar_default.gif";
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

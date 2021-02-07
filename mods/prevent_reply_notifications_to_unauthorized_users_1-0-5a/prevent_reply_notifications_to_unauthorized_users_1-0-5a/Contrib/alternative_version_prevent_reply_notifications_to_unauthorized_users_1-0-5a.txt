@@ -1,0 +1,192 @@
+############################################################## 
+## MOD Title:		prevent reply notifications to unauthorized users (alternative version that includes changes if you have David Hermann's forum notification mod)
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Description:	PHPBB does not check the current authorization of a user when it sends reply
+##			notification emails to all users listed in the topic watch table.  This means for example that if a user 
+##			is moved to a new group that does not have access to a given forum (or gets deactivated), the user 
+##			will continue to receive email notifications of replies to topics he posted in that appear in that forum.
+##			Then, when he folows the link in the email, he is told no such topic or post exists (since he is no longer authorized
+##			to be in that forum).  This mod fixes that behavior by ensuring that only users who are authorized to read
+##			a given forum receive email notifications of replies in that forum.
+##
+## MOD Version:		1.0.5a
+## 
+## Installation Level:	Easy 
+## Installation Time:	1 Minute 
+##
+## Files To Edit:	includes/functions_post.php
+##			
+## Included Files:	N/A 
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:  Use this alternative version only if you use David Hermann's forum notification mod.  If you do not
+##		  use David Hernann's forum notification mod, do NOT use this file; instead, use
+##		  the file called prevent_reply_notifications_to_unauthorized_users_1-0-5a.txt
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2006-05-20 - Version 1.0.5a
+##      - no change at all from 1.0.5...this is just a repack for validation with phpbb 2.0.20
+##
+##   2005-01-15 - Version 1.0.5
+##      - undid my change from version 1.0.4 and instead re-wrote the $sql definition to use an outer join for the auth_access table 
+##	  in case a user no longer has any groups and for that reason would otherwise have an empty auth_access table 
+##	  (since the basic query before this change would return nothing if that table is totally null, even when a forum is totally open);
+##	  this results in a very large performance gain, even on middle sized boards
+##
+##   2005-01-14 - Version 1.0.4
+##      - added a SQL command that sticks a zero entry into the auth_access table in case a user no longer has any groups
+##	  and for that reason would otherwise have an empty auth_access table (since the basic query will return nothing if
+##	  that table is totally null, even when a forum is totally open)
+##
+##   2004-09-11 - Version 1.0.3 (altternative version)
+##      - tweaked things so that an admin can get notifications from a forum even if he is not in a group authorized 
+##	  to view that forum (since admins are generally allowed to see a forum even if they are not in a group authorized to see that forum)
+##
+##   2004-09-11 - Version 1.0.2 (alternative version)
+##      - added the changes needed if you use David Hermann's forum notification mod
+##
+##   2004-09-6 - Version 1.0.2
+##      - simplified the name of the mod; no other changes
+##
+##   2004-07-30 - Version 1.0.1 
+##      - added additional check to allow reply emails to all users if the forum is open to all 
+##	  registered users and to allow emails to all mods or admins
+##	  if the forum is open to all mods or admins
+##
+##   2004-07-30 - Version 1.0.0 
+##      - initial version
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions_post.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$sql = "SELECT u.user_id, u.user_email, u.user_lang, u.username, f.forum_name 
+				FROM " . TOPICS_WATCH_TABLE . " tw, " . USERS_TABLE . " u, " . FORUMS_TABLE . " f 
+				WHERE tw.topic_id = $topic_id 
+					AND tw.user_id NOT IN (" . $userdata['user_id'] . ", " . ANONYMOUS . $user_id_sql . ") 
+					AND tw.notify_status = " . TOPIC_WATCH_UN_NOTIFIED . " 
+					AND f.forum_id = $forum_id 
+					AND u.user_id = tw.user_id";
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+// start mod prevent_reply_notification_emails_from_being_emailed_to_unauthorized_users...replaced the original
+// $sql definition with the one that appears below
+			$sql = "SELECT DISTINCT u.user_id, u.user_email, u.user_lang 
+				FROM " . TOPICS_WATCH_TABLE . " tw
+				INNER JOIN " . USERS_TABLE . " u ON tw.user_id = u.user_id
+				INNER JOIN " . USER_GROUP_TABLE . " ug ON tw.user_id = ug.user_id
+				LEFT OUTER JOIN " . AUTH_ACCESS_TABLE . " aa ON ug.group_id = aa.group_id,
+				" . FORUMS_TABLE . " f
+				WHERE tw.topic_id = $topic_id 
+				AND tw.user_id NOT IN (" . $userdata['user_id'] . ", " . ANONYMOUS . $user_id_sql . ") 
+				AND tw.notify_status = " . TOPIC_WATCH_UN_NOTIFIED . " 
+				AND f.forum_id = $forum_id
+				AND u.user_active = 1
+				AND
+				(
+					( aa.forum_id = $forum_id AND aa.auth_read = 1 )
+					OR f.auth_read <= " . AUTH_REG . " 
+					OR (u.user_level = " . MOD . " AND f.auth_read = " . AUTH_MOD . ")
+					OR u.user_level = " . ADMIN . "
+				)";
+// end mod prevent_reply_notification_emails_from_being_emailed_to_unauthorized_users
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			// start of reply forum notification
+			$sql = "SELECT u.user_id, u.user_email, u.user_lang, f.forum_name
+				FROM " . USERS_TABLE . " u, " . FORUMS_WATCH_TABLE . " fw, " . FORUMS_TABLE . " f 
+				WHERE fw.forum_id = $forum_id 
+					AND fw.user_id NOT IN (" . $already_mailed . $userdata['user_id'] . ", " . ANONYMOUS . $user_id_sql . " ) 
+					AND f.forum_id = $forum_id
+					AND f.forum_notify = '1' 
+					AND u.user_id = fw.user_id";
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+// start of reply forum notification
+// start mod prevent_reply_notification_emails_from_being_emailed_to_unauthorized_users...replaced the original
+// $sql definition with the one that appears below
+			$sql = "SELECT DISTINCT u.user_id, u.user_email, u.user_lang, f.forum_name 
+				FROM " . FORUMS_WATCH_TABLE . " fw
+				INNER JOIN " . USERS_TABLE . " u ON fw.user_id = u.user_id
+				INNER JOIN " . USER_GROUP_TABLE . " ug ON fw.user_id = ug.user_id
+				LEFT OUTER JOIN " . AUTH_ACCESS_TABLE . " aa ON ug.group_id = aa.group_id,
+				" . FORUMS_TABLE . " f
+				WHERE fw.forum_id = $forum_id
+				AND fw.user_id NOT IN (" . $already_mailed . $userdata['user_id'] . ", " . ANONYMOUS . $user_id_sql . ") 
+				AND f.forum_id = $forum_id
+				AND f.forum_notify = 1
+				AND u.user_active = 1
+				AND
+				(
+					( aa.forum_id = $forum_id AND aa.auth_read = 1 )
+					OR f.auth_read <= " . AUTH_REG . " 
+					OR (u.user_level = " . MOD . " AND f.auth_read = " . AUTH_MOD . ")
+					OR u.user_level = " . ADMIN . "
+				)";
+// end mod prevent_reply_notification_emails_from_being_emailed_to_unauthorized_users
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$sql = "SELECT u.user_id, u.username, u.user_email, u.user_lang, f.forum_name 
+				FROM " . FORUMS_WATCH_TABLE . " fw, " . USERS_TABLE . " u, " . FORUMS_TABLE . " f 
+				WHERE fw.forum_id = $forum_id 
+					AND fw.user_id NOT IN (" . $userdata['user_id'] . ", " . ANONYMOUS . $user_id_sql . ") 
+					AND f.forum_id = $forum_id 
+					AND f.forum_notify = '1'  
+					AND u.user_id = fw.user_id";
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+// start mod prevent_reply_notification_emails_from_being_emailed_to_unauthorized_users...replaced the original
+// $sql definition with the one that appears below
+			$sql = "SELECT DISTINCT u.user_id, u.username, u.user_email, u.user_lang, f.forum_name 
+				FROM " . FORUMS_WATCH_TABLE . " fw
+				INNER JOIN " . USERS_TABLE . " u ON fw.user_id = u.user_id
+				INNER JOIN " . USER_GROUP_TABLE . " ug ON fw.user_id = ug.user_id
+				LEFT OUTER JOIN " . AUTH_ACCESS_TABLE . " aa ON ug.group_id = aa.group_id,
+				" . FORUMS_TABLE . " f
+				WHERE fw.forum_id = $forum_id 
+				AND fw.user_id NOT IN (" . $userdata['user_id'] . ", " . ANONYMOUS . $user_id_sql . ") 
+				AND f.forum_id = $forum_id
+				AND f.forum_notify = 1
+				AND u.user_active = 1
+				AND
+				(
+					( aa.forum_id = $forum_id AND aa.auth_read = 1 )
+					OR f.auth_read <= " . AUTH_REG . " 
+					OR (u.user_level = " . MOD . " AND f.auth_read = " . AUTH_MOD . ")
+					OR u.user_level = " . ADMIN . "
+				)";
+// end mod prevent_reply_notification_emails_from_being_emailed_to_unauthorized_users
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

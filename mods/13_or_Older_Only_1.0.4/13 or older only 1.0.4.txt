@@ -1,0 +1,160 @@
+##############################################################
+## MOD Title: 13 or Older Only
+## MOD Author: Falstaff < david@falstaffenterprises.com > (David Falstaff) http://www.falstaffenterprises.com
+## MOD Description: Changes your registration page to allow only 13 and older to register, 
+##                  negating the need for a COPPA agreement. When a user clicks 'I Agree to 
+##                  these terms and am under 13 years of age' they receive a polite error 
+##                  message and are re-directed to another web site after 10 seconds. Also 
+##                  removes the 'COPPA Settings' section from the board configuration CP. 
+## MOD Version: 1.0.4
+##
+## Installation Level: (Easy)
+## Installation Time: ~5 Minutes
+## Files To Edit:
+##               includes/usercp_register.php
+##               language/lang_main.php
+##               templates/subSilver/admin/board_config_body.tpl             
+## Included Files: 
+##               templates/subSilver/13_or_older_body.tpl.tpl
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## If your website is not directed to children, and if you are not collecting any personal 
+## information from children, then you are not subject to the COPPA Rule. You should visit 
+## http://www.ftc.gov/privacy/coppafaqs.htm if you have any questions about COPPA compliance.
+## 
+##############################################################
+## MOD History:
+##
+##   2004-10-13 - Version 1.0.4
+##      - Clarified instuctions
+##
+##   2004-10-09 - Version 1.0.3
+##      - Corrected typos
+##
+##   2004-09-29 - Version 1.0.2
+##      - Corrected typos
+##      - Corrected security issue
+##
+##   2004-09-28 - Version 1.0.1
+##      - Added polite error message before redirection
+## 
+##   2004-09-20 - Version 1.0.0
+##      - Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+
+copy templates/subSilver/13_or_older_body.tpl to templates/subSilver/13_or_older_body.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+$coppa = ( empty($HTTP_POST_VARS['coppa']) && empty($HTTP_GET_VARS['coppa']) ) ? 0 : TRUE;
+
+#
+#-----[ AFTER, ADD ]----------------------------------
+#
+
+// BEGIN 13 or Older Only MOD
+if ( intval ($coppa) == 1 )
+{
+	include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+	
+	$template->set_filenames(array(
+		'body' => '13_or_older_body.tpl')
+	);
+
+	$template->assign_vars(array(
+		'U_REDIRECT' => ("http://disney.com/kids/"),
+		'L_REDIRECT_HEADER' => $lang['redirect_header'],
+		'L_REDIRECT_MESSAGE' => $lang['redirect_message'])
+	);
+
+	$template->pparse('body');
+
+	include($phpbb_root_path . 'includes/page_tail.'.$phpEx);
+}
+// END 13 or Older Only MOD
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+//
+// That's all, Folks!
+// -------------------------------------------------
+
+#
+#-----[ AFTER, ADD ]----------------------------------
+#
+
+// BEGIN 13 or Older Only MOD
+$lang['redirect_header'] = 'Registration Agreement Terms Not Met';
+$lang['redirect_message'] = 'We\'re sorry. You must be over 13 years old to register. You are being redirected to a more suitable website.';
+// END 13 or Older Only MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	<tr>
+	  <th class="thHead" colspan="2">{L_COPPA_SETTINGS}</th>
+	</tr>
+
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#	
+
+	<!-- BEGIN 13 or Older Only MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	<tr>
+		<td class="row1">{L_COPPA_MAIL}<br /><span class="gensmall">{L_COPPA_MAIL_EXPLAIN}</span></td>
+		<td class="row2"><textarea name="coppa_mail" rows="5" cols="30">{COPPA_MAIL}</textarea></td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	 END 13 or Older Only MOD-->
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

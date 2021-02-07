@@ -1,0 +1,512 @@
+Changelog:
+
+2006-09-06 - Version 2.4.5
+	- fixed another XSS vulnerability only occurring for users using the internet explorer - Kellanved
+	- added COPY statement for easymod
+	- some very tiny template fixes
+	- thanks to alcaeus for verifying that the XSS issues got fixed by the implemented code
+
+2006-09-04 - Version 2.4.4
+	- fixed typo in functions_filetypes.php
+	- adjusted install.txt to follow the phpBB MOD guidelines
+	- adjusted attachment viewtopic template for calling the loop param correctly
+	- fixed XSS only occurring for users using Internet Explorer - Vovochka
+	- used constant for user id in functions_includes
+
+2006-04-23 - Version 2.4.3
+	- fixed wrong id in posting_attachments.php
+	- fixed some wrong db calls in functions_admin.php (not changing functionality)
+
+2006-04-18 - Version 2.4.2
+	- fixed XSS on uploading while displaying an error - Ptirhiik
+	- take user_pending status into account while checking the quota limits - Ptirhiik
+	- check the edited attachment ids if they belong to the post/pm - Ptirhiik
+	- check filename/id information for new attachments on new post/pm - Ptirhiik
+	- moved check for empty files before database check in shadow attachments - John Bigg
+	- show all forbidden extensions
+
+2005-12-30 - Version 2.4.1
+	- fixed doubled sql_freeresult in functions_selects.php
+	- fix extension admin panel (unable to update extensions)
+	- changed tmp dir for ftp download in safe mod from temp directory in upload directory to upload directory
+
+2005-11-24 - Version 2.4.0a
+	- fixed a call to sql_build_array (wrong function used) in attach_mod/includes/functions_admin.php
+		this is producing a php error message within the user administration panel (editing user details)
+	- this version is a repackage, therefore the "a" at the end (nothing else changed, update path and everything else is the same)
+
+2005-11-21 - Version 2.4.0
+	- using olympus' system of retrieving and storing values
+	- using function for sql escaping
+	- installer now checks for upload directory
+	- fixing multiple call to database in installer
+	- fixing sort_multi_array to correctly decide if sorting is based on numeric or string
+	- taking open basedir restriction into account if checking for image size
+	- making creation of temporary thumbnail file more unique if ftp upload is used (thanks to Douglas Hoffman)
+	- fixing viewing of no longer viewable/denied attachments for admins (alcaeus)
+	- display correct filename on download
+	- added optional language variables (Sync_topics, Sync_posts and Sync_thumbnails)
+
+2005-07-16 - Version 2.3.14
+	- seperated pre-modified files from the Mod and made them downloadable as a seperate package
+	- updated pre-modified files to be compatible with the latest phpBB-Version
+	- fixed bug with umlauts in filenames
+	- updated create_thumbnails.php script to abide to the minimum thumbnail size - thanks to weightweenies
+	- fixed typo in routine for determining when to refresh the posting screen - thanks to Meithar
+	- invoke correct thumbnail display if storage path is outside of webroot
+
+2005-05-10 - Version 2.3.13
+	- updated pre-modified files to be compatible with phpBB 2.0.15
+	- fixed serious issue with realnames. My thanks goes to CastleCops (specifically to Mere-Mortal and Paul) for discovering and reporting the issue
+	- catch empty files if set
+	- prevented generation of empty physical filenames if cryptic filenaming is not enabled
+	- changed the way get_var is working - thanks to AnthraX101 for noting the issue
+	- do not display upload limits if mod is disabled
+
+2005-04-16 - Version 2.3.12
+	- updated pre-modified files to be compatible with phpBB 2.0.14
+	- added is_uploaded_file check to make sure only files really got uploaded gets into the filesystem
+	- re-added opening new page on attachment download
+	- fixed thumbnail erroring out on some occassions
+
+2004-12-12 - Version 2.3.11
+	- fixed bug in GD/Imagick-Detection (on some installations thumbnailing images did not work)
+	- Added mysql index to attachment table for larger boards
+	- updated pre-edited files to be compatible with phpBB 2.0.11
+	- changed order of uploading files, resulting in hopefully getting the correct filesizes 
+	  if the server does not allow file access outside the working directory
+	- added check for config table constant to update script
+	- fixed overwriting of group_id in admin_groups if Categories Hirarchie mod is installed
+	- fixed bugs regarding the 4GB limits users experienced
+	- fixed deletion of thumbnails
+
+	- fixed directory traversal injection (high severity) - Paul Laudanski (AKA Zhen-Xjell) http://castlecops.com
+		With this an attacker could be able to add/remove/execute files outside of the upload directory
+
+	- fixed multiple file extensions vulnerability (high severity) - Jeremy Bae at STG Security, Inc.
+		Due to the handling of mod_mime on multiple extensions an attacker is able to upload arbitrary script files
+		to the web server.
+
+
+2004-08-02 - Version 2.3.10
+	- fixed vulnerability in uacp.php (deleting attachments)
+	- fixed bug in attach_rules.php - wrong filesize display
+	- updated pre-edited files to be compatible with phpBB 2.0.10
+	- auth rules only checked for auth_attachments and auth_download
+	- dropped addons directory (let the creator more freedom to maintain his work)
+	- change thumbnail creation (new algorythm to calculate image sizes)
+	- real GD2 support, fixing some issues
+	- more small fixes here and there... mostly pointed out by users
+	- fixed default quota assignments
+		NOTE:
+		Users/Groups having no quota limit will be defaulted to the default quota limit set,
+		this means changing default quotas will automatically affect those users having no quota limit
+		as well as newly registered users (since they do not have a quota limit by default).
+
+2003-08-30 - Version 2.3.9
+	- Fixed possible XSS vulneribility
+	- Fixed Bug: filename (input field) got not deleted after adding a file
+	- Changed default quota priority from group/user to user/group
+	- Added GD2 compatibility switch to Special Categories Screen
+	- Added version number to Attachment Mod ACP Controls
+	- Updated pre-modded files to phpBB 2.0.6
+	- Fixed non-saving of configuration variables if cache folder is there and not writable
+	- Admins are no longer able to attach files to Private Messages, if this is disabled board wide
+	- deleted all occurrences of attach_sql_query calls - mainly for compatibility
+	- deleted attachment explain code - attachment debug addon is no longer available (please remove this from your board)
+	- updated slideshow addon (if you update, please replace your old slideshow.php with the new one)
+
+2003-06-19 - Version 2.3.8
+	- Fixed security bug - able to execute code on the client side
+	- Removed: auth_read permissions to be set with auth_download
+	- Fixed bug: thumbnail creation
+	- Fixed bug: download with Mozilla
+	- "Delete no longer used thumbnails" added to Synchronize Attachments Screen
+
+2003-03-09 - Version 2.3.7
+	- hopefully fixed issues with the admin panel and hoster unable to correctly setup apache+php
+	- added post id (and user id) sync to the Attachment Synchronization Panel
+	- fixed user id assignment bugs within editing posts 
+	- adjusted thumbnail functions to be more error-proof.
+	- fixed wrong display and deletion of Private Message Attachments within the User ACP.
+	- changed header order in download.php and send content-length
+	- add cryptic filename support (you have to manually enable this one within the posting_attachments.php file)
+	- integrated the download_secure mechanism into the download.php file (commented out)
+	- fixed bug with zlib.output_compression enabled (within PHP or Apache)
+	- fixed general ob_gz_handler() issues with compressed files. Now re-compressing should not occur.
+	- added Slideshow/Photogallery (available as Addon) - vHiker (see addons/slideshow_mod/install.txt)
+
+2003-02-03 - Version 2.3.6
+	- added session id check to user attachment control panel
+	- fixed bug: language selection error within user attachment control panel
+	- fixed bug: unable to download files with ftp uploading enabled
+	- fixed postgresql issue in admin panel
+	- viewtopic_attach_body.tpl file now XHTML compatible
+	- fixed some html issues in viewtopic_attach_body.tpl, should work with all browsers now
+	- fixed bug: typo for message_die in shadow attachments screen
+	- fixed file listing issues with ftp setups
+	- fixed bug: no quota settings in user admin panel (only occured on direct url access)
+	- fixed quota boxes, limited the graphic bar to 100%
+	- fixed bug: if admin view users profile, his quota limit box is displayed instead of user ones
+	- fixed bug: rules window not worked if Attachments within PM's was disabled and Admin tried to send PM.
+	- html fixes for some tpl's, mainly checkbox entries
+	- fixed bug: PM's with more than one Attachment not correctly duplicated (sentbox)
+	- fixed bug: PM attach quota box display conditions, sometimes the box was not displayed
+	- adjusted delete function to be compatible with all modes of id assignments (array, comma seperated, one value)
+	- if no attachments are assigned in uacp, just display no attachments instead of an error message.
+	- fixed bug: no more than 2048 MB in Quota Limit Management assignable
+	- updated .htaccess file for more security
+	- updated the contrib/download_secure.php file (backported the fixes made within the download.php file)
+	- added file icons (see contrib/readme.txt)
+	- added two additional viewtopic_attach_body.tpl files (see contrib/readme.txt)
+
+2003-01-17 - Version 2.3.5
+	- on language include error fall back to board language instead of english
+	- fix for non-working shadow attachments screen (only affected by boards with more than 200 Attachments)... 
+	- fixed some path assignments
+	- Attachment Synchronization fixed, should not time out now
+	- fixed download counter for streams and flash files
+	- fixed check for receivers PM Quota Limit
+	- fixed issues with boards setting the Filesize to Unlimited
+	- fixed bug where Files got not attached if Post errors occured (If topic title is not defined for example)
+	- fixed issues with Synchronize Attachments on MSSQL
+	- fixed a little typo preventing display of comments within Preview Window
+	- fixed non-deletion of attachment description entries on some circumstances
+	- fixed determining of PM Quota (Receiver and Sender)
+	- fixed issue with the updater and postgresql (unable to insert config values)
+	- fixed issues with not recognising values correctly
+	- suppress warning message if the function exec() is disabled
+	- do not use imagemagick (instead use GD) if the path within Special Categories is empty.
+	- adjusted Installation Instructions for phpBB 2.0.4
+	- changed authorization to attach files: only if posting is allowed too
+	- changed authorization to download files: only if viewing is allowed too
+	- changed the way the Attachment Size within the PM Box is counted, the SENT Box is not counted anymore.
+	- changed the display of Attachments (DareDevil)
+	- changed the Installation Paths to be compliant with phpBB 2.0.4
+	- Attachments are now displayed before Signatures
+	- added Xitami to the servers doing a normal refresh if physical download is enabled
+	- added User Attachment Control Panel (accessible from Users Profile)
+	- added User Upload Quota Box to Users profile (Stats+Link too)
+	  these Upload Stats are only viewable by the User itself and the Administrator
+	- added User Quota System (PM Quota and Upload Quota are definable for Users and Groups)
+	- quota settings added to the user admin and group admin page
+	- added quota limits cp to the admin panel
+	- added additional check to the shadow attachments (sync attachment references with attachments)
+	- added FTP Extensions check. If FTP Extensions are not compiled into the PHP Installation, 
+	  the Administrator will receive the appropiate Message and is unable to configure FTP Settings.
+	- added attach limit box to Private Message Center.
+	- added pre-edited files for phpBB 2.0.4
+	- added compatibility for phpBB 2.0.0 viewtopic versions (you should really really upgrade !!!)
+	- added setting to enable FTP Passive Mode
+	- removed additional queries at viewtopic if images or thumbnails are displayed
+	- added upload image to all instances of viewtopic_attach_body.tpl
+	- added Attachment Mod User Guide
+	- Attachments should be cached now
+	- introduced optional caching of the Attachment Mod config table
+		to let this work, just create a directory called 'cache' within your phpBB2 root and chmod it to 777.
+	- dropped maintainance for the lang_german_sie package
+
+2002-11-03 - Version 2.3.4
+	- fixed bug: Download should now work for 'very big' files again... please report anything you encounter. ;)
+	- fixed bug: issues with Thumbnails, should work for most of you better, have a look at the AMod FAQ too.
+	- fixed bug: Display of Comments
+	- fixed bug: single quotes in previewing messages.
+	- fixed bug: Error occurred while previewing PM.
+	- fixed bug: upload icons not correctly displayed
+	- fixed bug: mssql issues (not able to update)			
+	- fixed bug: check_lang_files script
+	- fixed bug: Determine Attachment Mod Versions with the Updater
+	- added: Extension Groups per Forum Permissions System
+	- added: Support for (compressed) Flash MX Files, now they will be displayed/played correctly
+	- added: Attachment Mod Synchronization
+	- added: Attachment Rules Window (seeable at Posting Screen)
+	- changed wma group to Streaming Group, able to Stream Video/Audio Types -- see Feature List.
+	- re-done the Shadow Attachments Part, now it should work fine.
+	- a little speed up in determining File Dimensions
+	- dropped support for msaccess databases
+	- added patch file
+
+2002-10-13 - Version 2.3.3
+	- fixed bug: Single quotes within comments
+	- fixed bug: Could not update Download Counts within Attach CP
+	- fixed bug: Download opens new empty Window
+	- hopefully fixed: Windows Download Paths with Drives
+	- fixed bug: Not able to do more than one modification in Management Screen
+	- fixed bug: Some issues with <? tags, changed to <?php now
+	- fixed bug: potential issue in download.php preventing download at all
+	- speed improvements within nearly all non-admin pages, less queries, less load.
+	- fixed bug: css styles not present at some input fields
+	- added: Admin is able to define if the new Attachment Posting Control Panel should be displayed
+	- fixed bug: shadow attachments does no
+	- fixed bug: sql error on shadow attachments (only happened on resync)
+	- fixed bug: update_to_221.php exited
+	- fixed an issue with thumbnails (importent for puretec users)
+	- added two new scripts (check_lang_files.php and revar_filenames.php)
+	- fixed bug: German language file issues
+	- fixed bug: Filenames with single quotes
+	- if you press the Preview Button, the File gots submitted
+	- Filenames are now saved as Real Names
+
+2002-09-06 - Version 2.3.2
+	- fixed bug: Fatal Error in Attachment Control Panel
+	- fixed bug: Could not update/delete Attachments in Attachment Control Panel
+	- fixed bug: Filesize Sort does not work in Attachment Control Panel
+	- fixed bug: After Topics were splitted no Attachments are displayed
+	- fixed bug: Prefix Bug in Updater
+	- fixed bug: Updater was not able to migrate more than 2000 Attachments
+	- fixed bug: Updater was confused on some circumstances, resulting in inconsistent migrations
+	- fixed bug: Sort Order in Posting Page and Viewtopic
+	- fixed bug: Refresh in PM's and little bugfixes on posting Attachments in PM's
+
+	- added feature: Sort Order is choosable by Admin in Management Screen
+	- added feature: imagick path support and display order choose
+	- added feature: Upload New Version of Attachments in Posting Screen
+
+	- added Template Caching support (Only tested with File based caching)
+	- Syncronise of Topics now complete, forgot one thing
+	- cleanups in posting Attachments
+	- added a Posting Attachments Control Panel to the Posting Page to let the Posting Page looks more clean.
+
+2002-08-21 - Version 2.3.1
+	- fixed bugs.
+
+2002-08-13 - Version 2.3.0
+	- Now the Attachment Mod is Extension Based
+	- German Formal Language added
+	- MsAccess Support added
+	- a very cool Updater. :) (I am very proud of it) - fully supports mysql, mssql and postgresql
+	- FTP Remote Upload supported (Thumbnail Creation not tested with this Feature)
+	- Thumbnail support added
+	- Comments editable from Control Panel
+	- Downloads editable from Control Panel
+	- Complete new Section 'Special Categories' added
+	- choose if you want to display images inlined
+	- define maximum Image Dimensions
+	- Image Link Dimensions definable (If this dimension is reached, the Image is displayed as a Link rather than inlined)
+	- Reduce of Queries and Server-Load
+	- some cleanups in template-files (For example, you can now mark all Shadow Attachments at once)
+	- vast improvement of speed in viewtopic.php.
+	- Attachment Topic Icon in Moderator Control Panel
+	- Test Settings in Management and Special Cats available
+	- own detection method for Image Sizes (if PHP fails, do it yourself. ;))
+	- Display in Topic Review
+	- Display in Post Preview
+	- Display in PM Preview
+	- special categories are multi-selectable. ;)
+	- hopefully eliminated all download naming problems
+	- bugfixes for mssql and postgresql
+	- fixed flash dimensions detection (now do it yourself, if it can't be handled by PHP)
+	- some little bugfixes i don't remember anymore
+	- fixed: can't delete Extensions and Extension Groups
+	- fixed: Upload-Error because of wrong upload method determined.
+	- fixed: Warning in Administration Panel if Attachments are deleted.
+	- fixed: Problem with Pruning (exited with SQL-Error)
+	- fixed: Error after Disabling the Board
+	- fixed: Naming of Attachment begins with a minus, if Anonymous posted Attachments.
+	- i have forgotten the rest...
+	
+2002-06-16 - Version 2.2.4
+	- fixed: delete Attachments with pruning
+	- fixed: sql-errors in admin-panel
+	- fixed: session-errors with Attachment Mod
+	- fixed: Errors with News Mods
+
+2002-06-08 - Version 2.2.3
+	- security fix: (able to attach not allowed files in a few circumstances)
+	- bug fixed: only board default language is displayed
+	- bug fixed: display of wrong error message in PM Attachments (the number of maximum allowed attachments)
+	- bug fixed: Filesizes are displayed wrong in Management Screen on some circumstances
+	- bug fixed: Missing Language Variables in Attachment Control Panel
+	- bug fixed: MSSQL-Schema was buggy
+	- bug fixed: some issues with MSSQL
+	- bug fixed: pagination error in Attachment Control Panel
+	- bug fixed: error in Shadow Attachments where post_id and privmsgs_id are not set
+	- bug fixed: Installation Instructions - Section: privmsgs.php - Only important for new installations
+	- german language file updated a little bit
+	- restructure of Shadow Attachments (should work now for Total Attachments greater 6000)
+	- improved the handling of Filesizes
+		If the Global Filesize is changed, the MIME Groups filesizes are changed too, if they were
+		not altered before. The handling is more logical now.
+	- Feature added: Admin is able to override the limitations set by the Mod
+	
+2002-05-18 - Version 2.2.2
+	- fixed bug : wrong filesize count in Attachment Control Panel
+	- improved the update-script, install- and uninstall-script
+
+2002-05-09
+	- fixed bug : wrong filesize count in PM-Attachments, resulting in error messages
+
+2002-04-27
+	- fixed bug : unable to install if the files are already changed
+	- fixed bug : postgresql files - now PostgreSQL is fully supported and tested
+	- Added support for safe mode with ftp feature
+
+2002-04-19 - Version 2.2.1
+	- bug-fixes, many many bug-fixes. ;)
+	- added subSilver disk icon created by Kail
+		
+2002-04-14
+	- bug-fixes
+	- prepared the ability to reuse Attachments, mainly for Private Messages
+
+2002-04-06 - Version 2.2.0 (Beta Test Version)
+	- complete restructure
+	- added ftp upload feature
+	- added attachments in pm feature
+	- changed provided .htaccess (thanks to Neil ;))
+	- Only for Beta Tester (only with english language)
+		
+2002-03-30
+	- hopefully fixed bug with unlink() on NT-Systems
+	- rename index.htm to index.php in upload directory
+
+2002-03-27 - Version 2.1.1
+	- added the albanian language pack
+	- added a FAQ
+	- Split up the Languages to be seperate available
+	- Made a little html-page about this
+
+2002-03-26
+	- made those category definitions available to clean install... 
+	  if you are upgrading and don't know what to add for flash, wma and rm files, drop me a pm or mail me. :)
+	- added category swf (flash files)
+
+2002-03-25
+	- discontinue support for phpBB2 RC2 and phpBB2 RC3
+	- added taiwanese language
+		- some cleanups
+
+2002-03-24
+	- the admin has the ability to specify maximum filesizes to mime groups
+	- added download_mode (you can choose, if you want to present the 'ghost'-link or
+	  the physical link. Now rm-files can attached correctly)
+	- added a category selector into Mime Groups
+	- inline image display is a category now and depends on that of course (inline image selector
+	  in management deleted)
+	- category wma-files added (if category is assigned, wma-files can be streamed in posts)
+	- Now i can add special html-codes for mime groups (thanks to the category-thingy. ;) )
+	- special upload images for mime groups now possible.
+	- added extra checking of upload dir (checks if it exists and if it's chmodded correctly)
+	- added a .htaccess file to the files-directory (thanks matthijs for the suggestion)
+
+2002-03-22
+	- fixed bug : Couldn't download Attachment on some circumstances
+
+2002-03-20 - Version 2.1.0
+	- fixed bug : special chars in file comments
+	- fixed bug : duplicate attachments on refresh/poll
+	- fixed bug : can't attach files in opera
+	- fixed bug : postgresql schema file incomplete
+	- cleanup install.txt (split up RC2, RC3, RC4/CVS, additional folder)
+	- cleanup update.txt (additional folder)
+	- added dutch translation
+	- added italian translation
+	- added polish translation
+	- cleanup in faq (thanks michael)
+	
+2002-03-03 - Version 2.0.9
+	- a small change in displaying attachments (viewtopic), now the display-order is from newest to oldest
+	  ( if you upgrade please execute update_to_209.php and delete it after execution )
+
+2002-03-02
+	- added forbidden file-extensions pl, asp and cgi in upgrade-script (since v2.0.7 there are in db-basic)
+	- filesize and attachment post time now stored in db (speed increase)
+	- added attachment quota feature
+	- added a search-feature to the Attachment Control Panel
+
+2002-03-01
+	- added feature: 'disable mod'
+	- changed some things for file uploading
+	- bring it up to latest cvs... :)
+
+2002-02-27 - Version 2.0.8
+	- fixed a very bad bug who overrides the Authentication (thanks to SHS` who have seen it at first. ;) )
+	- Changed the Database shema a little bit
+	- Introduced Basic and Schema-files for postgreSQL (NOT TESTED)
+	- The Language Variable {L_POSTED_ATTACHMENTS} is now available in viewtopic_attach_body.tpl
+	- Introduced Language Variables for hardcoded Sizes in Templates (Bytes, KB, MB)
+	- Added a little Template How-To (attach_mod_tpl_doc.html)
+
+2002-02-23 - Version 2.0.7
+	- changed the use of authentication 
+	  (now those haven't the permission to the update-command in mysql can install and use this mod)
+			
+	  ( if you upgrade please execute update_to_207.php and delete it after execution )
+
+2002-02-19
+	- changed mod_table_inst.php and mod_table_uninst.php to allow installation even if errors occured
+	- adjusted code to fit the newest changes in posting.php (now only have to add 3 instead of 6 lines)
+	- added a "preview" of the attachment control panel (just new files, no changes to existing ones)
+
+2002-02-13 - Version 2.0.6
+	- added FAQ (the faq [english, norwegian] is written by water, thank you very much)
+	- added norwegian translation (water)
+
+2002-02-11
+	- converted max filesize to human readable format in configuration
+	- bugfixes in admin_attachments.php
+	- bugfix with upload-dirs beginning with /
+
+2002-02-07
+	- seperated language variables (main, admin and faq)
+	- added topic icon for attachments
+
+2002-02-04 - Version 2.0.5
+	- fixed bug with filenames
+	- filenames are no longer part of the stored file
+	- test another download-mechanism to present only the filename (need feedback on this)
+	  if someone experience problems in downloading files, please feel free to contact me
+
+2002-02-03
+	- added "multiple attachments"-feature
+	- max number of attachments in one post definable
+	- comments are now editable (in posts only, edit comments in admin-panel will be added soon)
+
+2002-02-01
+	- added file-comment to attachment-deletion in posts and admin-panel
+	- the attachments are viewable at deletion
+	- don't display attachment icon if it's empty
+	- some little/cosmetic changes
+
+2002-01-31
+	- fixed bug with upload_image_path (thanks lional)
+	- added MSSQL-support (thank you very much Javier)
+
+2002-01-26 - Version 2.0.4
+	- introduced viewtopic_attach_body.tpl
+	- View/Download of attachments now based on the permission to read posts
+	- some minor bugfixes
+
+2002-01-23
+	- fixed bug with usernames (thanks SHS')
+	- removed menu in Admin->Attachments->Manage, display it in left frame
+	- templated the html-code for attachments in viewtopic
+		(i need a more detailed documentation of recursive template parsing 
+		 or the template class isn't as powerful as i thought)
+	- changed upload smilie code to image path
+
+2002-01-22 - Version 2.0.3
+	- two typos in french translation (Lionel F. Lebeau)
+	- added move_uploaded_file as an second instance if copy fails
+
+2002-01-21 - Version 2.0.2
+	- Admin Module finished
+	- Database changes can be undone (mod_table_uninst.php)
+	- added check of upload ability and safe mode at table installation
+	- put language changes for installation in extra files
+	- kicked 'array_'-functions, because they are not supported in php3
+	- some cleanups and bugfixes
+	- some changes to the download counter (especially security related things)
+
+2002-01-20 - Version 2.0.1
+	- Download Counter
+
+2002-01-19
+	- French translation (Lional F. Lebeau, thank you very much)
+
+2002-01-14
+	- changed the install.txt a little bit
+	- default auth for attachments in forums now ADMIN
+
+2002-01-12 - Version 2.0.0
+	- Initial Release only for testing, little admin-module (group and shadow not finished yet)

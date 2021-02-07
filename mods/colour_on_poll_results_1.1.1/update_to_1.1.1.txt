@@ -1,0 +1,136 @@
+##############################################################
+## MOD Title: Colour on poll results
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com 
+## MOD Description: Updates this MOD to 1.1.1 from 1.0.3.
+## MOD Version: 1.1.1 
+## 
+## Installation Level: Easy
+## Installation Time: ~3 Minutes 
+## Files To Edit: 
+##		viewtopic.php
+##		posting.php
+##
+## Included Files: N/A
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##	If you previously installed version 1.0.3 of this MOD, use update_to_1.1.1.txt to update this MOD to the most recent version
+##	
+############################################################## 
+## MOD History: 
+##
+##
+##   2004-12-04 - Version 1.1.1
+##      - Forgot to add the code in posting.php
+##
+##   2004-12-03 - Version 1.1.0
+##      - Added a function so that the option that you voted for is given a specific colour
+##
+##   2004-09-05 - Version 1.0.3
+##      - Minor error fixed
+##
+##   2004-09-04 - Version 1.0.2
+##      - Minor error fixed
+##
+##   2004-08-25 - Version 1.0.1
+##      - Some bugs fixed
+##
+##   2004-08-14 - Version 1.0.0
+##      - MOD created
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ SQL ]-------------------------------------------
+# 
+ALTER TABLE phpbb_vote_voters ADD vote_option_id mediumint( 8 ) NULL 
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+viewtopic.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#		
+		if ( $user_voted || $view_result || $poll_expired || !$is_auth['auth_vote'] || $forum_topic_data['topic_status'] == TOPIC_LOCKED )
+		{
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+// Colour on Poll Results MOD, By Manipe (Begin)
+			$sql1 = "SELECT vote_option_id 
+				FROM " . VOTE_USERS_TABLE . " 
+				WHERE vote_user_id = '" . $userdata['user_id'] . "' 
+				AND vote_id = '" . $vote_id . "'";
+			if ( !($result1 = $db->sql_query($sql1)) )
+			{
+			 	message_die(GENERAL_ERROR, 'Could not obtain user voted information', '', __LINE__, __FILE__, $sql);
+			}
+			$row1 = $db->sql_fetchrow($result1);
+			$voted_option_id =  $row1['vote_option_id'];
+			$db->sql_freeresult($result1);
+// Colour on Poll Results MOD, By Manipe (End)
+
+#
+#-----[ FIND ]---------------------------------------------
+# 
+				if ( $vote_percent <= 0.3 ){
+					$vote_color = 'green';
+				}
+				else if ( ($vote_percent > 0.3) && ($vote_percent <= 0.6) ){
+					$vote_color = 'blue';
+				}
+				else if ( $vote_percent > 0.6 ){
+					$vote_color = 'red';
+				}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+				if ($voted_option_id == ($i+1)){
+					$vote_color = 'purple';
+				}
+				else{
+					if ( $vote_percent <= 0.3 ){
+						$vote_color = 'green';
+					}
+					else if ( ($vote_percent > 0.3) && ($vote_percent <= 0.6) ){
+						$vote_color = 'blue';
+					}
+					else if ( $vote_percent > 0.6 ){
+						$vote_color = 'red';
+					}
+				}
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+posting.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# 
+				$sql = "INSERT INTO " . VOTE_USERS_TABLE . " (vote_id, vote_user_id, vote_user_ip) 
+					VALUES ($vote_id, " . $userdata['user_id'] . ", '$user_ip')";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+// Colour on Poll Results MOD, By Manipe (Begin)
+				$sql = "INSERT INTO " . VOTE_USERS_TABLE . " (vote_id, vote_user_id, vote_user_ip, vote_option_id) 
+					VALUES ($vote_id, " . $userdata['user_id'] . ", '$user_ip', '$vote_option_id')";
+// Colour on Poll Results MOD, By Manipe (End)
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+
+# EoM

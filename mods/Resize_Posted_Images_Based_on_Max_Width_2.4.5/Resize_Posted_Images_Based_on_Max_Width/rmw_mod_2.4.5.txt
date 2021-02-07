@@ -1,0 +1,311 @@
+##############################################################
+## MOD Title:          Resize Posted Images Based on Max Width
+## MOD Author:         spooky2280 < webmaster@christianfecteau.com > (Christian Fecteau) http://portfolio.christianfecteau.com/
+## MOD Description:    This MOD resizes images within posts to make it so they don't break your layout. Images resized are made 
+##                     clickable and openable in a popup in full-size. You can specify a different max width for each of your themes.
+##                     Images that do not exceed the max width are left as is. See the MOD in action: http://christianfecteau.com/rmw
+##
+## MOD Version:        2.4.5
+##
+## Installation Level: Easy
+## Installation Time:  5 Minutes (1 minute with EasyMod)
+##
+## Files To Edit:      7
+##      templates/subSilver/bbcode.tpl
+##      templates/subSilver/overall_header.tpl
+##      templates/subSilver/overall_footer.tpl
+##      templates/subSilver/simple_header.tpl
+##      templates/subSilver/simple_footer.tpl
+##      includes/page_header.php
+##      language/lang_english/lang_main.php
+##
+## Included Files:     1
+##      templates/rmw_jslib.js
+##
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## This MOD uses Javascript and works in all W3C DOM browsers:
+## NN6+, IE5+, Mozilla/Firefox/Camino, Safari, Opera7+, etc.
+##
+## To set a different max width than the 400 pixels default one:
+##    1. OPEN overall_header.tpl and simple_header.tpl in templates/subSilver/
+##    2. FIND rmw_max_width = 400
+##    3. CHANGE 400 to the width in pixels that you want for this template
+##    4. REPEAT steps 1 to 3 for each of your other templates (if any)
+##
+## Don't forget to edit all your templates and languages in addition to subSilver and lang_english
+##
+##############################################################
+## MOD History:
+##
+##   2005-01-18 - Version 2.4.5
+##      - Files with changes from 2.4.4 to 2.4.5:
+##               - templates/rmw_jslib.js
+##      - I forgot to remove a line (124) in the js file that was there for testing purposes only:
+##        rmw_obj.setAttribute('resizemod','over');
+##        This can cause a bug if for some reason the onload event fires twice. A user reported
+##        a situation where it happens and I was able to force the bug, so... line's deleted now!
+##
+##   2005-01-17 - Version 2.4.4
+##      - Files with changes from 2.4.3 to 2.4.4:
+##               - templates/rmw_jslib.js
+##      - The maximized feature for the popup introduced in 2.4.3 was causing
+##        permission problem. If the popup stayed opened while the location of
+##        the opener changed or only refreshed, the opener was losing access 
+##        permission to the popup. To fix it, the popup is now closed onunload
+##        of the opener.
+##
+##   2005-01-13 - Version 2.4.3
+##      - Files with changes from 2.4.2 to 2.4.3:
+##               - templates/rmw_jslib.js
+##      - Now the popup window is maximized automatically, except in Opera
+##      - Added a MOD file for the "File Attachment" MOD
+##
+##   2005-01-01 - Version 2.4.2
+##      - Files with changes from 2.4.1 to 2.4.2:
+##               - templates/rmw_jslib.js
+##      - A bug with IE and only with my machine is fixed. Nobody reported it, but
+##        whatever, I fixed it on my machine. :-) You can read about it at:
+##        http://www.christianfecteau.com/phpBB2/viewtopic.php?t=23
+##      - Changed the FIND for overall_header.tpl because the previous one would have failed
+##        with EasyMod and the Subza theme.
+##      - The popup is now larger. Its width and height are relative to screen resolution
+##      - Added a link to the demo in the MOD Description.
+##
+##   2004-12-14 - Version 2.4.1
+##      - Files with changes from 2.4.0 to 2.4.1:
+##               - templates/subSilver/overall_header.tpl
+##               - templates/subSilver/simple_header.tpl
+##               - templates/rmw_jslib.js
+##      - Fixed a bug related to node cloning and multiple firing of the
+##        same onload event. Upgrade to 2.4.1 is strongly recommended.
+##      - As a result of this bug being fixed, newer Geckos (Firefox, NN7.1, etc.) can
+##        now run the MOD flawlessly with the same dynamic method used with IE5+ Windows.
+##      - Script performance improved, with even less CPU usage.
+##
+##   2004-11-28 - Version 2.4.0
+##      - Went back to waiting for the width in all browsers except IE5+ Windows
+##        which is the only browser that passed all my intensive tests. All the
+##        other browsers have a bug of some sort with the method of resizing before
+##        knowing the width, even Firefox. They are not serious bugs, but that was
+##        enough to make me drop the dynamic method I'm using flawlessly with IE5+.
+##      - Now (for IE5+ Windows) images downloading are represented as little
+##        {T_BODY_TEXT} border color squares until they're downloaded. The
+##        reason for this is that I'm resizing all images before knowing their
+##        width (either they're too large or not). And if they're not too large,
+##        I'm resizing to their real width onload of each image. But if someone
+##        posts a broken link for an image, the onload event will never fire and
+##        the image will remain the size I made it before knowing its width. So
+##        if someone posts a bunch of non-exisiting images on the same line and
+##        if I'm resizing them to the max width allowed before knowing that they
+##        don't even exist, then the onload event for these non-existing images
+##        will never fire and the screen width will be huge. Si I'm resizing every
+##        image to the width of the square for broken images: 28 pixels. And onload
+##        of the real images, pop!!! they're resized to their real width or to the
+##        max allowed width if their real width is higher. And the broken images
+##        stay at 28 pixels wide.
+##      - I've put the Javascript in an external file and left only the strict minimum
+##        in the templates, to save bandwidth.
+##      - Changed the value of the timer to 2 seconds. Less CPU usage.
+##      - Tweaked a few other things to make the script faster.
+##
+##   2004-11-25 - Version 2.3.0 (beta)
+##      - Added a <div style="display:none" id="resizemod"></div> right before
+##        the closing body tag so the script knows the exact moment when to stop
+##        scanning for images.
+##      - Changed the value of the timer from 1 milisecond to 1 second: Less CPU
+##        usage and the difference is negligible. Seeing an horizontal scrollar
+##        during 1 second is not the end of the world.
+##      - For Opera, I've gone back to the method of waiting to know the width
+##        and resizing only the images that need to. Opera was failing to resize
+##        down images with a width samller than the max width.
+##      - Now the border is drawn around the image before it is loaded so users
+##        know that an image is coming into that blank space.
+##
+##   2004-11-24 - Version 2.2.0 (beta)
+##      - Another major improvement: now images are scaled whether their width is
+##        known or not. So there is definitely no horizontal scrollbar at all.
+##        It still works in all W3C DOM browsers but I think IE is way better
+##        than the other browsers for this MOD. Now large images are made clickable
+##        only once they're loaded. It was useless to make them clickable before
+##        completion of download. Thanks to Avochelm for the idea of resizing
+##        before the width is known. It was a real puzzle to make it work though!
+##
+##   2004-11-23 - Version 2.0.0 (beta)
+##      - Major change: Images are scaled down right as the page is displayed,
+##        and huge images are now downloaded slowly in their tiny container
+##        while users browse the forum with its regular layout width. The browser
+##        needs to connect to servers for getting images' width, so after a certain
+##        time, if the connection is still not made, the script terminates. Then
+##        onload of the image a different function is called to resize it if the
+##        previous function failed to do it at runtime.
+##      - Images resized get a 2px dotted {T_BODY_LINK} color
+##      - Dropped 'longdesc' for a made-up attribute: 'resizemod'. 'longdesc' was
+##        too buggy cause browsers handle it like a URI.
+##      - MOD syntax improved for EasyMod
+##      - Looking for <!-- END switch_enable_pm_popup --> in overall_header.tpl
+##        instead of </head> because some styles (like Chairs) don't have a
+##        closing HEAD tag.
+##
+##   2004-11-20 - Version 1.1.0
+##      - Added comments in the code to identify the MOD
+##      - Made use of $lang var so that it will work with multiple languages
+##      - Tested with EasyMod v0.1.13 and phpBB 2.0.11
+##
+##   2004-11-13 - Version 1.0.1
+##      - Changed variables' names:
+##        They were too common and could have conflicted with other scripts.
+##      - Removed slashes from comments to avoid possible bug with /*/
+##
+##   2004-11-12 - Version 1.0.0
+##      - initial release phpBB2 ver 2.0.10
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy templates/rmw_jslib.js to templates/rmw_jslib.js
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/bbcode.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 56
+#
+<!-- BEGIN img -->
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+<img
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+# should look like: <img resizemod="on" onload="rmw_img_loaded(this)" src="{URL}" border="0" />
+#
+ resizemod="on" onload="rmw_img_loaded(this)"
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 212
+#
+<!-- BEGIN switch_enable_pm_popup -->
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+<!-- start mod : Resize Posted Images Based on Max Width -->
+<script type="text/javascript">
+//<![CDATA[
+<!--
+
+var rmw_max_width = 400; // you can change this number, this is the max width in pixels for posted images
+var rmw_border_1 = '1px solid {T_BODY_LINK}';
+var rmw_border_2 = '2px dotted {T_BODY_LINK}';
+var rmw_image_title = '{L_RMW_IMAGE_TITLE}';
+
+//-->
+//]]>
+</script>
+<script type="text/javascript" src="{U_RMW_JSLIB}"></script>
+<!-- fin mod : Resize Posted Images Based on Max Width -->
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_footer.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+</body
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+<div style="display:none" id="resizemod"></div>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/simple_header.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 234
+#
+</head
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+<!-- start mod : Resize Posted Images Based on Max Width -->
+<script type="text/javascript">
+//<![CDATA[
+<!--
+
+var rmw_max_width = 400; // this max width is used in the Topic Review iframe when posting
+var rmw_border_1 = '1px solid {T_BODY_LINK}';
+var rmw_border_2 = '2px dotted {T_BODY_LINK}';
+var rmw_image_title = '{L_RMW_IMAGE_TITLE}';
+
+//-->
+//]]>
+</script>
+<script type="text/javascript" src="{U_RMW_JSLIB}"></script>
+<!-- fin mod : Resize Posted Images Based on Max Width -->
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/simple_footer.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+</body
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+<div style="display:none" id="resizemod"></div>
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 361
+#
+	'L_WHOSONLINE_MOD'
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- start mod : Resize Posted Images Based on Max Width ----------------------------------
+	'L_RMW_IMAGE_TITLE' => $lang['rmw_image_title'],
+	'U_RMW_JSLIB' => $phpbb_root_path . 'templates/rmw_jslib.js',
+//-- fin mod : Resize Posted Images Based on Max Width ------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 163
+#
+$lang['Moderator']
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+$lang['rmw_image_title'] = 'Click to view full-size'; // mod : Resize Posted Images Based on Max Width
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

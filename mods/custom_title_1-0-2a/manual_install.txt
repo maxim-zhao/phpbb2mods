@@ -1,0 +1,724 @@
+##############################################################
+## MOD Title: Custom Title MOD
+## MOD Author: Aexoden < gerek@softhome.net > (Jason Lynch) http://www.aexoden.com
+## MOD Description: Adds a custom title field to a user's profile, and displays it next to their posts and in their profile.
+##		    Can be configured to only activate after a certain number of days and/or posts.  A custom title 
+##		    can also be manually activated or disabled by an administrator. 
+## MOD Version: 1.0.2
+##
+## Installation Level: Advanced
+## Installation Time: 25-30 Minutes
+## Files To Edit: 14: admin/admin_board.php 
+##                    admin/admin_users.php 
+##                    includes/constants.php
+##                    includes/usercp_avatar.php 
+##                    includes/usercp_register.php 
+##                    includes/usercp_viewprofile.php 
+##                    language/lang_english/lang_admin.php 
+##                    language/lang_english/lang_main.php 
+##                    templates/subSilver/admin/board_config_body.tpl 
+##                    templates/subSilver/admin/user_edit_body.tpl 
+##                    templates/subSilver/profile_add_body.tpl 
+##                    templates/subSilver/profile_view_body.tpl 
+##                    templates/subSilver/viewtopic_body.tpl 
+##		      viewtopic.php
+## Included Files: title_install.php (See README_FIRST.txt for details)
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: Please see the accompanying README_FIRST.txt for VERY important information.
+##
+##############################################################
+## MOD History:  Version history available in README_FIRST.txt. Future versions will see
+##               information entered here for convenience.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+############################################################## 
+
+# IMPORTANT: Some FIND commands only contain partial lines.  Unless the script calls for an
+# "IN-LINE ADD," always add new segments of code on separate lines.  Also, before an In-Line
+# Find, you'll often see a FIND.  These FINDS are there to help you locate the lines where
+# In-Line FIND will work.
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$smtp_no = ( !$new['smtp_delivery'] ) ? "checked=\"checked\"" : "";
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+switch( $new['custom_title_mode'] )
+{
+	case CUSTOM_TITLE_MODE_INDEPENDENT: 
+		$custom_title_mode_independent = "checked=\"checked\"";
+		break;
+	case CUSTOM_TITLE_MODE_REPLACE_RANK:
+		$custom_title_mode_replace_rank = "checked=\"checked\"";
+		break;
+	case CUSTOM_TITLE_MODE_REPLACE_BOTH:
+		$custom_title_mode_replace_both = "checked=\"checked\"";
+		break;
+	default:
+		break;
+}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"L_ENABLE_GZIP" => $lang['Enable_gzip'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	"L_CUSTOM_TITLE_SETTINGS" => $lang['Custom_title_settings'],
+	"L_CUSTOM_TITLE_DAYS" => $lang['Custom_title_days'], 
+	"L_CUSTOM_TITLE_POSTS" => $lang['Custom_title_posts'],
+	"L_CUSTOM_TITLE_MODE" => $lang['Custom_title_mode'],
+	"L_CUSTOM_TITLE_MODE_EXPLAIN" => $lang['Custom_title_mode_explain'],
+	"L_CUSTOM_TITLE_MODE_INDEPENDENT" => $lang['Custom_title_mode_independent'],
+	"L_CUSTOM_TITLE_MODE_REPLACE_RANK" => $lang['Custom_title_mode_replace_rank'],
+	"L_CUSTOM_TITLE_MODE_REPLACE_BOTH" => $lang['Custom_title_mode_replace_both'],
+	"L_CUSTOM_TITLE_MAXLENGTH" => $lang['Custom_title_maxlength'],
+	"L_CUSTOM_TITLE_MAXLENGTH_EXPLAIN" => $lang['Custom_title_maxlength_explain'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"GZIP_NO" => $gzip_no,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	"CUSTOM_TITLE_DAYS" => $new['custom_title_days'], 
+	"CUSTOM_TITLE_POSTS" => $new['custom_title_posts'],
+	"CUSTOM_TITLE_MODE_INDEPENDENT" => $custom_title_mode_independent,
+	"CUSTOM_TITLE_MODE_REPLACE_RANK" => $custom_title_mode_replace_rank,
+	"CUSTOM_TITLE_MODE_REPLACE_BOTH" => $custom_title_mode_replace_both,
+	"CUSTOM_TITLE_MAXLENGTH" => $new['custom_title_maxlength'],
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_users.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+# This is one such partial line.  Make sure to add the new code on a NEW line, leaving the other line fully intact. 
+		$interests = ( !empty($HTTP
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$custom_title = ( !empty($HTTP_POST_VARS['custom_title']) ) ? trim(strip_tags( $HTTP_POST_VARS['custom_title'] ) ) : ''; 
+		$custom_title_status = ( isset( $HTTP_POST_VARS['custom_title_status']) ) ? intval( $HTTP_POST_VARS['custom_title_status'] ) : 0;
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$interests = htmlspecialchars(stripslashes($interests));
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$custom_title = htmlspecialchars(stripslashes($custom_title));
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+# Find this general area.  The In-Line Find is in this line somewhere.
+$sql = "UPDATE " . USERS
+SET
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_interests = '" . str_replace("\'", "''", $interests) . "', 
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+user_custom_title = '" . str_replace("\'", "''", $custom_title) . "', user_custom_title_status = $custom_title_status, 
+# 
+#-----[ FIND ]------------------------------------------ 
+# Yes, find this again.
+			$interests = htmlspecialchars(stripslashes($interests));
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$custom_title = htmlspecialchars(stripslashes($custom_title));
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$interests = htmlspecialchars($this_userdata['user_interests']);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$custom_title = htmlspecialchars($this_userdata['user_custom_title']);
+		$custom_title_status = $this_userdata['user_custom_title_status'];
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="interests" value="' .
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="custom_title" value="' . str_replace("\"", "&quot;", $custom_title) . '" />'; 
+			$s_hidden_fields .= '<input type="hidden" name="custom_title_status"  value="' . $custom_title_status .'" />';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			"body" => "admin/user_edit_body.tpl")
+		);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		
+		switch ($custom_title_status) 
+		{ 
+			case CUSTOM_TITLE_REGDATE: $custom_title_status_regdate = "checked=\"checked\"";break; 
+			case CUSTOM_TITLE_DISABLED: $custom_title_status_disabled = "checked=\"checked\"";break; 
+			case CUSTOM_TITLE_ENABLED: $custom_title_status_enabled = "checked=\"checked\"";break; 
+		} 
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'INTERESTS' =>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'CUSTOM_TITLE' => $custom_title, 
+			'CUSTOM_TITLE_STATUS_REGDATE' => $custom_title_status_regdate, 
+			'CUSTOM_TITLE_STATUS_DISABLED' => $custom_title_status_disabled, 
+			'CUSTOM_TITLE_STATUS_ENABLED' => $custom_title_status_enabled,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'L_INTERESTS' =>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'L_CUSTOM_TITLE' => $lang['Custom_title'], 
+			'L_CUSTOM_TITLE_STATUS' => $lang['Custom_title_status'], 
+			'L_CUSTOM_TITLE_STATUS_REGDATE' => $lang['Custom_title_status_regdate'], 
+			'L_CUSTOM_TITLE_STATUS_DISABLED' => $lang['Custom_title_status_disabled'], 
+			'L_CUSTOM_TITLE_STATUS_ENABLED' => $lang['Custom_title_status_enabled'], 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/constants.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+define('VOTE_USERS_TABLE'
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Custom Title MOD 
+define('CUSTOM_TITLE_REGDATE', 0); 
+define('CUSTOM_TITLE_DISABLED', 1); 
+define('CUSTOM_TITLE_ENABLED', 2); 
+define('CUSTOM_TITLE_MODE_INDEPENDENT', 0);
+define('CUSTOM_TITLE_MODE_REPLACE_RANK', 1);
+define('CUSTOM_TITLE_MODE_REPLACE_BOTH', 2);
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_avatar.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+function display_avatar_gallery(
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+&$interests,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ &$custom_title,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$params = array(
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+'interests',
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ 'custom_title',
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_register.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$coppa = ( empty($HTTP_POST
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// 
+// Verify Custom Title Status 
+// 
+$membertime = ($mode != 'register') ? (time() - $userdata['user_regdate']) : 0;
+$custom_title_activated = FALSE;
+if (( $userdata['user_custom_title_status'] == CUSTOM_TITLE_ENABLED ) || 
+	(( $userdata['user_custom_title_status'] == CUSTOM_TITLE_REGDATE ) && 
+	( $membertime >= $board_config['custom_title_days'] * 86400) && 
+	( $userdata['user_posts'] >= $board_config['custom_title_posts']))) 
+{ 
+	$custom_title_activated = TRUE; 
+}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$strip_var_list = array(
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+'interests' => 'interests'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, 'custom_title' => 'custom_title'
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$signature = str_replace('
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	// Verify the user is allowed to alter their custom title.  If not, replace it with their old one. 
+	if ($custom_title_activated == FALSE) 
+	{ 
+		$custom_title = addslashes($userdata['user_custom_title']); 
+	}
+
+	// Check the length of the custom title.  Prevents people from editing the HTML to get a longer one.
+	if (strlen($custom_title) > $board_config['custom_title_maxlength'])
+	{
+		if ($custom_title != addslashes($userdata['user_custom_title'])) {
+			$custom_title = addslashes($userdata['user_custom_title']);
+			$error = TRUE;
+			if (isset($error_msg)) $error_msg .= '<br />';
+			$error_msg .= $lang['Custom_title_toolong'];
+		}
+	}
+	
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$interests = stripslashes($interests);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$custom_title = stripslashes($custom_title);
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "UPDATE " . USERS_TABLE
+SET
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_interests = '" . str_replace("\'", "''", $interests) . "',
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_custom_title = '" . str_replace("\'", "''", $custom_title) . "',
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "INSERT INTO " . USERS
+VALUES
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_interests,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_custom_title, 
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+str_replace("\'", "''", $interests) . "', '" .
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ str_replace("\'", "''", $custom_title) . "','" .
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$interests = stripslashes($interests);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$custom_title = stripslashes($custom_title);
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$interests = $userdata['user_interests'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$custom_title = $userdata['user_custom_title'];
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+display_avatar_gallery($
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$interests,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ $custom_title,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	//
+	// Let's do an overall check for settings/versions which would prevent
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	switch($board_config['custom_title_mode'])
+	{
+		case CUSTOM_TITLE_MODE_INDEPENDENT: 
+			$custom_title_mode_explain = $lang['Custom_title_independent_explain'];
+			break;
+		case CUSTOM_TITLE_MODE_REPLACE_RANK:
+			$custom_title_mode_explain = $lang['Custom_title_replace_rank_explain'];
+			break;
+		case CUSTOM_TITLE_MODE_REPLACE_BOTH:
+			$custom_title_mode_explain = $lang['Custom_title_replace_both_explain'];
+			break;
+		default:
+			break;
+	}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'INTERESTS' => 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'CUSTOM_TITLE' => $custom_title,
+		'CUSTOM_TITLE_MAXLENGTH' => $board_config['custom_title_maxlength'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'L_INTERESTS' => 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'L_CUSTOM_TITLE' => $lang['Custom_title'],
+		'L_CUSTOM_TITLE_EXPLAIN' => sprintf($lang['Custom_title_explain'], $custom_title_mode_explain, $board_config['custom_title_maxlength']),
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+}
+
+$template->pparse('body');
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	if ($custom_title_activated == TRUE) 
+	{ 
+		$template->assign_block_vars('switch_custom_title', array() ); 
+	}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_viewprofile.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$rank_image = '';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$custom_title = '';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$temp_url = append_sid(
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+if ( !empty($profiledata['user_custom_title']) ) 
+{ 
+	switch( $board_config['custom_title_mode'] )
+	{
+		case CUSTOM_TITLE_MODE_INDEPENDENT:
+			$custom_title = $profiledata['user_custom_title'] . '<br />';
+			break;
+		case CUSTOM_TITLE_MODE_REPLACE_RANK:
+			$poster_rank = $profiledata['user_custom_title'];
+			break;
+		case CUSTOM_TITLE_MODE_REPLACE_BOTH:
+			$poster_rank = $profiledata['user_custom_title'];
+			$rank_image = '';
+			break;
+		default:
+			break;
+	}
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+'POSTER_RANK' =>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	'CUSTOM_TITLE' => $custom_title,
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['User_special_explain'] =
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+//
+// Custom Title MOD
+//
+$lang['Custom_title_status'] = 'Custom title activation status';
+$lang['Custom_title_status_regdate'] = 'Based on registration date and posts'; 
+$lang['Custom_title_status_disabled'] = 'Disabled'; 
+$lang['Custom_title_status_enabled'] = 'Enabled'; 
+$lang['Custom_title_settings'] = 'Custom Title Settings';
+$lang['Custom_title_days'] = 'Days of registration required'; 
+$lang['Custom_title_posts'] = 'Posts required'; 
+$lang['Custom_title_mode'] = 'Rank Replacement Mode';
+$lang['Custom_title_mode_explain'] = 'Here you can choose whether or not the rank and rank image are replaced if the user has set a custom title. If you choose \'No replacement\', it will instead appear as a separate title.';
+$lang['Custom_title_mode_independent'] = 'No replacement';
+$lang['Custom_title_mode_replace_rank'] = 'Replace rank only';
+$lang['Custom_title_mode_replace_both'] = 'Replace rank and rank image';
+$lang['Custom_title_maxlength'] = 'Maximum length';
+$lang['Custom_title_maxlength_explain'] = 'This controls how long a user may set their custom title.  Please enter a number from 0 to 255.';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['A_critical_error']
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+//
+// Custom Title MOD
+//
+$lang['Custom_title'] = 'Custom Title';
+$lang['Custom_title_toolong'] = 'Your entered custom title was too long.';
+$lang['Custom_title_explain'] = 'When used, this will %s.  There is a %s character limit.';
+$lang['Custom_title_independent_explain'] = 'add an additional user title to your posts';
+$lang['Custom_title_replace_rank_explain'] = 'replace your regular rank with this text.  To reset your rank, simply leave this blank';
+$lang['Custom_title_replace_both_explain'] = 'replace both your regular rank and rank image with this text.  To reset your rank, simply leave this blank';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<td class="row2"><input type="radio" name="prune_enable
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_CUSTOM_TITLE_SETTINGS}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_CUSTOM_TITLE_MODE}<br /><span class="gensmall">{L_CUSTOM_TITLE_MODE_EXPLAIN}</span></td>
+		<td class="row2" nowrap="nowrap"> 
+			<input type="radio" name="custom_title_mode" value="0" {CUSTOM_TITLE_MODE_INDEPENDENT} />{L_CUSTOM_TITLE_MODE_INDEPENDENT}&nbsp;
+			<input type="radio" name="custom_title_mode" value="1" {CUSTOM_TITLE_MODE_REPLACE_RANK} />{L_CUSTOM_TITLE_MODE_REPLACE_RANK}&nbsp;
+			<input type="radio" name="custom_title_mode" value="2" {CUSTOM_TITLE_MODE_REPLACE_BOTH} />{L_CUSTOM_TITLE_MODE_REPLACE_BOTH}
+		</td>
+	</tr>
+	<tr> 
+		<td class="row1">{L_CUSTOM_TITLE_DAYS}</td> 
+		<td class="row2"><input type="text" name="custom_title_days" value="{CUSTOM_TITLE_DAYS}" /></td> 
+	</tr> 
+	<tr> 
+		<td class="row1">{L_CUSTOM_TITLE_POSTS}</td> 
+		<td class="row2"><input type="text" name="custom_title_posts" value="{CUSTOM_TITLE_POSTS}" /></td> 
+	</tr>
+	<tr> 
+		<td class="row1">{L_CUSTOM_TITLE_MAXLENGTH}<br /><span class="gensmall">{L_CUSTOM_TITLE_MAXLENGTH_EXPLAIN}</span></td> 
+		<td class="row2"><input type="text" name="custom_title_maxlength" value="{CUSTOM_TITLE_MAXLENGTH}" /></td> 
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/user_edit_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<input class="post" type="text" name="interests"
+	  </td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_CUSTOM_TITLE}</span></td> 
+	  <td class="row2"> 
+		<input class="post" type="text" name="custom_title" size="35" maxlength="255" value="{CUSTOM_TITLE}" /> 
+	  </td> 
+	</tr> 
+	<tr> 
+	  <td class="row1"><span class="gen">{L_CUSTOM_TITLE_STATUS}</span></td> 
+	  <td class="row2"> 
+		<input type="radio" name="custom_title_status" value="0" {CUSTOM_TITLE_STATUS_REGDATE} />&nbsp; 
+		<span class="gen">{L_CUSTOM_TITLE_STATUS_REGDATE}</span>&nbsp;&nbsp; 
+		<input type="radio" name="custom_title_status" value="1" {CUSTOM_TITLE_STATUS_DISABLED} />&nbsp; 
+		<span class="gen">{L_CUSTOM_TITLE_STATUS_DISABLED}</span>&nbsp;&nbsp; 
+		<input type="radio" name="custom_title_status" value="2" {CUSTOM_TITLE_STATUS_ENABLED} />&nbsp; 
+		<span class="gen">{L_CUSTOM_TITLE_STATUS_ENABLED}</span> 
+	  </td> 
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<input type="text" class="post"style="width: 200px"  name="interests" size="35" maxlength="150" value="{INTERESTS}" />
+	  </td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<!-- BEGIN switch_custom_title --> 
+	<tr> 
+	  <td class="row1"><span class="gen">{L_CUSTOM_TITLE}:</span><br /><span class="gensmall">{L_CUSTOM_TITLE_EXPLAIN}</span></td> 
+	  <td class="row2"> 
+		<input type="text" class="post"style="width: 200px"  name="custom_title" size="45" maxlength="{CUSTOM_TITLE_MAXLENGTH}" value="{CUSTOM_TITLE}" /> 
+	  </td> 
+	</tr> 
+	<!-- END switch_custom_title --> 
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/profile_view_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+<td class="row1" height="6" valign="top" align="center">{AVATAR_IMG}
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+<span class="postdetails">
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+<strong>{CUSTOM_TITLE}</strong>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/viewtopic_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<!-- BEGIN postrow -->
+	<tr> 
+		<td width="150" al
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+<span class="postdetails">
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+<strong>{postrow.CUSTOM_TITLE}</strong>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+viewtopic.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+//
+$sql = "SELECT u.
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+u.user_posts,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ u.user_custom_title,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	//
+	$poster_rank = '';
+	$rank_image = '';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$custom_title = '';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	//
+	// Handle anon users posting
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	if ( !empty($postrow[$i]['user_custom_title']) ) 
+	{ 
+		switch( $board_config['custom_title_mode'] )
+		{
+			case CUSTOM_TITLE_MODE_INDEPENDENT:
+				$custom_title = $postrow[$i]['user_custom_title'] . '<br />';
+				break;
+			case CUSTOM_TITLE_MODE_REPLACE_RANK:
+				$poster_rank = $postrow[$i]['user_custom_title'];
+				break;
+			case CUSTOM_TITLE_MODE_REPLACE_BOTH:
+				$poster_rank = $postrow[$i]['user_custom_title'];
+				$rank_image = '';
+				break;
+			default:
+				break;
+		}
+	}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'POSTER_NAME' =>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'CUSTOM_TITLE' => $custom_title,
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

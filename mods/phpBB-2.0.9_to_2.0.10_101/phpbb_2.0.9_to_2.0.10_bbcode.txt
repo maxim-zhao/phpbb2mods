@@ -1,0 +1,236 @@
+[size=18]phpBB 2.0.9 to phpBB 2.0.10 Code Changes[/size]
+
+
+
+These are the Changes from phpBB 2.0.9 to phpBB 2.0.10 summed up into a little Mod. This might be very helpful if you want to update your Board and have installed a bunch of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.
+
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in the 'REPLACE WITH'-Statement.
+When you find a 'DELETE'-Statement, the Code have to be deleted.
+
+After you have finished this tutorial, you have to upload the update_to_210.php file, execute it and then delete it from your webspace.
+
+Ok, lets start:
+
+
+[size=18][color=blue][list][*]admin/admin_board.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 46[/color]
+[code]
+
+		$default_config[$config_name] = str_replace("'", "\'", $config_value);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		$default_config[$config_name] = isset($HTTP_POST_VARS['submit']) ? str_replace("'", "\'", $config_value) : $config_value;
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_styles.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 49[/color]
+[code]
+
+require('./pagestart.' . $phpEx);
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+
+$confirm = ( isset($HTTP_POST_VARS['confirm']) ) ? TRUE : FALSE;
+$cancel = ( isset($HTTP_POST_VARS['cancel']) ) ? TRUE : FALSE;
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]common.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 43[/color]
+[code]
+
+// Unset globally registered vars - PHP5 ... hhmmm
+if (@$ini_val('register_globals') == '1' || strtolower(@$ini_val('register_globals')) == 'on')
+{
+	$var_prefix = 'HTTP';
+	$var_suffix = '_VARS';
+	
+	$test = array('_GET', '_POST', '_SERVER', '_COOKIE', '_ENV');
+
+	foreach ($test as $var)
+	{
+		if (is_array(${$var_prefix . $var . $var_suffix}))
+		{
+			unset_vars(${$var_prefix . $var . $var_suffix});
+		}
+
+		if (is_array(${$var}))
+		{
+			unset_vars(${$var});
+		}
+	}
+
+	if (is_array(${'_FILES'}))
+	{
+		unset_vars(${'_FILES'});
+	}
+
+	if (is_array(${'HTTP_POST_FILES'}))
+	{
+		unset_vars(${'HTTP_POST_FILES'});
+	}
+}
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+// Unset globally registered vars - PHP5 ... hhmmm
+if (@$ini_val('register_globals') == '1' || strtolower(@$ini_val('register_globals')) == 'on')
+{
+	$var_prefix = 'HTTP';
+	$var_suffix = '_VARS';
+	
+	$test = array('_GET', '_POST', '_SERVER', '_COOKIE', '_ENV');
+
+	foreach ($test as $var)
+	{
+		if (is_array(${$var_prefix . $var . $var_suffix}))
+		{
+			unset_vars(${$var_prefix . $var . $var_suffix});
+			@reset(${$var_prefix . $var . $var_suffix});
+		}
+
+		if (is_array(${$var}))
+		{
+			unset_vars(${$var});
+			@reset(${$var});
+		}
+	}
+
+	if (is_array(${'_FILES'}))
+	{
+		unset_vars(${'_FILES'});
+		@reset(${'_FILES'});
+	}
+
+	if (is_array(${'HTTP_POST_FILES'}))
+	{
+		unset_vars(${'HTTP_POST_FILES'});
+		@reset(${'HTTP_POST_FILES'});
+	}
+}
+
+// PHP5 with register_long_arrays off?
+if (!isset($HTTP_POST_VARS) && isset($_POST))
+{
+	$HTTP_POST_VARS = $_POST;
+	$HTTP_GET_VARS = $_GET;
+	$HTTP_SERVER_VARS = $_SERVER;
+	$HTTP_COOKIE_VARS = $_COOKIE;
+	$HTTP_ENV_VARS = $_ENV;
+	$HTTP_POST_FILES = $_FILES;
+}
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/functions.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 190[/color]
+[code]
+
+	if ( !empty($SID) )
+	{
+		$boxstring .= '<input type="hidden" name="sid" value="' . $userdata['session_id'] . '" />';
+	}
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	// Let the jumpbox work again in sites having additional session id checks.
+//	if ( !empty($SID) )
+//	{
+		$boxstring .= '<input type="hidden" name="sid" value="' . $userdata['session_id'] . '" />';
+//	}
+[/code]
+
+[*]
+[color=blue]FIND - Line 743[/color]
+[code]
+
+	if (!empty($db))
+	{
+		$db->sql_close();
+	}
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	if (strstr(urldecode($url), "\n") || strstr(urldecode($url), "\r"))
+	{
+		message_die(GENERAL_ERROR, 'Tried to redirect to potentially insecure url.');
+	}
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]login.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 96[/color]
+[code]
+
+					$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : '';
+					$redirect = str_replace('?', '&', $redirect);
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+					if (strstr(urldecode($redirect), "\n") || strstr(urldecode($redirect), "\r"))
+					{
+						message_die(GENERAL_ERROR, 'Tried to redirect to potentially insecure url.');
+					}
+[/code]
+
+[*]
+[color=blue]FIND - Line 116[/color]
+[code]
+
+			$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : "";
+			$redirect = str_replace("?", "&", $redirect);
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+					if (strstr(urldecode($redirect), "\n") || strstr(urldecode($redirect), "\r"))
+					{
+						message_die(GENERAL_ERROR, 'Tried to redirect to potentially insecure url.');
+					}
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]search.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 62[/color]
+[code]
+
+	$search_author = ( isset($HTTP_POST_VARS['search_author']) ) ? $HTTP_POST_VARS['search_author'] : $HTTP_GET_VARS['search_author'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$search_author = htmlspecialchars($search_author);
+[/code]
+
+[/list]

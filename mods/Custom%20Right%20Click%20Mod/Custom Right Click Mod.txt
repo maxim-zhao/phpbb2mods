@@ -1,0 +1,626 @@
+############################################################## 
+## MOD Title: Custom Right Click MOD 
+## MOD Author: umarsa < umar_ahmed_salim@hotmail.com > (Umar Salim) http://www.support.isua.co.uk 
+## MOD Author, secondary: Saabir Salim < saabirsa@hotmail.com > (Saabir Salim) http://www.support.isua.co.uk 
+## MOD Description: This MOD Adds A Custom Right Click Menu Editable In The ACP On All phpBB Pages. 
+## MOD Version: 2.1.1
+## 
+## Installation Level: Easy 
+## Installation Time: ~20 minutes (1 minute With The Almighty Easymod :-P)
+## Files To Edit:   5 
+##                  	o admin/admin_board.php
+##			o includes/page_header.php 
+##			o language/lang_english/lang_admin.php 
+##			o templates/subSilver/overall_header.tpl 
+##			o templates/subSilver/admin/board_config_body.tpl 
+## Included Files:  1
+##			o db_update.php 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: To Change The URL's In This Right Click Menu, 
+## Go to the ACP, you will find editable options under "Configration"
+## Also, Will only work in some brousers like Internet Explorer.
+## In the ACP, [hr] = <hr>
+## This Is Because If I Write <hr> The HTML Code Will Execute
+## 
+## Support:
+## Support For This Mod Can Be Found @
+## http://www.support.isua.co.uk/viewforum.php?f=9
+## 
+## Thanks To :
+## o Saabir Salim
+## o Cherokee Red (Some Code Taken From In rEd bar Mod)
+## To-Do :
+## o On/Off In ACP !Done!
+## o Sepereate Page In ACP Instead Of "Under Configration"
+## o Any Thing You Can Think Of :-D
+## 
+## Any Help?
+## o Any Help Would Be Greatly Appreaceated And Your Name Will Be In The "Thanks To :" Bit.
+############################################################## 
+## MOD History: 
+## 
+##   2005-03-23 - Version 2.1.1 
+## 
+##      - Added Firefox And Netscape Support (Saabir Salim) (Version 2.1.1) 
+##
+##   2005-03-23 - Version 2.1.0 
+## 
+##      - Added Options To Add Divders In ACP (Saabir Salim) (Version 2.1.0) 
+##
+##   2005-03-22 - Version 2.0.0 
+## 
+##      - Complete Code Rewrite With ACP (Saabir Salim) (Version 2.0.0) 
+##
+##   2005-03-03 - Version 1.0.0 
+## 
+##      - First Stable Release (Version 1.0.0) 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+INSERT INTO `phpbb_config` VALUES ('ISUA_name1', 'Home'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_link1', 'index.php'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_name2', 'FAQ'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_link2', 'faq.php'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_name3', 'Search'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_link3', 'search.php'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_name4', 'Memberlist'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_link4', 'memberlist.php'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_name5', 'Usergroups'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_link5', 'groupcp.php'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_name6', 'Who is Online?'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_link6', 'viewonline.php'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_name7', 'Profile'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_link7', 'profile.php?mode=editprofile'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_name8', 'P.M.'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_link8', 'privmsg.php?folder=inbox'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_name9', 'Go Back'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_link9', 'javascript:history.back();'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_STAT1', '0'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_SKIN1', '0'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_DIVD1', ''); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_DIVD2', '<hr>'); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_DIVD3', ''); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_DIVD4', '<hr>');
+INSERT INTO `phpbb_config` VALUES ('ISUA_DIVD5', ''); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_DIVD6', '<hr>');
+INSERT INTO `phpbb_config` VALUES ('ISUA_DIVD7', ''); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_DIVD8', '<hr>');
+INSERT INTO `phpbb_config` VALUES ('ISUA_DIVD9', ''); 
+INSERT INTO `phpbb_config` VALUES ('ISUA_RCOF1', '<!--');
+INSERT INTO `phpbb_config` VALUES ('ISUA_RCOF2', '-->'); 
+#
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"L_VISUAL_CONFIRM_EXPLAIN" => $lang['Visual_confirm_explain'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// I S U A  T E A M 
+// BEGIN Right Click Menu MOD
+	"L_ISUA" => $lang['ISUA_title'], 
+	"L_1" => $lang['ISUA_name1'], 
+	"L_LINK1" => $lang['ISUA_link1'], 
+	"L_2" => $lang['ISUA_name2'], 
+	"L_LINK2" => $lang['ISUA_link2'], 
+ 	"L_3" => $lang['ISUA_name3'], 
+	"L_LINK3" => $lang['ISUA_link3'], 
+	"L_4" => $lang['ISUA_name4'], 
+	"L_LINK4" => $lang['ISUA_link4'], 
+	"L_5" => $lang['ISUA_name5'], 
+	"L_LINK5" => $lang['ISUA_link5'], 
+	"L_6" => $lang['ISUA_name6'], 
+   	"L_LINK6" => $lang['ISUA_link6'], 
+	"L_7" => $lang['ISUA_name7'], 
+	"L_LINK7" => $lang['ISUA_link7'], 
+	"L_8" => $lang['ISUA_name8'], 
+   	"L_LINK8" => $lang['ISUA_link8'], 
+	"L_9" => $lang['ISUA_name9'], 
+	"L_LINK9" => $lang['ISUA_link9'], 
+	"L_STAT1" => $lang['ISUA_STAT1'], 
+	"L_SKIN1" => $lang['ISUA_SKIN1'], 
+	"L_DIVD1" => $lang['ISUA_DIVD1'], 
+	"L_DIVD2" => $lang['ISUA_DIVD2'], 
+	"L_DIVD3" => $lang['ISUA_DIVD3'], 
+	"L_DIVD4" => $lang['ISUA_DIVD4'], 
+	"L_DIVD5" => $lang['ISUA_DIVD5'], 
+	"L_DIVD6" => $lang['ISUA_DIVD6'], 
+	"L_DIVD7" => $lang['ISUA_DIVD7'], 
+	"L_DIVD8" => $lang['ISUA_DIVD8'], 
+	"L_DIVD9" => $lang['ISUA_DIVD9'],  
+	"L_RCOF1" => $lang['ISUA_RCOF1'],  
+	"L_RCOF2" => $lang['ISUA_RCOF2'],  
+// END Right Click Menu MOD
+// I S U A  T E A M 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"SAVEBOX_LIMIT" => $new['max_savebox_privmsgs'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// I S U A  T E A M 
+// BEGIN Right Click Menu MOD
+   	"ISUA_LINK1" => $new['ISUA_link1'], 
+   	"ISUA_NAME1" => $new['ISUA_name1'], 
+   	"ISUA_LINK2" => $new['ISUA_link2'], 
+   	"ISUA_NAME2" => $new['ISUA_name2'], 
+   	"ISUA_LINK3" => $new['ISUA_link3'], 
+   	"ISUA_NAME3" => $new['ISUA_name3'], 
+   	"ISUA_LINK4" => $new['ISUA_link4'], 
+	"ISUA_NAME4" => $new['ISUA_name4'], 
+	"ISUA_LINK5" => $new['ISUA_link5'], 
+	"ISUA_NAME5" => $new['ISUA_name5'], 
+	"ISUA_LINK6" => $new['ISUA_link6'], 
+	"ISUA_NAME6" => $new['ISUA_name6'], 
+	"ISUA_LINK7" => $new['ISUA_link7'], 
+   	"ISUA_NAME7" => $new['ISUA_name7'], 
+	"ISUA_LINK8" => $new['ISUA_link8'], 
+	"ISUA_NAME8" => $new['ISUA_name8'], 
+	"ISUA_LINK9" => $new['ISUA_link9'], 
+	"ISUA_NAME9" => $new['ISUA_name9'], 
+	"ISUA_STAT1" => $new['ISUA_STAT1'], 
+	"ISUA_SKIN1" => $new['ISUA_SKIN1'],
+	"ISUA_DIVD1" => $new['ISUA_DIVD1'], 
+	"ISUA_DIVD2" => $new['ISUA_DIVD2'], 
+	"ISUA_DIVD3" => $new['ISUA_DIVD3'], 
+	"ISUA_DIVD4" => $new['ISUA_DIVD4'], 
+	"ISUA_DIVD5" => $new['ISUA_DIVD5'], 
+	"ISUA_DIVD6" => $new['ISUA_DIVD6'], 
+	"ISUA_DIVD7" => $new['ISUA_DIVD7'], 
+	"ISUA_DIVD8" => $new['ISUA_DIVD8'], 
+	"ISUA_DIVD9" => $new['ISUA_DIVD9'], 
+	"ISUA_RCOF1" => $new['ISUA_RCOF1'], 
+	"ISUA_RCOF2" => $new['ISUA_RCOF2'], 
+// END Right Click Menu MOD
+// I S U A  T E A M 
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/page_header.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+   'PRIVMSG_IMG' => $icon_pm, 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// I S U A  T E A M 
+// BEGIN Right Click Menu MOD
+   'ISUA_NAME1' => $board_config['ISUA_name1'], 
+   'ISUA_LINK1' => $board_config['ISUA_link1'], 
+   'ISUA_NAME2' => $board_config['ISUA_name2'], 
+   'ISUA_LINK2' => $board_config['ISUA_link2'], 
+   'ISUA_NAME3' => $board_config['ISUA_name3'], 
+   'ISUA_LINK3' => $board_config['ISUA_link3'], 
+   'ISUA_NAME4' => $board_config['ISUA_name4'], 
+   'ISUA_LINK4' => $board_config['ISUA_link4'], 
+   'ISUA_NAME5' => $board_config['ISUA_name5'], 
+   'ISUA_LINK5' => $board_config['ISUA_link5'], 
+   'ISUA_NAME6' => $board_config['ISUA_name6'], 
+   'ISUA_LINK6' => $board_config['ISUA_link6'], 
+   'ISUA_NAME7' => $board_config['ISUA_name7'], 
+   'ISUA_LINK7' => $board_config['ISUA_link7'], 
+   'ISUA_NAME8' => $board_config['ISUA_name8'], 
+   'ISUA_LINK8' => $board_config['ISUA_link8'], 
+   'ISUA_NAME9' => $board_config['ISUA_name9'], 
+   'ISUA_LINK9' => $board_config['ISUA_link9'], 
+   'ISUA_STAT1' => $board_config['ISUA_STAT1'], 
+   'ISUA_SKIN1' => $board_config['ISUA_SKIN1'], 
+   'ISUA_DIVD1' => $board_config['ISUA_DIVD1'], 
+   'ISUA_DIVD2' => $board_config['ISUA_DIVD2'], 
+   'ISUA_DIVD3' => $board_config['ISUA_DIVD3'], 
+   'ISUA_DIVD4' => $board_config['ISUA_DIVD4'],
+   'ISUA_DIVD5' => $board_config['ISUA_DIVD5'], 
+   'ISUA_DIVD6' => $board_config['ISUA_DIVD6'],
+   'ISUA_DIVD7' => $board_config['ISUA_DIVD7'],
+   'ISUA_DIVD8' => $board_config['ISUA_DIVD8'], 
+   'ISUA_DIVD9' => $board_config['ISUA_DIVD9'],
+   'ISUA_RCOF1' => $board_config['ISUA_RCOF1'], 
+   'ISUA_RCOF2' => $board_config['ISUA_RCOF2'],
+// END Right Click Menu MOD
+// I S U A  T E A M 
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?> 
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// I S U A  T E A M 
+// BEGIN Right Click Menu MOD
+$lang['ISUA_title'] = "ISUA Mods :: Custom Right Click MOD Options"; 
+$lang['ISUA_name1'] = "The Name Of Link 1:"; 
+$lang['ISUA_name2'] = "The Name Of Link 2:"; 
+$lang['ISUA_name3'] = "The Name Of Link 3:"; 
+$lang['ISUA_name4'] = "The Name Of Link 4:"; 
+$lang['ISUA_name5'] = "The Name Of Link 5:"; 
+$lang['ISUA_name6'] = "The Name Of Link 6:"; 
+$lang['ISUA_name7'] = "The Name Of Link 7:"; 
+$lang['ISUA_name8'] = "The Name Of Link 8:"; 
+$lang['ISUA_name9'] = "The Name Of Link 9:"; 
+$lang['ISUA_STAT1'] = "Show URLs in status bar?<br />(1=Yes 0=No):"; 
+$lang['ISUA_link1'] = "The Link Of Link 1:"; 
+$lang['ISUA_link2'] = "The Link Of Link 2:";
+$lang['ISUA_link3'] = "The Link Of Link 3:"; 
+$lang['ISUA_link4'] = "The Link Of Link 4:"; 
+$lang['ISUA_link5'] = "The Link Of Link 5:"; 
+$lang['ISUA_link6'] = "The Link Of Link 6:"; 
+$lang['ISUA_link7'] = "The Link Of Link 7:"; 
+$lang['ISUA_link8'] = "The Link Of Link 8:"; 
+$lang['ISUA_link9'] = "The Link Of Link 9:"; 
+$lang['ISUA_SKIN1'] = "Which Skin? Skin 0 Or 1<br />(Skin 0 = 0)<br />(Skin 1 = 1):";
+$lang['ISUA_DIVD1'] = "Put A Divider Here?<br />(Put [hr] If Yes, Leave Blank If No):"; 
+$lang['ISUA_DIVD2'] = "Put A Divider Here?<br />(Put [hr] If Yes, Leave Blank If No):";
+$lang['ISUA_DIVD3'] = "Put A Divider Here?<br />(Put [hr] If Yes, Leave Blank If No):"; 
+$lang['ISUA_DIVD4'] = "Put A Divider Here?<br />(Put [hr] If Yes, Leave Blank If No):"; 
+$lang['ISUA_DIVD5'] = "Put A Divider Here?<br />(Put [hr] If Yes, Leave Blank If No):"; 
+$lang['ISUA_DIVD6'] = "Put A Divider Here?<br />(Put [hr] If Yes, Leave Blank If No):"; 
+$lang['ISUA_DIVD7'] = "Put A Divider Here?<br />(Put [hr] If Yes, Leave Blank If No):"; 
+$lang['ISUA_DIVD8'] = "Put A Divider Here?<br />(Put [hr] If Yes, Leave Blank If No):"; 
+$lang['ISUA_DIVD9'] = "Put A Divider Here?<br />(Put [hr] If Yes, Leave Blank If No):"; 
+$lang['ISUA_RCOF1'] = "Off Mod?<br />(Put Opening HTML Comment If Yes, Leave Blank If No):"; 
+$lang['ISUA_RCOF2'] = "Off Mod?<br />(Put Closing HTML Comment If Yes, Leave Blank If No):"; 
+// END Right Click Menu MOD
+// I S U A  T E A M 
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+</head> 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+<!-- I S U A  T E A M --> 
+<!-- Begin Right Click Menu MOD --> 
+<style> 
+<!-- 
+.skin0 { 
+position:absolute; 
+text-align:left; 
+width:200px; 
+border:2px solid black; 
+background-color:menu; 
+font-family:Verdana; 
+line-height:20px; 
+cursor:default; 
+visibility:hidden; 
+} 
+.skin1 { 
+cursor:default; 
+font:menutext; 
+position:absolute; 
+text-align:left; 
+font-family: Arial, Helvetica, sans-serif; 
+font-size: 10pt; 
+width:120px; 
+background-color:menu; 
+border:1 solid buttonface; 
+visibility:hidden; 
+border:2 outset buttonhighlight; 
+} 
+.menuitems { 
+padding-left:15px; 
+padding-right:10px; 
+} 
+--> 
+</style> 
+
+<SCRIPT LANGUAGE="JavaScript1.2"> 
+
+<!-- Begin 
+var menuskin = "skin{ISUA_SKIN1}"; // skin0, or skin1 
+var display_url = {ISUA_STAT1}; // Show URLs in status bar? 
+function showmenuie5() { 
+var rightedge = document.body.clientWidth-event.clientX; 
+var bottomedge = document.body.clientHeight-event.clientY; 
+if (rightedge < ie5menu.offsetWidth) 
+ie5menu.style.left = document.body.scrollLeft + event.clientX - ie5menu.offsetWidth; 
+else 
+ie5menu.style.left = document.body.scrollLeft + event.clientX; 
+if (bottomedge < ie5menu.offsetHeight) 
+ie5menu.style.top = document.body.scrollTop + event.clientY - ie5menu.offsetHeight; 
+else 
+ie5menu.style.top = document.body.scrollTop + event.clientY; 
+ie5menu.style.visibility = "visible"; 
+return false; 
+} 
+function hidemenuie5() { 
+ie5menu.style.visibility = "hidden"; 
+} 
+function highlightie5() { 
+if (event.srcElement.className == "menuitems") { 
+event.srcElement.style.backgroundColor = "highlight"; 
+event.srcElement.style.color = "white"; 
+if (display_url) 
+window.status = event.srcElement.url; 
+   } 
+} 
+function lowlightie5() { 
+if (event.srcElement.className == "menuitems") { 
+event.srcElement.style.backgroundColor = ""; 
+event.srcElement.style.color = "black"; 
+window.status = ""; 
+   } 
+} 
+function jumptoie5() { 
+if (event.srcElement.className == "menuitems") { 
+if (event.srcElement.getAttribute("target") != null) 
+window.open(event.srcElement.url, event.srcElement.getAttribute("target")); 
+else 
+window.location = event.srcElement.url; 
+   } 
+} 
+//  End --> 
+</script> 
+<!-- I S U A  T E A M --> 
+<!-- End Right Click Menu MOD --> 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<body 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+<!-- I S U A  T E A M --> 
+<!-- Begin Right Click Menu MOD --> 
+{ISUA_RCOF1}
+<div id="ie5menu" class="skin0" onMouseover="highlightie5(event)" onMouseout="lowlightie5(event)" onClick="jumptoie5(event)" display:none>
+<div class="menuitems" url="index.php">Home</div> 
+<div class="menuitems" url="faq.php">FAQ</div> 
+<hr><div class="menuitems" url="search.php">Search</div> 
+<div class="menuitems" url="memberlist.php">Memberlist</div> 
+<hr><div class="menuitems" url="groupcp.php">Usergroups</div>  
+<div class="menuitems" url="viewonline.php">Who is Online?</div> 
+<hr><div class="menuitems" url="profile.php?mode=editprofile">Profile</div>  
+<div class="menuitems" url="privmsg.php?folder=inbox">P.M.</div> 
+<hr><div class="menuitems" url="javascript:history.back();">Go Back</div>  
+</div> 
+<script language="JavaScript1.2">
+// This Code Thanks To http://www.dynamicdrive.com/
+//set this variable to 1 if you wish the URLs of the highlighted menu to be displayed in the status bar
+var display_url=0
+
+var ie5=document.all&&document.getElementById
+var ns6=document.getElementById&&!document.all
+if (ie5||ns6)
+var menuobj=document.getElementById("ie5menu")
+
+function showmenuie5(e){
+//Find out how close the mouse is to the corner of the window
+var rightedge=ie5? document.body.clientWidth-event.clientX : window.innerWidth-e.clientX
+var bottomedge=ie5? document.body.clientHeight-event.clientY : window.innerHeight-e.clientY
+
+//if the horizontal distance isn't enough to accomodate the width of the context menu
+if (rightedge<menuobj.offsetWidth)
+//move the horizontal position of the menu to the left by it's width
+menuobj.style.left=ie5? document.body.scrollLeft+event.clientX-menuobj.offsetWidth : window.pageXOffset+e.clientX-menuobj.offsetWidth
+else
+//position the horizontal position of the menu where the mouse was clicked
+menuobj.style.left=ie5? document.body.scrollLeft+event.clientX : window.pageXOffset+e.clientX
+
+//same concept with the vertical position
+if (bottomedge<menuobj.offsetHeight)
+menuobj.style.top=ie5? document.body.scrollTop+event.clientY-menuobj.offsetHeight : window.pageYOffset+e.clientY-menuobj.offsetHeight
+else
+menuobj.style.top=ie5? document.body.scrollTop+event.clientY : window.pageYOffset+e.clientY
+
+menuobj.style.visibility="visible"
+return false
+}
+
+function hidemenuie5(e){
+menuobj.style.visibility="hidden"
+}
+
+function highlightie5(e){
+var firingobj=ie5? event.srcElement : e.target
+if (firingobj.className=="menuitems"||ns6&&firingobj.parentNode.className=="menuitems"){
+if (ns6&&firingobj.parentNode.className=="menuitems") firingobj=firingobj.parentNode //up one node
+firingobj.style.backgroundColor="highlight"
+firingobj.style.color="white"
+if (display_url==1)
+window.status=event.srcElement.url
+}
+}
+
+function lowlightie5(e){
+var firingobj=ie5? event.srcElement : e.target
+if (firingobj.className=="menuitems"||ns6&&firingobj.parentNode.className=="menuitems"){
+if (ns6&&firingobj.parentNode.className=="menuitems") firingobj=firingobj.parentNode //up one node
+firingobj.style.backgroundColor=""
+firingobj.style.color="black"
+window.status=''
+}
+}
+
+function jumptoie5(e){
+var firingobj=ie5? event.srcElement : e.target
+if (firingobj.className=="menuitems"||ns6&&firingobj.parentNode.className=="menuitems"){
+if (ns6&&firingobj.parentNode.className=="menuitems") firingobj=firingobj.parentNode
+if (firingobj.getAttribute("target"))
+window.open(firingobj.getAttribute("url"),firingobj.getAttribute("target"))
+else
+window.location=firingobj.getAttribute("url")
+}
+}
+//NetscapeRCS
+if (ie5||ns6){
+menuobj.style.display=''
+document.oncontextmenu=showmenuie5
+document.onclick=hidemenuie5
+}
+
+</script>
+<!-- I S U A  T E A M --> 
+<!-- End Right Click Menu MOD --> 
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_ENABLE_PRUNE}</td>
+		<td class="row2"><input type="radio" name="prune_enable" value="1" {PRUNE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="prune_enable" value="0" {PRUNE_NO} /> {L_NO}</td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+<!-- I S U A  T E A M --> 
+<!-- Begin Right Click Menu MOD -->
+   <tr> 
+     <th class="thHead" colspan="2">{L_ISUA}</th> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_1}</td> 
+      <td class="row2"><input class="post" type="text" name="isua_name1" value="{ISUA_NAME1}" size="20" maxlength="20" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_LINK1}</td> 
+      <td class="row2"><input class="post" type="text" size="20" maxlength="40" name="ISUA_link1" value="{ISUA_LINK1}" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_DIVD1}</td> 
+      <td class="row2"><input class="post" type="text" size="10" maxlength="4" name="ISUA_DIVD1" value="{ISUA_DIVD1}" /></td> 
+   </tr>
+   <tr> 
+      <td class="row1">{L_2}</td> 
+      <td class="row2"><input class="post" type="text" name="ISUA_name2" value="{ISUA_NAME2}" size="20" maxlength="20" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_LINK2}</td> 
+      <td class="row2"><input class="post" type="text" size="20" maxlength="40" name="ISUA_link2" value="{ISUA_LINK2}" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_DIVD2}</td> 
+      <td class="row2"><input class="post" type="text" size="10" maxlength="4" name="ISUA_DIVD2" value="{ISUA_DIVD2}" /></td> 
+   </tr>
+   <tr> 
+      <td class="row1">{L_3}</td> 
+      <td class="row2"><input class="post" type="text" name="ISUA_name3" value="{ISUA_NAME3}" size="20" maxlength="20" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_LINK3}</td> 
+      <td class="row2"><input class="post" type="text" size="20" maxlength="40" name="ISUA_link3" value="{ISUA_LINK3}" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_DIVD3}</td> 
+      <td class="row2"><input class="post" type="text" size="10" maxlength="4" name="ISUA_DIVD3" value="{ISUA_DIVD3}" /></td> 
+   </tr>
+   <tr> 
+      <td class="row1">{L_4}</td> 
+      <td class="row2"><input class="post" type="text" name="ISUA_name4" value="{ISUA_NAME4}" size="20" maxlength="20" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_LINK4}</td> 
+      <td class="row2"><input class="post" type="text" size="20" maxlength="40" name="ISUA_link4" value="{ISUA_LINK4}" /></td> 
+   </tr>
+   <tr> 
+      <td class="row1">{L_DIVD4}</td> 
+      <td class="row2"><input class="post" type="text" size="10" maxlength="4" name="ISUA_DIVD4" value="{ISUA_DIVD4}" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_5}</td> 
+      <td class="row2"><input class="post" type="text" name="ISUA_name5" value="{ISUA_NAME5}" size="20" maxlength="20" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_LINK5}</td> 
+      <td class="row2"><input class="post" type="text" size="20" maxlength="40" name="ISUA_link5" value="{ISUA_LINK5}" /></td> 
+   </tr>
+   <tr> 
+      <td class="row1">{L_DIVD5}</td> 
+      <td class="row2"><input class="post" type="text" size="10" maxlength="4" name="ISUA_DIVD5" value="{ISUA_DIVD5}" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_6}</td> 
+      <td class="row2"><input class="post" type="text" name="ISUA_name6" value="{ISUA_NAME6}" size="20" maxlength="20" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_LINK6}</td> 
+      <td class="row2"><input class="post" type="text" size="20" maxlength="40" name="ISUA_link6" value="{ISUA_LINK6}" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_DIVD6}</td> 
+      <td class="row2"><input class="post" type="text" size="10" maxlength="4" name="ISUA_DIVD6" value="{ISUA_DIVD6}" /></td> 
+   </tr>
+   <tr> 
+      <td class="row1">{L_7}</td> 
+      <td class="row2"><input class="post" type="text" name="ISUA_name7" value="{ISUA_NAME7}" size="20" maxlength="20" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_LINK7}</td> 
+      <td class="row2"><input class="post" type="text" size="20" maxlength="40" name="ISUA_link7" value="{ISUA_LINK7}" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_DIVD7}</td> 
+      <td class="row2"><input class="post" type="text" size="10" maxlength="4" name="ISUA_DIVD7" value="{ISUA_DIVD7}" /></td> 
+   </tr>
+   <tr> 
+      <td class="row1">{L_8}</td> 
+      <td class="row2"><input class="post" type="text" name="ISUA_name8" value="{ISUA_NAME8}" size="20" maxlength="20" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_LINK8}</td> 
+      <td class="row2"><input class="post" type="text" size="20" maxlength="40" name="ISUA_link8" value="{ISUA_LINK8}" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_DIVD8}</td> 
+      <td class="row2"><input class="post" type="text" size="10" maxlength="4" name="ISUA_DIVD8" value="{ISUA_DIVD8}" /></td> 
+   </tr>
+   <tr> 
+      <td class="row1">{L_9}</td> 
+      <td class="row2"><input class="post" type="text" name="ISUA_name9" value="{ISUA_NAME9}" size="20" maxlength="20" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_LINK9}</td> 
+      <td class="row2"><input class="post" type="text" size="20" maxlength="40" name="ISUA_link9" value="{ISUA_LINK9}" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_DIVD9}</td> 
+      <td class="row2"><input class="post" type="text" size="10" maxlength="4" name="ISUA_DIVD9" value="{ISUA_DIVD9}" /></td> 
+   </tr>
+   <tr> 
+      <td class="row1">{L_STAT1}</td> 
+      <td class="row2"><input class="post" type="text" name="ISUA_STAT1" value="{ISUA_STAT1}" size="20" maxlength="1" /></td> 
+   </tr> 
+   <tr> 
+      <td class="row1">{L_SKIN1}</td> 
+      <td class="row2"><input class="post" type="text" size="20" maxlength="1" name="ISUA_SKIN1" value="{ISUA_SKIN1}" /></td> 
+   </tr>
+   <tr> 
+      <td class="row1">{L_RCOF1}</td> 
+      <td class="row2"><input class="post" type="text" name="ISUA_RCOF1" value="{ISUA_RCOF1}" size="20" maxlength="4" /></td> 
+   </tr>
+   <tr> 
+      <td class="row1">{L_RCOF2}</td> 
+      <td class="row2"><input class="post" type="text" name="ISUA_RCOF2" value="{ISUA_RCOF2}" size="20" maxlength="4" /></td> 
+   </tr>
+<!-- End Right Click Menu MOD -->
+<!-- I S U A  T E A M --> 
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM
+#

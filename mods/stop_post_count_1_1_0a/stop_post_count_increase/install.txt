@@ -1,0 +1,248 @@
+##############################################################
+## MOD Title: Stop Post Count From Increasing
+## MOD Author: eXplosive < N/A > (N/A) http://bbmod.sourceforge.net
+## MOD Author, Secondary: the Pelican < knotsenburg@hotmail.com > (Onno van Knotsenburg) http://members.chello.nl/o.knotsenburg/
+## MOD Description: Don't increase posts count when posting in a certain forum.
+## MOD Version: 1.1.0
+##
+## Installation Level: Easy
+## Installation Time: ~5 Minutes
+## Files To Edit:
+##               functions_post.php
+##               admin_board.php
+##               board_config_body.tpl
+##               lang_main.php
+##               modcp.php
+## Included Files: mod_install.php, mod_uninstall.php
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## 1) Upload all files to their respective location in this format.
+##		/mod_install.php (Only needed for install)
+##		/mod_uninstall.php (Only needed for uninstall)
+## 2) Run mod_install.php from your web broswer to make the table changes.
+## 3) Read below to make the rest of the changes.
+## 4) You should change all your languages and themes if you
+##    use others then English and subSilver.
+##############################################################
+## MOD History:
+##
+##   unknown - Version 1.0.0
+##      - Initial pre-2.0.4 release by ssjslim
+##   2003-08-19 - Version 1.1.0
+##      - Checked for 2.0.6, added code sugestions by KingRufus
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ($topic_update_sql != '')
+	{
+		$sql = "UPDATE " . TOPICS_TABLE . " SET 
+			$topic_update_sql 
+			WHERE topic_id = $topic_id";
+		if (!$db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+		}
+	}
+
+#
+#-----[ AFTER, ADD ]----------------------------------
+#
+
+	// Start code for Stop Post Count MOD
+	$board_config['no_post_count_forum_id'] = $GLOBALS['board_config']['no_post_count_forum_id'];
+	if( strstr($board_config['no_post_count_forum_id'], ',') )
+	{
+		$fids = explode(',', $board_config['no_post_count_forum_id']);
+	
+		while( list($foo, $id) = each($fids) )
+		{
+			$fid[] = intval( trim($id) );
+		}
+	}
+	else
+	{
+		$fid[] = intval( trim($board_config['no_post_count_forum_id']) );
+	}
+	reset($fid);
+	// End code for Stop Post Count MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ($mode != 'poll_delete')
+	{
+		$sql = "UPDATE " . USERS_TABLE . "
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	// if ($mode != 'poll_delete')
+	// Previous line replaced by next line for Stop Post Count MOD
+	if ($mode != 'poll_delete' && in_array($forum_id, $fid) == false)
+	{
+		$sql = "UPDATE " . USERS_TABLE . "
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_RESET" => $lang['Reset'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	
+	// Start code for Stop Post Count MOD
+	"NO_POST_COUNT_FORUM_ID" => $new['no_post_count_forum_id'],
+	"NO_POST_COUNT" => $lang['no_post_count'],
+	"NO_POST_COUNT_EXPLAIN" =>$lang['no_post_count_explain'],
+	// End code for Stop Post Count MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_MAX_POLL_OPTIONS}</td>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{NO_POST_COUNT}<br /><span class="gensmall">{NO_POST_COUNT_EXPLAIN}</span></td>
+		<td class="row2"><input type="text" name="no_post_count_forum_id" maxlength="255" value="{NO_POST_COUNT_FORUM_ID}" /></td>
+	</tr>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND  ]------------------------------------------
+#
+$lang['A_critical_error'] = 'A Critical Error Occurred';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//
+//No Post Count MOD
+//
+$lang['no_post_count'] = 'No post count in forum';
+$lang['no_post_count_explain'] = 'Forum IDs of forums you do not want users post to increase. Separate multiple forum IDs with commas';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+modcp.php
+
+#
+#-----[ FIND  ]------------------------------------------
+#
+		if ( $confirm )
+		{
+			include($phpbb_root_path . 'includes/functions_search.'.$phpEx);
+
+			$topics = ( isset($HTTP_POST_VARS['topic_id_list']) ) ? $HTTP_POST_VARS['topic_id_list'] : array($topic_id);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start code for Stop Post Count MOD
+	// Code writen by KingRufus (09/23/2002)
+            $board_config['no_post_count_forum_id'] = $GLOBALS['board_config']['no_post_count_forum_id'];
+            if( strstr($board_config['no_post_count_forum_id'], ',') )
+            {
+                $fids = explode(',', $board_config['no_post_count_forum_id']);
+            
+                while( list($foo, $id) = each($fids) )
+                {
+                    $fid[] = intval( trim($id) );
+                }
+            }
+            else
+            {
+                $fid[] = intval( trim($board_config['no_post_count_forum_id']) );
+            }
+            reset($fid);
+
+            $topic_id_sql = '';
+			$topic_id_sql_onlypostcount_forums = '';
+			for($i = 0; $i < count($topics); $i++)
+			{
+				$topic_id_sql .= ( ( $topic_id_sql != '' ) ? ', ' : '' ) . $topics[$i];
+
+                $sql = "SELECT forum_id
+                    FROM " . POSTS_TABLE . " 
+                    WHERE topic_id = ". $topics[$i];
+                if ( !($result = $db->sql_query($sql)) )
+                {
+                    message_die(GENERAL_ERROR, 'Could not get forum id information', '', __LINE__, __FILE__, $sql);
+                }
+                $row = $db->sql_fetchrow($result);
+                if (in_array($row["forum_id"], $fid) == false)
+                {
+                    $topic_id_sql_onlypostcount_forums .= ( ( $topic_id_sql_onlypostcount_forums != '' ) ? ', ' : '' ) . $topics[$i];
+                }
+			}
+
+            if ($topic_id_sql_onlypostcount_forums != '')
+            {
+                $sql = "SELECT poster_id, COUNT(post_id) AS posts 
+                    FROM " . POSTS_TABLE . " 
+                    WHERE topic_id IN ($topic_id_sql_onlypostcount_forums) 
+                    GROUP BY poster_id";
+                if ( !($result = $db->sql_query($sql)) )
+                {
+                    message_die(GENERAL_ERROR, 'Could not get poster id information', '', __LINE__, __FILE__, $sql);
+                }
+
+                $count_sql = array();
+                while ( $row = $db->sql_fetchrow($result) )
+                {
+                    $count_sql[] = "UPDATE " . USERS_TABLE . " 
+                        SET user_posts = user_posts - " . $row['posts'] . " 
+                        WHERE user_id = " . $row['poster_id'];
+                }
+                $db->sql_freeresult($result);
+
+                if ( sizeof($count_sql) )
+                {
+                    for($i = 0; $i < sizeof($count_sql); $i++)
+                    {
+                        if ( !$db->sql_query($count_sql[$i]) )
+                        {
+                            message_die(GENERAL_ERROR, 'Could not update user post count information', '', __LINE__, __FILE__, $sql);
+                        }
+                    }
+                }
+            }
+	// End code for Stop Post Count MOD
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,369 @@
+######################################################## 
+## 外挂名称: 可设定会员名称长度
+## 外挂作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外挂描述: 管理员可以在控制台设定会员名称允许的最大以及最小长度
+## 外挂版本: 1.1.1
+## 
+## 安装难度: 简单
+## 安装时间: 15 分钟 
+##
+## 需要编辑的档案: 11
+##	admin/admin_board.php
+##	language/lang_chinese_simplified/lang_admin.php
+##	language/lang_chinese_simplified/lang_main.php
+##	includes/functions_validate.php
+##	includes/usercp_register.php
+##	includes/functions.php
+##	includes/page_header.php
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/login_body.tpl
+##	templates/subSilver/posting_body.tpl
+##
+## 附加的档案: 0
+##
+## 版权声明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由于安全上的考量, 请检查: http://www.phpbb.com/mods/
+## 是否有此外挂的最新版本. 虽然在加入外挂资料库前，外挂已经经过检查
+## 但是这并不保证外挂中完全没有安全上的问题. 
+## 对于不在外挂资料库 (http://www.phpbb.com/mods/) 内的外挂
+## 将不会在 phpbb.com 的讨论板内给予支援 
+############################################################## 
+## 作者留言:
+##	此外挂在 2.0.21 上测试过. 可以用 EasyMOD 0.3.0 来安装此外挂
+##
+## 	监控更新进度: http://sourceforge.net/project/filemodule_monitor.php?filemodule_id=165659
+## 
+############################################################## 
+## 版本历史: 
+##
+##   2005-10-06 - 版本 1.0.0
+##      - 首次发布
+##
+##   2005-10-14 - 版本 1.0.1
+##      - 增加了一个 SQL 指令，让在 phpbb_users 资料表的 username 栏位
+##		可以容纳大于 25 个字元的设定值
+##
+##   2005-11-03 - 版本 1.0.2
+##      - 修改了 SQL 指令，让它可以在 EM 下执行
+#	- 把帐号字数上限限制在 99 个字元内
+##
+##   2006-04-02 - 版本 1.0.3
+##      - 更新了在 phpbb_clean_username() 中的字元限制, 感激 fahraeus
+##
+##   2006-04-16 - 版本 1.0.4
+##      - 更新成可在 2.0.20 上安装
+##
+##   2006-06-03 - 版本 1.1.0
+##      - 做出许多的程式上的修改并且加入会员名称长度的最短限制
+##
+##   2006-07-16 - 版本 1.1.1
+##	- 修正了在login body 和 posting body 里的 maxlength 长度
+##	- 检查 在 admin_board.php 里的最大帐号字数是否比最小字数小
+## 
+############################################################## 
+## 在增加此外挂前, 请务必备份所有需要修改的档案
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# 请记得修改成你的资料表名称
+INSERT INTO `phpbb_config` VALUES ('limit_username_min_length', '2');
+INSERT INTO `phpbb_config` VALUES ('limit_username_max_length', '25');
+ALTER TABLE `phpbb_users` MODIFY `username` varchar(99) NOT NULL; 
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+language/lang_chinese_simplified/lang_admin.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Configurable Username Length MOD
+$lang['username_max_min_error'] = '最大帐号字数比最小字数还小';
+$lang['Limit_username_max_length'] = '最大帐号字数';
+$lang['Limit_username_max_length_explain'] = '会员帐号可允许的最长字数 (最长: 99 字元)';
+$lang['Limit_username_min_length'] = '最小帐号字数';
+$lang['Limit_username_min_length_explain'] = '会员帐号可允许的最短字数 (最短: 2 字元)';
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+language/lang_chinese_simplified/lang_main.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Configurable Username Length MOD
+$lang['Allowed_username_length'] = '(允许的帐号字数是介于 %s ~ %s 字元)';
+$lang['Username_long'] = '您所输入的会员名称长度超过 %s 个字元.';
+$lang['Username_short'] = '您所输入的会员名称长度小于 %s 个字元.';
+# 
+#-----[ 打开 ]------------------------------------------ 
+#  
+admin/admin_board.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+	while( $row = $db->sql_fetchrow($result) )
+	{
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+	// Configurable Username Length MOD
+	if( isset($HTTP_POST_VARS['submit']) )
+	{
+		if ($HTTP_POST_VARS['limit_username_max_length'] < $HTTP_POST_VARS['limit_username_min_length'])
+		{
+			message_die(GENERAL_MESSAGE, 'username_max_min_error');
+		}
+	}
+#
+#-----[ 寻找 ]------------------------------------------ 
+# 
+			$new['server_name'] = str_replace('http://', '', $new['server_name']);
+		}
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+# 
+		// Configurable Username Length MOD
+		if ($config_name == 'limit_username_min_length' && $config_value < 2)
+		{
+			$new['limit_username_min_length'] = 2;
+		}
+		else if ($config_name == 'limit_username_max_length' && $config_value < 2)
+		{
+			$new['limit_username_max_length'] = 25;
+		}
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+	"L_ADMIN" => $lang['Acc_Admin'], 
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+# 
+	"L_LIMIT_USERNAME_MAX_LENGTH" => $lang['Limit_username_max_length'],			// Configurable Username Length MOD
+	"L_LIMIT_USERNAME_MAX_LENGTH_EXPLAIN" => $lang['Limit_username_max_length_explain'],	// Configurable Username Length MOD
+	"L_LIMIT_USERNAME_MIN_LENGTH" => $lang['Limit_username_min_length'],			// Configurable Username Length MOD
+	"L_LIMIT_USERNAME_MIN_LENGTH_EXPLAIN" => $lang['Limit_username_min_length_explain'],	// Configurable Username Length MOD
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+	"SERVER_PORT" => $new['server_port'], 
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+# 
+	"LIMIT_USERNAME_MAX_LENGTH" => $new['limit_username_max_length'],	// Configurable Username Length MOD
+	"LIMIT_USERNAME_MIN_LENGTH" => $new['limit_username_min_length'],	// Configurable Username Length MOD
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+includes/page_header.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+	'PRIVMSG_IMG' => $icon_pm,
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+# 
+	'LIMIT_USERNAME_MAX_LENGTH' => $board_config['limit_username_max_length'],	// Configurable Username Length MOD
+#
+#-----[ 打开 ]------------------------------------------ 
+#  
+includes/functions_validate.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+	global $db, $lang, $userdata;
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+# 
+$userdata
+# 
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+# 
+, $board_config
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+		return array('error' => true, 'error_msg' => $lang['Username_invalid']);
+	}
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+# 
+
+	if ( strlen($username) > $board_config['limit_username_max_length'] )
+	{
+		return array('error' => true, 'error_msg' => sprintf($lang['Username_long'], $board_config['limit_username_max_length']));
+	}
+	else if ( strlen($username) < $board_config['limit_username_min_length'] || strlen($username) < 2 )
+	{
+		return array('error' => true, 'error_msg' => sprintf($lang['Username_short'], $board_config['limit_username_min_length']));
+	}
+# 
+#-----[ 打开 ]------------------------------------------ 
+#  
+includes/usercp_register.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+# 1st time
+					'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+# 
+0, 25
+# 
+#-----[ 把该行取代为 ]------------------------------------------ 
+# 
+0, $board_config['limit_username_max_length']
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+# 2nd time
+					'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+# 
+0, 25
+# 
+#-----[ 把该行取代为 ]------------------------------------------ 
+# 
+0, $board_config['limit_username_max_length']
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+# 3rd time
+					'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+# 
+0, 25
+# 
+#-----[ 把该行取代为 ]------------------------------------------ 
+# 
+0, $board_config['limit_username_max_length']
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+# 4th time
+						'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+# 
+0, 25
+# 
+#-----[ 把该行取代为 ]------------------------------------------ 
+# 
+0, $board_config['limit_username_max_length']
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+		'L_CURRENT_PASSWORD' => $lang['Current_password'],
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+		'L_LIMIT_USERNAME_LENGTH_EXPLAIN' => sprintf($lang['Allowed_username_length'], $board_config['limit_username_min_length'], $board_config['limit_username_max_length']),	// Configurable Username Length MOD
+# 
+#-----[ 打开 ]------------------------------------------ 
+#  
+includes/functions.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+	$username = substr(htmlspecialchars(str_replace("\'", "'", trim($username))), 0, 25);
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+# 
+25
+# 
+#-----[ 把该行取代为 ]------------------------------------------ 
+# 
+99
+# 
+#-----[ 打开 ]------------------------------------------ 
+#  
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+		<td class="row2"><input type="radio" name="allow_namechange" value="1" {NAMECHANGE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_namechange" value="0" {NAMECHANGE_NO} /> {L_NO}</td>
+	</tr>
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MIN_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MIN_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_min_length" value="{LIMIT_USERNAME_MIN_LENGTH}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MAX_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MAX_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_max_length" value="{LIMIT_USERNAME_MAX_LENGTH}" /></td>
+	</tr>
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+		<td class="row2"><input type="text" class="post" style="width:200px" name="username" size="25" maxlength="25" value="{USERNAME}" /></td>
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+# 
+maxlength="25"
+# 
+#-----[ 把该行取代为 ]------------------------------------------ 
+# 
+maxlength="{LIMIT_USERNAME_MAX_LENGTH}"
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+# 
+value="{USERNAME}" />
+# 
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+# 
+ <span class="gensmall">{L_LIMIT_USERNAME_LENGTH_EXPLAIN}</span>
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+templates/subSilver/login_body.tpl
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+			  <input type="text" class="post" name="username" size="25" maxlength="40" value="{USERNAME}" />
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+# 
+maxlength="40"
+# 
+#-----[ 把该行取代为 ]------------------------------------------ 
+# 
+maxlength="{LIMIT_USERNAME_MAX_LENGTH}"
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+templates/subSilver/posting_body.tpl
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# switch_privmsg
+		<td class="row2"><span class="genmed"><input type="text"  class="post" name="username" maxlength="25" size="25" tabindex="1" value="{USERNAME}" />
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+# 
+maxlength="25"
+# 
+#-----[ 把该行取代为 ]------------------------------------------ 
+# 
+maxlength="{LIMIT_USERNAME_MAX_LENGTH}"
+# 
+#-----[ 储存/关闭所有档案 ]------------------------------------------ 
+# 
+# 外挂修正结束

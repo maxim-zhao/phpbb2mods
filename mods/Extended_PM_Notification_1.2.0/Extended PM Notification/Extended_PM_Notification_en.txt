@@ -1,0 +1,210 @@
+############################################################## 
+## MOD Title: Extended Private Message Notification
+##		a.k.a. Disply Sender Username and Private Message Content in E-mail Notification
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This MOD will allow receiver who enables e-mail notification when receiving new private message to have sender's username and message content included in the e-mail
+## MOD Version: 1.2.0
+## 
+## Installation Level: 	Easy
+## Installation Time: 	5 Minutes 
+##
+## Files To Edit: 4
+##			privmsg.php
+##			includes/bbcode.php
+##			language/lang_english/lang_main.php
+##			language/lang_english/email/privmsg_notify.tpl
+## Included Files: n/a 
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: 
+##
+##	Tested on 2.0.18. Can be installed using EasyMOD 0.2.1a
+##
+############################################################## 
+## MOD History: 
+## 
+##   2004-01-14 - Version 1.0.0 
+##      - First Release 
+##
+##   2004-03-12 - Version 1.1.0 
+##      - Text now send without BBCode UID & BBcode
+##
+##   2004-04-20 - Version 1.1.1
+##      - A slight change in the installation recommended by phpBB Validation Team
+##
+##   2004-05-21 - Version 1.1.2
+##      - Two slight change in the MOD template recommended by phpBB Validation Team
+##
+##   2004-05-30 - Version 1.1.3
+##      - Code chnage, added 'htmlspecialchars'
+##	- MOD Title officially changed to Extended Private Message Notification
+##
+##   2004-07-01 - Version 1.1.4
+##      - Added 'htmlspecialchars' to $userdata['username']
+##	- Thanks to KhaledB@phpBB.com for a bugfix in $bbcode_match array
+##	- Added Simplified Chinese guide
+##
+##   2004-07-20 - Version 1.1.5
+##      - Fix a mistake in the Traditional & Simplified Chinese installation guide,
+##		English version not affected
+##
+##   2005-11-08 - Version 1.2.0
+##	- Implemented $privmsg_subject to show PM subject in E-mail (provided by TMB)
+##	- BBcode parsing now processed in a new function, many thanks to asinshesq for providing his code.
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+privmsg.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$privmsg_message = prepare_message($HTTP_POST_VARS['message'], $html_on, $bbcode_on, $smilies_on, $bbcode_uid);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+				// Extended_PM_Notification MOD
+				$message_text = htmlspecialchars(trim(stripslashes($HTTP_POST_VARS['message'])));
+				$message_text = pm_message_to_plain_text($message_text);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$emailer->assign_vars(array(
+					'USERNAME' => stripslashes($to_username), 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+					// Extended_PM_Notification MOD
+					'SENDER_USERNAME' => htmlspecialchars($userdata['username']),
+					'PM_SUBJECT' => $privmsg_subject,
+					'PM_MESSAGE' => $message_text,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Extended_PM_Notification MOD
+// This function is an altered version of asinshesq's bbcode_process_to_plain_text()
+function pm_message_to_plain_text($text)
+{
+	global $lang;
+
+	$newline = "\r\n";
+	$q1 = $newline . '>>>>>>>>>>>>>>>>>>>>>>' . $newline;
+	$q2 = $newline . '<<<<<<<<<<<<<<<<<<<<<<' . $newline; $newline;
+	$l1 = $newline . '   (*) '; 
+	$img1 = '[image at: ';
+	$img2 = ' ]';
+
+	$text = preg_replace('/\[quote=\"(.*?)\"\]/', $newline . '\\1 '. $lang['wrote'].':'.$q1, $text);
+	$text = preg_replace('/\[quote\]/', $newline . $lang['Quote'].':'.$q1, $text);
+	$text = preg_replace('/\[\/quote\]/', $q2, $text);
+
+	$text = preg_replace('/\[code\]/', $newline . $lang['Code'].':'.$q1, $text);
+	$text = preg_replace('/\[\/code:?1*\]/', $q2, $text);
+
+	$text = preg_replace('/&#91;/', '[', $text);
+	$text = preg_replace('/&#93;/', ']', $text);
+
+	$text = preg_replace('/\[list\]/', $newline . '\\1 '. $lang['List'].':'.$q1, $text);
+	$text = preg_replace('/\[list=[a-z]+\]/', $newline . '\\1 '. $lang['Ordered_list'].':'.$q1, $text);
+	$text = preg_replace('/\[list=[1-2]?[0-9]+\]/', $newline . '\\1 '. $lang['Ordered_list'].':'.$q1, $text);
+	$text = preg_replace('/\[\/list\]/', $q2, $text);
+	$text = preg_replace('/\[\*\]/', $l1, $text);
+
+	$text = preg_replace('/\[img\](.*?)\[\/img\]/', $img1 .'\\1' . $img2, $text);
+	$text = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/', '\\1', $text);
+	$text = preg_replace('/\[url\](.*?)\[\/url\]/', '\\1', $text);
+	
+	$text = preg_replace('/\[b\](.*?)\[\/b\]/', '\\1', $text);
+	$text = preg_replace('/\[u\](.*?)\[\/u\]/', '\\1', $text);
+	$text = preg_replace('/\[i\](.*?)\[\/i\]/', '\\1', $text);
+	$text = preg_replace('/\[color=\#[0-9A-F]{6}\](.*?)\[\/color\]/', '\\1', $text);
+	$text = preg_replace('/\[color=[a-z]+\](.*?)\[\/color\]/', '\\1', $text);
+	$text = preg_replace('/\[size=[1-2]?[0-9]\](.*?)\[\/size\]/', '\\1', $text);
+	$text = preg_replace('/\[email\](.*?)\[\/email\]/', '\\1', $text);
+
+	$text = preg_replace('/(\\r\\n){3,}/s', $newline.$newline, $text);
+
+	return $text;
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['Code']
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// Extended_PM_Notification MOD
+$lang['List'] = 'List';
+$lang['Ordered_list'] = 'Ordered list';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/email/privmsg_notify.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+Subject: New Private Message has arrived
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+Subject: New {SITENAME} Private Message from {SENDER_USERNAME}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+You have received a new private message to your account on "{SITENAME}" and you have requested that you be notified on this event. You can view your new message by clicking on the following link:
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+Member {SENDER_USERNAME} from "{SITENAME}" has just send you a new private message to your account, and you have requested that you be notified on this event. The content of the message is as follows: 
+
+--------------------------------------------------
+Subject: {PM_SUBJECT}
+--------------------------------------------------
+Message: 
+{PM_MESSAGE}
+-------------------------------------------------- 
+
+You can view your new message by clicking on the following link: 
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

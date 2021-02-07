@@ -1,0 +1,174 @@
+############################################################## 
+## MOD Title: Advance Signature Divider Control
+## MOD Author:   crxgames < crxgames@gmail.com > (Cody Mays) http://www.crxgames.com
+## MOD Description: This mod allows you control what divides
+##		    a user's signature from the post. The one in 
+##		    phpbb is __________ with this mod change it to
+##		    What ever you want, even html.
+##                  
+## MOD Version: 1.0.1
+## 
+## Installation Level: (easy) 
+## Installation Time: 10 Minutes 
+## Files To Edit: board_config_body.tpl, lang/lang_english/lang_admin.php,
+##                admin/admin_board.php, templates/subSilver/overall_header.tpl
+## Included Files:      Advanced_Signature_Divider_Control.txt
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+##	Can be installed with easymod :)
+############################################################## 
+## MOD History: 
+##
+##		2004-10-14 - Version 1.0.1
+##                    Fixed some install script problems
+##		      to get mod approved by the phpbb mod team
+##		2004-09-27 - Version 1.0.0
+##		      first developed and released
+##
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+#
+#-----[ SQL ]----------------------------------
+#
+INSERT INTO `phpbb_config` ( `config_name` , `config_value` ) VALUES ('sig_line', '____________');
+
+
+#
+#-----[ OPEN ]---------------------------------
+#
+language/lang_english/lang_admin.php
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// That's all Folks!
+// -------------------------------------------------
+
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// Advanced Signature Divider Control
+$lang['sig_title']   = 'Advanced Signature Divider Control';
+$lang['sig_divider'] = 'Current Signature Divider';
+$lang['sig_explain'] = "This is where you control what divides the user's signature from their post";
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<tr>
+		<th class="thHead" colspan="2">{L_COOKIE_SETTINGS}</th>
+	</tr>
+
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+<!-- Advanced Signature Divider Control -->
+	<tr>
+		<th class="thHead" colspan="2">{L_SIG_TITLE}</th>
+	</tr>
+	<tr>
+		<td class="row2" colspan="2"><span class="gensmall">{L_SIG_EXPLAIN}</span></td>
+	</tr>
+ 	 <tr> 
+     		 <td class="row1">{L_SIG_INPUT}<br /><span class="gensmall">{L_SIG_EXPLAIN}</span></td> 
+    		 <td class="row2"><input type="text" maxlength="255" name="sig_line" value="{SIG_DIVIDERS}" /></td> 
+   	</tr> 
+<!-- Advanced Signature Divider Control -->
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php 
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$new['sitename'] = str_replace('"', '&quot;', strip_tags($new['sitename']));
+
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+//-mod : Advanced Signature Divider Control --------------------------------
+$new['sig_line'] = str_replace('"', '&quot;', $new['sig_line']);
+//-fin mod : Advanced Signature Divider Control --------------------------------
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"L_ENABLE_PRUNE" => $lang['Enable_prune'],
+
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//-mod : Advanced Signature Divider Control --------------------------------
+	"L_SIG_TITLE" => $lang['sig_title'],
+	"L_SIG_EXPLAIN" => $lang['sig_explain'],
+	"L_SIG_INPUT" => $lang['sig_divider'],
+//-fin mod : Advanced Signature Divider Control --------------------------------
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"PRUNE_NO" => $prune_no, 
+
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//-mod : Advanced Signature Divider Control --------------------------------
+	"SIG_DIVIDERS" => $new['sig_line'],
+//-fin mod : Advanced Signature Divider Control --------------------------------
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewtopic.php 
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$user_sig = '<br />_________________<br />' . str_replace("\n", "\n<br />\n", $user_sig);
+
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+//-mod : Advanced Signature Divider Control --------------------------------
+		//$user_sig = '<br />_________________<br />' . str_replace("\n", "\n<br />\n", $user_sig);
+                $user_sig = '<br />'.$board_config['sig_line'].'<br />' . str_replace("\n", "\n<br />\n", $user_sig);
+//-fin mod : Advanced Signature Divider Control --------------------------------
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 
+
+
+
+
+

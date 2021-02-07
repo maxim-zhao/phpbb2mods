@@ -1,0 +1,925 @@
+######################################################## 
+## MOD Title:   Protect useraccount
+## MOD Author:         Niels < ncr@db9.dk > (Niels Chr. Rød) http://mods.db9.dk
+## MOD Description:  This mod will prevent hacking on users password, and give the admin the posibilty to
+##		     specify witch types of passwords are accepted.
+##		     List of featurs: Min password length, complex password, age of password, # of wrong login attempt accepted, force user to change passwd
+## 
+## MOD Version:  1.2.8
+## Compatibility:  2.0.6.
+## 
+## Installation Level:  Moderate 
+## Installation Time:   10-15 Minutes (1mn by EasyMOD of Nuttzy)
+## Files To Edit:      13
+##   language/lang_english/lang_main.php 
+##   language/lang_english/lang_admin.php 
+##   login.php
+##   includes/page_header.php
+##   includes/functions_validate.php
+##   includes/usercp_register.php
+##   includes/usercp_activate.php
+##   admin/admin_board.php
+##   admin/admin_users.php
+##   templates/subSilver/admin/board_config.tpl
+##   templates/subSilver/admin/users_edit_body.tpl
+##   templates/subSilver/overall_header.tpl
+##   templates/subSilver/simple_header.tpl
+##
+## Included Files:	3
+##   change_password.php
+##   templates/subSilver/change_password_popup.tpl
+##   language/lang_english/email/bad_login.tpl
+##   
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##	the mod works like this:
+##	when users register/change password, the password is validated according to the rules set by admin
+##	you can in admin panel->board config->user password settings specify what are valid.
+##	when users then try to login, then the password is validated and
+##	if a user submit a wrong password X times, on a users account.
+## 	then the specifyed username can not login for a specific time (e.g. 30 min)
+##	this prevents that a fake user repeately try to login on another users account.
+##	Note: that the blocked time, should not be set to long, so the "real" user can still log-in
+##
+##	features in admin interface
+##		set time user shal be blocked (board config)
+##		set minimum password length (board config)
+##		set if password must be complex (board config)
+## 		set if password must be different from username (board config)
+##		block user (user managment)
+##		unblock user (user managment)
+##		force change of users password on next login (user managment)
+##		view number of wrong logins (user managment)
+##		view time user is unblocked (user managment)
+##		view ip witch have made the useraccount blocked (user managment)
+##
+##
+## This MOD is compatible and can be installed by EasyMOD
+## of Nuttzy (but is not officially EasyMOD Compliant)!
+## http://www.phpbb.com/phpBB/viewtopic.php?t=124436
+##
+## However, on alpha releases of EM SQL commands are not performed!
+## Then, meanwhile beta or final release (with DB alterations
+## capabilities), you must update your database manually by
+## copying the last_visit_db_update.php file in your phpBB
+## root directory, execute it with your navigator and after,
+## delete it.
+##
+## In any case, if you install this MOD manually or using an
+## alpha release of EM, please run this file NOW, before
+## editing phpBB files by EM or manually!!!
+## Otherwise, you may have an error message during your next
+## connection.
+##
+############################################################## 
+## MOD History: 
+##
+##
+##   2003-11-30 - Version 1.2.8. 
+##       - corrected lang_main.php/lang_admin/email tempalte, gramtically and spelling
+##
+##   2003-11-30 - Version 1.2.7. 
+##       - fixed usercp_register.php and admin_users.php - problems if "account activation"=NONE
+##
+##   2003-11-18 - Version 1.2.6. 
+##       - corrected lang_main.php, gramtically / spelling
+##
+##   2003-10-14 - Version 1.2.5. 
+##       - changed login.php, preventing guest being password checked
+##
+##   2003-09-16 - Version 1.2.4. 
+##       - changed usercp_register.php fixed a isue when users did register 
+##
+##   2003-08-28 - Version 1.2.3. 
+##       - changed admin_users.php admin/users_edit_body.tpl to allow admin to "un-mark force passwd"
+##
+##   2003-08-25 - Version 1.2.2.
+##       - change into login.php
+##
+##   2003-08-25 - Version 1.2.1.
+##       - added change into usercp_activate.php
+## 
+##   2003-08-24 - Version 1.2.0.
+##       - Now support password expire date
+## 
+##   2003-08-23 - Version 1.1.9.
+##       - verifyed for 2.0.6., EM ready
+##
+##   ????-??-?? - Version 1.1.8.
+##       - corrected a bug in login.php
+##
+##   ????-??-?? - Version 1.1.7.
+##       - minor correction to admin_users.php 
+##
+##   ????-??-?? - Version 1.1.6.
+##       - corrected admin/admin_board_config_body.tpl
+##
+##   ????-??-?? - Version 1.1.5. - timezone corrections
+##
+##   ????-??-?? - Version 1.1.4. - type in the how-to, regarding $password_complex_xx
+##
+##   ????-??-?? - Version 1.1.3. - changed a find tag in the login.php
+##
+##   ????-??-?? - Version 1.1.2. - if user are blocked from admin panel, they are blocked instant
+##
+##   ????-??-?? - Version 1.1.1. - missed a part in the how-to login.php
+##
+##   ????-??-?? - Version 1.1.0. - now email notifications are send out, if account are blocked
+##
+##   ????-??-?? - Version 1.0.5. - mised the user_block_by SQL
+##
+##   ????-??-?? - Version 1.0.4. - there was missing a find tag for the admin_users.php in the how-to
+##
+##   ????-??-?? - Version 1.0.3. - updated the how-to for login.php
+##
+##   ????-??-?? - Version 1.0.2. - added admin interface (users), IP are now logged
+##
+##   ????-??-?? - Version 1.0.1. - corrected login.php
+##
+##   ????-??-?? - Version 1.0.0. - going over to FINAL, working well
+##
+##   ????-??-?? - Version 0.9.7. - missed a part in admin interface
+##
+##   ????-??-?? - Version 0.9.6. - now includes admin interface (board config)
+##
+##   ????-??-?? - Version 0.9.5. - corrected the english language
+##
+##   ????-??-?? - Version 0.9.4. - fixed a "left over" in the admin_board.php
+##
+##   ????-??-?? - Version 0.9.3. - now include complex password rules, admin interface not yet completted
+##
+##   ????-??-?? - Version 0.9.2. - now included a admin interface, so value are configurable
+##
+##   ????-??-?? - Version 0.9.1. - corrected some typo, i the initial 0.9.0 how-to
+##
+##   ????-??-?? - Version 0.9.0. - initial BETA, basic fetures 
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+## Instead of runing the SQL commands your self, I have also included a db_update.php file
+## if you are loged in as ADMIN, you can run this file, witch will do the neasessary changes to the DB
+## the file will by it self put prefix on your tables, else 
+## if you are using a prefix to you DB tabels then you have to add this to 
+## the [SQL] commands, e.g. "phpbb_users" instead of just "users" - ONLY 
+## in the initial [SQL] commands, not in the php code ! 
+##
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+# You ned to add the prefix to the DB tables, if you are using sutch
+# if you are in doubt about how to do this, you should instead run the included db_update.php file
+#
+ALTER TABLE users ADD user_badlogin SMALLINT(5) NOT NULL
+ALTER TABLE users ADD user_passwd_change INT(11) NOT NULL
+UPDATE users SET user_passwd_change=user_regdate
+UPDATE users SET user_passwd_change=UNIX_TIMESTAMP() WHERE user_level=1
+INSERT INTO config (config_name, config_value) VALUES ("max_password_age", "730")
+ALTER TABLE users ADD user_blocktime INT(11) NOT NULL
+ALTER TABLE users ADD user_block_by VARCHAR (8)
+INSERT INTO config (config_name, config_value) VALUES ("block_time", "15")
+INSERT INTO config (config_name, config_value) VALUES ("max_login_error", "3")
+INSERT INTO config (config_name, config_value) VALUES ("min_password_len", "6")
+INSERT INTO config (config_name, config_value) VALUES ("force_complex_password", "1")
+INSERT INTO config (config_name, config_value) VALUES ("password_not_login", "1")
+
+
+####################################################################
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+//add on for protect useraccount mod 
+$lang['Error_login_tomutch']='You have specified a locked username, please try again later'; 
+$lang['Password_not_complex'] ='The specified password, does not comply with the complexity rules, you should verify that: the password '; 
+$lang['Password_to_short'] = 'is at least %d characters long'; 
+$lang['Password_mixed'] = 'has both numbers and letters'; 
+$lang['Password_not_same'] = 'is not the same as your username'; 
+$lang['Time_format'] = 'D d. M, Y H:i:s';// how time should be shown in email notification 
+$lang['Passwd_have_expired'] = 'Your password has expired, you may request a new one'; 
+$lang['Passwd_expired'] = 'Your password has expired and is no longer valid. However, you still have the opportunity to choose a new one now. If, for some reason, you cannot change it now, do not panic. You may request a new random password, using the appropriate link at your next logon.'; 
+$lang['Passwd_soon_expired'] = 'Your password will expire in %d days. We recommend that you change it before it actually expires. Should you let your password expire, you may request a new one using the appropriate link at your next logon.'; 
+$lang['Send_new_passwd'] = 'Send me a new password'; 
+$lang['Passwd_updated'] = 'Thank you <br />Your new password is now stored'; 
+$Lang['Passwd_title'] = 'Please change your password'
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+login.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "SELECT
+FROM " . USERS_TABLE . "
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, user_level
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, user_badlogin, user_blocktime, user_email, user_lang, user_timezone,user_passwd_change
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if( md5($password) == $row['user_password'] && $row['user_active'] )
+
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+if ($row['user_blocktime']<time() )
+{
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if( $session_id )
+{
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$sql = "UPDATE " . USERS_TABLE . " SET user_badlogin='0'
+	WHERE username = '" . str_replace("\'", "''", $username) . "'";
+if ( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, 'Error updating correct login data', '', __LINE__, __FILE__, $sql);
+}
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+redirect(appen
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+if ($session_id['user_id']!=ANONYMOUS)
+{
+include($phpbb_root_path . "includes/functions_validate.$phpEx");
+$pass_result = validate_complex_password ($username, $password);
+if ( $session_id['user_passwd_change']==0 || $pass_result['error']== true)
+{
+	//force a change of password, do not allow a secound login
+	$sql = "UPDATE " . USERS_TABLE . " SET user_passwd_change='-9999'
+	WHERE user_id = '" . $session_id['user_id'] . "'";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Error updating correct login data2', '', __LINE__, __FILE__, $sql);
+	}
+	$url .= ( ereg( "\?" , $url) ) ? '&ch_passwd=1' : '?ch_passwd=1';
+} else
+if (  intval((time()-$session_id['user_passwd_change']) / 86400) >= $board_config['max_password_age'])
+{
+	session_end($session_id['session_id'], $session_id['user_id']);
+	$message = $lang['Passwd_have_expired'] . '<br /><br /><a href="'.append_sid("profile.$phpEx?mode=sendpassword").'">'.$lang['Send_new_passwd'].'</a><br /><br />' .  sprintf($lang['Click_return_portal'], '<a href="' . append_sid("portal.$phpEx") . '">', '</a>');
+	message_die(GENERAL_MESSAGE, $message);
+} else
+if (  intval((time()-$session_id['user_passwd_change']) / 86400)+(($board_config['max_password_age']<14) ? 1 : 14) >= $board_config['max_password_age'] )
+{
+	$url .= ( ereg( "\?" , $url) ) ? '&ch_passwd=1' : '?ch_passwd=1';
+}
+}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$redirect = str_replace('?', '&', $redirect);
+$template->assign_vars(array(
+'META' => 
+);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+if ($row['user_active'] )
+{
+	//count bad login
+	// block the user for X min
+	if (($row['user_badlogin']+1) % $board_config['max_login_error'])
+	{
+		$sql = "UPDATE " . USERS_TABLE . " SET user_badlogin=user_badlogin+1
+			WHERE username = '" . str_replace("\'", "''", $username) . "'";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Error updating bad login data'.$user_ip, '', __LINE__, __FILE__, $sql);
+		}
+	} else
+	{
+		$blocktime = ", user_block_by='$user_ip', user_blocktime='" . (time()+($board_config['block_time']*60)) . "'";
+		$sql = "UPDATE " . USERS_TABLE . " SET user_badlogin=user_badlogin+1 $blocktime
+			WHERE username = '" . str_replace("\'", "''", $username) . "'";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Error updating bad login data'.$user_ip, '', __LINE__, __FILE__, $sql);
+		}
+
+		if ($row['user_email']  && $row['user_blocktime']<(time()-3600))
+		{
+		      include($phpbb_root_path . 'includes/emailer.'.$phpEx); 
+			$server_name = trim($board_config['server_name']);
+     	      	$emailer = new emailer($board_config['smtp_delivery']); 
+     	       	$emailer->email_address($row['user_email']); 
+     	        $email_headers = "To: \"".$row['username']."\" <".$row['user_email']. ">\r\n"; 
+     	       	$email_headers .= "From: \"".$board_config['sitename']."\" <".$board_config['board_email'].">\r\n"; 
+     	      	$email_headers .= "X-AntiAbuse: Board servername - " . $server_name . "\r\n"; 
+     	      	$email_headers .= "X-AntiAbuse: User IP - " . decode_ip($user_ip) . "\r\n"; 
+		$emailer->use_template('bad_login', $row['user_lang']);
+     	       	$emailer->extra_headers($email_headers); 
+     		      $emailer->assign_vars(array( 
+     		      	'USER' => '"'.$row['username'].'"',
+				'BLOCK_TIME' => $board_config['block_time'],
+           			'BAD_LOGINS' => $row['user_badlogin']+1, 
+				'BLOCK_UNTIL' => create_date ($lang['Time_format'],time()+($board_config['block_time']*60),$row['user_timezone']),
+           			'SITENAME' => $board_config['sitename'], 
+     	     			'BOARD_EMAIL' => $board_config['board_email'])); 
+       	    	$emailer->send(); 
+       	    	$emailer->reset(); 
+		}
+	}
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+}
+}
+else
+{
+$redirect = (
+$redirect = str_replace("?", "&", $redirect);
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+} else
+{
+	$message = (($lang['Error_login_tomutch'])?$lang['Error_login_tomutch']:$lang['Error_login']) . '<br /><br />' . sprintf($lang['Click_return_login'], '<a href="' . append_sid("login.$phpEx?redirect=$redirect") . '">', '</a>') . '<br /><br />' .  sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+	message_die(GENERAL_MESSAGE, $message);
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+else
+{
+$url =
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+if ($session_id['user_id']!=ANONYMOUS)
+{
+include($phpbb_root_path . "includes/functions_validate.$phpEx");
+$pass_result = validate_complex_password ($username, $password);
+if ( $session_id['user_passwd_change']==0 || $pass_result['error']== true)
+{
+	//force a change of password, do not allow a secound login
+	$sql = "UPDATE " . USERS_TABLE . " SET user_passwd_change='-9999'
+	WHERE user_id = '" . $session_id['user_id'] . "'";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Error updating correct login data2', '', __LINE__, __FILE__, $sql);
+	}
+	$url .= ( ereg( "\?" , $url) ) ? '&ch_passwd=1' : '?ch_passwd=1';
+} else
+if (  intval((time()-$session_id['user_passwd_change']) / 86400) >= $board_config['max_password_age'])
+{
+	session_end($session_id['session_id'], $session_id['user_id']);
+	$message = $lang['Passwd_have_expired'] . '<br /><br /><a href="'.append_sid("profile.$phpEx?mode=sendpassword").'">'.$lang['Send_new_passwd'].'</a><br /><br />' .  sprintf($lang['Click_return_portal'], '<a href="' . append_sid("portal.$phpEx") . '">', '</a>');
+	message_die(GENERAL_MESSAGE, $message);
+} else
+if (  intval((time()-$session_id['user_passwd_change']) / 86400)+(($board_config['max_password_age']<14) ? 1 : 14) >= $board_config['max_password_age'] )
+{
+	$url .= ( ereg( "\?" , $url) ) ? '&ch_passwd=1' : '?ch_passwd=1';
+}
+}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/page_header.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+// Add no-cache control for cookies if they are set
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// change password ?
+if ($HTTP_GET_VARS['ch_passwd'])
+{
+		$template->assign_var("PASSWD_POPUP",  
+		"<script language=\"Javascript\" type=\"text/javascript\"><!-- 
+		   window.open('".append_sid('change_password.'.$phpEx)."', '_phpbbpasswd', 'HEIGHT=400,resizable=yes,WIDTH=600'); 
+		  //--> 
+		</script>");
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions_validate.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+function validate_complex_password ($username, $password)
+{
+	global $board_config, $lang;
+	$ret = FALSE;
+	//verify minimum length
+	if ( strlen($password) < $board_config['min_password_len'] )
+	{
+		$ret= TRUE;
+		$msg_explain .= sprintf ($lang['Password_to_short'],$board_config['min_password_len']);
+	}
+	// verify password not the same as login
+	if ($board_config['password_not_login'] && $username == $password )
+	{	
+		$ret = TRUE;
+		$msg_explain .= ($msg_explain) ? ', ' : '';
+		$msg_explain .= $lang['Password_not_same'];
+
+	}
+	// verify password holds both alfa and numeric
+	if ( $board_config['force_complex_password'] )
+	{	
+		if ( ! (preg_match("/[a-zA-Z\.]/",$password) && preg_match("/[0-9\.]/",$password))) 
+		{
+			$ret = TRUE;
+			$msg_explain .= ($msg_explain) ? ', ' : '';
+			$msg_explain .= $lang['Password_mixed'];
+		}
+	}
+	$msg_explain = ($ret) ? $lang['Password_not_complex'].$msg_explain : '';
+	return array('error' => ($ret) ? TRUE : FALSE , 'error_msg' => $msg_explain);
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_activate.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql_update_pass = ( $r
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+user_newpasswd = ''
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, user_passwd_change='".(($row['user_newpasswd']==$row['user_password']) ? time() : '0')."'
+
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_register.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if ( !empty($new_password) && !empty($password_confirm) )
+{
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// validate that the password is complex
+$result = validate_complex_password ($username, $new_password);
+if ( $result['error'] )
+{
+	$error = TRUE;
+	$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $result['error_msg'];
+
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+} 
+
+$sql = "UPDATE " . USERS_TABLE . " 
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+$passwd_sql .= (empty($passwd_sql)) ? "" : " user_passwd_change=".time().",";
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "INSERT INTO " . USERS_TABLE . "
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, user_active
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+# 
+, user_passwd_change
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+VALUES (
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+;
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+# 
+.time().","
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+#    (make sure to edit this file for every language your admin uses). 
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+//Added Protect useraccount mod 
+$lang['user_password_settings'] = 'User Password Settings'; 
+$lang['Max_login_error'] = 'Number of attempts before blocking user'; 
+$lang['Max_login_error_explain'] = 'If a user submit a wrong password, repeately, then the users account is blocked for a while, specify here how meny times vrong passwords are discarded before the users account is blocked'; 
+$lang['Block_time'] = 'Block account time'; 
+$lang['Block_time_explain'] = 'Number of minutes the user account is blocked, if a wrong password is submitted repeately more than specifyed in "Block user on wrong login"'; 
+$lang['Password_complex'] = 'Complex Password'; 
+$lang['Password_complex_explain'] = 'Users password must consist of both alpha and numeric characters'; 
+$lang['Password_len'] = 'Minimum password length'; 
+$lang['Password_len_explain'] = 'Valid range is [ 1 - 32 ]'; 
+$lang['Password_not_login'] = 'Password different from Username'; 
+$lang['Password_not_login_explain'] = 'Password must be different than the Username'; 
+$lang['Account_block'] = 'Account blocked'; 
+$lang['Account_block_explain'] = 'Here you can view/set or reset users block information'; 
+$lang['Block_until'] ='Blocked until: %s';// %s is substituded with the date/time 
+$lang['Block_by'] = 'Blocked by IP: %s';// %s is substituded with the ip addr. 
+$lang['Last_block_by'] = 'Last blocked by IP: %s';// %s is substituded with the ip addr. 
+$lang['Unblock_user'] ='Unblock user account'; 
+$lang['Block_user'] ='Block user account for %s min';// %s is substituded with the date/time 
+$lang['Badlogin_count'] = 'Number of bad login'; 
+$lang['Force_new_passwd'] = 'Force user to change password on next logon'; 
+$lang['Password_intervall'] = 'Days between users are forced to change password'; 
+$lang['Password_expire'] = 'This users password will expire on: %s';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$prune_no = ( !$new['prune_enable'] ) ? "checked=\"checked\"" : ""; 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$password_not_login_yes = ( $new['password_not_login'] ) ? "checked=\"checked\"" : "";
+$password_not_login_no = ( !$new['password_not_login'] ) ? "checked=\"checked\"" : "";
+$password_complex_yes = ( $new['force_complex_password'] ) ? "checked=\"checked\"" : ""; 
+$password_complex_no = ( !$new['force_complex_password'] ) ? "checked=\"checked\"" : ""; 
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+"L_ENABLE_PRUNE" => $lang['Enable_prune'], 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+'L_USER_PASSWORD_SETTINGS' => $lang['user_password_settings'],
+'L_PASSWORD_COMPLEX' => $lang['Password_complex'],
+'L_PASSWORD_COMPLEX_EXPLAIN' => $lang['Password_complex_explain'],
+'L_PASSWORD_NOT_LOGIN' => $lang['Password_not_login'],
+'L_PASSWORD_NOT_LOGIN_EXPLAIN' => $lang['Password_not_login_explain'],
+'L_PASSWORD_LEN' => $lang['Password_len'],
+'L_PASSWORD_LEN_EXPLAIN' => $lang['Password_len_explain'],
+'L_BLOCK_TIME' => $lang['Block_time'], 
+'L_BLOCK_TIME_EXPLAIN' => $lang['Block_time_explain'], 
+'L_MAX_LOGIN_ERROR' => $lang['Max_login_error'], 
+'L_MAX_LOGIN_ERROR_EXPLAIN' => $lang['Max_login_error_explain'], 
+'L_PASSWORD_INTERVALL' => $lang['Password_intervall'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+"PRUNE_NO" => $prune_no, 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+'BLOCK_TIME' => $new['block_time'], 
+'MAX_LOGIN_ERROR' => $new['max_login_error'], 
+'MIN_PASSWORD_LEN' => $new['min_password_len'],
+'PASSWORD_INTERVALL' => $new['max_password_age'],
+'S_PASSWORD_COMPLEX_ENABLED' => $password_complex_yes,
+'S_PASSWORD_COMPLEX_DISABLED' => $password_complex_no,
+'S_PASSWORD_NOT_LOGIN_ENABLED' => $password_not_login_yes,
+'S_PASSWORD_NOT_LOGIN_DISABLED' => $password_not_login_no,
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------------ 
+#
+$message = $lang['User_deleted']
+message_die(
+}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+if( $HTTP_POST_VARS['block_account'] )
+{
+	$sql = "UPDATE ".USERS_TABLE." SET 
+		user_blocktime='".(time()+$board_config['block_time']*60)."', user_block_by='$user_ip' 
+		WHERE user_id = '$user_id'";
+	if( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not block user', '', __LINE__, __FILE__, $sql);
+	}
+	$sql = 'UPDATE ' . SESSIONS_TABLE . ' SET session_logged_in="0" WHERE session_user_id="'.$user_id.'"';
+	if ( !$db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, "Couldn't update blocked sessions from database", "", __LINE__, __FILE__, $sql);
+	}
+
+} else
+if( $HTTP_POST_VARS['unblock_account'] )
+{
+	$sql = "UPDATE ".USERS_TABLE." SET 
+		user_blocktime='0', user_badlogin='0' 
+		WHERE user_id = '$user_id'";
+	if( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not unblock user', '', __LINE__, __FILE__, $sql);
+	}
+}
+
+#
+#-----[ FIND ]------------------------------------------------ 
+#
+$viewemail = ( isset( $HTTP
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//if you wish to give the user the option of using the admin made password for X days, substitude "0" value in the secound line below with a value of secounds + current time the password will be valid
+$force_new_passwd = ( isset( $HTTP_POST_VARS['force_new_passwd']) ) ? ( ( $HTTP_POST_VARS['force_new_passwd'] ) ? TRUE : 0 ) : 0;
+$force_new_passwd_sql = ( $force_new_passwd ) ? ", user_passwd_change='0'" : (($this_userdata['user_passwd_change']) ? "" : ", user_passwd_change='".time()."'");
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "UPDATE " . USERS_TABLE . "
+SET " . $username_sql . $passwd_sql . 
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+. $avatar_sql  
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+. $force_new_passwd_sql
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// Let's do an overall check for settings/versions which would prevent
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+if ($this_userdata['user_blocktime']<time() )
+
+{
+	$template->assign_vars(array(
+	'BLOCK_BY' => ($this_userdata['user_block_by']) ? sprintf($lang['Last_block_by'],decode_ip($this_userdata['user_block_by'])).'<br/>' : '',
+	'BLOCK' => '<br/><input type="checkbox" name="block_account">'.sprintf ($lang['Block_user'],$board_config['block_time']) ));
+} else
+{
+	$template->assign_vars(array(
+
+	'BLOCK_UNTIL' => sprintf($lang['Block_until'], create_date($board_config['default_dateformat'], $this_userdata['user_blocktime'], $board_config['board_timezone']) ).'<br/>',
+	'BLOCK_BY' => ($this_userdata['user_block_by']) ? sprintf($lang['Block_by'],decode_ip($this_userdata['user_block_by'])).'<br/>' : '',
+	'BLOCK' => '<br/><input type="checkbox" name="unblock_account">'.$lang['Unblock_user'] )).'<br/>';
+}
+if ($this_userdata['user_passwd_change']>0)
+{
+	$l_force_new_passwd_explain = sprintf ($lang['Password_expire'],create_date($board_config['default_dateformat'],$this_userdata['user_passwd_change']+($board_config['max_password_age']*86400),$board_config['board_timezone']));
+	$force_new_passwd_checked ='';
+} else
+{
+	$l_force_new_passwd_explain = '';
+	$force_new_passwd_checked = 'value="checked" checked="checked"';
+}
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+'RANK_SELECT_BOX' => $rank_select_box,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+'BAD_LOGIN_COUNT' => $this_userdata['user_badlogin'],
+'FORCE_NEW_PASSWD_CHECKED' => $force_new_passwd_checked,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+'L_INTERESTS' => $lang['Interests'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+'L_ACCOUNT_BLOCK' => $lang['Account_block'],
+'L_ACCOUNT_BLOCK_EXPLAIN' => $lang['Account_block_explain'],
+'L_UNBLOCK' => $lang['Unblock_user'],
+'L_BAD_LOGIN_COUNT' => $lang['Badlogin_count'],
+'L_FORCE_NEW_PASSWD' => $lang['Force_new_passwd'],
+'L_FORCE_NEW_PASSWD_EXPLAIN' => $l_force_new_passwd_explain,
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+#  (make sure to edit this file for every theme your admin uses). 
+templates/subSilver/admin/user_edit_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	{L_DELETE_USER_EXPLAIN}</td>
+</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+<tr> 
+  <td class="row1"><span class="gen">{L_FORCE_NEW_PASSWD} ?</span><br /><span class="gensmall">{L_FORCE_NEW_PASSWD_EXPLAIN}</span></td>
+  <td class="row2"> 
+	<input type="checkbox" name="force_new_passwd" {FORCE_NEW_PASSWD_CHECKED}>
+	</td>
+</tr>
+<tr> 
+   <td class="row1"><span class="gen">{L_ACCOUNT_BLOCK}:</span><br /><span class="gensmall">{L_ACCOUNT_BLOCK_EXPLAIN}<br /></td> 
+   <td class="row2">
+	{L_BAD_LOGIN_COUNT}: {BAD_LOGIN_COUNT}<br/>
+	{BLOCK_UNTIL}{BLOCK_BY}
+	{BLOCK}</td> 
+</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+#  (make sure to edit this file for every theme your admin uses). 
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+value="{SAVEBOX_LIMIT}" /></td>
+</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+<tr>
+  <th class="thHead" colspan="2">{L_USER_PASSWORD_SETTINGS}</th>
+</tr>
+<tr> 
+   <td class="row1">{L_PASSWORD_INTERVALL}<br /><span class="gensmall">{L_PASSWORD_INTERVALL_EXPLAIN}</span></td> 
+   <td class="row2"><input class="post" type="text" size="4" maxlength="4" name="max_password_age" value="{PASSWORD_INTERVALL}" /></td> 
+</tr> 
+<tr> 
+   <td class="row1">{L_MAX_LOGIN_ERROR}<br /><span class="gensmall">{L_MAX_LOGIN_ERROR_EXPLAIN}</span></td> 
+   <td class="row2"><input class="post" type="text" size="4" maxlength="4" name="max_login_error" value="{MAX_LOGIN_ERROR}" /></td> 
+</tr> 
+<tr> 
+   <td class="row1">{L_BLOCK_TIME}<br /><span class="gensmall">{L_BLOCK_TIME_EXPLAIN}</span></td> 
+   <td class="row2"><input class="post" type="text" size="4" maxlength="4" name="block_time" value="{BLOCK_TIME}" /></td> 
+</tr>
+<tr>
+	<td class="row1">{L_PASSWORD_COMPLEX}<br /><span class="gensmall">{L_PASSWORD_COMPLEX_EXPLAIN}</span></td>
+	<td class="row2"><input type="radio" name="force_complex_password" value="1" {S_PASSWORD_COMPLEX_ENABLED} />{L_ENABLED}&nbsp; &nbsp;<input type="radio" name="force_complex_password" value="0" {S_PASSWORD_COMPLEX_DISABLED} />{L_DISABLED}</td>
+</tr>
+<tr>
+	<td class="row1">{L_PASSWORD_NOT_LOGIN}<br /><span class="gensmall">{L_PASSWORD_NOT_LOGIN_EXPLAIN}</span></td>
+	<td class="row2"><input type="radio" name="password_not_login" value="1" {S_PASSWORD_NOT_LOGIN_ENABLED} />{L_ENABLED}&nbsp; &nbsp;<input type="radio" name="password_not_login" value="0" {S_PASSWORD_NOT_LOGIN_DISABLED} />{L_DISABLED}</td>
+</tr>
+<tr> 
+   <td class="row1">{L_PASSWORD_LEN}<br /><span class="gensmall">{L_PASSWORD_LEN_EXPLAIN}</span></td> 
+   <td class="row2"><input class="post" type="text" size="4" maxlength="4" name="min_password_len" value="{MIN_PASSWORD_LEN}" /></td> 
+</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+</head>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+{PASSWD_POPUP}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/simple_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<body
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+>
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+# 
+{CLOSE_POPUP}
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy root/change_password.php to change_password.php
+copy root/templates/subSilver/change_password_popup.tpl to templates/subSilver/change_password_popup.tpl
+copy root/language/lang_english/email/bad_login.tpl to language/lang_english/email/bad_login.tpl
+copy root/sounds/gun.mid to sounds/gun.mid
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 
+
+

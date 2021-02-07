@@ -1,0 +1,139 @@
+############################################################## 
+## MOD Title: Fix Numeric Character Reference Handling
+## MOD Author: TerraFrost < terrafrost@phpbb.com > (Jim Wigginton) http://www.frostjedi.com/terra/wordpress/
+## MOD Description: Numeric character references use one of two formats - &#nnnn; or &#xhhhh;.  Try making a post
+##                  containing the former format, quote it, and then preview the quote.  The post that shows up
+##                  in the quote box won't contain the exact same text as the post that was quoted.  This MOD
+##                  fixes this.
+## MOD Version: 1.0.1
+##
+## Installation Level: easy
+## Installation Time: 5 Minutes
+##
+## Files To Edit: 4
+##      posting.php
+##      privmsg.php
+##      includes/usercp_register.php
+##      includes/bbcode.php
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##    This problem manifests itself when previewing, quoting, or editing posts, PMs, or signatures.
+##
+##    One thing that should be kept in mind when installing this MOD, though...  say you had a post,
+##    before this MOD was installed, with the following contents:
+##
+##    [code]()[/code]
+##
+##    Subsequent edits of that post will show you the same thing.  However, say you had a post whose
+##    contents looked, instead, like this:
+##
+##    [code]&#40;&#41;[/code]
+##
+##    Subsequent edits would result in [code]()[/code] being displayed - not [code]&#40;&#41;[/code].
+##    This is, unfortunately, unavoidable.  ('s and &#40's (among other characters) are both represented
+##    with the same sequence of characters.  For berevities sake, let's call this sequence of characters
+##    'b'.  If ( and &#40; get converted to 'b' in the database, what should 'b' get converted to when
+##    you're trying to edit the post - ( or &#40?  There's no way to know.
+##
+##    This MOD - in the interests of keeping things simple - assumes 'b' refers to &#40; and escapes the
+##    ampersand accordingly.  As such, subsequent edits on old posts containing [code]()[/code] will show
+##    [code]&#40;&#41;[/code] in the textarea - not [code]()[/code].  It won't make a difference when
+##    viewing a post, but for editing posts, it will.
+##
+##    That said, posts made after this MOD was installed that contain [code]()[/code] within them will
+##    continue to be seen as [code]()[/code], even when you're editing the post.  The problem only occurs
+##    on posts made before this MOD was installed.
+##
+##    Download the latest version here:
+##    http://www.frostjedi.com/terra/scripts/phpbb/fixes/references.zip
+##
+############################################################## 
+## MOD History: 
+##
+##   2006-08-12 - Version 1.0.1
+##      - fixed bug whereby stuff in code tags wasn't inserted into textboxes correctly (thanks, ycl6!)
+##   2006-07-20 - Version 1.0.0
+##      - initial release
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->assign_block_vars('switch_not_privmsg', array());
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+
+// numeric character reference fix
+$message = preg_replace('#&(?=(\#[0-9]+;))#', '&amp;', $message);
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	generate_smilies('inline', PAGE_PRIVMSGS);
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+
+	// numeric character reference fix
+	$privmsg_message = preg_replace('#&(?=(\#[0-9]+;))#', '&amp;', $privmsg_message);
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial find
+#
+	$form_enctype = ( @$ini_val('file_uploads') == '0'
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+
+	// numeric character reference fix
+	$signature = preg_replace('#&(?=(\#[0-9]+;))#', '&amp;', $signature);
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+#
+#-----[ FIND ]------------------------------------------
+#
+								$code_entities_replace = array('&lt;', '&gt;', '&quot;', '&#58;', '&#91;', '&#93;', '&#40;', '&#41;', '&#123;', '&#125;');
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+								$code_entities_replace = array('&lt;', '&gt;', '&quot;', '&#x3a;', '&#x5b;', '&#x5d;', '&#x28;', '&#x29;', '&#x7b;', '&#x7d;');
+#
+#-----[ FIND ]------------------------------------------
+#
+								$text = $before_start_tag . '&#91;code&#93;';
+								$text .= $between_tags . '&#91;/code&#93;';
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+								$text = $before_start_tag . '&#x5b;code&#x5d;';
+								$text .= $between_tags . '&#x5b;/code&#x5d;';
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

@@ -1,0 +1,206 @@
+##############################################################
+## MOD Title:          mw3 (Prevent Any Layout From Being Broken)
+## MOD Author:         spooky2280 < webmaster@christianfecteau.com > (Christian Fecteau) http://portfolio.christianfecteau.com/
+## MOD Description:    This MOD uses DHTML to check if posts contain anything that would cause
+##                     your layout to be larger than its normal width, and if so, it adds an
+##                     horizontal scrollbar under the message and/or resizes large images to
+##                     fit into the normal intended width for the layout. See the MOD in action: http://christianfecteau.com/mw3d
+##
+## MOD Version:        1.0.0
+##
+## Installation Level: Easy
+## Installation Time:  5 Minutes (1 minute with EasyMod: http://area51.phpbb.com/phpBB/viewtopic.php?t=15391 )
+##
+## Files To Edit:      5
+##      posting.php
+##      privmsg.php
+##      viewtopic.php
+##      includes/topic_review.php
+##      includes/page_tail.php
+##
+## Included Files:     1
+##      templates/mw3.js
+##
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## You can double-click on a message if it has a crosshair cursor:
+## This pops up the message alone in a new maximized window.
+##
+## You can single click on an image if it has a pointer cursor:
+## This pops up the image alone and full size in a new maximized window.
+##
+## The MOD is supposed to work with IE5+, NN7+, Firefox, and Opera7+
+## The MOD hasn't been tested with IE5Mac and Safari but the script
+## detects and allow browsers to run the MOD if they support it.
+##
+## The MOD is supposed to work with almost all templates. The MOD is
+## know to fail with IE5+ and the chairs template. But the script detects
+## that the MOD won't work and it terminates without changing the layout
+## and without javascript errors. The MOD is currently distributed with
+## the debug mode enabled by default. So if the MOD doesn't work with a
+## particular template, an alert is outputted with a custom message about
+## where in the script it was detected that the MOD wouldn't work. If you
+## get these alert messages, please write them down and report them.
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 2 of the License, or
+## (at your option) any later version.
+##
+## Credits must be given with my full name (Christian Fecteau)
+## and a link to my portfolio: http://portfolio.christianfecteau.com/
+##
+## Removal or alteration of this notice is strongly prohibited.
+##
+##############################################################
+## MOD History:
+##
+##   2005-02-14 - Version 1.0.0
+##      - After thourough testing, the MOD fails with only 5 styles
+##        from phpBB:
+##             - chairs (in IE);
+##             - Esbardu (in Opera);
+##             - lifecod (in IE and Opera);
+##             - phpBBLite;
+##             - JustFooty.
+##        Everything will be done to fix these styles in the next
+##        release but it will probably involve editing of tpl
+##        and css files for these styles, as well as the MOD may
+##        require editing of tpl and css files for modded boards.
+##        It is a case per case analysis when the MOD fails
+##        with a specific board.
+##        A special thanks to Adam who has tested over 120 styles
+##        with both Opera 7.54 and Firefox 1.0
+##
+##   2005-01-19 - Version 0.1.0
+##      - First release, alpha
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy templates/mw3.js to templates/mw3.js
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 710
+#
+'MESSAGE' => $preview_message,
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+=>
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ '<mwthree style="display:none"></mwthree>' .
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 626
+#
+'MESSAGE' => $private_message,
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+=>
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ '<mwthree style="display:none"></mwthree>' .
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 1590
+#
+'MESSAGE' => $preview_message,
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+=>
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ '<mwthree style="display:none"></mwthree>' .
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 1171
+#
+'MESSAGE' => $message,
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+=>
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ '<mwthree style="display:none"></mwthree>' .
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/topic_review.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 198
+#
+'MESSAGE' => $message,
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+=>
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ '<mwthree style="display:none"></mwthree>' .
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_tail.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 31
+#
+$admin_link =
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// start mw3 MOD
+$mw3_main = '<script type="text/javascript" src="' . $phpbb_root_path . 'templates/mw3.js"></script>';
+$mw3_topr = '<script type="text/javascript"> window.topr = true; </script>';
+if ( empty($gen_simple_header) )
+{
+	$admin_link .= $mw3_main;
+}
+else
+{
+	$board_config['version'] .= $mw3_topr . $mw3_main;
+}
+// fin mw3 MOD
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

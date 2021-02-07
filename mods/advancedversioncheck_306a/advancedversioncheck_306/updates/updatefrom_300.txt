@@ -1,0 +1,86 @@
+################################################################ MOD Title: Advanced Version Check - Upgrade 3.0.0 to 3.0.6## MOD Author: Fountain of Apples < webmacster87@gmail.com > (Douglas Bell) http://foamods.sourceforge.net## MOD Description: Adds a Version Check system to phpBB that checks for the latest version of phpBB and various other phpBB MODs that may be installed.## MOD Version: 3.0.6#### Installation Level: Easy## Installation Time: 5 Minutes## Files To Edit: common.php
+##		admin/index.php## Included Files: admin/admin_version.php
+##		admin/admin_version_manage.php
+##		admin/admin_version_config.php
+##		admin/admin_version_log.php
+##		admin/avc_mods/avc_avc.php
+##		includes/constants_avc.php
+##		includes/functions_avc.php
+##		language/lang_english/lang_avc.php
+##		templates/subSilver/admin/version_config.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2################################################################ For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/################################################################ Author Notes:#### This script will update Advanced Version Check v. 3.0.0 to 3.0.6.  If you are not currently running version 3.0.0, refer to versions.txt in the updates/ directory to determine which script you need to run.
+##
+## For complete Author's Notes and Version History, see the install file in the root directory of this zip.################################################################ Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD##############################################################
+
+#
+#-----[ COPY ]---------------------------------------------
+#
+copy root/admin/admin_download_phpbb.php to admin/admin_download_phpbb.php
+copy root/admin/admin_version.php to admin/admin_version.php
+copy root/admin/admin_version_manage.php to admin/admin_version_manage.php
+copy root/admin/admin_version_config.php to admin/admin_version_config.php
+copy root/admin/admin_version_log.php to admin/admin_version_log.php
+copy root/admin/avc_mods/avc_avc.php to admin/avc_mods/avc_avc.php
+copy root/includes/constants_avc.php to includes/constants_avc.php
+copy root/includes/functions_avc.php to includes/functions_avc.php
+copy root/language/lang_english/lang_avc.php to language/lang_english/lang_avc.php
+copy root/templates/subSilver/admin/version_config.tpl to templates/subSilver/admin/version_config.tpl
+#
+#-----[ OPEN ]---------------------------------------------
+#
+common.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+elseif ( defined('AVC_CHECK_PHPBB') )
+{
+	avc_one_version_check(PHPBB_MOD_ID);
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+elseif ( defined('AVC_ADMIN_INDEX') )
+{
+	if ( !$version_config['show_admin_index'] )
+	{
+		avc_one_version_check(PHPBB_MOD_ID);
+	}
+	else
+	{
+		avc_version_check();
+	}
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/index.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+// Define this file as being part of AVC for the background check IF the admin index summary is on--otherwise we're only checking for phpBB
+if ( $version_config['show_admin_index'] )
+{
+	define('IN_AVC', 1);
+}
+else
+{
+	define('AVC_CHECK_PHPBB', 1);
+}
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+define('AVC_ADMIN_INDEX', 1);
+#
+#-----[ DIY INSTRUCTIONS ]---------------------------------------------
+#
+Delete the following files from your phpBB Installation:
+includes/functions_insert_pm.php
+includes/functions_insert_post.php
+includes/xml.php
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

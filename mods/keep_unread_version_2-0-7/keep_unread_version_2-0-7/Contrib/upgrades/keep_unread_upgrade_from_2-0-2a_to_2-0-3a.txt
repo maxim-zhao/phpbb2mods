@@ -1,0 +1,191 @@
+##############################################################
+## MOD Title:		keep unread flags (upgrade from 2.0.2a to 2.0.3 or 2.0.3a)
+##
+## MOD Author: Merlin Sythove < N/A > (N/A) N/A
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Author: Ptirhiik < N/A > (Pierre) http://rpgnet.clanmckeen.com
+##
+## MOD Description:	This upgrades an installation of keep unread flags
+##			from version 2.0.2a to 2.0.3 or 2.0.3a
+##
+## MOD Version:		2.0.3a
+##
+## Installation Level:	Easy
+## Installation Time:	4 Minutes
+##
+## Files To Edit: 	viewforum.php
+##					includes/functions.php
+##
+## Included Files:	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 	Note: this is an upgrade mod that assumes you already have version 2.0.2a of the
+##			keep unread flags mod installed; do not use this mod unless the version you currently
+##			have installed is version 2.0.2a
+##
+##			Note: if you have installed the "mod to the mod to change view unread posts link" then you need
+##			to make the following additional changes if you haven't already made them (they were posted in
+##			the keep unread topic in October 2005):
+##
+##			OPEN
+##			includes/page_header.php
+##
+##			FIND
+##			$have_unreads = (list_new_unreads($forum_unreads)) ? true : false;
+##
+##			REPLACE WITH
+##			$have_unreads = (list_new_unreads($forum_unreads, true)) ? true : false;
+##
+##			OPEN
+##			includes/functions.php
+##
+##			FIND
+##			function list_new_unreads(&$forum_unread)
+##
+##			REPLACE WITH
+##			function list_new_unreads(&$forum_unread, $check_auth = 0)
+##
+##			FIND
+##			//Clean tracking_forums
+##
+##			BEFORE, ADD
+##			// check if user is logged in; if he isn't, then don't try to figure out what he is authorized to view
+##			if ( !$userdata['session_logged_in'] )
+##			{
+##				$check_auth = '';
+##			}
+##
+##			FIND
+##			//Get all topics
+##			$sql = "SELECT t.forum_id, t.topic_id, p.post_time
+##			FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+##				WHERE p.post_id = t.topic_last_post_id
+##				AND (p.post_time > " . $tracking_time . " $sql_unreads)
+##				AND t.topic_moved_id = 0";
+##
+##			REPLACE WITH
+##			$auth_list = '';
+##			if ($check_auth)
+##			{
+##				// find the forum_ids, cycle thorugh each of them and check authorization...
+##				$sql = "SELECT forum_id
+##						FROM " . FORUMS_TABLE . "";
+##				if ( !($result = $db->sql_query($sql)) )
+##				{
+##					message_die(GENERAL_ERROR, 'Could not query new topic information', '', __LINE__, __FILE__, $sql);
+##				}
+##				$arr_forum_id = array();
+##				while( $row = $db->sql_fetchrow($result) )
+##				{
+##					$forum_id = $row['forum_id'];
+##					$is_auth_forum = auth(AUTH_VIEW, $forum_id, $userdata);
+##					if ( $is_auth_forum['auth_view'] ) $arr_forum_id[] = $forum_id;
+##				}
+##				$auth_list = implode("," , $arr_forum_id);
+##
+##				// if not authorized in any forum, set $auth_forum to 0
+##				$auth_list = ( $auth_list ) ? $auth_list : 0;
+##			}
+##
+##			//Get all topics
+##			$check_auth_sql = ( $check_auth ) ? "AND t.forum_id IN (" . $auth_list . ")" : '';
+##			$sql = "SELECT t.forum_id, t.topic_id, p.post_time
+##					FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+##					WHERE p.post_id = t.topic_last_post_id
+##					AND (p.post_time > " . $tracking_time . " $sql_unreads)
+##					$check_auth_sql
+##					AND t.topic_moved_id = 0";
+##
+##############################################################
+## MOD History:
+##
+##   2005-10-18 - Version 2.0.3 or 2.0.3a
+##		- Added author's notes telling people who use topic calendar mod, PCP or other mods that install
+##		  functions_topic_list.php in the 'includes' directory to look at Niksa's
+##		  post describing how to adapt the mod to work with those mods;
+##		- Fixed bug that would improperly treat 'mark all topics read' request when the user was on the board as a guest;
+##		- security change to prevent possible sql injection risk;
+##		- Changed mod to the mod so that it checks which forums a user is authorized to view when it figures out
+##		  when to turn on the big red "View new posts" link
+##
+##   2005-07-21 - Version 2.0.2a
+##		- No change in mod (you don't need to upgrade from 2.0.2 to this)...just a change in a FIND command in the mod script
+##		  to dovetail with a change made from phpbb2.0.16 to 2.0.17
+##
+##   2005-07-12 - Version 2.0.2
+##		- Small changes required for validation; no change in functionality
+##
+##   2005-07-05 - Version 2.0.1
+##		- Small bugfix to correct intermittant error in topic_last_read function when marking topics read
+##
+##   2005-05-27 - Version 2.0.0
+##		- Merlin Sythove updates as specified above.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ( !$userdata['session_logged_in'])
+	{
+		redirect(append_sid("login.$phpEx?redirect=viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id", true));
+	}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	//
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			if ( $tracking_floor > 0 )
+			{
+				@reset( $board_config['tracking_unreads'] );
+				while ( list($id, $time) = @each($board_config['tracking_unreads']) )
+				{
+					$board_config['tracking_unreads'][$id] += $tracking_floor;
+				}
+			}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			@reset( $board_config['tracking_unreads'] );
+			while ( list($id, $time) = @each($board_config['tracking_unreads']) )
+			{
+				if ( intval($id) > 0 )
+				{
+					$board_config['tracking_unreads'][intval($id)] = intval($time) + $tracking_floor;
+				}
+				else
+				{
+					unset($board_config['tracking_unreads'][$id]);
+				}
+			}
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

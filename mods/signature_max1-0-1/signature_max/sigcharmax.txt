@@ -1,0 +1,111 @@
+##############################################################
+## MOD Title: Signature Characters Left
+## MOD Author: digiTsai < digitaltsai@gmail.com > (Tsai) http://www.phpbb.com/mods/
+## MOD Description: Displays how many more characters a member can place in the signature when editting his/her profile.
+## MOD Version: 1.0.0
+## 
+## Installation Level: Moderate
+## Installation Time: 8 minutes
+## Files To Edit: includes/usercp_register.php
+##                language/lang_english/lang_main.php
+##                templates/subSilver/profile_add_body.tpl
+## Included Files: 
+## Generator: MOD Studio 3.0 Beta 2 [mod functions 0.4.1818.26949]
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes: 
+##############################################################
+## MOD History:
+## 
+##   2005-03-29 - Version 1.0.0
+## 
+##      - First Stable release. Version 1.0.0 of a MOD is always it's first stable release.
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		'SIGNATURE' => str_replace('<br />', "\n", $signature),
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'SIGNATURE_MAX' => $board_config['max_sig_chars'],
+#
+#-----[ FIND ]------------------------------------------
+#
+			'L_SIGNATURE' => $lang['Signature'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'L_YOU_HAVE' => $lang['You_have'],
+			'L_CHARS_LEFT' => $lang['Chars_left'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Signature_explain'] = 'This is a block of text that can be added to posts you make. There is a %d character limit';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['You_have'] = 'You have';
+$lang['Chars_left'] = 'characters left';
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row1"><span class="gen">{L_SIGNATURE}:</span><br /><span class="gensmall">{L_SIGNATURE_EXPLAIN}<br /><br />{HTML_STATUS}<br />{BBCODE_STATUS}<br />{SMILIES_STATUS}</span></td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	  <td class="row1">
+		<span class="gen">{L_SIGNATURE}:</span><br /><span class="gensmall">{L_SIGNATURE_EXPLAIN}<br /><br />{HTML_STATUS}<br />{BBCODE_STATUS}<br />{SMILIES_STATUS}</span>
+		<span class="gen">{L_YOU_HAVE} <input readonly class="post" type="text" size="3" name="countdown" value="{SIGNATURE_MAX}"> {L_CHARS_LEFT}.
+	  </td>
+#
+#-----[ FIND ]------------------------------------------
+#
+		<textarea name="signature"style="width: 300px"  rows="6" cols="30" class="post">{SIGNATURE}</textarea>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		<textarea name="signature" style="width: 300px"  rows="6" cols="30" class="post"  onKeyDown="limitText(this.form.signature,this.form.countdown,{SIGNATURE_MAX});" onKeyUp="limitText(this.form.signature,this.form.countdown,{SIGNATURE_MAX});">{SIGNATURE}</textarea>
+#
+#-----[ FIND ]------------------------------------------
+#
+	  </table>
+
+</form>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+<script language="javascript" type="text/javascript">
+function limitText(limitField, limitCount, limitNum) {
+	if (limitField.value.length > limitNum) {
+		limitField.value = limitField.value.substring(0, limitNum);
+	} else {
+		limitCount.value = limitNum - limitField.value.length;
+	}
+}
+</script>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM
+

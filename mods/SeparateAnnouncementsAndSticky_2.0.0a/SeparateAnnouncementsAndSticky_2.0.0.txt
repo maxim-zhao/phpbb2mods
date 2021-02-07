@@ -1,0 +1,126 @@
+##############################################################
+## MOD Title: Separate Announcements & Sticky
+## MOD Author: Aiencran < cranportal@katamail.com > 
+## MOD Description: This hack separates Announcements and Sticky Topics from other topics in viewforum page. 
+## MOD Version: 2.0.0
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+## Files To Edit: viewforum.php, 
+##		  language/lang_english/lang_main.php, 
+##		  templates/subSilver/viewforum_body.tpl
+## Included Files: includes/functions_separate.php
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2005-03-15 - Version 2.0.0
+##      - Announcements and Sticky Topics are separated
+##	- Sticky Topics are shown only in the first page (original behaviour)
+##
+##   2004-10-27 - Version 1.1.0
+##      - It supports now Global Announcements
+##	- Fixed sorting issues
+##
+##   2004-10-20 - Version 1.0.0
+##      - First Version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy includes/functions_separate.php to includes/functions_separate.php
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewforum.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+include($phpbb_root_path . 'common.'.$phpEx);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+include($phpbb_root_path . 'includes/functions_separate.'.$phpEx);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$total_topics += $total_announcements;
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+$dividers = get_dividers($topic_rowset);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'U_VIEW_TOPIC' => $view_topic_url)
+);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+if ( array_key_exists($i, $dividers) )
+{
+	$template->assign_block_vars('topicrow.divider', array(
+		'L_DIV_HEADERS' => $dividers[$i])
+	);
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// That's all, Folks!
+// -------------------------------------------------
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------
+#
+$lang['Global_Announcements'] = 'Global Announcements';
+$lang['Announcements'] = 'Announcements';
+$lang['Sticky_Topics'] = 'Sticky Topics';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewforum_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<!-- BEGIN topicrow -->
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+<!-- BEGIN divider -->
+<tr> 
+   <td class="catHead" colspan="6" height="28"><span class="cattitle">{topicrow.divider.L_DIV_HEADERS}</span></td>
+</tr>
+<!-- END divider -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM 

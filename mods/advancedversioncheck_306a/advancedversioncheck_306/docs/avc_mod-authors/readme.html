@@ -1,0 +1,375 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html">
+<title>Advanced Version Check -- Creating an AVC-Compatible Version Checker Tutorial</title>
+<style type="text/css">
+<!--
+/*
+  The original subSilver Theme for phpBB version 2+
+  Created by subBlue design
+  http://www.subBlue.com
+*/
+
+
+ /* General page style. The scroll bar colours only visible in IE5.5+ */
+html, body {
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+  color: black;
+  background: white url("./../../xsl/background.png");
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* General font families for common tags */
+font,th,td,p { font-family: Verdana, Arial, Helvetica, sans-serif }
+a:link,a:active,a:visited { color : #006699; }
+a:hover		{ text-decoration: underline; color : #DD6900; }
+
+
+/* This is the border line & background colour round the entire page */
+.bodyline	{ background-color: #FFFFFF; border: 1px #98AAB1 solid; }
+
+/* This is the outline round the main forum tables */
+.forumline	{ background-color: #FFFFFF; border: 2px #006699 solid; }
+
+
+/* Main table cell colours and backgrounds */
+td.row1	{ background-color: #EFEFEF; }
+td.row2	{ background-color: #DEE3E7; }
+td.row3	{ background-color: #D1D7DC; }
+
+
+/*
+  This is for the table cell above the Topics, Post & Last posts on the index.php page
+  By default this is the fading out gradiated silver background.
+  However, you could replace this with a bitmap specific for each forum
+*/
+td.rowpic {
+		background-color: #FFFFFF;
+		background-image: url(images/cellpic2.jpg);
+		background-repeat: repeat-y;
+}
+
+/* Header cells - the blue and silver gradient backgrounds */
+th	{
+	color: #FFA34F; font-size: 11px; font-weight : bold;
+	background-color: #006699; height: 25px;
+	background-image: url(images/cellpic3.gif);
+}
+
+td.cat,td.catHead,td.catSides,td.catLeft,td.catRight,td.catBottom {
+			background-image: url(images/cellpic1.gif);
+			background-color:#D1D7DC; border: #FFFFFF; border-style: solid; height: 28px;
+}
+
+
+/*
+  Setting additional nice inner borders for the main table cells.
+  The names indicate which sides the border will be on.
+  Don't worry if you don't understand this, just ignore it :-)
+*/
+td.cat,td.catHead,td.catBottom {
+	height: 29px;
+	border-width: 0px 0px 0px 0px;
+}
+th.thHead,th.thSides,th.thTop,th.thLeft,th.thRight,th.thBottom,th.thCornerL,th.thCornerR {
+	font-weight: bold; border: #FFFFFF; border-style: solid; height: 28px; }
+td.row3Right,td.spaceRow {
+	background-color: #D1D7DC; border: #FFFFFF; border-style: solid; }
+
+th.thHead,td.catHead { font-size: 12px; border-width: 1px 1px 0px 1px; }
+th.thSides,td.catSides,td.spaceRow	 { border-width: 0px 1px 0px 1px; }
+th.thRight,td.catRight,td.row3Right	 { border-width: 0px 1px 0px 0px; }
+th.thLeft,td.catLeft	  { border-width: 0px 0px 0px 1px; }
+th.thBottom,td.catBottom  { border-width: 0px 1px 1px 1px; }
+th.thTop	 { border-width: 1px 0px 0px 0px; }
+th.thCornerL { border-width: 1px 0px 0px 1px; }
+th.thCornerR { border-width: 1px 1px 0px 0px; }
+
+/* General text */
+.gen { font-size : 12px; }
+.genmed { font-size : 11px; }
+.gensmall { font-size : 10px; }
+.gen,.genmed,.gensmall { color : #000000; }
+a.gen,a.genmed,a.gensmall { color: #006699; text-decoration: none; }
+a.gen:hover,a.genmed:hover,a.gensmall:hover	{ color: #DD6900; text-decoration: underline; }
+
+
+/* The register, login, search etc links at the top of the page */
+.mainmenu		{ font-size : 11px; color : #000000 }
+a.mainmenu		{ text-decoration: none; color : #006699;  }
+a.mainmenu:hover{ text-decoration: underline; color : #DD6900; }
+
+
+/* Forum category titles */
+.cattitle		{ font-weight: bold; font-size: 12px ; letter-spacing: 1px; color : #006699}
+a.cattitle		{ text-decoration: none; color : #006699; }
+a.cattitle:hover{ text-decoration: underline; }
+
+
+/* Forum title: Text and link to the forums used in: index.php */
+.forumlink		{ font-weight: bold; font-size: 12px; color : #006699; }
+a.forumlink 	{ text-decoration: none; color : #006699; }
+a.forumlink:hover{ text-decoration: underline; color : #DD6900; }
+
+
+/* Used for the navigation text, (Page 1,2,3 etc) and the navigation bar when in a forum */
+.nav			{ font-weight: bold; font-size: 11px; color : #000000;}
+a.nav			{ text-decoration: none; color : #006699; }
+a.nav:hover		{ text-decoration: underline; }
+
+
+/* titles for the topics: could specify viewed link colour too */
+.topictitle			{ font-weight: bold; font-size: 11px; color : #000000; }
+a.topictitle:link   { text-decoration: none; color : #006699; }
+a.topictitle:visited { text-decoration: none; color : #5493B4; }
+a.topictitle:hover	{ text-decoration: underline; color : #DD6900; }
+
+
+/* Name of poster in viewmsg.php and viewtopic.php and other places */
+.name			{ font-size : 11px; color : #000000;}
+
+/* Location, number of posts, post date etc */
+.postdetails		{ font-size : 10px; color : #000000; }
+
+
+/* The content of the posts (body of text) */
+.postbody { font-size : 12px;}
+a.postlink:link	{ text-decoration: none; color : #006699 }
+a.postlink:visited { text-decoration: none; color : #5493B4; }
+a.postlink:hover { text-decoration: underline; color : #DD6900}
+
+
+/* Quote & Code blocks */
+.code {
+	font-family: Courier, 'Courier New', sans-serif; font-size: 11px; color: #006600;
+	background-color: #FFFFFF; border: #D1D7DC; border-style: solid;
+	border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px;
+	padding-left: 1em; padding-right: 1em; padding-top: 0.5em; padding-bottom: 0.5em;
+}
+
+.quote {
+	font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; color: #444444; line-height: 125%;
+	background-color: #FAFAFA; border: #D1D7DC; border-style: solid;
+	border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px
+}
+
+
+/* Copyright and bottom info */
+.copyright		{ font-size: 10px; font-family: Verdana, Arial, Helvetica, sans-serif; color: #444444; letter-spacing: -1px;}
+a.copyright		{ color: #444444; text-decoration: none;}
+a.copyright:hover { color: #000000; text-decoration: underline;}
+
+
+/* Form elements */
+input,textarea, select {
+	color : #000000;
+	font: normal 11px Verdana, Arial, Helvetica, sans-serif;
+	border-color : #000000;
+}
+
+/* The text input fields background colour */
+input.post, textarea.post, select {
+	background-color : #FFFFFF;
+}
+
+input { text-indent : 2px; }
+
+/* The buttons used for bbCode styling in message post */
+input.button {
+	background-color : #EFEFEF;
+	color : #000000;
+	font-size: 11px; font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
+/* The main submit button option */
+input.mainoption {
+	background-color : #FAFAFA;
+	font-weight : bold;
+}
+
+/* None-bold submit button */
+input.liteoption {
+	background-color : #FAFAFA;
+	font-weight : normal;
+}
+
+/* This is the line in the posting page which shows the rollover
+  help line. This is actually a text box, but if set to be the same
+  colour as the background no one will know ;)
+*/
+.helpline { background-color: #DEE3E7; border-style: none; }
+
+h1, h2, h3, h4, h5, h6 { text-align: left }
+/* background should be transparent, but WebTV has a bug */
+h1, h2, h3 { color: #000000 }
+h1 { font: bold 170% Verdana, sans-serif }
+h2 { font: bold 140% Verdana, sans-serif }
+h3 { font: bold 120% Verdana, sans-serif }
+h4 { font: bold 100% Verdana, sans-serif }
+h5 { font: italic 100% Verdana, sans-serif }
+h6 { font: small-caps 100% Verdana, sans-serif }
+
+-->
+</style>
+</head>
+
+<body>
+<a href="http://foamods.sourceforge.net"><img src="./../../xsl/modslogo.png" alt="Fountain of Apples phpBB MODs" style="border: 0" /></a>
+<hr />
+<h1>Advanced Version Check 3<br />Adding a Version Checker to Your MOD</h1><span class="gen"><em>Last Updated April 22, 2006</em></span>
+
+<p class="gen">Advanced Version Check is a MOD designed to improve the connection between MOD Authors and users of their MODs. Advanced Version Check is a phpBB-based system, which is capable of determining what the latest version of a MOD is, and informing an administrator if a new version is available.<br />phpBB first began using this functionality in February 2005 with the release of phpBB 2.0.12. In the Admin Index, phpBB would connect to their server to find out what the current version of phpBB was, and then compare that to the installed version. If the new version was newer, it would display a message.<br />Advanced Version Check continues and expands this idea by allowing multiple MODs to take advantage of it. It also greatly improves on the old system, by allowing much much more information to be sent and received between the server and the board, using caching to reduce the load on the server, the ability to run checks when the admin index is not being accessed, and the ability to send notifications to the administrator when a MOD is updated. This powerful system helps users of your MODs to stay up-to-date, therefore reducing the chance of problems.</p>
+
+<ul class="gen">
+	<li><a href="#summary">Summary</a></li>
+	<li><a href="#configfile">Configuring the Configuration File</a></li>
+	<li><a href="#retrievefile">Setting up the Retrievable File</a></li>
+	<li><a href="#packaging">When Packaging Your MOD</a></li>
+</ul>
+
+<a name="summary"></a><h2>Summary</h2>
+<p class="gen">Setting up a MOD to be compatible with AVC is a really easy operation. All you have to do is properly setup 2 files. One of these files is an XML file which will be uploaded to your server or webspace (you will need to have one of these to be able to do this). The other one is a PHP file which will be included with your MOD. In this article, we will refer to the PHP file as the configuration file. The XML file will be referred to as the retrievable file.</p>
+<p class="gen">The way AVC works is that the configuration file is uploaded to a designated folder on the phpBB board. AVC notices this file and uses the settings to add the checker to the system. When the version check runs, AVC retrieves the contents of the retrievable file. The version numbers are compared and used to determine if the installed MOD is up-to-date or not. The other information in the file is displayed as presented.</p>
+
+<a name="configfile"></a><h2>Configuring the Configuration File</h2>
+<p class="gen">The configuration file defines the basic settings that AVC needs to know about your MOD. The file is a PHP file. The filename is always prefixed with "avc_" (without quotes) so that AVC can recognize it. Its markup is as follows (see avc_mod.php in the files/ directory of this zip):</p>
+<pre class="code">&lt;?php 
+/*****************************************************************************
+ *                AVC Version Checker Config File -- Version 3.0
+ *                      -------------------------------
+ *   This file contains config data for Advanced Version Check. AVC will read
+ *   this file to add a version checker to the Version Check system.
+ *   
+ *   This file is provided as a template for MOD Authors in the mod-authors/
+ *   directory in the Advanced Version Check zip download. Instructions are
+ *   provided in mod-authors/mod_authors_guide.txt on how fill in the
+ *   configuration options in this file for use with their MOD.
+ *
+ ****************************************************************************/
+
+/***************************************************************************
+ *
+ *   This program is free software; you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation; either version 2 of the License, or
+ *   (at your option) any later version.
+ *
+ ***************************************************************************/
+
+//
+// DO NOT ALTER THESE FIRST LINES!!! These lines are required.
+//
+if ( !defined('IN_PHPBB') )
+{
+	die("Hacking attempt");
+}
+$file = basename(__FILE__); 
+
+/* MOD Info: (enter your details here if you want)
+MOD Name:
+MOD Author:
+Website:
+*/
+
+$mod_name = 'MOD Name';
+$mod_current_version = 'x.y.z';
+$mod_dev_status = 'stable/development';
+$mod_domain_loc = 'http://www.yoursite.tld';
+$mod_file_name = 'mod.xml';
+$mod_file_loc = 'versioncheck';
+
+?&gt;</pre>
+<p class="gen">You will want to rename this file to correspond with your MOD, making sure that the avc_ prefix is maintained. You can also feel free to enter your details where it indicates in the files. Each configuration option will be run down one by one.</p>
+<pre class="code">$mod_name = 'MOD Name';</pre>
+<p class="gen">Very simple! Replace MOD Name with the name of the MOD. Note that since this is PHP, replace all instances of ' with \' and all instances of \ with \\ .</p>
+<pre class="code">$mod_current_version = 'x.y.z';</pre>
+<p class="gen">This is the version of the MOD being installed. It needs to be in 3 places, for example, 1.0.2. Versions like 2 or 1.2 are not allowed; use 2.0.0 or 1.2.0 instead. You can add info after the number, for example 1.2.3a or 1.4.0 RC-1, however do note that AVC ignores them when doing comparisons. For example, if the installed version is 1.2.3a, and the latest released version is 1.2.3c, AVC will not know the difference. Take this into mind when assigning version numbers to your MOD.</p>
+<pre class="code">$mod_dev_status = 'stable/development';</pre>
+<p class="gen">Here, you set the development status of your MOD. This will be important with how AVC reads the retrievable file (see next section). If this is a stable MOD, set this to 'stable' (w/o quotes). Otherwise, set this to 'development' (w/o quotes). These are the only two values that are accepted; they must be in all lowercase.</p>
+<pre class="code">$mod_domain_loc = 'http://www.yoursite.tld';
+$mod_file_name = 'mod.xml';
+$mod_file_loc = 'versioncheck';</pre>
+<p class="gen">These three variables deal with the location of your retrievable file. The file MUST be at a place located on the web. The first variable, $mod_domain_loc, deals with the proxy and domain name of the website where the file is located. The second, $mod_file_name, is the exact name of the retrievable file. The third, $mod_file_loc, is the path to the file, neglecting the first and last backslash (/). For example, if the retrievable file is located at http://www.google.com/welikephpbb/versioncheck/google.xml, the variables would be set as follows:</p>
+<pre class="code">$mod_domain_loc = 'http://www.google.com';
+$mod_file_name = 'google.xml';
+$mod_file_loc = 'welikephpbb/versioncheck';</pre>
+<p class="gen">Save this file and include it as part of your MOD. For more info, see the section entitled <a href="#packaging">When Packaging Your MOD</a>.</p>
+
+<a name="retrievefile"></a><h2>Setting Up the Retrievable File</h2>
+<p class="gen">The retrievable file is the file that AVC connects to when it runs the version check. It gets the information in this file and updates its records accordingly. Note that because this is XML, you need to use certain special characters in replacement of their normal ones. A special script, specialchars.php, is included in the contrib/ directory of this zip. It is recommended that you put URLs and other text through this script to ensure your retrievable file is valid XML. Invalid XML will not work. (You can also <a href="http://www.php.net/htmlspecialchars">view the changes to the text that are applied</a>.)<br />This is what the retrievable file markup looks like (mod.xml in the files/ directory of this zip):</p>
+<pre class="code">&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+&lt;avc_retrievable&gt;
+    &lt;stable&gt;
+        &lt;version&gt;x.y.z&lt;/version&gt;
+        &lt;mod_link&gt;http://www.phpbb.com/phpBB/viewtopic.php?t=xxxxx&lt;/mod_link&gt;
+        &lt;download_link&gt;http://www.yoursite.tld/download.php&lt;/download_link&gt;
+        &lt;author_notes&gt;Notes for your MOD&lt;/author_notes&gt;
+    &lt;/stable&gt;
+    &lt;development&gt;
+        &lt;version&gt;x.y.z&lt;/version&gt;
+        &lt;mod_link&gt;http://www.phpbb.com/phpBB/viewtopic.php?t=xxxxx&lt;/mod_link&gt;
+        &lt;download_link&gt;http://www.yoursite.tld/download.php&lt;/download_link&gt;
+        &lt;author_notes&gt;Notes for your MOD&lt;/author_notes&gt;
+    &lt;/development&gt;
+&lt;/avc_retrievable&gt;</pre>
+<p class="gen">As you can see, the retrievable file divides into two sections--stable and development. The purpose of this is to allow you to use one retrievable file when you are developing a MOD, and are supporting a stable version at the same time. For example, the same retrievable file is being used to manage AVC 3.0.x (stable) and AVC 3.1.x (development for AVC 3.2). Note that you are only required to use one; you can get rid of the stable one or get rid of the development one, or use both. If you are using both, AVC will use whatever you set as the $mod_dev_status in the configuration file for the version check. For example, if $mod_dev_status is set to development, it will check the development version. But, if there is no development version, it will check the stable version.</p>
+<p class="gen">The only element that is required is the &lt;version&gt; element. This is formatted the same way as $mod_current_version in the configuration file, which you can view above. The same rules apply. The &lt;mod_link&gt; element allows you to specify a URL to the MOD's website. This is preferably the URL to the MOD's topic on phpBB.com, if in the MOD Database, but this is completely up to you. The &lt;download_link&gt; element is a URL to download the MOD. This is preferably a direct link, but again, this is up to you. The &lt;author_notes&gt; element allows you to specify certain notes about the release which AVC will display. Please, as a courtesy, keep this to a reasonable length. This should mostly contain specific information about updating or important info about a release; information like "This MOD is not compatible with xyz" is not appropriate here.</p>
+<p class="gen">Note that when you are playing around with the file, there are some specific rules: 1) The first line defines this document as XML, and is required to be there, unedited, at all times. The one exception is if you need to adjust the encoding, but this should be done ONLY if necessary and ONLY if you know what you are doing. UTF-8 should work 98% of the time. 2) Enclosing everything inside &lt;avc_retrievable&gt; and &lt;/avc_retrievable&gt; is required, otherwise AVC will not be able to evaluate the file. 3) Information needs to be surrounded by a &lt;stable&gt;&lt;/stable&gt; and/or &lt;development&gt;&lt;/development&gt;. Ommitting these will prevent AVC from evaluating the file. 4) Don't rename tags or add additional tags. AVC will ignore these.</p>
+<p class="gen">Save this file. It can have any name, however, it must carry the .xml extention. If this file uses a different extention, AVC will reject it. This is to prevent malicious code from being executed. Then, upload this file to a location accessible by the web.</p>
+
+<a name="packaging"></a><h2>When Packaging Your MOD</h2>
+<p class="gen">Every time you release/update your MOD, you will need to update your configuration file before you zip your MOD and release it. It's easy to forget to do this, so make a note! After you release your MOD, update your configuration file to update the current version, and make sure the other info in there is up-to-date.</p>
+<p class="gen">The last remaining question is how do users add this file to their AVC installation (if they have one)? Well, you need to add a line in your install script to do that. There are three good methods to do this:</p>
+<h3>Method 1:</h3>
+<span class="gen">Simply include it in a COPY action with your other files to copy, like so:</span>
+<pre class="code">#
+#-----[ COPY ]---------------------------------------------
+#
+copy root/file1.php to file1.php
+copy root/admin/admin_file2.php to admin/file2.php
+copy root/admin/avc_mods/avc_mod.php to admin/avc_mods/avc_mod.php
+copy root/templates/subSilver/file3.tpl to templates/subSilver/file3.tpl</pre>
+<h3>Method 2:</h3>
+<span class="gen">Include it in its own COPY action with special instructions (you can edit them if you like):</span>
+<pre class="code">#
+#-----[ COPY ]---------------------------------------------
+# This will add a version checker for this MOD compatible with the
+# Advanced Version Check MOD, if you do not have this MOD you do not
+# HAVE to upload this file
+#
+copy root/admin/avc_mods/avc_mod.php to admin/avc_mods/avc_mod.php</pre>
+<span class="gen">If you have other files (like in the Method 1 example), do something like this:</span>
+<pre class="code">#
+#-----[ COPY ]---------------------------------------------
+#
+copy root/file1.php to file1.php
+copy root/admin/admin_file2.php to admin/file2.php
+copy root/templates/subSilver/file3.tpl to templates/subSilver/file3.tpl
+#
+#-----[ COPY ]---------------------------------------------
+# This will add a version checker for this MOD compatible with the
+# Advanced Version Check MOD, if you do not have this MOD you do not
+# HAVE to upload this file
+#
+copy root/admin/avc_mods/avc_mod.php to admin/avc_mods/avc_mod.php</pre>
+<span class="gen">Note that due to the design of the MODX Template, you will not be able to use this method for a MODX installation file.</span>
+<h3>Method 3 (Recommended Method):</h3>
+<span class="gen">Provide instructions using the DIY INSTRUCTIONS action, like so (you can edit them if you like):</span>
+<pre class="code">#
+#-----[ DIY INSTRUCTIONS ]---------------------------------------------
+#
+This MOD has a version checker compatible with the Advanced Version Check MOD that will check for the
+latest version of this MOD. If you wish to use it, copy root/admin/avc_mods/avc_mod.php to
+admin/avc_mods/avc_mod.php.</pre>
+<p class="gen">Make sure that if you have update scripts with your MOD, that you tell your users to update this file EACH TIME they update. Failure to do this will yield inaccurate results.</p>
+
+<h2>Any Comments?</h2>
+<p class="gen">If you have any comments or questions, or if there are any errors in this documentation, please mention them in the <a href="http://www.phpbb.com/phpBB/viewtopic.php?t=277654">thread at phpBB.com</a>. Thanks for supporting this MOD!!!</p>
+<hr />
+<p style="font-size: 12px">Advanced Version Check (and this documentation) are Copyright &#169; 2005-2006 <a href="http://www.webmacster87.info">Douglas Bell</a>, released under the <a href="docs/LICENSE.txt">GNU General Public License</a> (<a href="http://www.gnu.org/copyleft/gpl.html">alternate link</a>), either version 2 or (at your option) any later version. Usage of the information contained herein within this document indicates acceptance of the terms laid out in the GPL.</p>
+<p style="font-size: 12px">The Fountain of Apples phpBB MODs website and logo are Copyright &#169; 2006 <a href="http://www.webmacster87.info">Douglas Bell</a>. Apple, the Apple logo, and Mac are trademarks of Apple Computer, Inc., registered in the U.S. and other countries. The Made on a Mac Badge is a trademark of Apple Computer, Inc., used with permission.</p>
+<div style="text-align: center"><a href="http://www.phpbb.com"><img src="./../../xsl/phpBB.gif" alt="phpBB community" style="border: 0" /></a>&nbsp; &nbsp;<a href="http://www.apple.com"><img src="./../../xsl/madeonamac.gif" alt="Made on a Mac" style="width: 88px; height: 31px; border:0" /></a></div>
+</body>
+</html>

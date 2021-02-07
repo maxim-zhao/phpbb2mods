@@ -1,0 +1,100 @@
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+UPDATE phpbb_config SET config_value = '2.2.3' WHERE config_name = 'cash_version';
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_adminnavbar','1');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_adminbig','0');
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+ALTER TABLE phpbb_cash DROP cash_enabled;
+ALTER TABLE phpbb_cash DROP cash_image;
+ALTER TABLE phpbb_cash DROP cash_exchange;
+ALTER TABLE phpbb_cash DROP cash_before;
+ALTER TABLE phpbb_cash DROP cash_profiledisplay;
+ALTER TABLE phpbb_cash DROP cash_donate;
+ALTER TABLE phpbb_cash DROP cash_modedit;
+ALTER TABLE phpbb_cash DROP cash_allowneg;
+ALTER TABLE phpbb_cash DROP cash_postdisplay;
+ALTER TABLE phpbb_cash DROP cash_forumlisttype;
+ALTER TABLE phpbb_cash DROP cash_log;
+ALTER TABLE phpbb_cash DROP cash_perchar;
+ALTER TABLE phpbb_cash DROP cash_includequotes;
+
+ALTER TABLE phpbb_cash ADD cash_settings SMALLINT( 4 ) DEFAULT '3133' NOT NULL ;
+ALTER TABLE phpbb_cash ADD cash_default int(11) NOT NULL default '0';
+ALTER TABLE phpbb_cash ADD cash_decimals tinyint(2) NOT NULL default '0';
+ALTER TABLE phpbb_cash ADD cash_exchange int(11) NOT NULL default '1';
+ALTER TABLE phpbb_cash ADD cash_perpm int(11) NOT NULL default '0';
+ALTER TABLE phpbb_cash ADD cash_perchar int(11) NOT NULL default '20';
+ALTER TABLE phpbb_cash ADD cash_allowance tinyint(1) NOT NULL default '0';
+ALTER TABLE phpbb_cash ADD cash_allowanceamount int(11) NOT NULL default '0';
+ALTER TABLE phpbb_cash ADD cash_allowancetime tinyint(2) NOT NULL default '2';
+ALTER TABLE phpbb_cash ADD cash_allowancenext int(11) NOT NULL default '0';
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+
+DROP TABLE phpbb_cash_log;
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+CREATE TABLE phpbb_cash_log (
+  log_id int(11) NOT NULL auto_increment,
+  log_time int(11) NOT NULL default '0',
+  log_type smallint(6) NOT NULL default '0',
+  log_action varchar(255) NOT NULL default '',
+  log_text varchar(255) NOT NULL default '',
+  PRIMARY KEY  (log_id)
+);
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+CREATE TABLE phpbb_cash_events (
+  event_name varchar(32) NOT NULL default '',
+  event_data varchar(255) NOT NULL default '',
+  PRIMARY KEY  (event_name)
+);
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+CREATE TABLE phpbb_cash_groups (
+  group_id mediumint(6) NOT NULL default '0',
+  group_type tinyint(2) NOT NULL default '0',
+  cash_id smallint(6) NOT NULL default '0',
+  cash_perpost int(11) NOT NULL default '0',
+  cash_postbonus int(11) NOT NULL default '0',
+  cash_perreply int(11) NOT NULL default '0',
+  cash_perchar int(11) NOT NULL default '0',
+  cash_maxearn int(11) NOT NULL default '0',
+  cash_perpm int(11) NOT NULL default '0',
+  cash_allowance tinyint(1) NOT NULL default '0',
+  cash_allowanceamount int(11) NOT NULL default '0',
+  cash_allowancetime tinyint(2) NOT NULL default '2',
+  cash_allowancenext int(11) NOT NULL default '0',
+  PRIMARY KEY  (group_id,group_type,cash_id)
+);
+

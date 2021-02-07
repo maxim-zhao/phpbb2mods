@@ -1,0 +1,162 @@
+##############################################################
+## MOD Title: Local Links
+## MOD Author: drathbun < N/A > (Dave Rathbun) http://www.phpBBDoctor.com
+## MOD Description: Internal (Site) Links Reuse Browser Window
+## MOD Version: 1.0.0
+##
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+## Files To Edit: includes/bbcode.php
+## Included Files: 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## There's nothing more annoying to us than having someone link
+## from one post to another in a phpBB forum, clicking that
+## link, and having to deal with a new browser windows.  It
+## just doesn't make sense, does it? Afterall, it is staying on
+## the same site... even staying on the same board! If we
+## wanted a new window, there are ways to do that (right-click
+## menu, shift-click on the link, and so on). 
+## 
+## So we fixed that. :-) This MOD from the phpBB Doctor catalog
+## will check each link, and compare it to the $board_config[]
+## array. If the link goes to the same site / same script path,
+## then it stays in the same window. If the link goes to an
+## external page, then it opens a new window.
+## 
+## Note that a user can circumvent this by leaving the www off
+## of (or adding it in to) the link that they post. You can
+## consider that a feature or a bug. :-)
+##############################################################
+## MOD History:
+##
+##	2005-05-02 - Version 1.0.0
+##		Initial public release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+includes/bbcode.php
+
+#
+#-----[ FIND ]-------------------------------------
+#
+$bbcode_tpl = null;
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+// BEGIN Local Links 1.0.0 (www.phpBBDoctor.com)
+// This function is used to parse urls after the first pass processing.
+// If the URL is "local" (as defined by having a link to a domain on
+// the same server as that hosting this phpBB board) then the code that
+// opens a new window (target="_blank") is removed. That way when someone
+// links internally on your board it will preserve the session, and will
+// NOT open a new window. I hate that. :-)  (www.phpBBDoctor.com)
+function local_urls($text)
+{
+	global $board_config;
+
+	// First build the match for local URL links. If you are running
+	// multiple boards on the same server, and want different boards
+	// to open in new windows even though they are on the same host
+	// hardware, then use the optional line designated below instead.
+
+	// Note: strtolower() is only used for comparison, the actual text
+	// of the URL is not changed.
+	$server_protocol = ( $board_config['cookie_secure'] ) ? 'https://' : 'http://';
+	$server_port = (( $board_config['server_port'] <> 80 ) ? ':' . trim($board_config['server_port']) : '') . '/';
+	$server_name = strtolower($board_config['server_name']);
+	$script_path = strtolower($board_config['script_path']);
+
+	$local_url = '<a href="' . $server_protocol . $server_name . $server_port;
+	// OPTIONAL
+	// Use this line if you want to include the script path as well.
+	// To use this line simply remove the two / from the beginning.
+	//$local_url = '<a href="' . $server_protocol . $server_name . $server_port . $script_path;
+
+	// Now look to see if that string is found in the text. Note that
+	// the first step done (in other functions) before processing the
+	// post text is to add one extra space, so we don't need to worry
+	// about the case where a URL might be in the very first position.
+	// It won't. :-)
+	$start_url = strpos(strtolower($text), $local_url);
+
+	while ($start_url)
+	{
+		// First identify the end of the URL by finding the >
+		$last_found_pos = $start_url + 1;
+		$end_url = strpos ($text, '>', $last_found_pos);
+		$url_len = $end_url - $start_url + 1;
+
+		// Next get a copy of the URL from <a href="... to closing >
+		$my_url = substr($text, $start_url, $url_len);
+
+		// replace target wtih null string
+		$my_local_url = str_replace('target="_blank"', '', $my_url);
+
+		// Replace old URL with new URL in post text. Note that while
+		// the comparison was done in lower case via the strtolower()
+		// function, the actual URL text is not changed in any way.
+		// Only the target.
+		$text = str_replace($my_url, $my_local_url, $text);
+
+		// Advance by length of URL minus length of "target" string
+		// and check for another local URL in the same post text.
+		$start_url = strpos(strtolower($text), $local_url, $last_found_pos + $url_len - 16);
+	}
+
+	return $text;
+}
+// END Local Links 1.0.0 (www.phpBBDoctor.com)
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	// Remove our padding from the string..
+	$text = substr($text, 1);
+
+	return $text;
+
+} // bbencode_second_pass()
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+	// BEGIN Local Links 1.0.0 (www.phpBBDoctor.com)
+	$text = local_urls($text);
+	// END Local Links 1.0.0 (www.phpBBDoctor.com)
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	// Remove our padding..
+	$ret = substr($ret, 1);
+
+	return($ret);
+}
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+	// BEGIN Local Links 1.0.0 (www.phpBBDoctor.com)
+	$ret = local_urls ($ret);
+	// END Local Links 1.0.0 (www.phpBBDoctor.com)
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

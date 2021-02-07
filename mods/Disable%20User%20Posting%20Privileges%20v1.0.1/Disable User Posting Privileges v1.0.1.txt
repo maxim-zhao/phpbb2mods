@@ -1,0 +1,171 @@
+############################################################################### 
+## MOD Title: Disable User Posting Privileges
+## MOD Author: Throckmorton < n/a > (n/a) n/a
+## MOD Description: Disables a user's ability to post, reply to, edit or delete.
+##                  The user can still log in, send or receive PMs, and access their profile.
+##
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 5 Minutes
+##
+## Files To Edit: posting.php
+##                admin/admin_users.php
+##                language/lang_english/lang_admin.php
+##                language/lang_english/lang_main.php
+##                templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files: n/a
+##                 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+###############################################################################
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+###############################################################################
+## Author Notes: This mod is compatable with EasyMOD.
+##
+##############################################################################
+## MOD History:
+##               
+##  2006-06-07 - Version 1.0.1
+##               Minor changes to be compliant with Mods DB
+##               
+##  2006-05-20 - Version 1.0.0
+##             - Initial Release 
+##
+###############################################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+###############################################################################
+#
+#-----[ SQL ]------------------------------------------
+#
+ALTER TABLE phpbb_users ADD user_allowpost TINYINT(1) DEFAULT '1' NOT NULL ;
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// The user is not authed, if they're not logged in then redirect
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//
+// Has the user been suspended?
+//
+if (!$userdata['user_allowpost'] && ( $userdata['user_level'] != ADMIN && $userdata['user_level'] != MOD ))
+{
+	message_die(GENERAL_MESSAGE, $lang['Sorry_suspended']);
+}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$user_status = ( !empty($HTTP_POST_VARS['user_status']) ) ? intval( $HTTP_POST_VARS['user_status'] ) : 0;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$user_allowpost = ( !empty($HTTP_POST_VARS['user_allowpost']) ) ? intval( $HTTP_POST_VARS['user_allowpost'] ) : 0;
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql . 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+user_active = $user_status,
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ user_allowpost = $user_allowpost,
+#
+#-----[ FIND ]------------------------------------------
+#
+		$user_status = $this_userdata['user_active'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$user_allowpost = $this_userdata['user_allowpost'];
+#
+#-----[ FIND ]------------------------------------------
+#
+			'USER_ACTIVE_YES' => ($user_status) ? 'checked="checked"' : '',
+			'USER_ACTIVE_NO' => (!$user_status) ? 'checked="checked"' : '', 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'USER_ALLOWPOST_YES' => ($user_allowpost) ? 'checked="checked"' : '',
+			'USER_ALLOWPOST_NO' => (!$user_allowpost) ? 'checked="checked"' : '', 
+#
+#-----[ FIND ]------------------------------------------
+#
+			'L_USER_ACTIVE' => $lang['User_status'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'L_USER_ALLOWPOST' => $lang['User_allowpost'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['User_status'] = 'User is active';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['User_allowpost'] = 'User can post';
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['You_been_banned'] = 'You have been banned from this forum.<br />Please contact the webmaster or board administrator for more information.';
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+$lang['Sorry_suspended'] = 'Sorry, your ability to <b>Post</b>, <b>Reply</b>, <b>Edit</b> or <b>Delete</b> has been temporarily suspended.<br />Please contact an Administrator for more information.';
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_USER_ACTIVE}</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="user_status" value="1" {USER_ACTIVE_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="user_status" value="0" {USER_ACTIVE_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_USER_ALLOWPOST}</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="user_allowpost" value="1" {USER_ALLOWPOST_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="user_allowpost" value="0" {USER_ALLOWPOST_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

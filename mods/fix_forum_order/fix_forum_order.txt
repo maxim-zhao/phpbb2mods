@@ -1,0 +1,145 @@
+##############################################################
+## MOD Title: Fix Forum Order
+## MOD Author: drathbun < N/A > (Dave Rathbun) http://www.phpBBDoctor.com
+## MOD Description: 
+## MOD Version: 1.0.2
+##
+##
+## Installation Level: Easy
+## Installation Time: 2 Minutes
+## Files To Edit: admin/admin_ug_auth.php, includes/functions_admin.php, search.php
+## Included Files: 
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## This MOD fixes the Admin Control Panel (ACP). On the user or
+## group permissions form the forums are going to be displayed
+## in the same order that they appear on your forum index after
+## applying these changes.
+## 
+## This MOD also fixes the list of forums used by board
+## moderators by updating the SQL code in
+## includes/functions_admin.php. This code ensures that the
+## list of forums in the "move" option are in the proper order
+## as well.
+##
+## Finally, it fixes the Search page in a similar fashion.
+##
+##############################################################
+## MOD History:
+##
+##	2005-06-05 - Version 1.0.2
+##		Added fix for search.php
+##
+##	2005-06-02 - Version 1.0.1
+##		Added fix for forum order in MODCP, renamed MOD
+##
+##	2005-06-01 - Version 1.0.0
+##		Initial public release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+admin/admin_ug_auth.php
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+			$sql = "SELECT * 
+				FROM " . FORUMS_TABLE . " f
+				ORDER BY forum_order";
+
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+			$sql = 'SELECT	f.*
+				FROM	' . FORUMS_TABLE . ' f
+				,	' . CATEGORIES_TABLE . ' c
+				WHERE	f.cat_id = c.cat_id
+				ORDER BY c.cat_order, f.forum_order';
+
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	$sql = "SELECT * 
+		FROM " . FORUMS_TABLE . " f
+		ORDER BY forum_order";
+
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+	$sql = 'SELECT	f.*
+		FROM	' . FORUMS_TABLE . ' f
+		,	' . CATEGORIES_TABLE . ' c
+		WHERE	f.cat_id = c.cat_id
+		ORDER BY c.cat_order, f.forum_order';
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+includes/functions_admin.php
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	$sql = "SELECT forum_id, forum_name
+		FROM " . FORUMS_TABLE . " 
+		ORDER BY cat_id, forum_order";
+
+
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+	$sql = 'SELECT  forum_id
+		,       forum_name
+		FROM    ' . FORUMS_TABLE . ' f
+		,       ' . CATEGORIES_TABLE . ' c
+		WHERE   f.cat_id = c.cat_id
+		ORDER BY c.cat_order, f.forum_order';
+
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+search.php
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	ORDER BY c.cat_id, f.forum_order";
+
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+cat_id
+
+
+#
+#-----[ IN-LINE REPLACE WITH ]-------------------------------------
+#
+cat_order
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

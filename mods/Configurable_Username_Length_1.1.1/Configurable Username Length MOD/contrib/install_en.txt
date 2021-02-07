@@ -1,0 +1,175 @@
+######################################################## 
+## MOD Title: Configurable Username Length MOD (Upgrade from 1.1.0 -> 1.1.1)
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This is the upgrade script for Configurable Username Length MOD v1.1.0
+## MOD Version:	1.0.0
+## 
+## Installation Level: Easy 
+## Installation Time: 5 Minutes 
+##
+## Files To Edit: 7
+##	admin/admin_board.php
+##	language/lang_english/lang_admin.php
+##	includes/page_header.php
+##	includes/usercp_register.php
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/login_body.tpl
+##	templates/subSilver/posting_body.tpl
+##
+## Included Files: 0
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	This is the upgrade script for Configurable Username Length MOD v1.1.0
+##
+############################################################## 
+## MOD History: 
+##
+##   2006-07-16 - Version 1.0.0
+##      - Initial Release
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Limit_username_max_length'] = 'Maximum Username Length';
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$lang['username_max_min_error'] = 'Maximum username length is smaller than the minimum length';
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+admin/admin_board.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	while( $row = $db->sql_fetchrow($result) )
+	{
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	// Configurable Username Length MOD
+	if( isset($HTTP_POST_VARS['submit']) )
+	{
+		if ($HTTP_POST_VARS['limit_username_max_length'] < $HTTP_POST_VARS['limit_username_min_length'])
+		{
+			message_die(GENERAL_MESSAGE, 'username_max_min_error');
+		}
+	}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		// Configurable Username Length MOD
+		if ($config_name == 'limit_username_min_length' && $config_value < 2)
+		{
+			$new['limit_username_min_length'] = 2;
+		}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		else if ($config_name == 'limit_username_max_length' && $config_value < 2)
+		{
+			$new['limit_username_max_length'] = 25;
+		}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/page_header.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'PRIVMSG_IMG' => $icon_pm,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	'LIMIT_USERNAME_MAX_LENGTH' => $board_config['limit_username_max_length'],	// Configurable Username Length MOD
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+includes/usercp_register.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'LIMIT_USERNAME_MAX_LENGTH' => $board_config['limit_username_max_length'],	// Configurable Username Length MOD
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# Just remove/delete the lines (replacing with an empty line)
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MIN_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MIN_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_min_length" value="{LIMIT_USERNAME_MIN_LENGTH}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MAX_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MAX_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_max_length" value="{LIMIT_USERNAME_MAX_LENGTH}" /></td>
+	</tr>
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# Order changed
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MAX_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MAX_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_max_length" value="{LIMIT_USERNAME_MAX_LENGTH}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MIN_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MIN_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_min_length" value="{LIMIT_USERNAME_MIN_LENGTH}" /></td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/login_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			  <input type="text" class="post" name="username" size="25" maxlength="40" value="{USERNAME}" />
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+maxlength="40"
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+maxlength="{LIMIT_USERNAME_MAX_LENGTH}"
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/posting_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# switch_privmsg
+		<td class="row2"><span class="genmed"><input type="text"  class="post" name="username" maxlength="25" size="25" tabindex="1" value="{USERNAME}" />
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+maxlength="25"
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+maxlength="{LIMIT_USERNAME_MAX_LENGTH}"
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

@@ -1,0 +1,586 @@
+############################################################## 
+## MOD Title: Temp Ban
+## MOD Author: szquirrel < squirrel@digitalsquirrel.com > (Andy McConnell) http://www.digitalsquirrel.com
+## MOD Author: eviL3 < evil@phpbbmodders.net > (Igor Wiedler) http://phpbbmodders.net
+## MOD Description: This MOD adds the option of temporary user, ip, and email bans.
+## MOD Version: 1.1.5
+## 
+## Installation Level: Intermediate
+## Installation Time: 15 Minutes
+##
+## Files To Edit: 8
+##		admin/admin_user_ban.php,
+##		includes/functions.php,
+##		includes/functions_post.php,
+##		includes/functions_validate.php,
+##		includes/sessions.php,
+##		language/lang_english/lang_admin.php,
+##		language/lang_english/lang_main.php,
+##		templates/subSilver/admin/user_ban_body.tpl
+##
+## Included Files: n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+##
+##	When banning a user, ip, or email from the admin pages, you should
+##	see an extra field for automatically removing the ban after a
+##	number of minutes, hours, days or weeks. Bans that have expired
+##	will be automatically removed from the ban table with no further
+##	admin action required.
+##
+##	Setting the ban-remove field to zero results in a permanent ban.
+##	The default database value for this field is zero. Therefore other
+##	mods that touch the ban table but don't know about this mod will
+##	still cause permanent bans as expected. Also all pre-existing bans
+##	will still be permanent after this mod is installed.
+##
+##	You are free to borrow some or all of the code found in this
+##	package as long as your product includes an attribution to me,
+##	squirrel (Andy McConnell).
+##
+##
+##  ---------- { eviL3 } ----------
+##
+## Credit for this MOD goes to szquirrel. He made it. I will continue
+## development and provide support for this MOD. And i will update it as well.
+##
+##############################################################
+## MOD History: 
+## 
+##	2006-03-07 - Version 0.9.0
+##		- initial version, w00t!
+##
+##	2006-03-08 - Version 0.9.1
+##		- fixed bugs that broke IP and email bans
+##		- added ban expiration dates to the unban list
+##		- changed ban expiration wording to make it clearer
+##		- various tweaks to PHP and MOD syntax
+##
+##	2006-03-09 - Version 1.0.0
+##		- fixed bugs in the MOD template (doh!)
+##		- submitted to the MOD database
+##
+##	2006-03-16 - Version 1.0.1
+##		- fixed a bug that prevented EasyMod installation
+##		- This is expected to be the last version of TempBan
+##
+##	2006-08-17 - Version 1.1.0
+##		- MOD overtaken by eviL3
+##    - Changed the format a little
+##
+##	2006-08-17 - Version 1.1.1
+##		- Fixed a little EasyMod problem
+##
+##   2006-09-20 - Version 1.1.2
+##      - Changed the timezones to user timezones
+##      - Banned time will be displayed to the user
+##
+##   2006-09-28 - Version 1.1.2a
+##      - Fixed a lang problem in sessions.php
+##      - Thanks to Lord de Brand
+##
+##   2006-10-31 - Version 1.1.3
+##      - Fixed pickyness :P
+##      - It's halloween
+##      - Sorted files alpabetically (self pickyness ftw)
+##
+##   2006-11-15 - Version 1.1.4
+##      - Cleaned up / tabbed / commented correctly
+##      - Added swedish translation by DannieSWE
+##
+##   2007-01-25 - Version 1.1.5
+##      - Fixed a bug in the ban_reasons_compatibility file
+##      - MODx
+##      - Fixed a problem with the code of sessions.php
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------ 
+#
+
+ALTER TABLE phpbb_banlist ADD ban_until INT(11) DEFAULT '0' NOT NULL;
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_user_ban.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		$user_list[] = $this_userdata['user_id'];
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+		$user_ban_until = 0;
+		if ( isset($HTTP_POST_VARS['user_ban_length']) && isset($HTTP_POST_VARS['user_ban_unit']) )
+		{
+			$user_ban_until = (int) $HTTP_POST_VARS['user_ban_length'] * $HTTP_POST_VARS['user_ban_unit'];
+			$user_ban_until = ($user_ban_until > 0) ? (time() + $user_ban_until) : 0;
+		}
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+				$ip_list[] = encode_ip(str_replace('*', '255', trim($ip_list_temp[$i])));
+			}
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+		$ip_ban_until = 0;
+		if ( isset($HTTP_POST_VARS['ip_ban_length']) && isset($HTTP_POST_VARS['ip_ban_unit']) )
+		{
+			$ip_ban_until = (int) $HTTP_POST_VARS['ip_ban_length'] * $HTTP_POST_VARS['ip_ban_unit'];
+			$ip_ban_until = ($ip_ban_until > 0) ? (time() + $ip_ban_until) : 0;
+		}
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+				$email_list[] = trim($email_list_temp[$i]);
+			}
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+		$email_ban_until = 0;
+		if ( isset($HTTP_POST_VARS['email_ban_length']) && isset($HTTP_POST_VARS['email_ban_unit']) )
+		{
+			$email_ban_until = (int) $HTTP_POST_VARS['email_ban_length'] * $HTTP_POST_VARS['email_ban_unit'];
+			$email_ban_until = ($email_ban_until > 0) ? (time() + $email_ban_until) : 0;
+		}
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "INSERT INTO " . BANLIST_TABLE . " (ban_userid
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+ban_userid
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, ban_until
+#
+#-----[ FIND ]------------------------------------------ 
+#
+				VALUES (" . $user_list[$i]
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$user_list[$i]
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ . ", " . $user_ban_until
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "INSERT INTO " . BANLIST_TABLE . " (ban_ip
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ban_ip
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, ban_until
+#
+#-----[ FIND ]------------------------------------------ 
+#
+				VALUES ('" . $ip_list[$i]
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$ip_list[$i] . "'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, " . $ip_ban_until . "
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "INSERT INTO " . BANLIST_TABLE . " (ban_email
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ban_email
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, ban_until
+#
+#-----[ FIND ]------------------------------------------ 
+#
+				VALUES ('" . str_replace("\'", "''", $email_list[$i]
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$email_list[$i]) . "'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, " . $email_ban_until . "
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	$sql = "SELECT b.ban_id, u.user_id, u.username
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+	prune_banlist();
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+b.ban_id
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, b.ban_until
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		$select_userlist .= '<option value="' . $user_list[$i]['ban_id'] . '">' . $user_list[$i]['username'] . '</option>';
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+		$ban_until = ( $user_list[$i]['ban_until'] > 0 ) ? ' [' . $lang['Expires'] . ' ' . create_date($lang['Expires_format'], $user_list[$i]['ban_until'], $userdata['user_timezone']) . ']' : '';
+//-- fin mod : Temp Ban --------------------------------------------------------
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+['username']
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ . $ban_until
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	$sql = "SELECT ban_id, ban_ip, ban_email
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ban_email
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, ban_until
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	for($i = 0; $i < count($banlist); $i++)
+	{
+		$ban_id = $banlist[$i]['ban_id'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+		$ban_until = ( $banlist[$i]['ban_until'] > 0 ) ? ' [' . $lang['Expires'] . ' ' . create_date($lang['Expires_format'], $banlist[$i]['ban_until'], $userdata['user_timezone']) . ']' : '';
+//-- fin mod : Temp Ban --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			$select_iplist .= '<option value="' . $ban_id . '">' . $ban_ip . '</option>';
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$ban_ip
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ . $ban_until
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			$select_emaillist .= '<option value="' . $ban_id . '">' . $ban_email . '</option>';
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$ban_email
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ . $ban_until
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		'L_FIND_USERNAME' => $lang['Find_username'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+		'L_MINUTES'	=> $lang['Minutes'],
+		'L_HOURS'	=> $lang['Hours'],
+		'L_DAYS'	=> $lang['Days'],
+		'L_WEEKS'	=> $lang['Weeks'],
+		'L_EXPIRES_AFTER'	=> $lang['Expires_after'],
+		'L_EXPIRES_EXPLAIN'	=> $lang['Expires_explain'],
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_main.' . $phpEx);
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+include
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+include_once
+#
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+function prune_banlist()
+{
+	global $db;
+
+	$sql = "DELETE FROM " . BANLIST_TABLE .
+		" WHERE ban_until <> 0 AND ban_until < " . time();
+	if (!($result = $db->sql_query($sql)))
+	{
+		message_die(GENERAL_ERROR, 'Could not access banlist', '', __LINE__, __FILE__, $sql);
+	}
+}
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions_post.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "SELECT ban_userid 
+#
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+			prune_banlist();
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions_validate.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "SELECT ban_email
+#
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+			prune_banlist();
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/sessions.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	global $HTTP_COOKIE_VARS,
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+	global $lang, $phpbb_root_path, $phpEx;
+	
+	if ( !file_exists(@phpbb_realpath("{$phpbb_root_path}language/lang_{$board_config['default_lang']}/lang_main.{$phpEx}")) )
+	{
+		message_die(CRITICAL_ERROR, 'Could not locate valid language pack');
+	}
+	
+	include_once("{$phpbb_root_path}language/lang_{$board_config['default_lang']}/lang_main.{$phpEx}");
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	$sql = "SELECT ban_ip, ban_userid, ban_email 
+#
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+	prune_banlist();
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, ban_email
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, ban_until
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ( $ban_info = $db->sql_fetchrow($result) )
+	{
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+		$ban_until = create_date( $lang['Expires_format_banned'], $ban_info['ban_until'], $board_config['board_timezone'] );
+		if ( $ban_info['ban_until'] > 0 )
+		{
+			message_die(CRITICAL_MESSAGE, $lang['You_been_banned'] . '<br /><br />' . $lang['Expires_msg_banned'] . $ban_until);
+		}
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+$lang['Expires_after']		= 'Ban expires after';
+$lang['Expires_explain']	= 'Set to zero for a permanent ban';
+$lang['Expires']		= 'Expires';
+$lang['Expires_format']	= 'd M Y g:i a';
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+
+//-- mod : Temp Ban ------------------------------------------------------------
+//-- add
+// 'Hours' and 'Days' are defined elsewhere
+$lang['Seconds']	= 'Seconds';
+$lang['Minutes']	= 'Minutes';
+$lang['Weeks']	= 'Weeks';
+
+// Added in version 1.1.2 to display the banned time to banned members
+$lang['Expires_msg_banned']		= 'Your ban expires on ';
+$lang['Expires_format_banned']	= 'd M Y g:i a';
+//-- fin mod : Temp Ban --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/user_ban_body.tpl
+#
+#-----[ FIND ]------------------------------------------ 
+#
+<p>{L_BAN_EXPLAIN}</p>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+<p><b>{S_CURRENT_TIME}</b></p>
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	  <td class="row2"><input class="post" type="text" class="post" name="username" maxlength="50" size="20" />
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+</td>
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+ <br />{L_EXPIRES_AFTER} <input class="post" type="text" name="user_ban_length" value="0" size="4" /> <select name="user_ban_unit"><option selected="selected" value="60">{L_MINUTES}</option><option value="3600">{L_HOURS}</option><option value="86400">{L_DAYS}</option><option value="604800">{L_WEEKS}</option></select> <br /><span class="gensmall">{L_EXPIRES_EXPLAIN}</span>
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	  <td class="row2"><input class="post" type="text" name="ban_ip" size="35" /></td>
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+</td>
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+ <br />{L_EXPIRES_AFTER} <input class="post" type="text" name="ip_ban_length" value="0" size="4" /> <select name="ip_ban_unit"><option selected="selected" value="60">{L_MINUTES}</option><option value="3600">{L_HOURS}</option><option value="86400">{L_DAYS}</option><option value="604800">{L_WEEKS}</option></select> <br /><span class="gensmall">{L_EXPIRES_EXPLAIN}</span>
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	  <td class="row2"><input class="post" type="text" name="ban_email" size="35" /></td>
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+</td>
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+ <br />{L_EXPIRES_AFTER} <input class="post" type="text" name="email_ban_length" value="0" size="4" /> <select name="email_ban_unit"><option selected="selected" value="60">{L_MINUTES}</option><option value="3600">{L_HOURS}</option><option value="86400">{L_DAYS}</option><option value="604800">{L_WEEKS}</option></select> <br /><span class="gensmall">{L_EXPIRES_EXPLAIN}</span>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+#
+# EoM

@@ -1,0 +1,563 @@
+######################################################## 
+## MOD Title: Gravatar (Globally Recognized Avatar)
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This mod allows admin to add an additonal option in their ACP to allow user to use their Gravatar. If enabled, members can then choose to use their Gravatar.
+## MOD Version: 1.2.0
+## 
+## Installation Level: Intermediate 
+## Installation Time: 10 Minutes 
+##
+## Files To Edit: 14
+##	viewtopic.php
+##	admin/admin_board.php
+##	admin/admin_users.php
+##	includes/constants.php
+##	includes/usercp_register.php
+##	includes/usercp_viewprofile.php
+##	language/lang_english/lang_admin.php
+##	language/lang_english/lang_main.php
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/subSilver.css
+##	templates/subSilver/overall_header.tpl
+##	templates/subSilver/subSilver.cfg
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files: 2
+##	root/functions_gravatar.php
+##	root/images/gravatar_default.gif
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.19. Can be installed using EasyMOD 0.3.0
+##
+##	What is a gravatar?
+##	http://www.gravatar.com/
+##	A gravatar, or globally recognized avatar, is quite simply an 80 x 80 pixel avatar image 
+##		that follows you from weblog to weblog appearing beside your name when you comment on gravatar enabled sites.
+## 
+############################################################## 
+## MOD History: 
+##
+##   2006-01-09 - Version 1.0.0
+##      - Initial Release
+##
+##   2006-01-17 - Version 1.1.0
+##      - Fix security delaration
+##	- Added rating and size setting and also added default image in case gravatar doesn't show up.
+##
+##   2006-03-06 - Version 1.1.1
+##      - Change all include() to include_once().
+##
+##   2006-04-02 - Version 1.2.0
+##      - Show user Gravatar email in editprofile when it is enabled and used by the user
+##	- Added a link to http://www.gravatar.com/ in editprofile
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# Remember to change the table prefix used on your database
+INSERT INTO `phpbb_config` VALUES ('allow_gravatar', '0');
+INSERT INTO `phpbb_config` VALUES ('allow_gravatar_only', '0');
+INSERT INTO `phpbb_config` VALUES ('allow_gravatar_rating', '1');
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy root/images/gravatar_default.gif to templates/subSilver/images/gravatar_default.gif
+copy root/functions_gravatar.php to includes/functions_gravatar.php
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Avatar_gallery_path_explain'] =
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Gravatar MOD
+$lang['Allow_gravatar'] = 'Enable Gravatar';
+$lang['Allow_gravatar_explain'] = 'Allow users to use their Gravatars';
+$lang['Allow_gravatar_only'] = 'Allow Gravatar Only';
+$lang['Allow_gravatar_only_explain'] = 'Enable this option means user only get to use their Gravatars but not other default phpBB avatar options.';
+$lang['Gravatar_user_email'] = 'E-mail address associated with users\'s Gravatar <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>';
+$lang['Allow_gravatar_rating'] = 'Allowed Gravatar Rating';
+$lang['Allow_gravatar_rating_explain'] = 'Select the maximum rating avatars are allowed to be displayed.<br />For example, a rating of PG will allow gravatar that is rated as G and PG.';
+$lang['Gravatar_rating_G'] = 'G';
+$lang['Gravatar_rating_PG'] = 'PG';
+$lang['Gravatar_rating_R'] = 'R';
+$lang['Gravatar_rating_X'] = 'X';
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Avatar_gallery'] =
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Gravatar MOD
+$lang['Gravatar_panel'] = 'Gravatar control panel';
+$lang['Gravatar_email'] = 'E-mail address associated with your <a href="http://www.gravatar.com/" target="_blank">Gravatar</a>';
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_board.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$avatars_upload_no = ( !$new['allow_avatar_upload'] ) ? "checked=\"checked\"" : "";
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Gravatar MOD
+$gravatar_yes = ( $new['allow_gravatar'] ) ? "checked=\"checked\"" : "";
+$gravatar_no = ( !$new['allow_gravatar'] ) ? "checked=\"checked\"" : "";
+$gravatar_only_yes = ( $new['allow_gravatar_only'] ) ? "checked=\"checked\"" : "";
+$gravatar_only_no = ( !$new['allow_gravatar_only'] ) ? "checked=\"checked\"" : "";
+$gravatar_G = ( $new['allow_gravatar_rating'] == GRAVATAR_G ) ? "checked=\"checked\"" : "";
+$gravatar_PG = ( $new['allow_gravatar_rating'] == GRAVATAR_PG ) ? "checked=\"checked\"" : "";
+$gravatar_R = ( $new['allow_gravatar_rating'] == GRAVATAR_R ) ? "checked=\"checked\"" : "";
+$gravatar_X = ( $new['allow_gravatar_rating'] == GRAVATAR_X ) ? "checked=\"checked\"" : "";
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"L_AVATAR_GALLERY_PATH_EXPLAIN" => $lang['Avatar_gallery_path_explain'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Gravatar MOD
+	"L_ALLOW_GRAVATAR" => $lang['Allow_gravatar'],
+	"L_ALLOW_GRAVATAR_EXPLAIN" => $lang['Allow_gravatar_explain'],
+	"L_ALLOW_GRAVATAR_ONLY" => $lang['Allow_gravatar_only'],
+	"L_ALLOW_GRAVATAR_ONLY_EXPLAIN" => $lang['Allow_gravatar_only_explain'],
+	"L_ALLOW_GRAVATAR_RATING" => $lang['Allow_gravatar_rating'],
+	"L_ALLOW_GRAVATAR_RATING_EXPLAIN" => $lang['Allow_gravatar_rating_explain'],
+	"L_GRAVATAR_RATING_G" => $lang['Gravatar_rating_G'],
+	"L_GRAVATAR_RATING_PG" => $lang['Gravatar_rating_PG'],
+	"L_GRAVATAR_RATING_R" => $lang['Gravatar_rating_R'],
+	"L_GRAVATAR_RATING_X" => $lang['Gravatar_rating_X'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"AVATARS_UPLOAD_NO" => $avatars_upload_no,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Gravatar MOD
+	"GRAVATAR_YES" => $gravatar_yes,
+	"GRAVATAR_NO" => $gravatar_no,
+	"GRAVATAR_ONLY_YES" => $gravatar_only_yes,
+	"GRAVATAR_ONLY_NO" => $gravatar_only_no,
+	"GRAVATAR_RATING_G" => GRAVATAR_G, 
+	"GRAVATAR_RATING_G_CHECKED" => $gravatar_G,
+	"GRAVATAR_RATING_PG" => GRAVATAR_PG, 
+	"GRAVATAR_RATING_PG_CHECKED" => $gravatar_PG,
+	"GRAVATAR_RATING_R" => GRAVATAR_R, 
+	"GRAVATAR_RATING_R_CHECKED" => $gravatar_R, 
+	"GRAVATAR_RATING_X" => GRAVATAR_X, 
+	"GRAVATAR_RATING_X_CHECKED" => $gravatar_X, 
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_users.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$user_avatar_filetype = ( !empty($HTTP_POST_FILES['avatar']['type']) ) ? $HTTP_POST_FILES['avatar']['type'] : '';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$user_gravatar_email = ( !empty($HTTP_POST_VARS['gravatar_email']) ) ? trim(htmlspecialchars($HTTP_POST_VARS['gravatar_email'])) : '';	// Gravatar MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$avatar_sql = ", user_avatar = '" . str_replace("\'", "''", phpbb_ltrim(basename($user_avatar_category), "'") . '/' . phpbb_ltrim(basename($user_avatar_local), "'")) . "', user_avatar_type = " . USER_AVATAR_GALLERY;
+		}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Gravatar MOD
+		else if( $user_gravatar_email != "" && $avatar_sql == "" && !$error )
+		{
+			if (preg_match('/^[a-z0-9&\'\.\-_\+]+@[a-z0-9\-]+\.([a-z0-9\-]+\.)*?[a-z]+$/is', $user_gravatar_email))
+			{
+				$sql = "SELECT ban_email
+						FROM " . BANLIST_TABLE;
+				if ($result = $db->sql_query($sql))
+				{
+					if ($row = $db->sql_fetchrow($result))
+					{
+						do
+						{
+							$match_email = str_replace('*', '.*?', $row['ban_email']);
+							if (preg_match('/^' . $match_email . '$/is', $user_gravatar_email))
+							{
+								$db->sql_freeresult($result);
+
+								$error = true;
+								$error_msg = ( !empty($error_msg) ) ? $error_msg . '<br />' . $lang['Email_banned'] : $lang['Email_banned'];
+							}
+						}
+						while($row = $db->sql_fetchrow($result));
+					}
+				}
+				$db->sql_freeresult($result);
+
+				$avatar_sql = ", user_avatar = '" . str_replace("\'", "''", $user_gravatar_email) . "', user_avatar_type = " . USER_GRAVATAR;
+			}
+		}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+					$avatar = '<img src="../' . $board_config['avatar_gallery_path'] . '/' . $user_avatar . '" alt="" />';
+					break;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+				// Gravatar MOD
+				case USER_GRAVATAR:
+					include_once($phpbb_root_path . 'includes/functions_gravatar.'.$phpEx);
+					$avatar = gravatar_output($user_avatar);
+					$gravatar_mail = $user_avatar;
+					break;
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'RANK_SELECT_BOX' => $rank_select_box,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'GRAVATAR_MAIL' => ($gravatar_mail) ? $gravatar_mail : '',	// Gravatar MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'L_LINK_REMOTE_AVATAR' => $lang['Link_remote_Avatar'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'L_GRAVATAR_USER_EMAIL' => $lang['Gravatar_user_email'],	// Gravatar MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$template->assign_block_vars('avatar_remote_link', array() );
+		}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Gravatar MOD
+		if( $board_config['allow_gravatar'] == TRUE )
+		{
+			$template->assign_block_vars('gravatar', array() );
+		}
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/constants.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+define('USER_AVATAR_GALLERY', 3);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Gravatar MOD
+define('USER_GRAVATAR', 4);
+define('GRAVATAR_G', 0);
+define('GRAVATAR_PG', 1);
+define('GRAVATAR_R', 2);
+define('GRAVATAR_X', 3);
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_register.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$user_avatar_filetype = ( !empty($HTTP_POST_FILES['avatar']['type']) ) ? $HTTP_POST_FILES['avatar']['type'] : '';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$user_gravatar_email = ( !empty($HTTP_POST_VARS['gravatar_email']) ) ? trim(htmlspecialchars($HTTP_POST_VARS['gravatar_email'])) : '';	// Gravatar MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$avatar_sql = user_avatar_gallery($mode, $error, $error_msg, $user_avatar_local, $user_avatar_category);
+	}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Gravatar MOD
+	else if ( $user_gravatar_email != '' && $board_config['allow_gravatar'] )
+	{
+		user_avatar_delete($userdata['user_avatar_type'], $userdata['user_avatar']);
+		include_once($phpbb_root_path . 'includes/functions_gravatar.'.$phpEx);
+		$avatar_sql = user_gravatar($mode, $error, $error_msg, $user_gravatar_email);
+	}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				$avatar_img = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $user_avatar . '" alt="" />' : '';
+				break;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			// Gravatar MOD
+			case USER_GRAVATAR:
+				include_once($phpbb_root_path . 'includes/functions_gravatar.'.$phpEx);
+				$avatar_img = gravatar_output($user_avatar);
+				$gravatar_mail = $user_avatar;
+				break;
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'SMILIES_STATUS' => $smilies_status,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'GRAVATAR_MAIL' => ($gravatar_mail) ? $gravatar_mail : '',	// Gravatar MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'L_LINK_REMOTE_AVATAR_EXPLAIN' => $lang['Link_remote_Avatar_explain'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Gravatar MOD
+		'L_GRAVATAR_PANEL' => $lang['Gravatar_panel'],
+		'L_GRAVATAR_EMAIL' => $lang['Gravatar_email'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'S_ALLOW_AVATAR_REMOTE' => $board_config['allow_avatar_remote'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'S_ALLOW_GRAVATAR' => $board_config['allow_gravatar'],	// Gravatar MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		if ( $userdata['user_allowavatar'] &&
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+if ( $userdata['user_allowavatar'] &&
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ !$board_config['allow_gravatar_only'] &&
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$board_config['allow_avatar_remote']
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ || $board_config['allow_gravatar']
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				$template->assign_block_vars('switch_avatar_block.switch_avatar_local_gallery', array() );
+			}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			// Gravatar MOD
+			if ( $board_config['allow_gravatar'] )
+			{
+				$template->assign_block_vars('switch_gravatar', array() );
+			}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	}
+}
+
+$template->pparse('body');
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+		// Gravatar MOD
+		else
+		{
+			if ( $userdata['user_allowavatar'] && $board_config['allow_gravatar_only'] && $board_config['allow_gravatar'] )
+			{
+				$template->assign_block_vars('switch_gravatar', array());
+				if ( !empty($user_avatar) )
+				{
+					$template->assign_block_vars('switch_gravatar.switch_gravatar_only', array());
+				}
+			}
+		}
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+viewtopic.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				$poster_avatar = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $postrow[$i]['user_avatar'] . '" alt="" border="0" />' : '';
+				break;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			// Gravatar MOD
+			case USER_GRAVATAR:
+				include_once($phpbb_root_path . 'includes/functions_gravatar.'.$phpEx);
+				$poster_avatar = gravatar_output($postrow[$i]['user_avatar']);
+				break;
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_viewprofile.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$avatar_img = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $profiledata['user_avatar'] . '" alt="" border="0" />' : '';
+			break;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Gravatar MOD
+		case USER_GRAVATAR:
+			include_once($phpbb_root_path . 'includes/functions_gravatar.'.$phpEx);
+			$avatar_img = gravatar_output($profiledata['user_avatar']);
+			break;
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<!-- END switch_avatar_block -->
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<!-- BEGIN switch_gravatar -->
+	<tr> 
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+	<tr> 
+	  <th class="thSides" colspan="2" height="12" valign="middle">{L_GRAVATAR_PANEL}</th>
+	</tr>
+	<!-- BEGIN switch_gravatar_only -->
+	<tr> 
+		<td class="row1" colspan="2"><table width="70%" cellspacing="2" cellpadding="0" border="0" align="center">
+			<tr> 
+				<td align="center" colspan="2"><span class="gensmall">{L_CURRENT_IMAGE}</span><br />{AVATAR}<br /><input type="checkbox" name="avatardel" />&nbsp;<span class="gensmall">{L_DELETE_AVATAR}</span></td>
+			</tr>
+		</table></td>
+	</tr>
+	<!-- END switch_gravatar_only -->
+	<tr> 
+		<td class="row1"><span class="gen">{L_GRAVATAR_EMAIL}:</span></td>
+		<td class="row2"><input type="text" class="post" style="width:200px" name="gravatar_email" size="25" maxlength="255" value="{GRAVATAR_MAIL}" /></td>
+	</tr>
+	<!-- END switch_gravatar -->
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="avatar_gallery_path" value="{AVATAR_GALLERY_PATH}" /></td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr>
+		<td class="row1">{L_ALLOW_GRAVATAR} <br /><span class="gensmall">{L_ALLOW_GRAVATAR_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="allow_gravatar" value="1" {GRAVATAR_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_gravatar" value="0" {GRAVATAR_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ALLOW_GRAVATAR_ONLY} <br /><span class="gensmall">{L_ALLOW_GRAVATAR_ONLY_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="allow_gravatar_only" value="1" {GRAVATAR_ONLY_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_gravatar_only" value="0" {GRAVATAR_ONLY_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ALLOW_GRAVATAR_RATING} <br /><span class="gensmall">{L_ALLOW_GRAVATAR_RATING_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="allow_gravatar_rating" value="{GRAVATAR_RATING_G}" {GRAVATAR_RATING_G_CHECKED} />{L_GRAVATAR_RATING_G}&nbsp; &nbsp;<input type="radio" name="allow_gravatar_rating" value="{GRAVATAR_RATING_PG}" {GRAVATAR_RATING_PG_CHECKED} />{L_GRAVATAR_RATING_PG}&nbsp; &nbsp;<input type="radio" name="allow_gravatar_rating" value="{GRAVATAR_RATING_R}" {GRAVATAR_RATING_R_CHECKED} />{L_GRAVATAR_RATING_R}&nbsp; &nbsp;<input type="radio" name="allow_gravatar_rating" value="{GRAVATAR_RATING_X}" {GRAVATAR_RATING_X_CHECKED} />{L_GRAVATAR_RATING_X}</td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/user_edit_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<!-- END avatar_local_gallery -->
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<!-- BEGIN gravatar -->
+	<tr> 
+	  <td class="row1"><span class="gen">{L_GRAVATAR_USER_EMAIL}</span></td>
+	  <td class="row2"> 
+		<input class="post" type="text" name="gravatar_email" size="40" style="width: 200px" value="{GRAVATAR_MAIL}" />
+	  </td>
+	</tr>
+	<!-- END gravatar -->
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/subSilver.css
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+.helpline
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+/* Gravatar MOD */
+img.gravatar {
+    border: 1px solid #000000;
+    background: #FFFFFF;
+}
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/overall_header.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+.helpline
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+/* Gravatar MOD */
+img.gravatar {
+    border: 1px solid #000000;
+    background: #FFFFFF;
+}
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/subSilver.cfg
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+/* Gravatar MOD */
+$images['icon_gravatar_default'] = "$current_template_images/gravatar_default.gif";
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

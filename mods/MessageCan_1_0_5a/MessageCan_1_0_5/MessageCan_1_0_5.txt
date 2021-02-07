@@ -1,0 +1,306 @@
+############################################################## 
+## MOD Title: Message Can
+## MOD Author: buweichiu < mods@xpoo.net > (Buwei Chiu) http://bws.xpoo.net 
+## MOD Description: This MOD allows you prepare some message for users to use when they're posting or sending private messages.
+## MOD Version: 1.0.5
+## 
+## Installation Level: Easy
+## Installation Time: 5 Minutes 
+## Files To Edit: 	6
+##			posting.php
+##			privmsg.php
+##			includes/constants.php
+##			language/lang_english/lang_main.php
+##			language/lang_english/lang_admin.php
+##			templates/subSilver/posting_body.tpl
+## Included Files: 6
+##			messagecan_install.php 
+##			admin/admin_messagecan.php
+##			templates/subSilver/admin/messagecan_add.tpl
+##			templates/subSilver/admin/messagecan_body.tpl
+##			templates/subSilver/admin/messagecan_delConfirm.tpl
+##			templates/subSilver/admin/messagecan_edit.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+##		Thanks to StickyKid at phpbb-tw.net, he brought me this idea.
+##
+##		Remember to change the table prefix used on your database or 
+##		you can execute the file "messagecan_install.php" ;)
+## 
+############################################################## 
+## MOD History: 
+## 
+##	2005-06-05 - Version 1.0.0
+##		- Inititla release
+## 
+##	2005-06-16 - Version 1.0.1
+##		- Security update
+##
+##	2005-06-25 - Version 1.0.2
+##		- Separate files into a separate sub-folder
+##		- Fix <br> to <br />
+##		- Add sql_freeresult after sql execute
+##		- Security update
+##
+##	2005-07-12 - Version 1.0.3
+##		- Fix " to ' in Language Files
+##		- Fix template files
+##		- Security update
+##		- Sprintf instead str_replace
+##		- and etc...
+##
+##	2005-07-23 - Version 1.0.4
+##		- Fix stripslashes
+##		- XHTML-style coding
+##
+##	2005-07-27 - Version 1.0.5
+##		- More detail about this MOD
+##		- Replace finding place of language file
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy root/messagecan_install.php to messagecan_install.php
+copy root/admin/admin_messagecan.php to admin/admin_messagecan.php
+copy root/templates/subSilver/admin/messagecan_add.tpl to templates/subSilver/admin/messagecan_add.tpl
+copy root/templates/subSilver/admin/messagecan_body.tpl to templates/subSilver/admin/messagecan_body.tpl
+copy root/templates/subSilver/admin/messagecan_delConfirm.tpl to templates/subSilver/admin/messagecan_delConfirm.tpl
+copy root/templates/subSilver/admin/messagecan_edit.tpl to templates/subSilver/admin/messagecan_edit.tpl
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+CREATE TABLE `phpbb_messagecan` (
+`msg_id` int( 8 ) NOT NULL AUTO_INCREMENT ,
+`msg_title` text NOT NULL ,
+`msg_text` text NOT NULL ,
+PRIMARY KEY ( `msg_id` ) 
+) TYPE = MYISAM AUTO_INCREMENT =1 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/constants.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// Addition for MOD MessageCan 1.0.5 by bu
+define('MESSAGECAN_TABLE', $table_prefix.'messagecan');
+//---------------------------------------
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+posting.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$template->assign_block_vars('switch_not_privmsg', array());
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//
+// Addition for MOD MessageCan 1.0.5 by bu
+// SQL: select * from prefix_messagecan order by msg_id
+	$sql="SELECT *
+			FROM ".MESSAGECAN_TABLE."
+			ORDER BY msg_id";
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not list message(s)', '', __LINE__, __FILE__, $sql);
+	}
+
+	while( $row = $db->sql_fetchrow($result) )
+	{
+		$template->assign_block_vars('messagecan', array(
+			'MESSAGE_TITLE'=> $row['msg_title'],
+			'MESSAGE_TEXT'=> $row['msg_text'])
+			);
+	}
+
+	$db->sql_freeresult($result);
+//
+//---------------------------------------
+//
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+'L_FONT_HUGE' => $lang['font_huge'], 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// Addition for MOD MessageCan 1.0.5 by bu
+'L_MESSAGECAN' => $lang['MessageCan'],
+'L_MESSAGECAN_HELP' => $lang['MessageCan_help'], 
+'L_MESSAGECAN_DEFAULT' => $lang['MessageCan_default'],
+//--------------------------------------
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+privmsg.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+generate_smilies('inline', PAGE_PRIVMSGS);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//
+// Addition for MOD MessageCan 1.0.5 by bu
+// SQL: select * from %prefix%_messagecan order by msg_id
+	$sql="SELECT *
+			FROM ".MESSAGECAN_TABLE."
+			ORDER BY msg_id";
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not list message(s)', '', __LINE__, __FILE__, $sql);
+	}
+
+	while( $row = $db->sql_fetchrow($result) )
+	{
+		$template->assign_block_vars('messagecan', array(
+			'MESSAGE_TITLE'=> $row['msg_title'],
+			'MESSAGE_TEXT'=> $row['msg_text'])
+			);
+	}
+
+	$db->sql_freeresult($result);
+//
+//---------------------------------------
+//
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+'L_FONT_HUGE' => $lang['font_huge'], 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// Addition for MOD MessageCan 1.0.5 by bu
+'L_MESSAGECAN' => $lang['MessageCan'],
+'L_MESSAGECAN_HELP' => $lang['MessageCan_help'], 
+'L_MESSAGECAN_DEFAULT' => $lang['MessageCan_default'],
+//--------------------------------------
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/posting_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+f_help = "{L_BBCODE_F_HELP}";
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+messagecan_help = "{L_MESSAGECAN_HELP}";
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+ {L_FONT_SIZE}:<select name="addbbcode20" onChange="bbfontstyle('[size=' + this.form.addbbcode20.options[this.form.addbbcode20.selectedIndex].value + ']', '[/size]')" onMouseOver="helpline('f')">
+<option value="7" class="genmed">{L_FONT_TINY}</option>
+<option value="9" class="genmed">{L_FONT_SMALL}</option>
+<option value="12" selected class="genmed">{L_FONT_NORMAL}</option>
+<option value="18" class="genmed">{L_FONT_LARGE}</option>
+<option  value="24" class="genmed">{L_FONT_HUGE}</option>
+</select>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+&nbsp; {L_MESSAGECAN}:<select name="addbbcode22" onChange="emoticon(this.form.addbbcode22.options[this.form.addbbcode22.selectedIndex].value);this.selectedIndex=0;" onMouseOver="helpline('messagecan')">
+					  <option value="" class="genmed">{L_MESSAGECAN_DEFAULT}</option>
+						<!-- BEGIN messagecan -->
+					  <option value="{messagecan.MESSAGE_TEXT}" class="genmed">{messagecan.MESSAGE_TITLE}</option>
+					  <!-- END messagecan -->
+					</select>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['Install_No_PCRE'] = 'phpBB2 Requires the Perl-Compatible Regular Expressions Module for PHP which your PHP configuration doesn\'t appear to support!';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Addition for MOD MessageCan 1.0.5 by bu
+$lang['MessageCan']='Message Can';
+$lang['MessageCan_Complete']="Message has been %1\$s<br /><br />%2\$sReturn MessageCan Panel%3\$s"; 
+$lang['MessageCan_Add']='Add Message';
+$lang['MessageCan_Edit']='Edit Message';
+$lang['MessageCan_Delete']='Delete Message';
+$lang['MessageCan_Message']='Message';
+$lang['MessageCan_Text']='Content';
+ $lang['MessageCan_Action']='Action';
+$lang['MessageCan_Desc']='Here is the panel of Message Can, you can ADD,EDIT and DELETE message here.';
+$lang['MessageCan_DelConfirm']='Are you sure you want to delete message " %s " ?';
+$lang['MessageCan_Del_Yes']='Yes, Delete it';
+$lang['MessageCan_Del_No']='No, Return to Panel';
+$lang['MessageCan_EditAction']='Edit';
+$lang['MessageCan_Addi']='Added';
+$lang['MessageCan_DeleteAction']='Delete';
+//---------------------------------------
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// Errors (not related to a
+// specific failure on a page)
+//
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// Addition for MOD MessageCan 1.0.5 by bu
+$lang['MessageCan']='Message';
+$lang['MessageCan_help']='Message Can: A lot of message to use.';
+$lang['MessageCan_default']='Default';
+//--------------------------------------
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

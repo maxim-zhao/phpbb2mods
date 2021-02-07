@@ -1,0 +1,269 @@
+############################################################## 
+## MOD Title: E-mail style quoting 
+## MOD Author: BadBlock < badblock@sarov.ru > (Kirill Astashov) http://www.sarov.info
+## MOD Description: This mod changes the way phpBB quotes messages 
+##		from BBcode [quote] style to standard e-mail 
+##              style (">" symbol at the beginning of every quoted line). 
+##              Quoted strings are then highlighted with pre-defined 
+##              colors when viewing topics and private messages.
+## MOD Version: 1.0.2 
+## 
+## Installation Level: (Easy) 
+## Installation Time: 5 Minutes 
+## Files To Edit: includes/constants.php, posting.php, privmsg.php, viewtopic.php 
+## Included Files: n/a 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2005-01-29 - Version 1.0.2
+##      - fixed issue with endless loop that could occured under some conditions.
+## 
+##   2004-11-10 - Version 1.0.1
+##      - compliant with official phpBB MOD building requirements
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+includes/constants.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+
+// edit colors as desired
+$highlightcolors=array(); 
+$highlightcolors[1]='#29166F'; //last quote '>'
+$highlightcolors[2]='#8080B0'; //double quote '>>'
+$highlightcolors[3]='gray'; //triple quote '>>>'
+$highlightcolors[4]='#A0A0D0'; //quadro quote '>>>>'
+$biglevelcolor='#A0A0D0'; //for quote levels deeper than sizeof($highlightcolors)
+
+// length of quoted strings, edit this number as desired
+$eachstrlen=73; //number of chars
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+posting.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+$message = '[quote="' . $quote_username . '"]' . $message . '[/quote]';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+
+// START E-mail style quoting with ">"
+				
+				$curstrlen=0;
+				$replybbm = "";
+				$text=$message;
+				for ($bbc=0; $bbc<=strlen($text); $bbc++) {
+					$curchar = substr($text, $bbc, 1);
+
+					if ($curstrlen==0 AND ($curchar==">" OR substr($text, $bbc, 4)=="&gt;")) {
+						//bypassing double (triple...) quotings
+						$replybbm = $replybbm . ">".$curchar;
+						while ($curchar!="\n" and $bbc<=strlen($text)) {
+							$bbc++;
+							$curchar = substr($text, $bbc, 1);
+							$replybbm = $replybbm . $curchar;
+						}
+					} else {
+						if ($curstrlen==0)  $replybbm = $replybbm . "> ";
+						if ($curstrlen>$eachstrlen AND ($curchar==" " OR $curchar=="," OR $curchar=="." OR $curchar=="-" OR 	$curchar=="–")) {
+							$curstrlen=0;
+							$replybbm = $replybbm . $curchar."\n";
+						} elseif ($curchar=="\n") {
+							$curstrlen=0;
+							$replybbm = $replybbm . $curchar;
+						} else {
+							$curstrlen++;
+							$replybbm = $replybbm . $curchar;
+						}
+					}
+				}
+				$message="[b]".$quote_username." :[/b]\n".$replybbm;
+// END E-mail style quoting with ">"
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+privmsg.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+	$private_message = str_replace("\n", '<br />', $private_message);
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+
+//START highlighting quoted strings with color
+
+   $tmpreply="";
+   $temp = split ("\n", $private_message); 
+	while (list ($tmpkey, $tmpval) = each ($temp)) {
+		$curcatch=1;
+		$curlevel=0;
+		while ($curcatch>0) 
+		{
+			if (substr ($tmpval,$curlevel,1) == ">" OR substr ($tmpval,$curlevel*4,4)=="&gt;")
+			{
+				$curlevel++;
+			} else {
+				$curcatch=0;
+			}
+		}
+
+		if ($curlevel>0) 
+		{
+			if ($curlevel>sizeof($highlightcolors)) 
+			{
+				$curcolor=$biglevelcolor;
+			} else {
+				$curcolor=$highlightcolors[$curlevel];
+			}
+
+			$tmpreply=$tmpreply . "<font style=\"color: ".$curcolor.";\">" . $tmpval . "</font><br />";
+		} else {
+			$tmpreply=$tmpreply . $tmpval . "<br />";
+		}
+
+	}   
+   $private_message=$tmpreply;
+//END highlighting quoted strings with color
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+$privmsg_message = '[quote="' . $to_username . '"]' . $privmsg_message . '[/quote]';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+
+// START E-mail style quoting with ">"
+
+				$curstrlen=0;
+				$replybbm = "";
+				$text=$privmsg_message;
+				for ($bbc=0; $bbc<=strlen($text); $bbc++) {
+					$curchar = substr($text, $bbc, 1);
+
+					if ($curstrlen==0 AND ($curchar==">" OR substr($text, $bbc, 4)=="&gt;")) {
+						//bypassing double (triple...) quotings
+						$replybbm = $replybbm . ">".$curchar;
+						while ($curchar!="\n" and $bbc<=strlen($text)) {
+							$bbc++;
+							$curchar = substr($text, $bbc, 1);
+							$replybbm = $replybbm . $curchar;
+						}
+					} else {
+						if ($curstrlen==0)  $replybbm = $replybbm . "> ";
+						if ($curstrlen>$eachstrlen AND ($curchar==" " OR $curchar=="," OR $curchar=="." OR $curchar=="-" OR 	$curchar=="–")) {
+							$curstrlen=0;
+							$replybbm = $replybbm . $curchar."\n";
+						} elseif ($curchar=="\n") {
+							$curstrlen=0;
+							$replybbm = $replybbm . $curchar;
+						} else {
+							$curstrlen++;
+							$replybbm = $replybbm . $curchar;
+						}
+					}
+				}
+				$privmsg_message="[b]".$quote_username." :[/b]\n".$replybbm;
+// END E-mail style quoting with ">"
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+viewtopic.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+	//
+	// Again this will be handled by the templating
+	// code at some point
+	//
+	$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
+	$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+//START highlighting quoted strings with color
+
+   $tmpreply="";
+   $temp = split ("\n", $message); 
+	while (list ($tmpkey, $tmpval) = each ($temp)) {
+		$curcatch=1;
+		$curlevel=0;
+		while ($curcatch>0) 
+		{
+			if (substr ($tmpval,$curlevel,1) == ">" OR substr ($tmpval,$curlevel*4,4)=="&gt;")
+			{
+				$curlevel++;
+			} else {
+				$curcatch=0;
+			}
+		}
+
+		if ($curlevel>0) 
+		{
+			if ($curlevel>sizeof($highlightcolors)) 
+			{
+				$curcolor=$biglevelcolor;
+			} else {
+				$curcolor=$highlightcolors[$curlevel];
+			}
+
+			$tmpreply=$tmpreply . "<font style=\"color: ".$curcolor.";\">" . $tmpval . "</font>";
+		} else {
+			$tmpreply=$tmpreply . $tmpval . "";
+		}
+
+	}   
+   $message=$tmpreply;
+//END highlighting quoted strings with color
+
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

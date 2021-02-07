@@ -1,0 +1,101 @@
+##############################################################
+## MOD Title: Avoid Invisible Character
+## MOD Author: Danilo < danilocdantas@gmail.com > (Danilo) http://www.phpbbrasil.com.br
+## MOD Author: Diegøw < dhpagani@hotmail.com > (Diego Henrique) http://www.phpbbrasil.com.br
+## MOD Author: Soulz < estevao.am@gmail.com > (Estevão Mascarenhas) http://www.phpbbrasil.com.br
+## MOD Author: Sephiroth < sephiroth.samurai@hotmail.com > (Edson) http://www.phpbbrasil.com.br
+## MOD Description: This MOD avoid Invisible Character (ALT+240) on usernames, topics and posts.
+## MOD Version: 1.0.0a
+##
+## Installation Level: Easy
+## Installation Time: 4 minutes
+## Files To Edit: includes/usercp_register.php
+## includes/functions_post.php
+## language/lang_english/lang_main.php
+## Included Files:
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+## Generator: Phpbb.ModTeam.Tools
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## Sephiroth - Revision
+## Soulz - Translation
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$username = ( !empty($HTTP_POST_VARS['username']) ) ? phpbb_clean_username($HTTP_POST_VARS['username']) : '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+if(!empty($HTTP_POST_VARS['username']))
+ {
+  if(strpos(htmlentities($username),'&shy;') !== FALSE)
+  {
+   message_die(GENERAL_ERROR, $lang['alt240_not']);
+  }
+ }
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_post.php
+#
+#-----[ FIND ]------------------------------------------
+#
+// Check subject
+   if (!empty($subject))
+   {
+      $subject = htmlspecialchars(trim($subject));
+   }
+   
+   else if ($mode == 'newtopic' || ($mode == 'editpost' && $post_data['first_post']))
+   {
+      $error_msg .= (!empty($error_msg)) ? '<br />' . $lang['Empty_subject'] : $lang['Empty_subject'];
+   }
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+if(!empty($subject))
+   {
+      if(strpos(htmlentities($subject),'&shy;') !== FALSE)
+      {
+         message_die(GENERAL_ERROR, $lang['alt240_not']);
+      }
+   }
+   
+   if(!empty($message))
+   {
+      if(strpos(htmlentities($message),'&shy;') !== FALSE)
+      {
+         message_die(GENERAL_ERROR, $lang['alt240_not']);
+      }
+   } 
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+$lang['alt240_not'] = 'Sorry, ALT+240 is disabled';
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

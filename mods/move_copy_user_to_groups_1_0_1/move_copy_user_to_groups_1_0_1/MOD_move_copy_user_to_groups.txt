@@ -1,0 +1,225 @@
+############################################################## 
+## MOD Title:		Move or Copy Users between Usergroups
+## MOD Author: OXPUS < webmaster@oxpus.de > (Karsten Ude) http://www.oxpus.de
+## MOD Description:	This hack allows to move or copy users between usergroups
+## 
+## MOD Version:		1.0.1 
+## Installation Level:	EASY 
+## Installation Time:	5 Minutes 
+## Files To Edit:	3 
+##			groupcp.php 
+##			language/lang_english/lang_main.php 
+##			templates/subSilver/groupcp_info_body.tpl 
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+##
+############################################################## 
+## MOD History: 
+## 
+##      2005-12-19 - Version: 1.0.1 
+##        - FIX little bug on the how to
+## 
+##      2005-12-14 - Version: 1.0.0 
+##        - First release 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+groupcp.php 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+$start = ( isset($HTTP_GET_VARS['start']) ) ? intval($HTTP_GET_VARS['start']) : 0;
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+# 
+// Move or copy users START
+if ((isset($HTTP_POST_VARS['move_user']) || isset($HTTP_POST_VARS['copy_user'])) && group_id)
+{
+	if ( !$userdata['session_logged_in'] )
+	{
+		redirect(append_sid("login.$phpEx?redirect=groupcp.$phpEx&" . POST_GROUPS_URL . "=$group_id", true));
+	}
+
+	$sql = "SELECT group_moderator 
+		FROM " . GROUPS_TABLE . "  
+		WHERE group_id = $group_id";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not obtain user and group information', '', __LINE__, __FILE__, $sql);
+	}
+
+	$row = $db->sql_fetchrow($result);
+
+	if ( $row['group_moderator'] != $userdata['user_id'] && $userdata['user_level'] != ADMIN )
+	{
+		$template->assign_vars(array(
+			'META' => '<meta http-equiv="refresh" content="3;url=' . append_sid("index.$phpEx") . '">')
+		);
+
+		$message = $lang['Not_group_moderator'] . '<br /><br />' . sprintf($lang['Click_return_group'], '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=$group_id") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+
+		message_die(GENERAL_MESSAGE, $message);
+	}
+
+	if ( isset($HTTP_GET_VARS['new_g']) || isset($HTTP_POST_VARS['new_g']) )
+	{
+		$new_group_id = ( isset($HTTP_POST_VARS['new_g']) ) ? intval($HTTP_POST_VARS['new_g']) : intval($HTTP_GET_VARS['new_g']);
+	}
+	else
+	{
+		$new_group_id = 0;
+	}
+
+	$members = $HTTP_POST_VARS['members'];
+	$nums_members = sizeof($members);
+
+	if ($new_group_id != 0 && $nums_members > 0)
+	{
+		$sql = "SELECT user_id FROM " . USER_GROUP_TABLE . "
+			WHERE group_id = $new_group_id";
+		if (!$result = $db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, 'Could not check destination user group', '', __LINE__, FILE__, $sql);
+		}
+
+		$dest_user_ids = array();
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$dest_user_ids[] = $row['user_id'];
+		}
+		$db->sql_freeresult($result);
+
+		for ($i = 0; $i < $nums_members; $i++)
+		{
+			if (!in_array($members[$i], $dest_user_ids))
+			{
+				if (isset($HTTP_POST_VARS['move_user']))
+				{
+					$sql = "UPDATE " . USER_GROUP_TABLE . "
+						SET group_id = $new_group_id
+						WHERE user_id = " . intval($members[$i]);
+				}
+				else
+				{
+					$sql = "INSERT INTO " . USER_GROUP_TABLE . "
+						(group_id, user_id, user_pending)
+						VALUES
+						($new_group_id, " . intval($members[$i]) . ", 0)";
+				}
+
+				if (!$db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Could not update new user group informations', '', __LINE__, __FILE__, $sql);
+				}
+			}
+		}
+	}
+}
+// Move or copy users END
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+	generate_user_info($group_moderator, $board_config['default_dateformat'], $is_moderator, $from, $posts, $joined, $poster_avatar, $profile_img, $profile, $search_img, $search, $pm_img, $pm, $email_img, $email, $www_img, $www, $icq_status_img, $icq_img, $icq, $aim_img, $aim, $msn_img, $msn, $yim_img, $yim);
+
+	$s_hidden_fields .= '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+# 
+	// Move or copy users START
+	$sql = "SELECT group_id, group_name FROM " . GROUPS_TABLE . " 
+		WHERE group_single_user <> " . TRUE . " 
+			AND group_id <> $group_id 
+		ORDER BY group_name";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Error getting group information', '', __LINE__, __FILE__, $sql);
+	}
+
+	$s_new_group_list = '<select name="new_g">';
+	while( $row = $db->sql_fetchrow($result) )
+	{
+		$s_new_group_list .= '<option value="' . $row['group_id'] . '">' . $row['group_name'] . '</option>';
+	}
+	$s_new_group_list .=  '</select>';
+	// Move or copy users END
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+		'L_REMOVE_SELECTED' => $lang['Remove_selected'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+# 
+		'L_MOVE_SELECTED' => $lang['Move_selected'],
+		'L_COPY_SELECTED' => $lang['Copy_selected'],
+		
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+		'S_ORDER_SELECT' => $select_sort_order,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+# 
+		'S_NEW_GROUP_SELECT' => $s_new_group_list,
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+language/lang_english/lang_main.php 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+?> 
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+$lang['Move_selected'] = 'Move selected users'; 
+$lang['Copy_selected'] = 'Copy selected users'; 
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/groupcp_info_body.tpl 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+			<span class="cattitle"><input type="submit" name="remove" value="{L_REMOVE_SELECTED}" class="mainoption" /></span>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+# 
+<span class="cattitle">
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------ 
+# 
+<input type="submit" name="move_user" value="{L_MOVE_SELECTED}" class="liteoption" />&nbsp;/&nbsp;<input type="submit" name="copy_user" value="{L_COPY_SELECTED}" class="liteoption" />&nbsp;{S_NEW_GROUP_SELECT}&nbsp;&nbsp;&nbsp;
+
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

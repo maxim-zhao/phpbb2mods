@@ -1,0 +1,125 @@
+##############################################################
+## MOD Title:		Update: Board Menu Manager
+## MOD Author: OXPUS < webmaster@oxpus.de > (Karsten Ude) http://www.oxpus.de
+## MOD Description:	Update from 1.5.6 to 2.0.0
+## MOD Version:		1.0.0
+##
+## Installation Level:	Easy
+## Installation Time:	1-2 Minutes
+## Files To Edit:	2
+##			includes/constants.php
+##			includes/page_header.php
+##
+## Included Files:	N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+##
+## SQL / Database changes
+## ----------------------
+## Upload the file
+##		update_board_menu_install_156_200.php
+## to your phpbb root directory and run this with your browser.
+## This file will do all nessassary changes in the database for you.
+## After using this file, please delete it to avoid errors.
+##
+##############################################################
+## MOD History:
+##
+##   2004-06-21 - Version 1.0.0
+##      - First release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy board_menu_manager.php to board_menu_manager.php
+copy includes/functions_board_menu.php to includes/functions_board_menu.php
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+define('BOARD_LINKS_TABLE', $table_prefix.'board_links');
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+define('USER_BOARD_LINKS_TABLE', $table_prefix.'user_board_links');
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// Create the personal board menu
+if ( $userdata['session_logged_in'] && $userdata['board_links'] != '' )
+{
+	$bml_links = array();
+	$bml_sort = array();
+
+	$bml_links = explode(',', $userdata['board_links']);
+	$bml_sort = explode(',', $userdata['board_sort']);
+
+	array_multisort($bml_sort, SORT_DESC, $bml_links);
+
+	$sql_bmorder = 'ORDER BY';
+
+	for ( $i = 0; $i < count($bml_links); $i++ )
+	{
+		$sql_bmorder .= ( $sql_bmorder == 'ORDER BY' ) ? ' bl_id = '.$bml_links[$i] : ', bl_id = '.$bml_links[$i];
+	}
+
+	$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . "
+		WHERE bl_id IN (" . $userdata['board_links'] . ")
+		$sql_bmorder";
+	if ( !$result = $db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, 'Could not read board menu for user', '', __LINE__, __FILE__, $sql);
+	}
+}
+else
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//
+// Create the personal board menu
+if ( $userdata['session_logged_in'] )
+{
+	$sql = "SELECT bl.* FROM " . USER_BOARD_LINKS_TABLE . " ub, " . BOARD_LINKS_TABLE . " bl
+		WHERE ub.user_id = " . $userdata['user_id'] . "
+		AND ub.board_link = bl.bl_id
+		ORDER BY ub.board_sort";
+	if ( !$result = $db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, 'Could not read board menu for user', '', __LINE__, __FILE__, $sql);
+	}
+	$user_links_count = $db->sql_numrows($result);
+}
+if ( !$userdata['session_logged_in'] || $user_links_count == 0 )
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

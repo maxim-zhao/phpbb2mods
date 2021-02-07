@@ -1,0 +1,188 @@
+##############################################################
+## MOD Title:   UploadPic (Update to v1.2.0)
+## MOD Author:  buegelfalte < N/A > ( B.Funke ) http://forum.beehave.de
+## MOD Description:
+##   This is only the UPDATE-file ! For a complete installation
+##   and version-history see uploadpic.txt
+##
+##   These instructions will update UploadPic from version
+##   1.1.3a to 1.2.0
+##
+## MOD Version: 1.2.0
+##
+## Installation Level: Easy
+##
+## Installation Time: 3 Minutes
+## Files To Edit:
+##   posting.php
+##   privmsg.php
+##   language/lang_english/lang_main.php
+##   language/lang_english/lang_admin.php
+##   templates/subSilver/posting_body.tpl
+##
+## This MOD will install using EasyMOD!
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy install/*.* to install/*.*
+copy uploadpic.php to uploadpic.php
+copy admin/*.* to admin/*.*
+copy templates/subSilver/uploadpic_body.tpl to templates/subSilver/uploadpic_body.tpl
+copy templates/subSilver/uploadpic_gallery.tpl to templates/subSilver/uploadpic_gallery.tpl
+copy templates/subSilver/admin/admin_uploadpic_config.tpl to templates/subSilver/admin/admin_uploadpic_config.tpl
+copy templates/subSilver/admin/admin_uploadpic_group.tpl to templates/subSilver/admin/admin_uploadpic_group.tpl
+copy templates/subSilver/admin/admin_uploadpic_groups.tpl to templates/subSilver/admin/admin_uploadpic_groups.tpl
+
+# 
+#-----[ DIY INSTRUCTIONS ]------------------------------------------ 
+#
+run install/install_uploadpic.php
+delete install/ directory
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->assign_block_vars('switch_not_privmsg', array());
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// create switch for UploadPic
+if ($userdata['user_allow_uploadpic'] == 1)
+{
+	$template->assign_block_vars('switch_uploadpic', array());
+}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'URL_UPLOADPIC' => ($userdata['user_allow_uploadpic'] == 1) ? '<a href="'.append_sid('uploadpic.php').'" onclick="window.open(\''.append_sid('uploadpic.php').'\', \'_uploadpic\', \'HEIGHT=350,resizable=yes,scrollbars=yes,WIDTH=450\');return false;" target="_uploadpic" class="nav" onMouseOver="helpline(\'up\')">'.$lang['UploadPic'].'</a>&nbsp;<br \>' : '',
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	'S_UPLOADPIC' => append_sid('uploadpic.'.$phpEx),
+	'L_UPLOADPIC' => $lang['UploadPic'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$privmsg_subject = str_replace('"', '&quot;', $privmsg_subject);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	// create switch for UploadPic
+	if (($userdata['user_allow_uploadpic'] == 1) && ($board_config['uploadpic_allowpm'] == 1))
+	{
+		$template->assign_block_vars('switch_uploadpic', array());
+	}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'URL_UPLOADPIC' => (($userdata['user_allow_uploadpic'] == 1) && ($board_config['uploadpic_allowpm'] == 1)) ? '<a href="uploadpic.php" onclick="window.open(\'uploadpic.php\', \'_uploadpic\', \'HEIGHT=350,resizable=yes,scrollbars=yes,WIDTH=450\');return false;" target="_uploadpic" class="nav" onMouseOver="helpline(\'up\')">'.$lang['UploadPic'].'</a>&nbsp;<br \>' : '',
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		'S_UPLOADPIC' => append_sid('uploadpic.'.$phpEx),
+		'L_UPLOADPIC' => $lang['UploadPic'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// UploadPic
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['UP_ErrWritable'] = "Image-directory is not writable.";
+$lang['UP_ErrImgDir'] = "Image-directory doesn't exist.";
+$lang['UP_ErrGDLib'] = "GD-Library not available.";
+$lang['UP_ErrLogin'] = "Please login.";
+$lang['UP_ErrPermission'] = "You don't have permission to upload.";
+$lang['UP_ErrNoGallery'] = "Gallery not activated.";
+$lang['UP_ErrCreatePic'] = "Image could not be created.<br />Try uploading a smaller picture.";
+$lang['UP_Files'] = "files";
+$lang['UP_YourPics'] = "Your uploaded files";
+$lang['UP_Back'] = "back";
+$lang['UP_Gallery'] = "gallery";
+$lang['UP_Resized'] = "resized";
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// UploadPic
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['UP_4group'] = "for members in group";
+$lang['UP_Back2GL'] = "back to grouplist";
+$lang['UP_AllNone'] = "all/none";
+$lang['UP_Pending'] = "pending";
+$lang['UP_GrpExplain'] = "<strong>Note:</strong> Use this overview to control upload-permissions for members of a group. The permissions are saved <strong>per member</strong> only and not <strong>per group</strong> for security reasons. Permissions are not set automatically based on group-membership.";
+$lang['UP_ErrConfig'] = "Config not found. Please execute the install-script.";
+$lang["UP_conf_gallery"] = "allow user-gallery";
+$lang["UP_conf_gallerysize"] = "max. width or height for pictures displayed in the gallery";
+$lang["UP_conf_watermark"] = "apply watermark to uploaded pictures?";
+$lang["UP_conf_wmpicture"] = "watermark-picture";
+$lang["UP_conf_wmposition"] = "watermark-position";
+$lang["UP_conf_PosTL"] = "top left";
+$lang["UP_conf_PosTC"] = "top center";
+$lang["UP_conf_PosTR"] = "top right";
+$lang["UP_conf_PosBL"] = "bottom left";
+$lang["UP_conf_PosBC"] = "bottom center";
+$lang["UP_conf_PosBR"] = "bottom right";
+$lang["UP_conf_wmminsize"] = "min. picture-size to apply watermark";
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					<!-- BEGIN switch_user_logged_in -->
+					<strong>{URL_UPLOADPIC}</strong>
+					<!-- END switch_user_logged_in -->
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+					<!-- BEGIN switch_uploadpic -->
+					<strong><a href="{S_UPLOADPIC}" onclick="window.open('{S_UPLOADPIC}', '_uploadpic', 'HEIGHT=400,resizable=yes,scrollbars=yes,WIDTH=450');return false;" target="_uploadpic" class="nav" onMouseOver="helpline('up')">{L_UPLOADPIC}</a>&nbsp;<br /></strong>
+					<!-- END switch_uploadpic -->
+
+# 
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

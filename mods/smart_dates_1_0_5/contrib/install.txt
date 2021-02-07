@@ -1,0 +1,1025 @@
+##############################################################
+## MOD Title: Smart Dates
+## MOD Author: eviL3 < evil@phpbbmodders.net > (Igor Wiedler) http://phpbbmodders.net
+## MOD Description: This MOD will change time formating to "2 hours ago", "3 days ago", ect.
+## MOD Version: 1.0.5
+##
+## Installation Level: Intermediate
+## Installation Time: 15 Minutes
+##
+## Files To Edit:
+##		groupcp.php,
+##		index.php,
+##		memberlist.php,
+##		modcp.php,
+##		posting.php,
+##		privmsg.php,
+##		search.php,
+##		viewforum.php,
+##		viewonline.php,
+##		viewtopic.php,
+##		admin/admin_board.php,
+##		admin/admin_index.php,
+##		admin/admin_users.php,
+##		includes/functions.php,
+##		includes/page_header.php,
+##		includes/usercp_avatar.php,
+##		includes/usercp_register.php,
+##		includes/topic_review.php,
+##		includes/usercp_viewprofile.php,
+##		language/lang_english/lang_main.php,
+##		templates/subSilver/profile_add_body.tpl,
+##		templates/subSilver/admin/board_config_body.tpl,
+##		templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files:
+##		n/a
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## This MOD was inspired for vBulletin, as i have seen this feature
+## on a vB powered board. I'm not sure if it's a default feature, 
+## but i like it. So i created it for phpBB. I hope you like it!
+##
+## There's some more info about how this MOD works in the contrib/docs/ folder. ;)
+## There is also a manual located there, that explains how to use it.
+##
+## There is also a db_update.php script in the contrib/ folder, that you can
+## use, if you don't know phpmyadmin. Just upload it to the root of your forum,
+## visit it with your browser, and remove the file after the install.
+##
+## "Official" Support for this MOD can be obtained at either phpBBModders.org
+## or at phpBB.com, but only in the release topic. You may get support elsewhere,
+## but not from me, as i just don't have the time and energy. If you have a
+## suggestion, post it at one of those two sites, or PM me. Or send me a mail.
+##
+## This MOD is distributed under the GPL, as stated above. You can find a copy
+## in the contrib/docs/ folder, it's called gpl.txt. Open source ftw!
+##
+##############################################################
+## MOD History:
+##
+##	2006-10-19 - Version 0.1.0
+##		- Initial version
+##
+##	2006-12-03 - Version 0.1.1
+##		- Added missing lang vars (thanks Mickroz)
+##		- Changed lang code
+##		- Recommented
+##
+##	2006-12-03 - Version 1.0.0
+##		- Submitted to MODDB
+##
+##	2006-12-18 - Version 1.0.1
+##		- Thanks to dan for testing
+##		- Fixed some stuff
+##
+##	2007-01-29 - Version 1.0.2
+##		- Fixed timezone bug
+##		- Fixed language bug (timezone $lang array keys)
+##		- Thanks schaapie
+##
+##	2007-02-07 - Version 1.0.3
+##		- Optimized a language bug
+##		- Fixed bad after add
+##		- Thanks to Duvaren
+##
+##	2007-05-02 - Version 1.0.4
+##		- Fixed a 12h bug (thanks to schaapie once again)
+##
+##	2007-07-17 - Version 1.0.5
+##		- Cleaned up a little
+##		- Fixed a little bug in 1_0_3 to 1_0_4
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+ALTER TABLE phpbb_users ADD user_smart_dates TINYINT NULL DEFAULT '1';
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('smart_dates_allow', '1');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('smart_dates_time', '1');
+#
+#-----[ OPEN ]------------------------------------------
+#
+groupcp.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$joined = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$last_post_time = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+memberlist.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$joined = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+modcp.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$post_date = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+$last_post_time = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------
+#
+'POST_DATE' => create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$board_config['board_timezone']
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+$msg_date =  create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$post_date = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+$msg_date =  create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+'POST_DATE' => create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$board_config['board_timezone']
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+$msg_date = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+search.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$post_date = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+$first_post_time = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+$last_post_time = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$first_post_time = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+$last_post_time = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewonline.php
+#
+#-----[ FIND ]------------------------------------------
+#
+'LASTUPDATE' => create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+),
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$post_date = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+$poster_joined = ( $postrow[$i]['user_id'] != ANONYMOUS )
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+) : '';
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+$l_edited_by = '<br /><br />' . 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+), $postrow[$i]['post_edit_count']);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$namechange_no
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+$smartdate_yes		= ( $new['smart_dates_allow'] ) ? 'checked="checked"' : '';
+$smartdate_no		= ( !$new['smart_dates_allow'] ) ? 'checked="checked"' : '';
+$smartdate_time_yes	= ( $new['smart_dates_time'] ) ? 'checked="checked"' : '';
+$smartdate_time_no	= ( !$new['smart_dates_time'] ) ? 'checked="checked"' : '';
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+"L_ALLOW_NAME_CHANGE" => $lang['Allow_name_change'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+	'L_ENABLE_SMART_DATES'	=> $lang['Smart_dates_enable'],
+	'L_SMART_DATES_TIME'	=> $lang['Smart_dates_time'],
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+"NAMECHANGE_NO" => $namechange_no,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+	'SMART_DATES_YES'		=> $smartdate_yes,
+	'SMART_DATES_NO'		=> $smartdate_no,
+	'SMART_DATES_TIME_YES'	=> $smartdate_time_yes,
+	'SMART_DATES_TIME_NO'	=> $smartdate_time_no,
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/index.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$start_date = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+"STARTED" => create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+),
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+"LASTUPDATE" => create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+),
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+"STARTED" => create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+),
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+"LASTUPDATE" => create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+),
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$allowsmilies = ( isset( $HTTP_POST_VARS['allowsmilies']) ) ? intval( $HTTP_POST_VARS['allowsmilies'] ) : $board_config['allow_smilies'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		$smart_dates = ( isset( $HTTP_POST_VARS['smart_dates']) ) ? intval( $HTTP_POST_VARS['smart_dates'] ) : 0;
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+SET " . $username_sql . $passwd_sql . 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_allowsmile = $allowsmilies
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_smart_dates = $smart_dates
+#
+#-----[ FIND ]------------------------------------------
+#
+$allowviewonline = $this_userdata['user_allow_viewonline'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		$smart_dates = $this_userdata['user_smart_dates'];
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+$s_hidden_fields .= '<input type="hidden" name="dateformat" value="' . str_replace("\"", "&quot;", $user_dateformat) . '" />';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+			$s_hidden_fields .= '<input type="hidden" name="user_smart_dates" value="' . $smart_dates . '" />';
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+'WEBSITE' => $website,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+			'SMART_DATES_YES'	=> ( $smart_dates ) ? 'checked="checked"' : '',
+			'SMART_DATES_NO'	=> ( !$smart_dates ) ? 'checked="checked"' : '',
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+'L_ALLOW_AVATAR' => $lang['User_allowavatar'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+			'L_SMART_DATES'			=> $lang['Smart_dates_use'],
+			'L_SMART_DATES_EXPLAIN'	=> $lang['Smart_dates_use_explain'],
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+function create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+)
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, $smart_dates = false
+#
+#-----[ FIND ]------------------------------------------
+#
+	global $board_config, $lang;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+	global $userdata;
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- delete
+//	return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
+//-- fin mod : Smart Dates --------------------------------------------------------
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+	if ($smart_dates && $board_config['smart_dates_allow'] && $userdata['user_smart_dates'])
+	{
+		$use_time = false;
+		$diff = time() - $gmepoch;
+		switch (true)
+		{
+			case ($diff < 60):
+				$secs = (int) gmdate('s', $diff);
+				$ret = ($secs == 1) ? $lang['Smart_dates_second'] : sprintf($lang['Smart_dates_seconds'], $secs);
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+			break;
+			
+			case ($diff < 3600):
+				$mins = (int) gmdate('i', $diff);
+				$ret = ($mins == 1) ? $lang['Smart_dates_minute'] : sprintf($lang['Smart_dates_minutes'], $mins);
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+			break;
+			
+			case ($diff < (3600 * 24)):
+				$hours = (int) gmdate('G', $diff);
+				$ret = ($hours == 1) ? $lang['Smart_dates_hour'] : sptintf($lang['Smart_dates_hours'], $hours);
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+				$use_time = true;
+			break;
+			
+			case ($diff < (3600 * 24) * 2):
+				$ret = $lang['Smart_dates_yesterday'];
+				$use_time = true;
+			break;
+			
+			case (($diff > (3600 * 24) * 3) && ($diff < (3600 * 24) * 7)):
+				$days = gmdate('j', $diff);
+				$ret = $days . ' ' . $lang['Days'];
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+				$use_time = true;
+			break;
+		}
+	}
+	
+	if ($ret)
+	{
+		if ($board_config['smart_dates_time'] && $use_time)
+		{
+			$min_sec = gmdate('g:i a', $gmepoch + (3600 * $tz));
+			$ret = sprintf($lang['Smart_dates_at'], $ret, $min_sec);
+		}
+	}
+	else
+	{
+		$ret = (!empty($translate)) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
+	}
+	
+	return $ret;
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$s_last_visit = ( $userdata['session_logged_in'] ) ? create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+) : '';
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// The following assigns all _common_ variables that may be used at any point
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+if ($board_config['smart_dates_allow'] && $userdata['user_smart_dates'] && ($board_config['record_online_date'] - time()) < (3600 * 24))
+{
+	$lang['Record_online_users'] = $lang['Smart_dates_onlinerecord'];
+}
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+'RECORD_USERS' => sprintf($lang['Record_online_users'], $board_config['record_online_users'], create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+)),
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_avatar.php
+#
+#-----[ FIND ]------------------------------------------
+#
+function display_avatar_gallery
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, &$session_id
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, &$smart_dates
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$allowsmilies = ( isset($HTTP_POST_VARS['allowsmilies'])
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		$smart_dates = ( isset($HTTP_POST_VARS['smart_dates']) ) ? ( ($HTTP_POST_VARS['smart_dates']) ? TRUE : 0 ) : 0;
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+$allowsmilies = ( isset($HTTP_POST_VARS['allowsmilies'])
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		$smart_dates = ( isset($HTTP_POST_VARS['smart_dates']) ) ? ( ($HTTP_POST_VARS['smart_dates']) ? TRUE : 0 ) : $userdata['user_smart_dates'];
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "UPDATE " . USERS_TABLE . "
+#
+#-----[ FIND ]------------------------------------------
+#
+SET " . $username_sql . $passwd_sql .
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_allowsmile = $allowsmilies
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_smart_dates = $smart_dates
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "INSERT INTO " . USERS_TABLE . "
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_allowsmile
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_smart_dates
+#
+#-----[ FIND ]------------------------------------------
+#
+VALUES ($user_id
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, $allowsmilies
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $smart_dates
+#
+#-----[ FIND ]------------------------------------------
+#
+$allowsmilies = $userdata['user_allowsmile'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+$smart_dates = $userdata['user_smart_dates'];
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+display_avatar_gallery(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, $userdata['session_id']
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $smart_dates
+#
+#-----[ FIND ]------------------------------------------
+#
+// Visual Confirmation
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+	if ( $board_config['smart_dates_allow'] )
+	{
+		$template->assign_block_vars( 'smart_dates', array() );
+	}
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+'ALWAYS_ALLOW_SMILIES_NO' => ( !$allowsmilies ) ? 'checked="checked"' : '',
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		'SMART_DATES_YES'	=> ( $smart_dates ) ? 'checked="checked"' : '',
+		'SMART_DATES_NO'	=> ( !$smart_dates ) ? 'checked="checked"' : '',
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+'L_ALWAYS_ADD_SIGNATURE' => $lang['Always_add_sig'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		'L_SMART_DATES'			=> $lang['Smart_dates_use'],
+		'L_SMART_DATES_EXPLAIN'	=> $lang['Smart_dates_use_explain'],
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/topic_review.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$post_date = create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------
+#
+'JOINED' => create_date(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+),
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, true
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+$lang += array(
+	/* Config */
+	'Smart_dates_use'			=> 'Use smart dates',
+	'Smart_dates_use_explain'	=> 'If this option is turned on, you will see how long ago a topic was posted instead of the date. If it\'s older than a week, the date will be displayed.',
+	/* Options */
+	'Smart_dates_enable'	=> 'Enable smart dates',
+	'Smart_dates_time'		=> 'Add time to smart dates',
+	/* Display */
+	'Smart_dates_ago' 		=> '%s ago',
+	'Smart_dates_at' 		=> '%s at %s',
+	'Smart_dates_yesterday'	=> 'Yesterday',
+	/* Online record language fix */
+	'Smart_dates_onlinerecord'	=> 'Most users ever online was %1$s, <b>%2$s</b>',
+	/* Time strings */
+	'Smart_dates_second'	=> '1 second',
+	'Smart_dates_seconds'	=> '%s seconds',
+	'Smart_dates_minute'	=> '1 minute',
+	'Smart_dates_minutes'	=> '%s minutes',
+	'Smart_dates_hour'		=> '1 hour',
+	'Smart_dates_hours'		=> '%s hours',
+);
+//-- fin mod : Smart Dates --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<input type="text" name="dateformat" value="{DATE_FORMAT}" maxlength="14" class="post" />
+	  </td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<!-- BEGIN smart_dates -->
+	<tr> 
+		<td class="row1">
+			<span class="gen">{L_SMART_DATES}:</span><br />
+			<span class="gensmall">{L_SMART_DATES_EXPLAIN}</span>
+		</td>
+		<td class="row2">
+			<label for="smart_dates_yes">
+				<input type="radio" id="smart_dates_yes" name="smart_dates" value="1" {SMART_DATES_YES} />
+				<span class="gen">{L_YES}</span>&nbsp;
+			</label>
+			<label for="smart_dates_no">
+				<input type="radio" id="smart_dates_no" name="smart_dates" value="0" {SMART_DATES_NO} />
+				<span class="gen">{L_NO}</span>
+			</label>
+		</td>
+	</tr>
+	<!-- END smart_dates -->
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<td class="row2"><input type="radio" name="allow_namechange" value="1" {NAMECHANGE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_namechange" value="0" {NAMECHANGE_NO} /> {L_NO}</td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">
+			{L_ENABLE_SMART_DATES}
+		</td>
+		<td class="row2">
+			<label for="smart_dates_allow_yes">
+				<input type="radio" id="smart_dates_allow_yes" name="smart_dates_allow" value="1" {SMART_DATES_YES} /> {L_YES}&nbsp;
+			</label>
+			<label for="smart_dates_allow_no">
+				<input type="radio" id="smart_dates_allow_no" name="smart_dates_allow" value="0" {SMART_DATES_NO} /> {L_NO}
+			</label>
+		</td>
+	</tr>
+	<tr>
+		<td class="row1">
+			{L_SMART_DATES_TIME}
+		</td>
+		<td class="row2">
+			<label for="smart_dates_time_yes">
+				<input type="radio" id="smart_dates_time_yes" name="smart_dates_time" value="1" {SMART_DATES_TIME_YES} /> {L_YES}&nbsp;
+			</label>
+			<label for="smart_dates_time_no">
+				<input type="radio" id="smart_dates_time_no" name="smart_dates_time" value="0" {SMART_DATES_TIME_NO} /> {L_NO}
+			</label>
+		</td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<input class="post" type="text" name="dateformat" value="{DATE_FORMAT}" maxlength="16" />
+	  </td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr> 
+		<td class="row1">
+			<span class="gen">{L_SMART_DATES}:</span><br />
+			<span class="gensmall">{L_SMART_DATES_EXPLAIN}</span>
+		</td>
+		<td class="row2">
+			<label for="smart_dates_yes">
+				<input type="radio" id="smart_dates_yes" name="smart_dates" value="1" {SMART_DATES_YES} />
+				<span class="gen">{L_YES}</span>&nbsp;
+			</label>
+			<label for="smart_dates_no">
+				<input type="radio" id="smart_dates_no" name="smart_dates" value="0" {SMART_DATES_NO} />
+				<span class="gen">{L_NO}</span>
+			</label>
+		</td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

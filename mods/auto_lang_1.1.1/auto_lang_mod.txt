@@ -1,0 +1,155 @@
+##############################################################
+## MOD Title: Automatic browser dependent language choice for guests
+## MOD Author: Herbalite < hrpeters@gmx.net > (Herbert Peters) N/A
+## MOD Description: : Allows guests to view the board automatically in their preferred language, provided you support that language on your board
+## MOD Version: 1.1.1
+##
+## Installation Level: (Easy)
+## Installation Time: 5 Minutes
+## Files To Edit: common.php,
+##                language/lang_english/lang_admin.php
+## Included Files: (admin_auto_lang.php, auto_language_body.tpl)
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## After installation, check out the new functionality in the admin panel
+##
+##############################################################
+## MOD History:
+##
+##   2003-08-20 - Version 1.1.0
+##      - Added a configuration tool in the admin section
+##      - Validated for phpBB 2.0.6
+##      - Got rid of a regular expression call, and fixed a bug in the process.
+##      - replaced hard-coded array of language reference with the database driven verison
+##
+##   2003-11-04 - Version 1.1.1
+##      - All fixes mentioned below are all in the admin utility only.
+##      - All new language codes will be converted to lower case
+##      - fixed a few SQL injection security issues (altough they are redundant because of stronger data validation. See below)
+##      - language codes are now restricted to alphanumerical chars and the minus sign only.
+##      - added checking for previous existence of language codes in delete and edit.
+##      - added checking for existing phpBB language versions
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+
+copy admin_auto_lang.php to admin/admin_auto_lang.php
+copy auto_language_body.tpl to templates/subSilver/admin/auto_language_body.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+common.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$board_config[$row['config_name']] = $row['config_value'];
+}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# Note: insert after the closing curly brace }
+
+// Auto lang mod start
+// If someone spoofs the language setting, then init_userprefs() will use the default language, as the spoofed result can't be found
+$language = '';
+$supported_languages = array();
+$accept_language = strtolower (getenv ('HTTP_ACCEPT_LANGUAGE'));
+if (!empty ($accept_language))
+{
+	reset ($board_config);
+	$needle = 'auto_lang_';
+	$needle_length = strlen($needle);
+	while (list ($key, $value) = each ($board_config))
+	{
+		if ((strstr($key, $needle)))
+		{
+			$supported_languages[substr ($key, $needle_length)] = $value;
+		}
+	}
+	reset ($board_config); // Avoid nasty surprises for other coders
+
+	if (count ($supported_languages) > 0)
+	{
+		$accepted_languages = explode (',', $accept_language);
+		reset ($accepted_languages);
+		while (list(, $lng) = each ($accepted_languages))
+		{
+			$pos = strpos ($lng, ';');
+			if ($pos > 0) // The ; never occurs on position 0 in this case (unless spoofed)
+			{
+				$lng = substr ($lng, 0, $pos);
+			}
+			$lng = trim ($lng);
+			if (!empty($lng))
+			{
+				if (isset($supported_languages[$lng]))
+				{
+					$language = $supported_languages[$lng];
+					break;
+				}
+				else if (strstr($lng,'-')) // A user can have entered '-' at pos 0, so strpos is out for PHP 3 compliance
+				{
+					// break it up at the '-'
+					$lng = substr($lng, 0, strpos($lng, '-'));
+					if (!empty($lng) && isset($supported_languages[$lng]))
+					{
+						$language = $supported_languages[$lng];
+						break;
+					}
+				}
+			}
+		}
+	}
+}
+if (!empty ($language))
+{
+	$board_config['default_lang'] = $language;
+}
+// Auto lang mod end
+
+#
+#-----[ OPEN ]------------------------------------------
+# You'll need to do this for all languages
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+# You'll need to do this for all languages
+
+//
+// That's all Folks!
+// -------------------------------------------------
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+# You'll need to do this for all languages
+
+// Auto Language Detection
+$lang['Auto_language_detection'] = 'Auto language detection';
+$lang['auto_lang_title'] = 'Automatic language detection for guests';
+$lang['auto_lang_edit_selected'] = 'Edit Selected';
+$lang['auto_lang_explain'] = 'On this page you can configure the automatic language detection feature.  For possible language code settings check out the language preferences section within your browser. The values to use look like en, en-us, de, fr, etc.';
+$lang['auto_lang_language_check'] = 'Selection';
+$lang['auto_lang_language_code'] = 'Language code';
+$lang['auto_lang_language_select'] = 'Associated language';
+$lang['auto_lang_empty_lc'] = 'Please provide a language code';
+$lang['auto_lang_exists_lc'] = 'The language code <strong>%s</strong> is existing already'; // %s inserts the language code
+$lang['auto_lang_notexists_lc'] = 'The language code <strong>%s</strong> does not exist'; // %s Inserts the language code
+$lang['auto_lang_not_exist'] = 'The language <strong>%s</strong> does not exist on this phpBB Board.';
+$lang['auto_lang_invalid_characters'] = 'Please use alphanumerical characters and the minus (-) symbol only for the language code';
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

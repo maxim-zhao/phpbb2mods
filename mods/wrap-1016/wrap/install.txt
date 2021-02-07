@@ -1,0 +1,382 @@
+##############################################################
+## MOD Title: Force Word Wrapping
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/phpbb
+## MOD Description: Prevents long sentancesconstructedlikethis from horizontally stretching
+##                  the page.
+## MOD Version: 1.0.16
+##
+## Installation Level: Intermediate
+## Installation Time: 3 Minutes
+##
+## Files To Edit: 7
+##      includes/bbcode.php
+##      includes/topic_review.php
+##      privmsg.php
+##      viewtopic.php
+##      posting.php
+##	modcp.php
+##      search.php
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##     Word Wrapping is normally something that is transparant,
+##     and goes on, unnoticed, all the time.  As text approaches
+##     the scroll bar, or whatever, word wrapping is what stops
+##     it from going past it.  In short, word wrapping creates
+##     new lines whenever not having a new line would mess things
+##     up.
+##
+##     However, traditional word wrapping algorithims rely on
+##     spaces to determine when the new line should occur.  If you
+##     have a string of characters that has no spaces yet still
+##     approaches the scroll bar, you may have a problem.  Indeed,
+##     you may find yourself with everything stretched, horizontoly.
+##
+##     One common remedy to this problem is a simple preg_replace,
+##     which creates problems for extended html characters (such as
+##     &amp;), anchor tags (such as <a hreh="http://www.google.com>
+##     click here</a>), and characters who, by the unicode specs,
+##     prohibit word wrapping from taking place on the character
+##     before them.  This MOD overcomes all of those problems.
+##
+##     Newer remedies require javascript enabled and only work on
+##     the newest browsers.  This MOD has none of these problems,
+##     either.
+##
+##     A more elaborate discussion of why forced word wrapping is
+##     needed can be found here:
+##     http://en.wikipedia.org/wiki/Page_widening
+##                  
+##     For support / comments / whatever, visit here:
+##     http://www.frostjedi.com/phpbb/viewforum.php?f=33
+##
+##     The latest version of this MOD can be found here:
+##     http://www.frostjedi.com/terra/scripts/phpbb/wrap.zip
+##
+############################################################## 
+## MOD History: 
+##
+##    1.0.16: - should be a little faster (thanks, sashtravis!)
+##            - configurator now works with Ptirhiik's Profile Control Panel MOD
+##              (addition coded almost entirely by omega13a - thanks!)
+##            - admins can now specify the word wrap range in the acp (ie. 50-99,
+##              or whatever)
+##    1.0.15: - wraps posts in search results (thanks, baerenwurm!)
+##            - fixed a bug that prevented word wrapping from occuring in
+##              rare circumstances.
+##            - cleaned up code a little bit
+##            - updated description of install-user.txt
+##    1.0.14: - wraps signatures (thanks, unimatrizer0!)
+##            - admins can now adjust users' word wrap settings.
+##    1.0.13: - enabled word wrapping in the moderator control panel (thanks,
+##              unimatrixzer0!)
+##            - fixed a bug that allowed spaces to be inserted in places where
+##              they might not normally be expected.
+##    1.0.12: - fixed a bug that prevented the adjustment of wrap settings
+##              in User Config.
+##            - added an explanation to profilecp in User Config.
+##            - added a bounds checker (there's no reason for people to set
+##              word wrap to 0) in User Config.
+##    1.0.11: - fixed a bug that hindered how new users saw threads (thanks,
+##              Blisk!)
+##            - split the code to allow per-user word wrap settings into a
+##              whole new mod.
+##    1.0.10: - added support for a few more characters that prohibit word
+##              wrapping (thanks, Jims!)
+##            - users can now specify the number of "rows" they want to
+##              occur before word wrapping is enforced in their profile.
+##     1.0.9: - credited Chicago 2003 for pointing out a bug that was fixed
+##              in 1.0.4.
+##            - mod should now work on boards which don't have access to the
+##              html_entity_decode function (thanks, Musher!)
+##     1.0.8: - made mod validate a bit better with phpBB.
+##            - improved a random regular expression.
+##            - updated support forum link.
+##     1.0.7: - html escape characters (ie. <) now only count once 
+##              towards the word wrap count.
+##     1.0.6: - word wrapping no longer occurs on characters that prohibit
+##              word wrapping in <>'s.
+##            - created a new helper function, addWrap.
+##            - altered header of install.txt to allow for phpBB2 MOD
+##              validation.
+##     1.0.5: - added support for more characters that prohibit word
+##              wrapping.
+##            - updated code that allows for above functionality.
+##     1.0.4: - determination of location to put extra space improved.
+##            - added code to force word wrapping on those few characters
+##              that prohibit it from taking place right in front of them.
+##              (thanks, Chicago 2003!)
+##     1.0.3: - made more easyMod compliant.
+##     1.0.2: - fixed a small bug with "\n" characters.
+##     1.0.1: - the "\n" character no longer counts towards the eighty
+##              characters that are required before a space is inserted.
+##     1.0.0: - initial release
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+// Force Word Wrapping (by TerraFrost)
+function word_wrap_pass($message)
+{
+	$userdata['user_wordwrap'] = 70;
+	$tempText = '';
+	$finalText = '';
+	$curCount = $tempCount = 0;
+	$longestAmp = 9;
+	$inTag = false;
+	$ampText = '';
+	$len = strlen($message);
+
+	for ($num=0;$num<$len;$num++)
+	{
+		$curChar = $message{$num};
+
+		if ($curChar == '<')
+		{
+			for ($snum=0;$snum<strlen($ampText);$snum++)
+			{
+				addWrap($ampText{$snum},$ampText{$snum+1},$userdata['user_wordwrap'],$finalText,$tempText,$curCount,$tempCount);
+			}
+			$ampText = '';
+			$tempText .= '<';
+			$inTag = true;
+		}
+		elseif ($inTag && $curChar == '>')
+		{
+			$tempText .= '>';
+			$inTag = false;
+		}
+		elseif ($inTag)
+		{
+			$tempText .= $curChar;
+		}
+		elseif ($curChar == '&')
+		{
+			for ($snum=0;$snum<strlen($ampText);$snum++)
+			{
+				addWrap($ampText{$snum},$ampText{$snum+1},$userdata['user_wordwrap'],$finalText,$tempText,$curCount,$tempCount);
+			}
+			$ampText = '&';
+		}
+		elseif (strlen($ampText) < $longestAmp && $curChar == ';' && function_exists('html_entity_decode') &&
+		       (strlen(html_entity_decode("$ampText;")) == 1 || preg_match('/^&#[0-9]+$/',$ampText)))
+		{
+			addWrap($ampText.';',$message{$num+1},$userdata['user_wordwrap'],$finalText,$tempText,$curCount,$tempCount);
+			$ampText = '';
+		}
+		elseif (strlen($ampText) >= $longestAmp || $curChar == ';')
+		{
+			for ($snum=0;$snum<strlen($ampText);$snum++)
+			{
+				addWrap($ampText{$snum},$ampText{$snum+1},$userdata['user_wordwrap'],$finalText,$tempText,$curCount,$tempCount);
+			}
+			addWrap($curChar,$message{$num+1},$userdata['user_wordwrap'],$finalText,$tempText,$curCount,$tempCount);
+			$ampText = '';
+		}
+		elseif (strlen($ampText) != 0 && strlen($ampText) < $longestAmp)
+		{
+			$ampText .= $curChar;
+		}
+		else
+		{
+			addWrap($curChar,$message{$num+1},$userdata['user_wordwrap'],$finalText,$tempText,$curCount,$tempCount);
+		}
+	}
+
+	return $finalText . $tempText;
+}
+
+function addWrap($curChar,$nextChar,$maxChars,&$finalText,&$tempText,&$curCount,&$tempCount) {
+	$wrapProhibitedChars = "([{!;,\\/:?}])";
+
+	if ($curChar == ' ' || $curChar == "\n")
+	{
+		$finalText .= $tempText . $curChar;
+		$tempText = '';
+		$curCount = 0;
+		$curChar = '';
+	}
+	elseif ($curCount >= $maxChars)
+	{
+		$finalText .= $tempText . ' ';
+		$tempText = '';
+		$curCount = 1;
+	}
+	else
+	{
+		$tempText .= $curChar;
+		$curCount++;
+	}
+
+	// the following code takes care of (unicode) characters prohibiting non-mandatory breaks directly before them.
+
+	// $curChar isn't a " " or "\n"
+	if ($tempText != '' && $curChar != '')
+	{
+		$tempCount++;
+	}
+	// $curChar is " " or "\n", but $nextChar prohibits wrapping.
+	elseif ( ($curCount == 1 && strstr($wrapProhibitedChars,$curChar) !== false) || 
+	         ($curCount == 0 && $nextChar != '' && $nextChar != ' ' && $nextChar != "\n" && strstr($wrapProhibitedChars,$nextChar) !== false))
+	{
+		$tempCount++;
+	}
+	// $curChar and $nextChar aren't both either " " or "\n"
+	elseif (!($curCount == 0 && ($nextChar == ' ' || $nextChar == "\n")))
+	{
+		$tempCount = 0;
+	}
+
+	if ($tempCount >= $maxChars && $tempText == '')
+	{
+		$finalText .= '&nbsp;';
+		$tempCount = 1;
+		$curCount = 2;
+	}
+
+	if ($tempText == ''  && $curCount > 0)
+	{
+		$finalText .= $curChar;
+	}
+}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/topic_review.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			if ( $board_config['allow_smilies'] && $row['enable_smilies'] )
+			{
+				$message = smilies_pass($message);
+			}
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+			$message = word_wrap_pass($message);
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$user_sig = '<br />_________________<br />' . str_replace("\n", "\n<br />\n", $user_sig);
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+		$user_sig = word_wrap_pass($user_sig);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$message = str_replace("\n", "\n<br />\n", $message);
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	$message = word_wrap_pass($message);
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ( $board_config['allow_smilies'] && $privmsg['privmsgs_enable_smilies'] )
+	{
+		$private_message = smilies_pass($private_message);
+	}
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	$private_message = word_wrap_pass($private_message);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ( $smilies_on )
+		{
+			$preview_message = smilies_pass($preview_message);
+		}
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		$preview_message = word_wrap_pass($preview_message);
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$preview_message = str_replace("\n", '<br />', $preview_message);
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+		$preview_message = word_wrap_pass($preview_message);
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+modcp.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					$message = str_replace("\n", '<br />', $message);
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+					$message = word_wrap_pass($message);
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+               $message = str_replace("\n", '<br />', $message);
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+               $message = word_wrap_pass($message);
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

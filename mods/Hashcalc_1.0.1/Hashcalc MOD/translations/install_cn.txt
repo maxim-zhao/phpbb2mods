@@ -1,0 +1,228 @@
+######################################################## 
+## 外挂名称: Hashcalc MOD
+## 外挂作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外挂描述: 这个外挂允许讨论版会员搜寻位在主机内的档案的校验码
+##		显示 MD5, SFV 和 SHA-1
+##		系统管理员可以设定要搜寻的档案位置 (不允许子目录的搜寻)
+## 外挂版本: 1.0.1
+## 
+## 安装难度: 简单
+## 安装时间: 5 分钟
+##
+## 需要编辑的档案: 8
+##	admin/admin_board.php
+##	includes/constants.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	includes/page_header.php
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/overall_header.tpl
+##	templates/subSilver/subSilver.css
+##
+## 附加的档案: 4
+##	hashcalc.php
+##	templates/subSilver/hashcalc_body.tpl
+##	templates/subSilver/hashcalc_results_body.tpl
+##	templates/subSilver/images/icon_hashcalc.gif
+##
+## 版权声明: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## 由于安全上的考量, 请检查: http://www.phpbb.com/mods/
+## 是否有此外挂的最新版本. 虽然在加入外挂资料库前，外挂已经经过检查
+## 但是这并不保证外挂中完全没有安全上的问题. 
+## 对于不在外挂资料库 (http://www.phpbb.com/mods/) 内的外挂
+## 将不会在 phpbb.com 的讨论板内给予支援 
+############################################################## 
+## 作者留言:
+##
+##	此外挂在 2.0.18 上测试过. 可以用 EasyMOD 0.3.0 来安装此外挂
+##
+##	如果你想要直接显示所有档案的校验码资讯，你可以使用 add-on 中的附加外挂
+## 
+############################################################## 
+## 版本历史: 
+##
+##   2004-02-20 - 版本 1.0.0
+##      - 首次发布
+##
+##   2005-12-11 - 版本 1.0.1
+##      - 改进外挂
+##
+############################################################## 
+## 在增加此外挂前, 请务必备份所有需要修改的档案
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+INSERT INTO `phpbb_config` VALUES ('hashculc_file_path', '');
+# 
+#-----[ 复制 ]------------------------------------------ 
+# 
+copy root/hashcalc.php to hashcalc.php
+copy root/templates/subSilver/hashcalc_body.tpl to templates/subSilver/hashcalc_body.tpl
+copy root/templates/subSilver/hashcalc_results_body.tpl to templates/subSilver/hashcalc_results_body.tpl
+copy root/templates/subSilver/images/icon_hashcalc.gif to templates/subSilver/images/icon_hashcalc.gif
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_admin.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Hashcalc MOD
+$lang['Hashcalc_settings'] = '校验码设定';
+$lang['Hashcalc_path'] = '档案储存路径';
+$lang['Hashcalc_explain'] = '在您 phpBB 2 根目录底下的路径, 例如: download 或 download/files';
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_main.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Hashcalc MOD
+$lang['File'] = '档案名称';
+$lang['File_hash'] = '档案检验方式';
+$lang['Hash_MD5'] = '<span class="hashcalc_md5">MD5</span>';
+$lang['Hash_SHA1'] = '<span class="hashcalc_sha1">SHA1</span>';
+$lang['Hash_SFV'] = '<span class="hashcalc_sfv">SFV</span>';
+$lang['Search_file_hash'] = '搜寻档案校验码';
+$lang['Search_file_hash_explained'] = '键入完整的档案名称来搜寻档案的校验码';
+$lang['Hashcalc'] = '查看校验码';
+$lang['No_hash_match'] = '你搜寻的档案不在主机中';
+
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+includes/constants.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+define('PAGE_GROUPCP', -11);
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+define('PAGE_HASHCALC', -2119);		// Hashcalc MOD
+# 
+#-----[ 打开 ]------------------------------------------ 
+#  
+admin/admin_board.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+	"L_SMTP_PASSWORD_EXPLAIN" => $lang['SMTP_password_explain'], 
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	// Hashcalc MOD
+	"L_HASHCALC_SETTING" => $lang['Hashcalc_settings'],
+	"L_HASHCALC_PATH" => $lang['Hashcalc_path'],
+	"L_HASHCALC_EXPLAIN" => $lang['Hashcalc_explain'],
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+	"SMTP_PASSWORD" => $new['smtp_password'],
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	// Hashcalc MOD
+	"HASHCALC_FILE_PATH" => $new['hashculc_file_path'],
+# 
+#-----[ 打开 ]------------------------------------------ 
+#
+includes/page_header.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+	'L_USERGROUPS' => $lang['Usergroups'],
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	// Hashcalc MOD
+	'L_HASHCALC' => $lang['Hashcalc'],
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+	'U_GROUP_CP' => append_sid('groupcp.'.$phpEx),
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	// Hashcalc MOD
+	'U_HASHCALC' => append_sid('hashcalc.'.$phpEx),
+# 
+#-----[ 打开 ]------------------------------------------ 
+#
+templates/subSilver/overall_header.tpl
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+.helpline { background-color: {T_TR_COLOR2}; border-style: none; }
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+/* Hashcalc MOD */
+.hashcalc_md5 { color: #FF0000; font-size: 11px; }
+.hashcalc_sha1 { color: #0000FF; font-size: 11px; }
+.hashcalc_sfv { color: #006600; font-size: 11px; }
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+						<td align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_FAQ}" class="mainmenu">
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+{L_USERGROUPS}</a>&nbsp; 
+# 
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+&nbsp;<a href="{U_HASHCALC}" class="mainmenu"><img src="templates/subSilver/images/icon_hashcalc.gif" width="12" height="13" border="0" alt="{L_HASHCALC}" hspace="3" />{L_HASHCALC}</a>&nbsp;
+# 
+#-----[ 打开 ]------------------------------------------ 
+#
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_COPPA_SETTINGS}</th>
+	</tr>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_HASHCALC_SETTING}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_HASHCALC_PATH} <br /><span class="gensmall">{L_HASHCALC_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="hashculc_file_path" value="{HASHCALC_FILE_PATH}" /></td>
+	</tr>
+# 
+#-----[ 打开 ]------------------------------------------ 
+#
+templates/subSilver/subSilver.css
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+.helpline { background-color: #DEE3E7; border-style: none; }
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+/* Hashcalc MOD */
+.hashcalc_md5 { color: #FF0000; font-size: 11px; }
+.hashcalc_sha1 { color: #0000FF; font-size: 11px; }
+.hashcalc_sfv { color: #006600; font-size: 11px; }
+# 
+#-----[ 储存/关闭所有档案 ]------------------------------------------ 
+# 
+#
+# 外挂修正结束

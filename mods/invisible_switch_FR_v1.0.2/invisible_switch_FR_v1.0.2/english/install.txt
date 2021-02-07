@@ -1,0 +1,197 @@
+############################################################## 
+## MOD Title:	Invisible Switch 
+## MOD Author: 	Poupoune < poupoune@phpbb-fr.com > (N/A) http://php-tools.org/poupoune/ 
+##
+## MOD Description: This MOD allows you to switch to visible/invisible status in the header
+##
+## MOD Version: 1.0.2
+## 
+## Installation Level: Easy
+## Installation Time: 2 minutes
+## Files To Edit: 5
+##	includes/page_header.php
+##	profile.php
+##	language/lang_french/lang_main.php
+##	templates/subSilver/subSilver.cfg
+##	templates/subSilver/overall_header.tpl
+## Included Files: 2
+##	templates/subSilver/images/icon_mini_visible.gif 
+##	templates/subSilver/images/icon_mini_invisible.gif 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes : 
+## 
+############################################################## 
+## MOD History : 
+## 
+##   29-08-2004 - Version 1.0.2
+##	- Corrected the copy action
+##   28-08-2004 - Version 1.0.1
+##	- Forgot an action
+##   22-08-2004 - Version 1.0.0
+##	- First Release
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+############################################################## 
+
+# 
+#-----[ COPY ]---------------------------------------------- 
+# 
+
+copy root/templates/subSilver/images/icon_mini_visible.gif to templates/subSilver/images/icon_mini_visible.gif
+copy root/templates/subSilver/images/icon_mini_invisible.gif to templates/subSilver/images/icon_mini_invisible.gif
+
+# 
+#-----[ OPEN ]---------------------------------------------- 
+# 
+
+includes/page_header.php
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+# 
+
+$s_last_visit = ( $userdata['session_logged_in'] ) ? create_date($board_config['default_dateformat'], $userdata['user_lastvisit'], $board_config['board_timezone']) : '';
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------------- 
+#
+
+$icon_online = ( !$userdata['user_allow_viewonline'] ) ? $images['icon_mini_visible'] : $images['icon_mini_invisible'] ;
+$l_view_online = ( !$userdata['user_allow_viewonline'] ) ? $lang['Be_visible'] : $lang['Be_invisible'] ;
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+# 
+
+  'PRIVMSG_IMG' => $icon_pm,
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------------- 
+#
+
+  'ONLINE_IMG' => $icon_online,
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+# 
+
+  'L_USERGROUPS' => $lang['Usergroups'],
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------------- 
+#
+
+  'L_VIEWONLINE' => $l_view_online,
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+# 
+
+  'U_GROUP_CP' => append_sid('groupcp.'.$phpEx),
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------------- 
+#
+
+  'U_ONLINE_STATUS' => append_sid('profile.'.$phpEx.'?mode=switch_status'),
+
+# 
+#-----[ OPEN ]---------------------------------------------- 
+# 
+
+profile.php
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+# 
+
+  if ( $mode == 'viewprofile' )
+  {
+    include($phpbb_root_path . 'includes/usercp_viewprofile.'.$phpEx);
+    exit;
+  }
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------------- 
+#
+
+  else if ( $mode == 'switch_status' )
+  {
+    $switch_status = "UPDATE ". USERS_TABLE ."
+      SET user_allow_viewonline = ". ( ( $userdata['user_allow_viewonline'] ) ? 0 : 1 ) ."
+      WHERE user_id = ". $userdata['user_id'] ;
+    if( !$db->sql_query($switch_status) )
+    {
+      message_die(GENERAL_ERROR, 'Could not update online status', '', __LINE__, __FILE__, $switch_status);
+    }  
+    redirect(append_sid("index.$phpEx", true));
+  }
+
+# 
+#-----[ OPEN ]---------------------------------------------- 
+# 
+
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+#
+
+?>
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------------- 
+# 
+
+$lang['Be_visible'] = "Be visible";
+$lang['Be_invisible'] = "Be invisible";
+
+# 
+#-----[ OPEN ]---------------------------------------------- 
+# 
+
+templates/subSilver/subSilver.cfg
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+#
+
+$images['icon_newest_reply'] = "$current_template_images/icon_newest_reply.gif";
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------------------- 
+# 
+
+$images['icon_mini_visible'] = "$current_template_images/icon_mini_visible.gif";
+$images['icon_mini_invisible'] = "$current_template_images/icon_mini_invisible.gif";
+
+# 
+#-----[ OPEN ]---------------------------------------------- 
+# 
+
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------- 
+#
+
+            <!-- END switch_user_logged_out -->
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------------- 
+# 
+
+            <!-- BEGIN switch_user_logged_in -->
+            &nbsp;<a href="{U_ONLINE_STATUS}" class="mainmenu"><img src="{ONLINE_IMG}" width="12" height="13" border="0" alt="{L_VIEWONLINE}" hspace="3" />{L_VIEWONLINE}</a></span>&nbsp;
+            <!-- END switch_user_logged_in -->
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

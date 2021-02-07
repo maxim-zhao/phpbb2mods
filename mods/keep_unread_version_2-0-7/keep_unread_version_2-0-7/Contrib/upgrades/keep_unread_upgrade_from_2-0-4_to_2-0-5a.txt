@@ -1,0 +1,380 @@
+##############################################################
+## MOD Title:		keep unread flags (upgrade from 2.0.4 to 2.0.5a)
+##
+## MOD Author: Merlin Sythove < N/A > (N/A) N/A
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Author: Ptirhiik < N/A > (Pierre) http://rpgnet.clanmckeen.com
+##
+## MOD Description:	This upgrades an installation of keep unread flags
+##			from version 2.0.4 to 2.0.5a
+##
+## MOD Version:		2.0.5a
+##
+## Installation Level:	Easy
+## Installation Time:	9 Minutes
+##
+## Files To Edit: 	index.php
+##					search.php
+##					viewtopic.php
+##					includes/functions.php
+##					includes/page_header.php
+##
+## Included Files:	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 	Note: this is an upgrade mod that assumes you already have version 2.0.4 of the
+##			keep unread flags mod installed; do not use this mod unless the version you currently
+##			have installed is version 2.0.4
+##
+##			If you have installed the mod to the mod to change view unread posts link,
+##			you need to make the following additional changes (and note that if you have
+##			put links on pages other than index, viewforum and viewtopic you need
+##			to add a line that reads:
+##			$toggle_unreads_link = true;
+##			right before the line that reads:
+##			include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+##			in each of those other pages)
+##
+##			OPEN
+##			viewforum.php
+##
+##			FIND
+##			// End session management
+##			//
+##
+##			AFTER, ADD
+##			//START MOD Keep_unread_2 * set $toggle_unreads_link so that later on the script knows wheter to run the extra queries to toggle view unread link text depending on whether or not there are unread posts 
+##			$toggle_unreads_link = true;
+##			//END MOD Keep_unread
+##
+##			OPEN
+##			viewtopic.php
+##
+##			FIND
+##			// End session management
+##			//
+##
+##			AFTER, ADD
+##			//START MOD Keep_unread_2 * set $toggle_unreads_link so that later on the script knows wheter to run the extra queries to toggle view unread link text depending on whether or not there are unread posts 
+##			$toggle_unreads_link = true;
+##			//END MOD Keep_unread
+##
+##			OPEN
+##			includes/functions.php
+##
+##			FIND AND IF EXISTS THEN DELETE (will only exist if you had keep unread 2.0.3 installed with mod to the mod)
+##			// check if user is logged in; if he isn't, then don't try to figure out what he is authorized to view
+##			if ( !$userdata['session_logged_in'] )
+##			{
+##				$check_auth = '';
+##			}
+##
+##			OPEN
+##			includes/page_header.php
+##
+##			FIND
+##			if($have_unreads) $template->assign_block_vars('switch_exists_unread_posts', array() );
+##
+##			REPLACE WITH
+##			if($new_unreads) $template->assign_block_vars('switch_exists_unread_posts', array() );
+##
+##############################################################
+## MOD History:
+##
+##   2006-06-09 - Version 2.0.5a
+##		- Changed mod script so that it installs properly on phpbb 2.0.21 (simply deleted the two changes
+##		  in search.php that disabled the usual phpbb behavior of preventing a user from searching for 
+##		  an author with a wildcard and specifying less than a minimum number of characters (e.g. 3); 
+##		  but note that I did not add an upgrade script from 2.0.5 to 2.0.5a because any user who had 2.0.5 
+##		  installed and who successfully upgraded to phpbb 2.0.21 has already addressed these changes);
+##		  for information on how to upgrade to phpbb 2.0.21 if you have this mod installed, 
+##		  see: http://www.phpbb.com/phpBB/viewtopic.php?p=2173137#2173137
+##
+##   2006-06-01 - Version 2.0.5
+##		- Optimized the query in the list_new_unreads function (thanks for the idea, bigwebmaster); and 
+##		  changed the code so that list_new_unreads only gets run a single time when the user is on index.php
+##		  (before this change, index.php ran list_new_unreads a first time and page_header.php ran it a second time)
+##		- Put in code that will allow people to easily add a toggling link ("View your unread posts" versus 
+##		  "You have no unread posts") on pages other than index.php (see author's notes for how to add links)
+##		- Changed viewtopic.php so that the mod will work regardless of whether viewtopic is set
+##		  to display from oldest to newest or newest to oldest
+##
+##   2006-05-20 - Version 2.0.4
+##		- Changes to conform to phpbb2.0.20 changes (only relevant for the mod itself, 
+##		  not the upgrade...but if you already have keep unread installed and
+##		  are trying to upgrade phpbb from 2.0.19 to 2.0.20 and are stuck because of 
+##		  this mod, see http://www.phpbb.com/phpBB/viewtopic.php?p=2082858#2082858 for help)
+##		- Fixed bugs that would trigger an error for banned users and that would show 
+##		  guests that there are unread posts in forums they are not authorized as guests
+##		  to view on boards with mod to the mod to change view unread posts link installed
+##		- Optimized the queries for the mod to the mod to change view unread 
+##		  posts link so that the code runs fewer queries to get to the same result
+##		- Changed basic mod so that the link will now read "View unread posts" if there 
+##		  are any and "You have no unread posts" if there aren't any
+##		- Changed index_body.tpl to ensure that users would see the mark all forums read 
+##		  link even if they are not logged in.
+##		- Changed the author's notes to include links to posts showing how
+##		  to make this mod compatible with the simple subforums mod, 
+##		  the old version of categories hierarchy mod,
+##		  the latest topics on index mod and the post sort order mod
+##		- Changed author's notes to show how to add the number of topics with unread posts 
+##		  to the link, and how to add a link to the page that shows a list of unread posts 
+##		  that lets the user mark all posts read
+##		- Changed the author's note about adding a text link for marking a post unread so that 
+##		  the link appears on the far right in the same font as the 'Back to Top' link that
+##		  appears on the far left
+##
+##   2006-01-01 - Version 2.0.3c
+##		- No changes at all in the code.  Repacked to show so that the 'changed files' version in
+##		  the contrib folder has phpbb2.0.19 version of those file
+##
+##   2005-11-20 - Version 2.0.3b
+##		- Changes requried for validation (no functional changes)
+##
+##   2005-10-18 - Version 2.0.3 or 2.0.3a
+##		- Added author's notes telling people who use topic calendar mod, PCP or other mods that install
+##		  functions_topic_list.php in the 'includes' directory to look at Niksa's
+##		  post describing how to adapt the mod to work with those mods;
+##		- Fixed bug that would improperly treat 'mark all topics read' request when the user was on the board as a guest;
+##		- security change to prevent possible sql injection risk;
+##		- Changed mod to the mod so that it checks which forums a user is authorized to view when it figures out
+##		  when to turn on the big red "View new posts" link
+##
+##   2005-07-21 - Version 2.0.2a
+##		- No change in mod (you don't need to upgrade from 2.0.2 to this)...just a change in a FIND command in the mod script
+##		  to dovetail with a change made from phpbb2.0.16 to 2.0.17
+##
+##   2005-07-12 - Version 2.0.2
+##		- Small changes required for validation; no change in functionality
+##
+##   2005-07-05 - Version 2.0.1
+##		- Small bugfix to correct intermittant error in topic_last_read function when marking topics read
+##
+##   2005-05-27 - Version 2.0.0
+##		- Merlin Sythove updates as specified above.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+index.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// End session management
+//
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+//START MOD Keep_unread_2 * set $toggle_unreads_link so that later on the script knows wheter to run the extra queries to toggle view unread link text depending on whether or not there are unread posts 
+$toggle_unreads_link = true;
+//END MOD Keep_unread
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//MOD Keep_unread_2 * Get new_unreads list and forum_unread flags, save cookies etc.
+	$new_unreads = list_new_unreads($forum_unreads);
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+	//MOD Keep_unread_2 * Get new_unreads list and forum_unread flags, save cookies etc.
+	$new_unreads = list_new_unreads($forum_unreads, $toggle_unreads_link);
+	//END MOD Keep_unread_2
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$list_unreads = implode(',', array_keys(list_new_unreads($dummy)));
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+				$list_unreads = implode(',', array_keys(list_new_unreads($dummy, $toggle_unreads_link)));
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+if ($topic_last_post_id == $postrow[($total_posts-1)]['post_id'])
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+// (note: the definition in the next line makes sure things work right regardless of whether viewtopic is set to display from oldest to newest or newest to oldest) 
+$lastpost = $postrow[0]['post_time'] < $postrow[($total_posts-1)]['post_time'] ? $total_posts-1 : 0;
+if ($topic_last_post_id == $postrow[$lastpost]['post_id']) 
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$board_config['tracking_unreads'][$topic_id] = max($topic_last_read, $postrow[($total_posts-1)]['post_time']);
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+	$board_config['tracking_unreads'][$topic_id] = max($topic_last_read, $postrow[$lastpost]['post_time']);   
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+
+#
+#-----------[ FIND ]-----------
+#
+		$omit_unreads_check = true;
+
+#
+#-----------[ REPLACE WITH ]-----------
+#
+		$toggle_unreads_link = true;
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$sql_unreads = $list_unreads ? " OR t.topic_id IN ($list_unreads)" : '';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+	$new_unreads = array();
+	$forum_unread = array();
+	$sql_and = array();
+	$sql_and[0] = " AND p.post_time > $tracking_time";
+	if ($list_unreads)
+	{
+		$sql_and[1] = " AND t.topic_id IN ($list_unreads) AND (p.post_time <= $tracking_time)";
+	}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$sql = "SELECT t.forum_id, t.topic_id, p.post_time
+			FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+			WHERE p.post_id = t.topic_last_post_id
+			AND (p.post_time > " . $tracking_time . " $sql_unreads)
+			$check_auth_sql
+			AND t.topic_moved_id = 0";
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not query new topic information', '', __LINE__, __FILE__, $sql);
+	}
+	$new_unreads = array();
+	$forum_unread = array();
+	while( $topic_data = $db->sql_fetchrow($result) ) //Keep the valid unread topics
+	{
+		$id = $topic_data['topic_id'];
+		$topic_last_read = topic_last_read($topic_data['forum_id'], $id);
+		if ( $topic_data['post_time'] > $topic_last_read)
+		{
+			$new_unreads[$id] = $topic_last_read;
+			$forum_unread[$topic_data['forum_id']]=true;
+		}
+	}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+	for ( $i = 0; $i < count($sql_and); $i++)
+	{
+		$sql = "SELECT t.forum_id, t.topic_id, p.post_time
+				FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+				WHERE p.post_id = t.topic_last_post_id
+				$sql_and[$i]
+				$check_auth_sql
+				AND t.topic_moved_id = 0";
+
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not query new topic information', '', __LINE__, __FILE__, $sql);
+		}
+
+		while( $topic_data = $db->sql_fetchrow($result) ) //Keep the valid unread topics
+		{
+			$id = $topic_data['topic_id'];
+			$topic_last_read = topic_last_read($topic_data['forum_id'], $id);
+			if ( $topic_data['post_time'] > $topic_last_read)
+			{
+				$new_unreads[$id] = $topic_last_read;
+				$forum_unread[$topic_data['forum_id']]=true;
+			}
+		}
+	}
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//START MOD Keep_unread_2
+if ( !isset($omit_unreads_check) )
+{
+	$have_unreads = (list_new_unreads($forum_unreads, true)) ? true : false;
+}
+//END MOD Keep_unread_2
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+//START MOD Keep_unread_2
+// check to see if we are supposed to toggle unread link from "View your unread posts" to "You have no unread posts" depending on whether 
+// there are unread posts (on large boards people may want to skip that toggle by defining $toggle_unreads_link as false 
+// in index.php to save query time)
+if ($toggle_unreads_link)
+{
+	// only run a new list_new_unreads check if we haven't already done that by the time we get here (if we're coming from index.php this will already have been done in index.php)
+	if ( !isset($new_unreads) )
+	{
+		$new_unreads = (list_new_unreads($forum_unreads, $toggle_unreads_link)) ? true : false;
+	}
+}
+else
+{
+	// if we get here, we are not supposed to toggle the unread link so we'll just set the link to read "View your unread posts" in all cases
+	$new_unreads = true;
+}
+//END MOD Keep_unread_2
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_SEARCH_NEW' => ($have_unreads) ? $lang['View_unread_posts'] : $lang['No_unread_posts'],
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	'L_SEARCH_NEW' => ($new_unreads) ? $lang['View_unread_posts'] : $lang['No_unread_posts'],
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,202 @@
+############################################################## 
+## MOD Titre:	Invisible Switch 
+## MOD Auteur: 	Poupoune < poupoune@phpbb-fr.com > (N/A) http://php-tools.org/poupoune/ 
+##
+## MOD Description: Ce MOD vous permet de modifier votre statut visible/invisible par le header.
+##
+## MOD Version: 1.0.2
+## 
+## Niveau d'installation: Facile
+## Temps d'installation: 2 minutes
+## Fichiers à éditer: 5
+##	includes/page_header.php
+##	profile.php
+##	language/lang_french/lang_main.php
+##	templates/subSilver/subSilver.cfg
+##	templates/subSilver/overall_header.tpl
+## Fichiers à inclure: 2
+##	templates/subSilver/images/icon_mini_visible.gif 
+##	templates/subSilver/images/icon_mini_invisible.gif
+############################################################## 
+## Pour des raisons de sécurité, vous êtes prier de consulter
+## régulièrement http://forums.phpbb-fr.com afin d'obtenir la
+## dernière version de ce MOD.
+## Télécharger ce MOD à partir des sites autres que phpBB-fr.com
+## peut être dangereux pour votre forum phpBB.
+## Par conséquent, phpBB-fr.com n'assurera aucun support pour
+## les MODs absents de leur base de données, consultable sur:
+## http://forums.phpbb-fr.com/ 
+############################################################## 
+## Notes de l'auteur: 
+## 
+############################################################## 
+## Historique du MOD : 
+## 
+##   29-08-2004 - Version 1.0.2
+##	- Correction de l'action Copier
+##   28-08-2004 - Version 1.0.1
+##	- OUbli d'une action
+##   22-08-2004 - Version 1.0.0
+##	- Première version
+## 
+############################################################## 
+## Avant d'ajouter ce MOD à votre forum, il vous est fortement conseillé
+## d'effectuer une sauvegarde des éléments que vous allez modifier.
+############################################################## 
+
+# 
+#-----[ COPIER ]---------------------------------------------- 
+# 
+
+copier root/templates/subSilver/images/icon_mini_visible.gif dans templates/subSilver/images/icon_mini_visible.gif
+copier root/templates/subSilver/images/icon_mini_invisible.gif dans templates/subSilver/images/icon_mini_invisible.gif
+
+# 
+#-----[ OUVRIR ]---------------------------------------------- 
+# 
+
+includes/page_header.php
+
+# 
+#-----[ CHERCHER ]---------------------------------------------- 
+# 
+
+$s_last_visit = ( $userdata['session_logged_in'] ) ? create_date($board_config['default_dateformat'], $userdata['user_lastvisit'], $board_config['board_timezone']) : '';
+
+# 
+#-----[ APRES, AJOUTER ]---------------------------------------------- 
+#
+
+$icon_online = ( !$userdata['user_allow_viewonline'] ) ? $images['icon_mini_visible'] : $images['icon_mini_invisible'] ;
+$l_view_online = ( !$userdata['user_allow_viewonline'] ) ? $lang['Be_visible'] : $lang['Be_invisible'] ;
+
+# 
+#-----[ CHERCHER ]---------------------------------------------- 
+# 
+
+  'PRIVMSG_IMG' => $icon_pm,
+
+# 
+#-----[ APRES, AJOUTER ]---------------------------------------------- 
+#
+
+  'ONLINE_IMG' => $icon_online,
+
+# 
+#-----[ CHERCHER ]---------------------------------------------- 
+# 
+
+  'L_USERGROUPS' => $lang['Usergroups'],
+
+# 
+#-----[ APRES, AJOUTER ]---------------------------------------------- 
+#
+
+  'L_VIEWONLINE' => $l_view_online,
+
+# 
+#-----[ CHERCHER ]---------------------------------------------- 
+# 
+
+  'U_GROUP_CP' => append_sid('groupcp.'.$phpEx),
+
+# 
+#-----[ APRES, AJOUTER ]---------------------------------------------- 
+#
+
+  'U_ONLINE_STATUS' => append_sid('profile.'.$phpEx.'?mode=switch_status'),
+
+# 
+#-----[ OUVRIR ]---------------------------------------------- 
+# 
+
+profile.php
+
+# 
+#-----[ CHERCHER ]---------------------------------------------- 
+# 
+
+  if ( $mode == 'viewprofile' )
+  {
+    include($phpbb_root_path . 'includes/usercp_viewprofile.'.$phpEx);
+    exit;
+  }
+
+# 
+#-----[ APRES, AJOUTER ]---------------------------------------------- 
+#
+
+  else if ( $mode == 'switch_status' )
+  {
+    $switch_status = "UPDATE ". USERS_TABLE ."
+      SET user_allow_viewonline = ". ( ( $userdata['user_allow_viewonline'] ) ? 0 : 1 ) ."
+      WHERE user_id = ". $userdata['user_id'] ;
+    if( !$db->sql_query($switch_status) )
+    {
+      message_die(GENERAL_ERROR, 'Could not update online status', '', __LINE__, __FILE__, $switch_status);
+    }  
+    redirect(append_sid("index.$phpEx", true));
+  }
+
+# 
+#-----[ OUVRIR ]---------------------------------------------- 
+# 
+
+language/lang_french/lang_main.php
+
+# 
+#-----[ CHERCHER ]---------------------------------------------- 
+#
+
+?>
+
+# 
+#-----[ AVANT, AJOUTER ]---------------------------------------------- 
+# 
+
+$lang['Be_visible'] = "Invisible";
+$lang['Be_invisible'] = "Visible";
+
+# 
+#-----[ OUVRIR ]---------------------------------------------- 
+# 
+
+templates/subSilver/subSilver.cfg
+
+# 
+#-----[ CHERCHER ]---------------------------------------------- 
+#
+
+$images['icon_newest_reply'] = "$current_template_images/icon_newest_reply.gif";
+
+# 
+#-----[ APRES, AJOUTER ]---------------------------------------------- 
+# 
+
+$images['icon_mini_visible'] = "$current_template_images/icon_mini_visible.gif";
+$images['icon_mini_invisible'] = "$current_template_images/icon_mini_invisible.gif";
+
+# 
+#-----[ OUVRIR ]---------------------------------------------- 
+# 
+
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ CHERCHER ]---------------------------------------------- 
+#
+
+            <!-- END switch_user_logged_out -->
+
+# 
+#-----[ APRES, AJOUTER ]---------------------------------------------- 
+# 
+
+            <!-- BEGIN switch_user_logged_in -->
+            &nbsp;<a href="{U_ONLINE_STATUS}" class="mainmenu"><img src="{ONLINE_IMG}" width="12" height="13" border="0" alt="{L_VIEWONLINE}" hspace="3" />{L_VIEWONLINE}</a></span>&nbsp;
+            <!-- END switch_user_logged_in -->
+
+# 
+#-----[ SAUVEGARDER/FERMER TOUS LES FICHIERS ]------------------------------------------ 
+# 
+# FdM 

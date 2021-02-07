@@ -1,0 +1,1421 @@
+######################################################## 
+## 外掛名稱: 商務名片外掛
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 這是一個完整的商務名片外掛. 在安裝這個外掛前，你必須事先安裝 "Configure Member Profile Required Fields" 外掛
+## 外掛版本: 1.0.2
+## 
+## 安裝難度: 中等 
+## 安裝時間: 20 分鐘 
+##
+## 需要編輯的檔案: 24
+##	viewtopic.php
+##	memberlist.php
+##	admin/admin_board.php
+##	admin/admin_users.php
+##	admin/admin_profile_field.php
+##	includes/usercp_register.php
+##	includes/usercp_viewprofile.php
+##	includes/functions_validate.php
+##	includes/usercp_avatar.php
+##	includes/constants.php
+##	includes/page_header.php
+##	includes/functions.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/profile_view_body.tpl
+##	templates/subSilver/memberlist_body.tpl
+##	templates/subSilver/viewtopic_body.tpl
+##	templates/subSilver/overall_header.tpl
+##	templates/subSilver/simple_header.tpl
+##	templates/subSilver/subSilver.css
+##	templates/subSilver/subSilver.cfg
+##	templates/subSilver/admin/user_edit_body.tpl
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/admin/admin_profile_field.tpl
+##
+## 附加的檔案: 5
+##	root/lang_chinese_traditional_taiwan/icon_bc.gif
+##	root/viewbc.php
+##	root/member_bclist.php
+##	root/bc_view_body.tpl
+##	root/member_bclist_body.tpl
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	在安裝這個外掛前，你必須事先安裝 "Configure Member Profile Required Fields" 外掛
+##	這個外掛目前可以在以下網站下載到
+##		http://www.phpbb.com/phpBB/viewtopic.php?t=344484
+##		http://sourceforge.net/projects/macphpbbmod
+##
+##	此外掛在 2.0.18 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##
+## 功能列表:
+##	% 系統管理控制台 - 商務名片觀看權限設定
+##	% 系統管理控制台 - 商務名片註冊欄位資料輸入設定
+##	% 系統管理控制台 - 會員商務名片註冊欄位的輸入在 - 會員管理 :: 管理選項
+##	% 首頁 - 指向 會員商務名片列表 的連結 + 觀看權限控制
+##	% 會員列表 - 指向 會員商務名片 的圖示 + 觀看權限控制
+##	% 觀看文章 - 指向 會員商務名片 的圖示 + 觀看權限控制
+##	% 觀看個人資料 - 指向 會員商務名片 的圖示 + 觀看權限控制
+##	% 會員註冊 - 商務名片資料 + 欄位輸入需求
+##	% 編輯個人資料 - 商務名片資料 + 欄位輸入需求
+##	% 會員商務名片列表 - 顯示每一位會員的商務名片資料 + 觀看權限控制
+##	% 商務名片 - 顯示某會員的商務名片資料 + 觀看權限控制
+##
+############################################################## 
+## 版本歷史: 
+##
+##   2005-11-16 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2005-12-11 - 版本 1.0.1
+##      - 更新了 PAGE constants 以避免與我的另一個外掛產生衝突
+##
+##   2006-01-08 - 版本 1.0.2
+##      - 做了小小的修改讓這個外掛可以在 2.0.19 上安裝
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+#
+#-----[ DIY 手動設定說明 ]------------------------------------------
+# 
+以下是為了避免你沒有看到作者留言中的訊息:
+在安裝這個外掛前，你必須事先安裝 "Configure Member Profile Required Fields" 外掛
+這個外掛目前可以在以下網站下載到
+	http://www.phpbb.com/phpBB/viewtopic.php?t=344484
+	http://sourceforge.net/projects/macphpbbmod
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# 請記得修改成你的資料表名稱
+ALTER TABLE phpbb_users ADD user_real_name VARCHAR(50) NOT NULL;
+ALTER TABLE phpbb_users ADD user_designation VARCHAR(100) NOT NULL;
+ALTER TABLE phpbb_users ADD user_country VARCHAR(50) NOT NULL;
+ALTER TABLE phpbb_users ADD user_company VARCHAR(100) NOT NULL;
+ALTER TABLE phpbb_users ADD user_company_address VARCHAR(255) NOT NULL;
+ALTER TABLE phpbb_users ADD user_com_add_bbcode_uid VARCHAR(10) NULL;
+ALTER TABLE phpbb_users ADD user_company_logo VARCHAR(255) NOT NULL;
+INSERT INTO phpbb_config VALUES('business_card_viewing','2');
+INSERT INTO phpbb_profile_config VALUES('real_name','1');
+INSERT INTO phpbb_profile_config VALUES('designation','0');
+INSERT INTO phpbb_profile_config VALUES('country','0');
+INSERT INTO phpbb_profile_config VALUES('company','0');
+INSERT INTO phpbb_profile_config VALUES('company_address','0');
+INSERT INTO phpbb_profile_config VALUES('company_logo','0');
+# 
+#-----[ 複製 ]------------------------------------------ 
+#
+copy root/viewbc.php to viewbc.php
+copy root/bc_view_body.tpl to templates/subSilver/bc_view_body.tpl
+copy root/member_bclist.php to member_bclist.php
+copy root/member_bclist_body.tpl to templates/subSilver/member_bclist_body.tpl
+copy root/lang_chinese_traditional_taiwan/icon_bc.gif to templates/subSilver/images/lang_chinese_traditional_taiwan/icon_bc.gif
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_admin.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+$lang['BC_mod'] = '商務名片外掛組態';
+$lang['BC_viewing'] = '會員商務名片的觀看權限';
+$lang['BC_viewing_guest'] = '公開';
+$lang['BC_viewing_member'] = '會員';
+$lang['BC_viewing_admin'] = '系統管理員';
+$lang['BC_reg'] = '商務名片外掛的註冊選項';
+$lang['BC_information'] = '商務名片資訊';
+$lang['BC_real_name'] = '全名';
+$lang['BC_company'] = '公司名稱';
+$lang['BC_designation'] = '職稱';
+$lang['BC_country'] = '國家';
+$lang['BC_company_address'] = '公司住址';
+$lang['BC_company_logo'] = '公司標誌網址';
+$lang['BC_max_chars'] = '以 255 個字元為限';
+$lang['BC_info_guest'] = '這些資訊將對外公開';
+$lang['BC_info_member'] = '這些資訊將只有註冊會員可以觀看';
+$lang['BC_info_admin'] = '這些資訊將只有系統管理員可以觀看';
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_main.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+$lang['BC_information'] = '商務名片資訊';
+$lang['BC_real_name'] = '全名';
+$lang['BC_company'] = '公司名稱';
+$lang['BC_designation'] = '職稱';
+$lang['BC_country'] = '國家';
+$lang['BC_company_address'] = '公司住址';
+$lang['BC_company_logo'] = '公司標誌';
+$lang['BC_max_chars'] = '以 255 個字元為限';
+$lang['BC_info_guest'] = '這些資訊將對外公開';
+$lang['BC_info_member'] = '這些資訊將只有註冊會員可以觀看';
+$lang['BC_info_admin'] = '這些資訊將只有系統管理員可以觀看';
+$lang['Business_card'] = '商務名片';
+$lang['Viewing_bc'] = '觀看商務名片';
+$lang['Viewing_user_bc'] = '觀看商務名片 :: %s';
+$lang['Member_bclist'] = '會員商務名片列表';
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+admin/admin_users.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$interests = ( !empty($HTTP_POST_VARS['interests']) ) ? trim(strip_tags( $HTTP_POST_VARS['interests'] ) ) : '';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		$real_name = ( !empty($HTTP_POST_VARS['real_name']) ) ? trim(strip_tags( $HTTP_POST_VARS['real_name'] ) ) : '';
+		$company = ( !empty($HTTP_POST_VARS['company']) ) ? trim(strip_tags( $HTTP_POST_VARS['company'] ) ) : '';
+		$designation = ( !empty($HTTP_POST_VARS['designation']) ) ? trim(strip_tags( $HTTP_POST_VARS['designation'] ) ) : '';
+		$country = ( !empty($HTTP_POST_VARS['country']) ) ? trim(strip_tags( $HTTP_POST_VARS['country'] ) ) : '';
+		$company_address = ( !empty($HTTP_POST_VARS['company_address']) ) ? trim(strip_tags( $HTTP_POST_VARS['company_address'] ) ) : '';
+		$company_logo = ( !empty($HTTP_POST_VARS['company_logo']) ) ? trim(strip_tags( $HTTP_POST_VARS['company_logo'] ) ) : '';
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		validate_optional_fields($icq,
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+$interests,
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ $real_name, $company, $designation, $country, $company_address, $company_logo,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			$interests = htmlspecialchars(stripslashes($interests));
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			$real_name = htmlspecialchars(stripslashes($real_name));
+			$company = htmlspecialchars(stripslashes($company));
+			$designation = htmlspecialchars(stripslashes($designation));
+			$country = htmlspecialchars(stripslashes($country));
+			$company_address = htmlspecialchars(stripslashes($company_address));
+			$company_logo = htmlspecialchars(stripslashes($company_logo));
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				$error_msg .=  ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Signature_too_long'];
+			}
+		}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		if ($company_address != '')
+		{
+			$com_add_bbcode_uid = ( $allowbbcode ) ? make_bbcode_uid() : '';
+		}
+		$company_address = prepare_message($company_address, $allowhtml, $allowbbcode, $allowsmilies, $com_add_bbcode_uid);
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				SET " . $username_sql . $passwd_sql . "user_email =
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+user_interests = '" . str_replace("\'", "''", $interests) . "',
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ user_real_name = '" . str_replace("\'", "''", $real_name) . "', user_company = '" . str_replace("\'", "''", $company) . "', user_designation = '" . str_replace("\'", "''", $designation) . "', user_country = '" . str_replace("\'", "''", $country) . "', user_company_address = '" . str_replace("\'", "''", $company_address) . "', user_com_add_bbcode_uid = '" . str_replace("\'", "''", $com_add_bbcode_uid) . "', user_company_logo = '" . str_replace("\'", "''", $company_logo) . "',
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			$interests = htmlspecialchars(stripslashes($interests));
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			$real_name = htmlspecialchars(stripslashes($real_name));
+			$company = htmlspecialchars(stripslashes($company));
+			$designation = htmlspecialchars(stripslashes($designation));
+			$country = htmlspecialchars(stripslashes($country));
+			$company_address = htmlspecialchars(stripslashes($company_address));
+			$company_logo = htmlspecialchars(stripslashes($company_logo));
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$interests = htmlspecialchars($this_userdata['user_interests']);
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		$real_name = htmlspecialchars($this_userdata['user_real_name']);
+		$company = htmlspecialchars($this_userdata['user_company']);
+		$designation = htmlspecialchars($this_userdata['user_designation']);
+		$country = htmlspecialchars($this_userdata['user_country']);
+		$company_address = ($this_userdata['user_com_add_bbcode_uid'] != '') ? preg_replace('#:' . $this_userdata['user_com_add_bbcode_uid'] . '#si', '', $this_userdata['user_company_address']) : $this_userdata['user_company_address'];
+		$company_address = preg_replace($html_entities_match, $html_entities_replace, $company_address);
+		$company_logo = htmlspecialchars($this_userdata['user_company_logo']);
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="interests" value="' . str_replace("\"", "&quot;", $interests) . '" />';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="real_name" value="' . str_replace("\"", "&quot;", $real_name) . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="company" value="' . str_replace("\"", "&quot;", $company) . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="designation" value="' . str_replace("\"", "&quot;", $designation) . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="country" value="' . str_replace("\"", "&quot;", $country) . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="company_address" value="' . str_replace("\"", "&quot;", $company_address) . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="company_logo" value="' . str_replace("\"", "&quot;", $company_logo) . '" />';
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$template->assign_vars(array(
+			'USERNAME' => $username,
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+		if ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST )
+		{
+			$bc_info_notice = $lang['BC_info_guest'];
+		}
+		elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER )
+		{
+			$bc_info_notice = $lang['BC_info_member'];
+		}
+		elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN )
+		{
+			$bc_info_notice = $lang['BC_info_admin'];
+		}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			'INTERESTS' => $interests,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			'BC_REAL_NAME' => $real_name,
+			'BC_COMPANY' => $company,
+			'BC_DESIGNATION' => $designation,
+			'BC_COUNTRY' => $country,
+			'BC_COMPANY_ADDRESS' => $company_address,
+			'BC_COMPANY_LOGO' => $company_logo,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			'L_NO' => $lang['No'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+			'L_BC_INFORMATION' => $lang['BC_information'],
+			'L_BC_REAL_NAME' => ($required_field_config['real_name']) ? $lang['BC_real_name'] . ': *' : $lang['BC_real_name'] . ':',
+			'L_BC_COMPANY' => ($required_field_config['company']) ? $lang['BC_company'] . ': *' : $lang['BC_company'] . ':',
+			'L_BC_DESIGNATION' => ($required_field_config['designation']) ? $lang['BC_designation'] . ': *' : $lang['BC_designation'] . ':',
+			'L_BC_COUNTRY' => ($required_field_config['country']) ? $lang['BC_country'] . ': *' : $lang['BC_country'] . ':',
+			'L_BC_COMPANY_ADDRESS' => ($required_field_config['company_address']) ? $lang['BC_company_address'] . ': *' : $lang['BC_company_address'] . ':',
+			'L_BC_COMPANY_LOGO' => ($required_field_config['company_logo']) ? $lang['BC_company_logo'] . ': *' : $lang['BC_company_logo'] . ':',
+			'L_BC_MAX_CHAR' => $lang['BC_max_chars'],
+			'L_BC_INFO_NOTICE' => $bc_info_notice,
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+admin/admin_profile_field.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$user_interests_yes = ( $new['interests'] ) ? "checked=\"checked\"" : "";
+$user_interests_no = ( !$new['interests'] ) ? "checked=\"checked\"" : "";
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+$user_real_name_yes = ( $new['real_name'] ) ? "checked=\"checked\"" : "";
+$user_real_name_no = ( !$new['real_name'] ) ? "checked=\"checked\"" : "";
+
+$user_company_yes = ( $new['company'] ) ? "checked=\"checked\"" : "";
+$user_company_no = ( !$new['company'] ) ? "checked=\"checked\"" : "";
+
+$user_designation_yes = ( $new['designation'] ) ? "checked=\"checked\"" : "";
+$user_designation_no = ( !$new['designation'] ) ? "checked=\"checked\"" : "";
+
+$user_country_yes = ( $new['country'] ) ? "checked=\"checked\"" : "";
+$user_country_no = ( !$new['country'] ) ? "checked=\"checked\"" : "";
+
+$user_company_address_yes = ( $new['company_address'] ) ? "checked=\"checked\"" : "";
+$user_company_address_no = ( !$new['company_address'] ) ? "checked=\"checked\"" : "";
+
+$user_company_logo_yes = ( $new['company_logo'] ) ? "checked=\"checked\"" : "";
+$user_company_logo_no = ( !$new['company_logo'] ) ? "checked=\"checked\"" : "";
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	"L_USER_INTEREST" => $lang['Interests'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	'L_BC_INFORMATION' => $lang['BC_information'],
+	'L_BC_REAL_NAME' => $lang['BC_real_name'],
+	'L_BC_COMPANY' => $lang['BC_company'],
+	'L_BC_DESIGNATION' => $lang['BC_designation'],
+	'L_BC_COUNTRY' => $lang['BC_country'],
+	'L_BC_COMPANY_ADDRESS' => $lang['BC_company_address'],
+	'L_BC_COMPANY_LOGO' => $lang['BC_company_logo'],
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	"ICQ_YES" => $user_icq_yes,
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	'BC_REAL_NAME_YES' => $user_real_name_yes,
+	'BC_REAL_NAME_NO' => $user_real_name_no,
+	'BC_COMPANY_YES' => $user_company_yes,
+	'BC_COMPANY_NO' => $user_company_no,
+	'BC_DESIGNATION_YES' => $user_designation_yes,
+	'BC_DESIGNATION_NO' => $user_designation_no,
+	'BC_COUNTRY_YES' => $user_country_yes,
+	'BC_COUNTRY_NO' => $user_country_no,
+	'BC_COMPANY_ADDRESS_YES' => $user_company_address_yes,
+	'BC_COMPANY_ADDRESS_NO' => $user_company_address_no,
+	'BC_COMPANY_LOGO_YES' => $user_company_logo_yes,
+	'BC_COMPANY_LOGO_NO' => $user_company_logo_no,
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+admin/admin_board.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$template->set_filenames(array(
+	"body" => "admin/board_config_body.tpl")
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+$business_card_viewing_guest = ( $new['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST ) ? "checked=\"checked\"" : "";
+$business_card_viewing_member = ( $new['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER ) ? "checked=\"checked\"" : "";
+$business_card_viewing_admin = ( $new['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN ) ? "checked=\"checked\"" : "";
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	"L_SUBMIT" => $lang['Submit'], 
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	"L_BUSINESS_CARD_MOD" => $lang['BC_mod'], 
+	"L_BUSINESS_CARD_VIEWING" => $lang['BC_viewing'], 
+	"L_BUSINESS_CARD_VIEWING_GUEST" => $lang['BC_viewing_guest'], 
+	"L_BUSINESS_CARD_VIEWING_MEMBER" => $lang['BC_viewing_member'], 
+	"L_BUSINESS_CARD_VIEWING_ADMIN" => $lang['BC_viewing_admin'], 
+	"L_BUSINESS_CARD_REG" => $lang['BC_reg'], 
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	"COPPA_MAIL" => $new['coppa_mail'],
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	"BC_DISPLAY_GUEST" => BUSINESS_CARD_DISPLAY_GUEST, 
+	"BC_DISPLAY_GUEST_CHECKED" => $business_card_viewing_guest,
+	"BC_DISPLAY_MEMBER" => BUSINESS_CARD_DISPLAY_MEMBER, 
+	"BC_DISPLAY_MEMBER_CHECKED" => $business_card_viewing_member,
+	"BC_DISPLAY_ADMIN" => BUSINESS_CARD_DISPLAY_ADMIN, 
+	"BC_DISPLAY_ADMIN_CHECKED" => $business_card_viewing_admin,
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/usercp_register.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$strip_var_list = array('
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+'interests' => 'interests'
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+, 'real_name' => 'real_name', 'company' => 'company', 'designation' => 'designation', 'country' => 'country', 'company_logo' => 'company_logo'
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$trim_var_list = array('cur_password' => 'cur_password',
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+, 'signature' => 'signature'
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+, 'company_address' => 'company_address'
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$signature = str_replace('<br />', "\n", $signature);
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	$company_address = str_replace('<br />', "\n", $company_address);
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	validate_optional_fields($icq,
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+$interests,
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ $real_name, $company, $designation, $country, $company_address, $company_logo,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$interests = stripslashes($interests);
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+		$real_name = stripslashes($real_name);
+		$company = stripslashes($company);
+		$designation = stripslashes($designation);
+		$country = stripslashes($country);
+		$company_address = htmlspecialchars(stripslashes($company_address));
+		$company_logo = stripslashes($company_logo);
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	if ($board_config['enable_confirm'] && $mode == 'register')
+	{
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+	if ( $required_field_config['real_name'] && empty($real_name))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['company'] && empty($company))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['designation'] && empty($designation))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['country'] && empty($country))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['company_address'] && empty($company_address))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['company_logo'] && empty($company_logo))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		rawurlencode($website);
+	}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	if ( $company_address != '' )
+	{
+		if ( !isset($com_add_bbcode_uid) || $com_add_bbcode_uid == '' )
+		{
+			$com_add_bbcode_uid = ( $allowbbcode ) ? make_bbcode_uid() : '';
+		}
+		$company_address = prepare_message($company_address, $allowhtml, $allowbbcode, $allowsmilies, $com_add_bbcode_uid);
+	}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				SET " . $username_sql . $passwd_sql . "user_email =
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+user_interests = '" . str_replace("\'", "''", $interests) . "',
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ user_real_name = '" . str_replace("\'", "''", $real_name) . "', user_company = '" . str_replace("\'", "''", $company) . "', user_designation = '" . str_replace("\'", "''", $designation) . "', user_country = '" . str_replace("\'", "''", $country) . "', user_company_address = '" . str_replace("\'", "''", $company_address) . "', user_company_logo = '" . str_replace("\'", "''", $company_logo) . "', user_com_add_bbcode_uid = '$com_add_bbcode_uid',
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			$sql = "INSERT INTO " . USERS_TABLE . "	(user_id,
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+user_interests,
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ user_real_name, user_company, user_designation, user_country, user_company_address, user_company_logo, user_com_add_bbcode_uid,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				VALUES ($user_id, '" . str_replace("\'", "''", $username) 
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+'" . str_replace("\'", "''", $interests) . "',
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ '" . str_replace("\'", "''", $real_name) . "', '" . str_replace("\'", "''", $company) . "', '" . str_replace("\'", "''", $designation) . "', '" . str_replace("\'", "''", $country) . "', '" . str_replace("\'", "''", $company_address) . "', '" . str_replace("\'", "''", $company_logo) . "', '$com_add_bbcode_uid',
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+					'SITENAME' => $board_config['sitename']));
+			}
+			else
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+					'BC_REAL_NAME' => $real_name,
+					'BC_COMPANY' => $company,
+					'BC_DESIGNATION' => $designation,
+					'BC_COUNTRY' => $country,
+					'BC_COMPANY_ADDRESS' => $company_address,
+					'BC_COMPANY_LOGO' => $company_logo,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$interests = stripslashes($interests);
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	$real_name = stripslashes($real_name);
+	$company = stripslashes($company);
+	$designation = stripslashes($designation);
+	$country = stripslashes($country);
+	$company_address = stripslashes($company_address);
+	$company_address = ($com_add_bbcode_uid != '') ? preg_replace("/:(([a-z0-9]+:)?)$com_add_bbcode_uid(=|\])/si", '\\3', $company_address) : $company_address;
+	$company_logo = stripslashes($company_logo);
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$interests = $userdata['user_interests'];
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	$real_name = $userdata['user_real_name'];
+	$company = $userdata['user_company'];
+	$designation = $userdata['user_designation'];
+	$country = $userdata['user_country'];
+	$com_add_bbcode_uid = $userdata['user_com_add_bbcode_uid'];
+	$company_address = ($com_add_bbcode_uid != '') ? preg_replace("/:(([a-z0-9]+:)?)$com_add_bbcode_uid(=|\])/si", '\\3', $userdata['user_company_address']) : $userdata['user_company_address'];
+	$company_logo = $userdata['user_company_logo'];
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	display_avatar_gallery($mode,
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+$interests,
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ $real_name, $company, $designation, $country, $company_address, $company_logo,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$template->assign_vars(array(
+		'USERNAME' => $username,
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+	if ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST )
+	{
+		$bc_info_notice = $lang['BC_info_guest'];
+	}
+	elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER )
+	{
+		$bc_info_notice = $lang['BC_info_member'];
+	}
+	elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN )
+	{
+		$bc_info_notice = $lang['BC_info_admin'];
+	}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		'INTERESTS' => $interests,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+		'BC_REAL_NAME' => $real_name,
+		'BC_COMPANY' => $company,
+		'BC_DESIGNATION' => $designation,
+		'BC_COUNTRY' => $country,
+		'BC_COMPANY_ADDRESS' => str_replace('<br />', "\n", $company_address),
+		'BC_COMPANY_LOGO' => $company_logo,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		'L_NO' => $lang['No'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+		'L_BC_INFORMATION' => $lang['BC_information'],
+		'L_BC_REAL_NAME' => ($required_field_config['real_name']) ? $lang['BC_real_name'] . ': *' : $lang['BC_real_name'] . ':',
+		'L_BC_COMPANY' => ($required_field_config['company']) ? $lang['BC_company'] . ': *' : $lang['BC_company'] . ':',
+		'L_BC_DESIGNATION' => ($required_field_config['designation']) ? $lang['BC_designation'] . ': *' : $lang['BC_designation'] . ':',
+		'L_BC_COUNTRY' => ($required_field_config['country']) ? $lang['BC_country'] . ': *' : $lang['BC_country'] . ':',
+		'L_BC_COMPANY_ADDRESS' => ($required_field_config['company_address']) ? $lang['BC_company_address'] . ': *' : $lang['BC_company_address'] . ':',
+		'L_BC_COMPANY_LOGO' => ($required_field_config['company_logo']) ? $lang['BC_company_logo'] . ': *' : $lang['BC_company_logo'] . ':',
+		'L_BC_MAX_CHAR' => $lang['BC_max_chars'],
+		'L_BC_INFO_NOTICE' => $bc_info_notice,
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/usercp_viewprofile.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$profiledata['user_website'] . '</a>' : '&nbsp;';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+$bc_filled = 0;
+if ( !empty($profiledata['user_real_name']) or !empty($profiledata['user_company']) or !empty($profiledata['user_designation']) or !empty($profiledata['user_country']) or !empty($profiledata['user_company_address']) or !empty($profiledata['user_company_logo']) )
+{
+	$bc_filled = 1;
+}
+
+$temp_url = append_sid("viewbc.$phpEx?" . POST_USERS_URL .'=' . $profiledata['user_id']);
+$bc_img = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav"><img src="' . $images['icon_bc'] . '" alt="' . $lang['Business_card'] . '" title="' . $lang['Business_card'] . '" border="0" /></a>' : '';
+$bc = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav">' . $lang['Business_card'] . '</a>' : '';
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'WWW_IMG' => $www_img,
+	'WWW' => $www,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	'L_BC_CARD' => $lang['Business_card'],
+	'BC_IMG' => $bc_img,
+	'BC' => $bc,
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/functions_validate.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+function validate_optional_fields(&$icq,
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+&$interests,
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ &$real_name, &$company, &$designation, &$country, &$company_address, &$company_logo,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$check_var_length = array('aim'
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+'interests',
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ 'real_name', 'company', 'designation', 'country', 'company_address', 'company_logo',
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	return;
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	// Business Card MOD - Check compant logo
+	if ( !preg_match('#^(http)|(ftp):\/\/#i', $company_logo) )
+	{
+		$company_logo = 'http://' . $company_logo;
+	}
+
+	if ( !preg_match("#^((ht|f)tp://)([^ \?&=\#\"\n\r\t<]*?(\.(jpg|jpeg|gif|png))$)#is", $company_logo) )
+	{
+		$company_logo = '';
+	}
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/usercp_avatar.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+function display_avatar_gallery($mode, 
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+&$interests,
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ &$real_name, &$company, &$designation, &$country, &$company_address, &$company_logo,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$params = array('coppa', 'user_id',
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+'interests',
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ 'real_name', 'company', 'designation', 'country', 'company_address', 'company_logo',
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/constants.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+define('PAGE_TOPIC_OFFSET', 5000);
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+define('PAGE_VIEWBC', -2117);		// Business Card MOD
+define('PAGE_VIEWMEMBERBC', -2118);	// Business Card MOD
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+// Table names
+define('CONFIRM_TABLE', $table_prefix.'confirm');
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+define('BUSINESS_CARD_DISPLAY_GUEST', 0);
+define('BUSINESS_CARD_DISPLAY_MEMBER', 1);
+define('BUSINESS_CARD_DISPLAY_ADMIN', 2);
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/page_header.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			$nav_links_html .= sprintf($nav_link_proto, $nav_item, $nested_array['url'], $nested_array['title']);
+		}
+	}
+}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+if ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST )
+{
+	$template->assign_block_vars('switch_view_business_card', array());
+}
+elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER )
+{
+	if ( $userdata['user_level'] != ANONYMOUS )
+	{
+		$template->assign_block_vars('switch_view_business_card', array());
+	}
+}
+elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN )
+{
+	if ( $userdata['user_level'] == ADMIN )
+	{
+		$template->assign_block_vars('switch_view_business_card', array());
+	}
+}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'L_MEMBERLIST' => $lang['Memberlist'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	'L_MEMBER_BCLIST' => $lang['Member_bclist'],
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'U_MEMBERLIST' => append_sid('memberlist.'.$phpEx),
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	'U_MEMBER_BCLIST' => append_sid('member_bclist.'.$phpEx),
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/functions.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+function bc_prepare($input, $bbcode_uid, $user_allowhtml, $user_allowsmile)
+{
+	global $board_config;
+
+	if ( !$board_config['allow_html'] || !$user_allowhtml)
+	{
+		if ( $input != '' )
+		{
+			$input = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $input);
+		}
+	}
+
+	if ($input != '' && $bbcode_uid != '')
+	{
+		$input = ($board_config['allow_bbcode']) ? bbencode_second_pass($input, $bbcode_uid) : preg_replace("/\:$bbcode_uid/si", '', $input);
+	}
+
+	if ( $input != '' )
+	{
+		$input = make_clickable($input);
+	}
+
+	if ( $board_config['allow_smilies'] )
+	{
+		if ( $user_allowsmile && $input != '' )
+		{
+			$input = smilies_pass($input);
+		}
+	}
+
+	if ( $input != '' )
+	{
+		$input = str_replace("\n", "\n<br />\n", $input);
+	}
+	
+	return $input;
+}
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+viewtopic.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$sql = "SELECT u.username, u.user_id, u.user_posts,
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+u.user_msnm,
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ u.user_real_name, u.user_company, u.user_designation, u.user_country, u.user_company_address, u.user_company_logo,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$www = ( $postrow[$i]['user_website'] ) ? '<a href="' . $postrow[$i]['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+
+		$bc_filled = 0;
+		if ( !empty($postrow[$i]['user_real_name']) or !empty($postrow[$i]['user_company']) or !empty($postrow[$i]['user_designation']) or !empty($postrow[$i]['user_country']) or !empty($postrow[$i]['user_company_address']) or !empty($postrow[$i]['user_company_logo']) )
+		{
+			$bc_filled = 1;
+		}
+
+		$temp_url = append_sid("viewbc.$phpEx?" . POST_USERS_URL . "=$poster_id");
+		$bc_img = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav"><img src="' . $images['icon_bc'] . '" alt="' . $lang['Business_card'] . '" title="' . $lang['Business_card'] . '" border="0" /></a>' : '';
+		$bc = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav">' . $lang['Business_card'] . '</a>' : '';
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$www_img = '';
+		$www = '';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+		$bc_img = '';
+		$bc = '';
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$template->assign_block_vars('postrow', array(
+		'ROW_COLOR' => '#' . $row_color,
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+	if ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST )
+	{
+		$bc_img = $bc_img;
+		$bc = $bc;
+	}
+	elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER )
+	{
+		$bc_img = ( $userdata['user_level'] != ANONYMOUS ) ? $bc_img : '&nbsp;';
+		$bc = ( $userdata['user_level'] != ANONYMOUS ) ? $bc : '&nbsp;';
+	}
+	elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN )
+	{
+		$bc_img = ( $userdata['user_level'] == ADMIN ) ? $bc_img : '&nbsp;';
+		$bc = ( $userdata['user_level'] == ADMIN ) ? $bc : '&nbsp;';
+	}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		'WWW_IMG' => $www_img,
+		'WWW' => $www,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+		'BC_IMG' => $bc_img,
+		'BC' => $bc,
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+memberlist.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'L_EMAIL' => $lang['Email'],
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	'L_BC_CARD' => $lang['Business_card'],
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$sql = "SELECT username, user_id,
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+, user_allowavatar
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+, user_real_name, user_company, user_designation, user_country, user_company_address, user_company_logo
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$www = ( $row['user_website'] ) ? '<a href="' . $row['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		$bc_filled = 0;
+		if ( !empty($row['user_real_name']) or !empty($row['user_company']) or !empty($row['user_designation']) or !empty($row['user_country']) or !empty($row['user_company_address']) or !empty($row['user_company_logo']) )
+		{
+			$bc_filled = 1;
+		}
+
+		$temp_url = append_sid("viewbc.$phpEx?" . POST_USERS_URL . "=$user_id");
+		$bc_img = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav"><img src="' . $images['icon_bc'] . '" alt="' . $lang['Business_card'] . '" title="' . $lang['Business_card'] . '" border="0" /></a>' : '';
+		$bc = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav">' . $lang['Business_card'] . '</a>' : '';
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			'WWW_IMG' => $www_img,
+			'WWW' => $www,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+			'BC_IMG' => $bc_img,
+			'BC' => $bc,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			'U_VIEWPROFILE' => append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$user_id"))
+		);
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		if ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST )
+		{
+			$template->assign_block_vars('memberrow.switch_view_business_card', array());
+		}
+		elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER )
+		{
+			if ( $userdata['user_level'] != ANONYMOUS )
+			{
+				$template->assign_block_vars('memberrow.switch_view_business_card', array());
+			}
+		}
+		elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN )
+		{
+			if ( $userdata['user_level'] == ADMIN )
+			{
+				$template->assign_block_vars('memberrow.switch_view_business_card', array());
+			}
+		}
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_PROFILE_INFO}</th>
+	</tr>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_BC_INFORMATION}</th>
+	</tr>
+	<tr> 
+		<td class="row2" colspan="2"><span class="gensmall">{L_ITEMS_REQUIRED}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row2" colspan="2"><span class="gensmall">{L_BC_INFO_NOTICE}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_REAL_NAME}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="real_name" size="40" maxlength="50" value="{BC_REAL_NAME}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_DESIGNATION}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="designation" size="40" maxlength="100" value="{BC_DESIGNATION}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="company" size="40" maxlength="50" value="{BC_COMPANY}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY_ADDRESS}</span><br /><span class="gensmall">{L_BC_MAX_CHAR}<br /><br />{HTML_STATUS}<br />{BBCODE_STATUS}<br />{SMILIES_STATUS}</span></td>
+	  <td class="row2"> 
+		<textarea name="company_address" style="width: 300px" rows="6" cols="30" class="post">{BC_COMPANY_ADDRESS}</textarea>
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY_LOGO}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="company_logo" size="40" maxlength="150" value="{BC_COMPANY_LOGO}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COUNTRY}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="country" size="40" maxlength="50" value="{BC_COUNTRY}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/profile_view_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		<tr> 
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_EMAIL_ADDRESS}:</span></td>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+	<!-- BEGIN switch_view_business_card -->
+		<tr> 
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_BC_CARD}:</span></td>
+		  <td class="row1" valign="middle" width="100%"><b><span class="gen">{BC_IMG}</span></b></td>
+		</tr>
+	<!-- END switch_view_business_card -->
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/viewtopic_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				<td valign="middle" nowrap="nowrap">{postrow.PROFILE_IMG} {postrow.PM_IMG} 
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+{postrow.WWW_IMG}
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+ {postrow.BC_IMG}
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/memberlist_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	  <th class="thTop" nowrap="nowrap">{L_USERNAME}</th>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	  <!-- BEGIN switch_view_business_card -->
+	  <th class="thTop" nowrap="nowrap">{L_BC_CARD}</th>
+	  <!-- END switch_view_business_card -->
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	  <td class="{memberrow.ROW_CLASS}" align="center"><span class="gen"><a href="{memberrow.U_VIEWPROFILE}" class="gen">{memberrow.USERNAME}</a></span></td>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	  <!-- BEGIN switch_view_business_card -->
+	  <td class="{memberrow.ROW_CLASS}" align="center" valign="middle">&nbsp;{memberrow.BC_IMG}&nbsp;</td>
+	  <!-- END switch_view_business_card -->
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# Read "The INCREMENT Action" at http://www.phpbb.com/kb/article.php?article_id=39
+	  <td class="catBottom" colspan="{%:1}" height="28">&nbsp;</td>
+#
+#-----[ INCREMENT ]-------------------------------------
+# Read "The INCREMENT Action" at http://www.phpbb.com/kb/article.php?article_id=39
+%:1 +1
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.cfg
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$images['icon_www'] = "$current_template_images/{LANG}/icon_www.gif";
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+$images['icon_bc'] = "$current_template_images/{LANG}/icon_bc.gif";
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/admin/user_edit_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	<tr> 
+	  <th class="thSides" colspan="2">{L_PROFILE_INFO}</th>
+	</tr>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_BC_INFORMATION}</th>
+	</tr>
+	<tr> 
+		<td class="row2" colspan="2"><span class="gensmall">{L_ITEMS_REQUIRED}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row2" colspan="2"><span class="gensmall">{L_BC_INFO_NOTICE}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_REAL_NAME}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="real_name" size="40" maxlength="50" value="{BC_REAL_NAME}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_DESIGNATION}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="designation" size="40" maxlength="100" value="{BC_DESIGNATION}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="company" size="40" maxlength="150" value="{BC_COMPANY}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY_ADDRESS}</span><br /><span class="gensmall">{L_BC_MAX_CHAR}<br /><br />{HTML_STATUS}<br />{BBCODE_STATUS}<br />{SMILIES_STATUS}</span></td>
+	  <td class="row2"> 
+		<textarea name="company_address" style="width: 300px" rows="6" cols="30" class="post">{BC_COMPANY_ADDRESS}</textarea>
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY_LOGO}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="company_logo" size="40" maxlength="150" value="{BC_COMPANY_LOGO}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COUNTRY}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="country" size="40" maxlength="50" value="{BC_COUNTRY}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="avatar_gallery_path" value="{AVATAR_GALLERY_PATH}" /></td>
+	</tr>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_BUSINESS_CARD_MOD}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_BUSINESS_CARD_VIEWING}</td>
+		<td class="row2"><input type="radio" name="business_card_viewing" value="{BC_DISPLAY_GUEST}" {BC_DISPLAY_GUEST_CHECKED} />{L_BUSINESS_CARD_VIEWING_GUEST}&nbsp; &nbsp;<input type="radio" name="business_card_viewing" value="{BC_DISPLAY_MEMBER}" {BC_DISPLAY_MEMBER_CHECKED} />{L_BUSINESS_CARD_VIEWING_MEMBER}&nbsp; &nbsp;<input type="radio" name="business_card_viewing" value="{BC_DISPLAY_ADMIN}" {BC_DISPLAY_ADMIN_CHECKED} />{L_BUSINESS_CARD_VIEWING_ADMIN}</td>
+	</tr>
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/admin/admin_profile_field.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	<tr>
+		<td class="catBottom" colspan="2" align="center">{S_HIDDEN_FIELDS}<input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" />
+		</td>
+	</tr>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_BC_INFORMATION}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_REAL_NAME}</td>
+		<td class="row2"><input type="radio" name="real_name" value="1" {BC_REAL_NAME_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="real_name" value="0" {BC_REAL_NAME_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_COMPANY}</td>
+		<td class="row2"><input type="radio" name="company" value="1" {BC_COMPANY_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="company" value="0" {BC_COMPANY_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_COMPANY_ADDRESS}</td>
+		<td class="row2"><input type="radio" name="company_address" value="1" {BC_COMPANY_ADDRESS_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="company_address" value="0" {BC_COMPANY_ADDRESS_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_COMPANY_LOGO}</td>
+		<td class="row2"><input type="radio" name="company_logo" value="1" {BC_COMPANY_LOGO_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="company_logo" value="0" {BC_COMPANY_LOGO_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_DESIGNATION}</td>
+		<td class="row2"><input type="radio" name="designation" value="1" {BC_DESIGNATION_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="designation" value="0" {BC_DESIGNATION_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_COUNTRY}</td>
+		<td class="row2"><input type="radio" name="country" value="1" {BC_COUNTRY_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="country" value="0" {BC_COUNTRY_NO} /> {L_NO}</td>
+	</tr>
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+.helpline { background-color: {T_TR_COLOR2}; border-style: none; }
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+/* Business Card MOD */
+.bc_dashed { border-bottom-color: #999999; border-bottom-style:dashed; border-bottom-width:thin; }
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+						<td align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_FAQ}" 
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+<td
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ height="25"
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				</table></td>
+			</tr>
+		</table>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+					<!-- BEGIN switch_view_business_card -->
+					<tr>
+						<td height="25" align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_MEMBER_BCLIST}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_members.gif" width="12" height="13" border="0" alt="{L_MEMBER_BCLIST}" hspace="3" />{L_MEMBER_BCLIST}</a>&nbsp;</span></td>
+					</tr>
+					<!-- END switch_view_business_card -->
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/simple_header.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+.helpline { background-color: {T_TR_COLOR2}; border-style: none; }
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+/* Business Card MOD */
+.bc_dashed { border-bottom-color: #999999; border-bottom-style:dashed; border-bottom-width:thin; }
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.css
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+.helpline { background-color: #DEE3E7; border-style: none; }
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+/* Business Card MOD */
+.bc_dashed { border-bottom-color: #999999; border-bottom-style:dashed; border-bottom-width:thin; }
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+#
+# 
+# 外掛修正結束

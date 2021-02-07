@@ -1,0 +1,244 @@
+##############################################################
+## MOD Title: Custom Title for Quote Boxes BBcode
+## MOD Author: carlton < ale.camboni@tiscali.it > (Alessandro Camboni) http://fantacaghineri.altervista.org/phpBB2/myMOD.php?p=1
+## MOD Description: BBcode "title" allows to put custom text as title for quote-like boxes
+## MOD Version: 1.3.3
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+## Files To Edit: 
+##		  includes/bbcode.php 
+##		  templates/subSilver/bbcode.tpl
+##		  templates/subSilver/posting_body.tpl
+##		  language/lang_english/lang_main.php
+## 
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+##
+##	- IMPORTANT NOTE: you have to install Multiple BBcode MOD 1.4.0c before you install
+##	  this mod... you can find that MOD here: www.phpbb.com/phpBB/viewtopic.php?t=145513
+##
+##	- This MOD is EasyMOD Friendly! Install the MOD in less than 15 seconds with EasyMOD!
+##	  you can find it here: www.phpbb.com/phpBB/viewtopic.php?t=217673
+##
+##	- [title=" argument"] allows to put other BBcodes in the argument as well as smilies. 
+##	  for instance: [title="my [url=http://mysite.com]web site[/url]"] works fine!
+##
+##	- You should apply changes to templates/xxx/posting_body.tpl and templates/xxx/bbcode.tpl
+##	  according to your default template
+##
+##	- Remember to update language/default_language/lang_main.php with your own translation of
+##	  --> $lang['bbcode_help']['title'] = 'Custom Title: [title=\"custom title\"]text[/title]';  .
+##
+##	- You can put additional text between quotes in -->    $lang['free'] = '';    in 
+##	  language/your_default_language/lang_main.php, this text will be displayed 
+## 	  every time you use "title" BBcode. For a better view in this case, leave a blank space
+##	  between {USERNAME} and {L_FREE} in file templates/subSilver/bbcode.tpl.
+##	  See MOD web page for best usage.
+##	  Leave $lang['free'] = ''; blank to allow to put completely customizable text.
+##	  
+##	- If you are not planning to install Multi-BBcode MOD or have a phpBB version older than 2.0.18
+##	  See MOD web page for other MOD versions
+##
+##	- Thanks to beggers (phpbb.com user) for support and for giving me the idea for the right
+##	  title of the MOD.
+##	  
+##
+##############################################################
+## MOD History:
+##
+##   2006-10-06 - Version 1.3.3
+##		- Demo URL fixed
+##   2006-17-04 - Version 1.3.2
+##		- minor changes
+##   2006-05-04 - Version 1.3.1
+##		- minor changes applied. MOD web page added
+##   2006-03-22 - Version 1.3.0
+##		- EasyMOD compliance added
+##   2006-03-20 - Version 1.1.0
+##		- MultiBBcode compliance added
+##   2006-03-14 - Version 1.0.0
+##		- first stable version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+############################################################## 
+
+#
+#-----[ OPEN ]---------------------------------
+#
+includes/bbcode.php
+
+#
+#-----[ FIND ]---------------------------------
+#
+$EMBB_widths = array(''
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+ array(''
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+,'60'
+
+#
+#-----[ FIND ]---------------------------------
+#
+$EMBB_values = array(''
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+$EMBB_values = array(''
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+,'Title'
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$bbcode_tpl['img'] = str_replace('{URL}', '\\1', $bbcode_tpl['img']);
+# 
+#-----[ AFTER, ADD ]-------------------------- 
+# 
+	$bbcode_tpl['free_txt_open'] = str_replace('{L_FREE}', $lang['free'], $bbcode_tpl['free_txt_open']);
+	$bbcode_tpl['free_txt_open'] = str_replace('{USERNAME}', '\\1', $bbcode_tpl['free_txt_open']);
+ 
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	// [QUOTE] and [/QUOTE] for posting replies with quote, or just for quoting stuff.
+	$text = str_replace("[quote:$uid]", $bbcode_tpl['quote_open'], $text);
+	$text = str_replace("[/quote:$uid]", $bbcode_tpl['quote_close'], $text);
+
+# 
+#-----[ AFTER, ADD ]-------------------------- 
+# 
+	// [TITLE] and [/TITLE] for entering a custom title for quote-like boxes
+	$text = str_replace("[title:$uid]", $bbcode_tpl['free_txt_open'], $text);
+	$text = str_replace("[/title:$uid]", $bbcode_tpl['free_txt_close'], $text);
+
+#
+#-----[ FIND ]------------------------------------------ 
+# 
+	// New one liner to deal with opening quotes with usernames...
+	// replaces the two line version that I had here before..
+	$text = preg_replace("/\[quote:$uid=\"(.*?)\"\]/si", $bbcode_tpl['quote_username_open'], $text);
+# 
+#-----[ AFTER, ADD ]-------------------------- 
+# 
+	// Custom Title for Quote Boxes BBcode
+	$text = preg_replace("/\[title:$uid=\"(.*?)\"\]/si", $bbcode_tpl['free_txt_open'], $text);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	// [QUOTE] and [/QUOTE] for posting replies with quote, or just for quoting stuff.
+	$text = bbencode_first_pass_pda($text, $uid, '[quote]', '[/quote]', '', false, '');
+	$text = bbencode_first_pass_pda($text, $uid, '/\[quote=\\\\&quot;(.*?)\\\\&quot;\]/is', '[/quote]', '', false, '', "[quote:$uid=\\\"\\1\\\"]");
+
+# 
+#-----[ AFTER, ADD ]-------------------------- 
+# 
+	// [TITLE] and [/TITLE] for entering a custom title for quote-like boxes
+	$text = bbencode_first_pass_pda($text, $uid, '[title]', '[/title]', '', false, '');
+	$text = bbencode_first_pass_pda($text, $uid, '/\[title=\\\\&quot;(.*?)\\\\&quot;\]/is', '[/title]', '', false, '', "[title:$uid=\\\"\\1\\\"]");
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+				if( preg_match('#\[quote=\\\&quot;#si', $possible_start, $match) && !preg_match('#\[quote=\\\&quot;(.*?)\\\&quot;\]#si', $possible_start) )
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+$possible_start) )
+
+# 
+#-----[ IN-LINE REPLACE WITH ]-------------------------- 
+#
+$possible_start) || (preg_match('#\[title=\\\&quot;#si', $possible_start, $match) && !preg_match('#\[title=\\\&quot;(.*?)\\\&quot;\]#si', $possible_start)))
+
+#
+#-----[ OPEN ]---------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]---------------------------------
+#
+# NOTE: the full line to look for is:
+#$lang['bbcode_f_help'] = "Font size: [size=x-small]small text[/size]";
+#
+$lang['bbcode_f_help'] =
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+$lang['bbcode_help']['title'] = 'Custom Title: [title=\"custom title\"]text[/title]';
+$lang['free'] = ''; // Custom Title for Quote Boxes MOD
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/bbcode.tpl
+    
+#
+#-----[ FIND ]------------------------------------------ 
+#
+<!-- BEGIN email --><a href="mailto:{EMAIL}">{EMAIL}</a><!-- END email -->
+
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+<!-- BEGIN free_txt_open --><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center">
+<tr>
+<td><span class="genmed"><strong>{USERNAME}{L_FREE}:</strong></span></td>
+</tr>
+<tr>
+<td class="quote"><!-- END free_txt_open -->
+<!-- BEGIN free_txt_close --></td>
+</tr>
+</table><!-- END free_txt_close -->
+
+#
+#-----[ OPEN ]---------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]---------------------------------
+#
+# NOTE: the actual line to find is MUCH longer, containing all the bbcode tags
+#
+bbtags = new Array(
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+'[url]','[/url]'
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+,'[title=""]','[/title]'
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+#
+# EoM
+

@@ -1,0 +1,248 @@
+##############################################################
+## MOD Title: Track PMs
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com
+## MOD Description: Just like the topic review, but tracks PMs for you. When you send a user a PM, it will be given a track id. And then when you reply to their reply, you will be able to see the last messages that were sent. Just like conversations.
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: ~ 5 Minutes
+## Files To Edit:
+##		privmsg.php
+##
+##
+## Included Files: 
+##		templates/subSilver/posting_pm_tracker.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes:
+##
+##
+##############################################################
+## MOD History:
+##
+##
+##   2005-10-13 - Version 1.0.0
+##      - First release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------------------------------
+#
+ALTER TABLE `phpbb_privmsgs` ADD `privmsgs_track_id` mediumint(8) UNSIGNED DEFAULT '0' NOT NULL;
+UPDATE `phpbb_privmsgs` SET `privmsgs_track_id` = `privmsgs_id`;
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy templates/subSilver/posting_pm_tracker.tpl to templates/subSilver/posting_pm_tracker.tpl
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$sql_info = "INSERT INTO " . PRIVMSGS_TABLE
+
+#
+#-----[ BEFORE, ADD ]----------------------------------------
+#
+// Track PMs MOD, By Manipe (Begin)
+			if ($privmsg_id)
+			{
+				$sql = "SELECT privmsgs_track_id
+					FROM " . PRIVMSGS_TABLE . "
+					WHERE privmsgs_id = $privmsg_id";
+				if ( !$result = $db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not get PM track id', '', __LINE__, __FILE__, $sql);
+				}
+
+				$row = $db->sql_fetchrow($result);
+				$pm_track_id = $row['privmsgs_track_id'];
+			}
+			else
+			{
+				$sql = "SELECT MAX(privmsgs_id) AS privmsgs_track_id
+					FROM " . PRIVMSGS_TABLE;
+				
+				if ( !$result = $db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not get PM track id', '', __LINE__, __FILE__, $sql);
+				}
+
+				$row = $db->sql_fetchrow($result);
+				$pm_track_id = $row['privmsgs_track_id'] + 1;
+			}
+// Track PMs MOD, By Manipe (End)
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+privmsgs_attach_sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------
+#
+, privmsgs_track_id
+
+#
+#-----[ FIND ]---------------------------------
+#
+				VALUES (" . PRIVMSGS_NEW_MAIL
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+$attach_sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+, $pm_track_id
+
+#
+#-----[ FIND ]----------------------------------------
+#
+				$mode = 'reply';
+			}
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+// View PM while replying MOD, By Manipe
+			if ( $mode == 'reply' )
+			{
+				$sql = "SELECT privmsgs_track_id
+					FROM " . PRIVMSGS_TABLE . "
+					WHERE privmsgs_id = $privmsg_id";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain private message for track id', '', __LINE__, __FILE__, $sql);
+				}
+
+				if ( !($row = $db->sql_fetchrow($result)) )
+				{
+					$pm_track_id = $privmsg_id;
+				}
+				else
+				{
+					$pm_track_id = $row['privmsgs_track_id'];
+				}
+
+				$template->set_filenames(array(
+					'pm_tracker' => 'posting_pm_tracker.tpl')
+				);
+				$template->assign_vars(array(
+					'L_PM_TRACKER' => 'Private Message tracker',
+					'L_FROM' => $lang['From'],
+					'L_PRIVATE_MESSAGE' => $lang['Private_Message'],
+					'L_SENT' => $lang['Sent'],
+					'L_MINI_POST_ALT' => $lang['Message'],
+					'L_SUBJECT' => $lang['Subject'],
+
+					'MINI_POST_IMG' => $images['icon_minipost'])
+				);
+
+				$sql = "SELECT pm.privmsgs_subject, pm.privmsgs_date, pm.privmsgs_enable_html, pm.privmsgs_enable_smilies, pmt.privmsgs_bbcode_uid, pmt.privmsgs_text, u.username, u.user_id
+					FROM " . PRIVMSGS_TABLE . " pm, " . PRIVMSGS_TEXT_TABLE . " pmt, " . USERS_TABLE . " u
+					WHERE pmt.privmsgs_text_id = pm.privmsgs_id
+						AND pm.privmsgs_track_id = $pm_track_id
+						AND u.user_id = pm.privmsgs_from_userid
+						AND (pm.privmsgs_type = " . PRIVMSGS_READ_MAIL . "
+							OR pm.privmsgs_type = " . PRIVMSGS_NEW_MAIL . "
+							OR pm.privmsgs_type = " . PRIVMSGS_UNREAD_MAIL . ")
+					ORDER BY privmsgs_date DESC";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain private message for tracking', '', __LINE__, __FILE__, $sql);
+				}
+
+				while ( $row = $db->sql_fetchrow($result) )
+				{
+					$privmsg_bbcode_uid = $row['privmsgs_bbcode_uid'];
+
+					$reply_message = $row['privmsgs_text'];
+					$reply_subject = $row['privmsgs_subject'];
+
+					if ( !$board_config['allow_html'] || !$userdata['user_allowhtml'])
+					{
+						if ( $privmsg_config['privmsgs_enable_html'] )
+						{
+							$reply_message = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $reply_message);
+						}
+					}
+
+					if ( $privmsg_bbcode_uid != '' )
+					{
+						$reply_message = ( $board_config['allow_bbcode'] ) ? bbencode_second_pass($reply_message, $privmsg_bbcode_uid) : preg_replace('/\:[0-9a-z\:]+\]/si', ']', $reply_message);
+					}
+
+					$reply_message = make_clickable($reply_message);
+
+					$orig_word = array();
+					$replacement_word = array();
+					obtain_word_list($orig_word, $replacement_word);
+
+					if ( count($orig_word) )
+					{
+						$reply_subject = preg_replace($orig_word, $replacement_word, $reply_subject);
+						$reply_message = preg_replace($orig_word, $replacement_word, $reply_message);
+					}
+
+					if ( $board_config['allow_smilies'] && $privmsg_config['privmsgs_enable_smilies'] )
+					{
+						$reply_message = smilies_pass($reply_message);
+					}
+
+					$reply_message = str_replace("\n", '<br />', $reply_message);
+
+					$row_color = ( $row_color == $theme['td_color1'] ) ? $theme['td_color2'] : $theme['td_color1'];
+					$row_class = ( $row_class == $theme['td_class1'] ) ? $theme['td_class2'] : $theme['td_class1'];
+
+					$template->assign_block_vars('postrow', array(
+						'ROW_COLOR' => '#' . $row_color, 
+						'ROW_CLASS' => $row_class, 
+
+						'POSTER_NAME' => $row['username'], 
+						'PM_DATE' => create_date($board_config['default_dateformat'], $row['privmsgs_date'], $board_config['board_timezone']), 
+						'PM_SUBJECT' => $reply_subject, 
+						'MESSAGE' => $reply_message)
+					);
+				}
+				$template->assign_var_from_handle('TOPIC_REVIEW_BOX', 'pm_tracker');
+			}
+// View PM while replying MOD, By Manipe
+
+#
+#-----[ FIND ]---------------------------------
+#
+	$s_hidden_fields .= '<input type="hidden" name="mode" value="' . $mode . '" />';
+	if ( $mode == 'edit' )
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+ )
+
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------------
+#
+ || isset($pm_track_id)
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

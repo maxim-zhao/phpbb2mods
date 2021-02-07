@@ -1,0 +1,190 @@
+######################################################## 
+## MOD Title: User Icon on Who Is Online
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This MOD adds four types of icon besides the username in "Who Is Online" block. The type of image displayed for each username is dependent on the user's level: i.e. Administrator, Moderator, User, Guests.
+## MOD Author: MaoStudio < mao@maostudio.com > (N/A) http://iamin.maostudio.com/
+## MOD Version:	1.0.0
+## 
+## Installation Level: Easy 
+## Installation Time: 5 Minutes 
+##
+## Files To Edit: 4
+##	includes/page_header.php
+##	language/lang_english/lang_main.php
+##	templates/subSilver/subSilver.cfg
+##	templates/subSilver/index_body.tpl
+##
+## Included Files: 23
+##	images/*.gif
+##	images/varients/*.gif
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.18. Can be installed using EasyMOD 0.3.0
+##
+##	This MOD (or a much earlier version of it) was first developed by MaoStudio (from www.phpbb-tw.net) back in 2002.
+##	Although I put his name down as one of the MOD Authors, but I have not use any of his codes.
+##	However, I would like to retain his name because he first came up with this idea for phpBB board.
+##
+############################################################## 
+## MOD History: 
+##
+##   2005-11-01 - Version 1.0.0
+##      - Initial Release
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy images/u1.gif to templates/subSilver/images/usericon/u1.gif
+copy images/u2.gif to templates/subSilver/images/usericon/u2.gif
+copy images/u3.gif to templates/subSilver/images/usericon/u3.gif
+copy images/u4.gif to templates/subSilver/images/usericon/u4.gif
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.cfg
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$images['user_icon_admin'] = "$current_template_images/usericon/u1.gif";
+$images['user_icon_mod'] = "$current_template_images/usericon/u2.gif";
+$images['user_icon_user'] = "$current_template_images/usericon/u3.gif";
+$images['user_icon_guest'] = "$current_template_images/usericon/u4.gif";
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$lang['User_icon_admin'] = 'Administrator';
+$lang['User_icon_mod'] = 'Moderator';
+$lang['User_icon_user'] = 'Member';
+$lang['User_icon_guest'] = 'Guest';
+$lang['User_online_color'] = '%sMember%s';
+$lang['Guest_online_color'] = '%sGuest%s';
+$lang['And'] = 'and';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/page_header.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+					$user_online_link = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '"' . $style_color .'>' . $row['username'] . '</a>';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+					if ( $row['user_level'] == ADMIN )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_admin'] . '" border="0" alt="' . $lang['User_icon_admin'] . '" title="' . $lang['User_icon_admin'] . '" />&nbsp;' . $user_online_link;
+					}
+					else if ( $row['user_level'] == MOD )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_mod'] . '" border="0" alt="' . $lang['User_icon_mod'] . '" title="' . $lang['User_icon_mod'] . '" />&nbsp;' . $user_online_link;
+					}
+					else if ( $row['user_level'] == USER )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_user'] . '" border="0" alt="' . $lang['User_icon_user'] . '" title="' . $lang['User_icon_user'] . '" />&nbsp;' . $user_online_link;
+					}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+					$user_online_link = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '"' . $style_color .'><i>' . $row['username'] . '</i></a>';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+					if ( $row['user_level'] == ADMIN )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_admin'] . '" border="0" alt="' . $lang['User_icon_admin'] . '" title="' . $lang['User_icon_admin'] . '" />&nbsp;' . $user_online_link;
+					}
+					else if ( $row['user_level'] == MOD )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_mod'] . '" border="0" alt="' . $lang['User_icon_mod'] . '" title="' . $lang['User_icon_mod'] . '" />&nbsp;' . $user_online_link;
+					}
+					else if ( $row['user_level'] == USER )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_user'] . '" border="0" alt="' . $lang['User_icon_user'] . '" title="' . $lang['User_icon_user'] . '" />&nbsp;' . $user_online_link;
+
+					}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'LOGGED_IN_USER_LIST' => $online_userlist,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$online_userlist
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ . ' ' . $lang['And'] . '&nbsp;<img src="' . $images['user_icon_guest'] . '" border="0" alt="' . $lang['User_icon_guest'] . '" title="' . $lang['User_icon_guest'] . '" />&nbsp;' . sprintf($l_g_user_s, $guests_online)
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_WHOSONLINE_ADMIN' => sprintf($lang['Admin_online_color'], '<span style="color:#' . $theme['fontcolor3'] . '">', '</span>'),
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+	'L_WHOSONLINE_ADMIN' => sprintf($lang['Admin_online_color'], '
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+<img src="' . $images['user_icon_admin'] . '" border="0" alt="' . $lang['User_icon_admin'] . '" title="' . $lang['User_icon_admin'] . '" />&nbsp;
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_WHOSONLINE_MOD' => sprintf($lang['Mod_online_color'], '<span style="color:#' . $theme['fontcolor2'] . '">', '</span>'),
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+	'L_WHOSONLINE_MOD' => sprintf($lang['Mod_online_color'], '
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+<img src="' . $images['user_icon_mod'] . '" border="0" alt="' . $lang['User_icon_mod'] . '" title="' . $lang['User_icon_mod'] . '" />&nbsp;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	'L_WHOSONLINE_USER' => sprintf($lang['User_online_color'], '<img src="' . $images['user_icon_user'] . '" border="0" alt="' . $lang['User_icon_user'] . '" title="' . $lang['User_icon_user'] . '" />&nbsp;<span style="color:#' . $theme['body_link'] . '">', '</span>'),
+	'L_WHOSONLINE_GUEST' => sprintf($lang['Guest_online_color'], '<img src="' . $images['user_icon_guest'] . '" border="0" alt="' . $lang['User_icon_guest'] . '" title="' . $lang['User_icon_guest'] . '" />&nbsp;<span style="color:#' . $theme['td_color3'] . '">', '</span>'),
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/index_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<td class="row1" align="left"><span class="gensmall">{TOTAL_USERS_ONLINE} &nbsp; [ {L_WHOSONLINE_ADMIN} ] &nbsp; [ {L_WHOSONLINE_MOD} ]<br />{RECORD_USERS}<br />{LOGGED_IN_USER_LIST}</span></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+[ {L_WHOSONLINE_MOD} ]
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ &nbsp; [ {L_WHOSONLINE_USER} ] &nbsp; [ {L_WHOSONLINE_GUEST} ]
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

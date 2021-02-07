@@ -1,0 +1,89 @@
+##########################################################[easymod friendly]###
+## MOD Title: Compatibility fix for Approval MOD / Last Topic Title On Index MOD
+##
+## MOD Author: uncle.f < soft@purple-yonder.com > (N/A) http://purple-yonder.com/approval_mod
+##
+## MOD Description: Compatibility fix for Last Topic Title On Index MOD v1.0.4.
+##                  Should be installed after the Approval MOD.
+##
+## MOD Version: 2.0.0.last-topic-title-on-index-fix
+##
+## Installation Level: Easy
+##
+## Installation Time: 3 Minutes
+##
+## Files To Edit: index.php
+##
+## Included Files: n/a
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+###############################################################################
+##
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##
+###############################################################################
+##
+## Author Notes:
+##
+## - This fix should be applied only if you have Last Topic Title On Index MOD v1.0.4
+##   installed (http://www.phpbb.com/community/viewtopic.php?t=350442)
+##
+###############################################################################
+##
+## MOD History:
+##
+##   2007-01-28 - Fix released
+##
+###############################################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+###############################################################################
+
+
+#######################################################################################################################
+#
+#-----[ OPEN ]-----
+#
+index.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$approve_select, t.topic_id, t.topic_title, t.topic_last_post_id
+#
+#-----[ IN-LINE FIND ]------
+#
+$approve_select, t.topic_id, t.topic_title, t.topic_last_post_id
+#
+#-----[ IN-LINE AFTER, ADD ]------
+#
+, t2.topic_id as topic_id2, t2.topic_title as topic_title2
+#
+#-----[ FIND ]---------------------------------------------
+#
+LEFT JOIN " . USERS_TABLE . " u ON u.user_id = p.poster_id $approve_default_where2 )
+#
+#-----[ AFTER, ADD ]-----
+#
+				LEFT JOIN " . TOPICS_TABLE . " t2 ON t2.topic_last_post_approved = p2.post_id )
+#
+#-----[ FIND ]---------------------------------------------
+#
+$forum_data[$j]['username'] = $forum_data[$j]['username2'];
+#
+#-----[ AFTER, ADD ]-----
+#
+								$forum_data[$j]['topic_id'] = $forum_data[$j]['topic_id2'];
+								$forum_data[$j]['topic_title'] = $forum_data[$j]['topic_title2'];
+#
+#
+#######################################################################################################################
+#
+#-----[ SAVE/CLOSE ALL FILES ]------
+#
+# EoM

@@ -1,0 +1,230 @@
+##############################################################
+## MOD Title: Allow Guest Voting
+## MOD Author: Thoul < thoul@phpbbsmith.com > (Jeremy Rogers) http://www.phpbbsmith.com
+## MOD Description: Allows admins to enable voting by users that are not logged in.
+## MOD Version: 2.0.3
+##
+## Installation Level: Easy
+## Installation Time: 5 Minutes
+## Files To Edit:
+##      admin/admin_forumauth.php,
+##      posting.php,
+##      viewtopic.php,
+##      includes/functions.php
+## Included Files: N/A
+## License: contrib/license.txt GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## Before using this hack, you should be aware that while it does allow guest
+## voting and will attempt to restrict this to one vote per guest, the
+## restrictions are easily bypassed.  This modification is intended for those
+## who simply want to have some relaxing, fun polls and don't need to worry
+## about someone skewing the voting.
+##
+## When a guest votes, their IP address is recorded, and no one with that IP
+## address will be able to vote again in that poll.  This form of tracking is
+## not perfect.  A user on a dial-up modem connection may have a different IP
+## address each time they connect to the internet and could vote multiple times
+## by disconnecting and reconnecting.  Many businesses and universities have a
+## few IP addresses for all the computers at their locations.  If even one guest
+## user votes from one of these locations, it could mean that hundreds, perhaps
+## thousands, of other potential guest voters will not be able to vote.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_forumauth.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// This file modified for Allow Guest Voting 2.0.3
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Note: Spacing of these lines may be different on early phpBB versions.
+#
+
+				if ( $forum_auth_fields[$i] == 'auth_vote' )
+				{
+					if ( $HTTP_POST_VARS['auth_vote'] == AUTH_ALL )
+					{
+						$value = AUTH_REG;
+					}
+				}
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//------------------------------------------------------------------------------
+// Allow Guest Voting - Begin Code Addition
+//
+// Next line disables the Original phpBB Code following it.
+
+/*
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+*/
+
+// Above line marks the end of disabling of the Original phpBB Code.
+//
+// Allow Guest Voting - End Code Addition
+//------------------------------------------------------------------------------
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// This file modified for Allow Guest Voting 2.0.3
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+			$sql = "SELECT * 
+				FROM " . VOTE_USERS_TABLE . "  
+				WHERE vote_id = $vote_id 
+					AND vote_user_id = " . $userdata['user_id'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Allow Guest Voting - Begin Code Alteration
+//
+			make_guest_sql($sql);
+//
+// Allow Guest Voting - End Code Addition
+//------------------------------------------------------------------------------
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// This file modified for Allow Guest Voting 2.0.3
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+		$sql = "SELECT vote_id
+			FROM " . VOTE_USERS_TABLE . "
+			WHERE vote_id = $vote_id
+				AND vote_user_id = " . intval($userdata['user_id']);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Allow Guest Voting - Begin Code Alteration
+//
+			make_guest_sql($sql);
+//
+// Allow Guest Voting - End Code Addition
+//------------------------------------------------------------------------------
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// This file modified for Allow Guest Voting 2.0.3
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//------------------------------------------------------------------------------
+// Allow Guest Voting - Begin Code Addition
+//
+/*	make_guest_sql
+       Adds an IP clause to SQL queries that check for a member's poll votes.
+
+    Arguments:
+       $sql	- The SQL query.
+
+    Return:
+       None.
+                                                                             */
+function make_guest_sql(&$sql)
+{
+	if ( $GLOBALS['userdata']['user_id'] == ANONYMOUS )
+	{
+		$sql .= " AND vote_user_ip = '" . $GLOBALS['user_ip'] . "'";
+	}
+}
+//
+// Allow Guest Voting - End Code Addition
+//------------------------------------------------------------------------------
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

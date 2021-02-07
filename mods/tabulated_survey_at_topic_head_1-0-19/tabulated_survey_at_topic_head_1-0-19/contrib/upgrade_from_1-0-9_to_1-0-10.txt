@@ -1,0 +1,545 @@
+############################################################## 
+## MOD Title: Tabulated survey at topic head (upgrade from version 1.0.9 to 1.0.10)
+## MOD Author: asinshesq < asinsh@speakeasy.net > (Alan Sinsheimer) N/A
+## MOD Description:	Allow users to design surveys that will appear at the top of a topic.  Users will be able to .
+##			respond to the survey by clicking a button...each user response will appear at the topic head
+##
+## MOD Version:		1.0.10
+## 
+## Installation Level:	Easy
+## Installation Time:	20 Minutes ( 1 minute with easymod) 
+## Files To Edit:
+##			posting.php
+##			survey.php
+##			viewtopic.php
+##			includes/functions_post.php
+##			language/lang_english/lang_main.php
+##			templates/subSilver/survey_answer.tpl
+##			templates/subSilver/survey_result_viewtopic.tpl
+##			templates/subSilver/viewtopic_body.tpl
+##			templates/subSilver/subSilver.cfg
+##
+## Included Files:	fill_out_survey.gif
+##			change_survey_answers.gif
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:	This is just an upgrade mod.  To use it, you must have tabulated survey at top head version 1.0.9 already installed
+##			If you haven't already installed that mod, install the latest version of this mod directly and don't use this mod at all.
+##
+############################################################## 
+## MOD History:
+##
+##   2005-6-13	- Version 1.0.10
+##		  changed posting.php so that if a survey designer leaves out the survey caption but completes one or more questions,
+##		  the survey will get stored
+##
+##		  added flexibility to include a subsilver fill-in survey or change survey answer button next to the reply button
+##		  at the bottom of viewtopic so that it is less likely that users will try to answer the survey question by hitting 'reply'
+##		  (leave out the changes to viewtopic_body.tpl if you don't want these buttons)
+##
+##		  added a new button in the survey results block that appears on the top of viewtopic for any ADMIN that allows the ADMIN
+##		  to fill in the survey for any other user who can't figure it out; if you don't want this change, leave out the 
+##		  lines in survey_result_viewtopic.tpl that read:
+##
+##		  <!-- BEGIN switch_include_fill_out_for_other_user_button --> 
+##		    <tr>
+##			<td align="center">{S_HIDDEN_FIELDS}<input type="submit" name="fill_out_for_other_user" value="{L_FILL_OUT_FOR_OTHER_USER}" class="mainoption" /></td>
+##		    </tr>
+##		  <!-- END switch_include_fill_out_for_other_user_button -->
+##
+##		  Changed text of $lang['If_selections'] in language/lang_english/lang_main.php to clarify that survey designer can start a drop down menu list of
+##		  selections with a semicolon in order for the users to have the option not to answer anything to a drop down menu question; made small 
+##		  changer in $lang['Cap_response'].
+##
+##   2005-5-07	- Version 1.0.9
+##		  added options to show nonresponders in a centered or left justified column or a centered or left justified comma separated list
+##
+##		  added option to specify (in pixels) a maximum height for the survey display box in viewtopic; if the survey is taller than that, it will
+##		  automatically insert scroll bars.  Note that IE does not currently support the 'max-height' style element and for that reason if you specify
+##		  a height that in fact is taller than the survey box needs, a survey box with some blank space will be seen (for example,
+##		  if you specify the survey box cannot be more than 1000 pixels and the survey in fact is only 500 pixels, the box will take up 500
+##		  pixels in firefox or mozilla but will show the enire 100 pixels with empty lines at the bottom when seen in IE.  For this reason, it's
+##		  best to specify max heights that are smaller than the size the survey box takes up so that there never is any skipped lines.
+##
+##   2005-4-26	- Version 1.0.8
+##		  Fixed problem that reulted in design survey form not being fully displayed in preview if there is not survey caption filled in.
+##
+##		  Changed language text describing sort options to be more self-explanatory		  
+##
+##   2005-4-24	- Version 1.0.7
+##		  added option for survey designer to choose for answers to get single, double or triple spaced;
+##
+##		  added code so that topics with surveys in them get marked as '[ Survey ]' in viewforum (just like Polls get marked
+##		  '[ Polls ]');
+##
+##		  Moved some text that appeared in a template to lang_eng so that people who run their board with languages other than
+##		  English will be able to translate the text without going into that template;
+##
+##		  Changed the survey explanation text so that it correctly says you can ask up to eight questions;
+##
+##		  Added test in survey.php that checks to see if user has already got a response in a given survey
+##		  (in order to assure that a user doesn't inadvertently submit his survey answers twice).
+##
+##   2005-4-04	- Version 1.0.6
+##		  Preserves skipped lines in questions, answers and survey captions
+##
+##   2005-3-24	- Version 1.0.5
+##		  Minor changes, mostly to protect against sql injection risk.  No changes in functionality
+##
+##   2005-3-19	- Version 1.0.4
+##		  Added option to leave out the username column; changed max number of questions from 7 to 8;  
+##		  fixed behavior when survey is designed to be taken by 'all users'; changed the text that the person
+##		  designing a survey sees when he is desinging the survey
+##
+##   2005-3-08	- Version 1.0.3
+##		  Added protection against double submission of survey answers when user quickly clicks submit twice; fixed sort by first answer so that it 
+##		  looks only at the first answer and then alphabetizes; added reverse sort by first answer
+##
+##   2005-2-28	- Version 1.0.2
+##		  In the design survey form, added option to sort the tabulated results by first answer with secondary sort by username. 
+##		  Also changed things so that anyone who is authorized to post a poll will be authorized to post a survey (but it's easy to change this 
+##		  back so that only admins are authorized to post surveys if you want).
+##
+##   2005-2-26	- Version 1.0.1
+##		  initial version...still need to build in that previeiwng a post does not kill a new survey in that post, and
+##		  still need to add code so that you can use the delete survey function and, if you delete a post with a survey in it, 
+##		  it will delete the survey and survey answer info tied to that post.
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy fill_out_survey.gif to templates/subSilver/images/lang_english/fill_out_survey.gif
+copy change_survey_answers.gif to templates/subSilver/images/lang_english/change_survey_answers.gif
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+posting.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				if ( !empty($HTTP_POST_VARS['survey_caption']) && $HTTP_POST_VARS['survey_delete'] <> 1 )
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+				if ( ( !empty($HTTP_POST_VARS['survey_caption']) || !empty($HTTP_POST_VARS['survey_question']) ) && $HTTP_POST_VARS['survey_delete'] <> 1 )
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+survey.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+//
+// Check and set various parameters
+//
+$topic_id = intval($HTTP_POST_VARS['topic_id']);
+$survey_id = intval($HTTP_POST_VARS['survey_id']);
+$number_of_questions = intval($HTTP_POST_VARS['number_of_questions']);
+$mode = htmlspecialchars($HTTP_POST_VARS['mode']);
+
+//
+// Start session management
+//
+$userdata = session_pagestart($user_ip, PAGE_POSTING);
+init_userprefs($userdata);
+//
+// End session management
+//
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+//
+// Start session management
+//
+$userdata = session_pagestart($user_ip, PAGE_POSTING);
+init_userprefs($userdata);
+//
+// End session management
+//
+
+//
+// Check and set various parameters
+//
+if( empty($HTTP_POST_VARS['topic_id']) && empty($HTTP_GET_VARS['topic_id']) )
+{
+	message_die(GENERAL_MESSAGE, $lang['No_survey_topic_id_specified']);
+}
+else $topic_id = ( !empty($HTTP_POST_VARS['topic_id']) ) ? intval($HTTP_POST_VARS['topic_id']) : intval($HTTP_GET_VARS['topic_id']);
+
+if( empty($HTTP_POST_VARS['survey_id']) && empty($HTTP_GET_VARS['survey_id']) )
+{
+	message_die(GENERAL_MESSAGE, $lang['No_survey_id_specified']);
+}
+else $survey_id = ( !empty($HTTP_POST_VARS['survey_id']) ) ? intval($HTTP_POST_VARS['survey_id']) : intval($HTTP_GET_VARS['survey_id']);
+
+$mode = ( !empty($HTTP_POST_VARS['mode']) ) ? htmlspecialchars($HTTP_POST_VARS['mode']) : htmlspecialchars($HTTP_GET_VARS['mode']);
+$number_of_questions = intval($HTTP_POST_VARS['number_of_questions']);
+
+// if this is an admin, check to see if he is answering for another user and if so, set the user_id to that user's id
+if ( $userdata['user_level'] == ADMIN && $mode == 'complete' && !empty($HTTP_POST_VARS['username']) && htmlspecialchars($HTTP_POST_VARS['username']) != $userdata['username'] )
+{
+	$temp_username = htmlspecialchars($HTTP_POST_VARS['username']);
+	$sql = "SELECT user_id FROM " . USERS_TABLE . "
+			WHERE username = '$temp_username'";
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, "Could not obtain user_id for the person for whom the user is trying to answer the survey", '', __LINE__, __FILE__, $sql);
+	}
+	$temp_user_id = $db->sql_fetchrow($result);
+	$userdata['user_id'] = intval($temp_user_id['user_id']);
+	$db->sql_freeresult($result);
+}
+
+//
+// end setting of parameters
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+if( $mode == 'complete' || $mode == 'complete_edit' )
+	
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+if( $mode == 'complete' )
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	// now insert the answers into the database
+	if($mode == 'complete')
+	{
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	// now insert the answers into the database
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		else $mode = 'complete_edit';
+	}
+
+	if($mode == 'complete_edit')
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+		else
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+if($mode == 'answer_edit')
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+if( $mode == 'answer_edit' && !$HTTP_POST_VARS['fill_out_for_other_user'] )
+		
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+// now, send other info to the template (name of survey, total responses, etc)
+$complete = ( $mode == 'answer_edit' ) ? 'complete_edit' : 'complete';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+// now, send other info to the template (name of survey, total responses, etc)
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$s_hidden_fields .= '<input type="hidden" name="mode" value="' . $complete . '" />';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+$s_hidden_fields .= '<input type="hidden" name="mode" value="complete" />';
+
+// test to see if the user is an admin who got here by clicking the fill out for another user button...if so, display a user selection box
+if($HTTP_POST_VARS['fill_out_for_other_user'])
+{
+	$template->assign_block_vars('switch_username_select', array());
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_SENDING' => $lang['Sending'],
+	
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	'L_USERNAME_TAKING_SURVEY' => $lang['Username_taking_survey'],
+	'L_FIND_USERNAME' => $lang['Find_username'],
+
+	'U_SEARCH_USER' => append_sid("search.$phpEx?mode=searchuser"),
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+viewtopic.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	// now, let's turn on the fill in survey button if the user is in one of the specified groups
+	if($user_should_answer)
+	{
+		$template->assign_block_vars('switch_include_fill_in_button', array());
+	}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// and now, let's turn on the fill in survey for other user button if the user is an ADMIN
+	if( $userdata['user_level'] == ADMIN )
+	{
+		$template->assign_block_vars('switch_include_fill_out_for_other_user_button', array());
+	}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	if ( strpos($user_id_list_in_commas, ','.$userdata['user_id'].',') !== false )
+	{
+		$s_hidden_fields .= '<input type="hidden" name="mode" value="answer_edit" />';
+		$fill_out_button = $lang['Change_your_answers'];
+	}
+	else
+	{
+		$fill_out_button = $lang['Fill_out_survey'];
+	}
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	if ( strpos($user_id_list_in_commas, ','.$userdata['user_id'].',') !== false )
+	{
+		$s_hidden_fields .= '<input type="hidden" name="mode" value="answer_edit" />';
+		$fill_out_button = $lang['Change_your_answers'];
+		$survey_fill_out_img = $images['change_survey_answers'];
+		$survey_link = append_sid("survey.$phpEx?topic_id=" . $topic_id . "&amp;survey_id=" . $survey_info['survey_id'] . "&amp;mode=answer_edit");
+	}
+	else
+	{
+		$fill_out_button = $lang['Fill_out_survey'];
+		$survey_fill_out_img = $images['fill_out_survey'];
+		$survey_link = append_sid("survey.$phpEx?topic_id=" . $topic_id . "&amp;survey_id=" . $survey_info['survey_id']);
+	}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'L_FILL_OUT' => $fill_out_button,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'L_FILL_OUT_FOR_OTHER_USER' => $lang['Fill_out_survey_for_someone_else'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'L_LINES_TO_SKIP' => $lines_to_skip,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'SURVEY_FILL_OUT_IMG' => $survey_fill_out_img,
+
+		'U_FILL_OUT_SURVEY' => $survey_link,
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions_post.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$topic_survey = ($survey_info['survey_caption']) ? 1 : 0;
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+		$topic_survey = ( $survey_info['survey_caption'] || $survey_info['questions'] ) ? 1 : 0;
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	if( $survey_info['survey_caption'] )
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	if( $survey_info['survey_caption'] || $survey_info['questions'] )
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['If_selections'] = 'If checkbox, radio buttons or drop down<br />menu, specify selections separated by semicolons: &nbsp;&nbsp';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+$lang['If_selections'] = 'If checkbox, radio buttons or drop down<br />menu, specify selections separated by semicolons<br />(if drop down menu, beginning with semicolon allows user to make no selection): &nbsp;&nbsp';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Cap_response'] = 'If totalling, specify maximum total before users can no longer respond (0 means no cap): &nbsp;&nbsp';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+$lang['Cap_response'] = 'If totalling, specify maximum total before users can no longer respond (blank means no cap): &nbsp;&nbsp';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Topic_Survey'] = '<b>[ Survey ]</b>';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$lang['No_survey_topic_id_specified'] = 'No topic_id specified for the survey';
+$lang['No_survey_id_specified'] = 'No survey_id specified';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+// end mod survey at topic head
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$lang['Username_taking_survey'] = 'Username of person for whom user is answering survey';
+$lang['Fill_out_survey_for_someone_else'] = 'Fill out survey for another user';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/survey_answer.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			<!-- BEGIN question_rows -->
+			<tr> 
+			  <td align="center" width=300px" valign="center"><span class="gen"><b>{question_rows.QUESTION}</b></span></td><td>&nbsp;&nbsp;&nbsp;</td>
+			  <td align="left" valign="center"}><span class="gen"><b>{question_rows.ANSWER}</b></span></td><td><br /><br /></td>
+			</tr>
+			<tr><td><br /><br /></td></tr>
+			<!-- END question_rows -->
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+		  	<!-- BEGIN switch_username_select -->
+			<tr> 
+				<td align="center" width="300px"><span class="gen"><b>{L_USERNAME_TAKING_SURVEY}</b></span></td><td>&nbsp;&nbsp;&nbsp;</td>
+				<td align="left"><span class="gen"><input type="text"  class="post" name="username" maxlength="25" size="25" tabindex="1" value="" />&nbsp;<input type="submit" name="usersubmit" value="{L_FIND_USERNAME}" class="liteoption" onClick="window.open('{U_SEARCH_USER}', '_phpbbsearch', 'HEIGHT=250,resizable=yes,WIDTH=400');return false;" /></span></td><td><br /><br /></td>
+				<td>&nbsp;</td><td>&nbsp;</td>				
+			</tr>
+			<tr><td>&nbsp;</td></tr><tr><td>&nbsp;</td></tr><tr><td>&nbsp;</td></tr><tr><td>&nbsp;</td></tr>
+			<!-- END switch_username_select -->
+
+			<!-- BEGIN question_rows -->
+			<tr> 
+			  <td align="center" width="300px" valign="center"><span class="gen"><b>{question_rows.QUESTION}</b></span></td><td>&nbsp;&nbsp;&nbsp;</td>
+			  <td align="left" valign="center"><span class="gen"><b>{question_rows.ANSWER}</b></span></td><td><br /><br /></td>
+			</tr>
+			<tr><td><br /><br /></td></tr>
+			<!-- END question_rows -->
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/survey_result_viewtopic.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<!-- END switch_include_fill_in_button -->
+	
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<!-- BEGIN switch_include_fill_out_for_other_user_button --> 
+	  <tr>
+		<td align="center">{S_HIDDEN_FIELDS}<input type="submit" name="fill_out_for_other_user" value="{L_FILL_OUT_FOR_OTHER_USER}" class="mainoption" /></td>
+	  </tr>
+	<!-- END switch_include_fill_out_for_other_user_button -->
+
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/viewtopic_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<td align="left" valign="middle" nowrap="nowrap"><span class="nav"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" align="middle" /></a>&nbsp;&nbsp;&nbsp;<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" /></a></span></td>
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	<td align="left" valign="middle" nowrap="nowrap"><span class="nav"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" align="middle" /></a>&nbsp;&nbsp;&nbsp;<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" /></a>
+		<!-- BEGIN switch_include_fill_in_button --> 
+		&nbsp;&nbsp;&nbsp;<a href="{U_FILL_OUT_SURVEY}"><img src="{SURVEY_FILL_OUT_IMG}" border="0" alt="{L_FILL_OUT}" align="middle" /></a>
+		<!-- END switch_include_fill_in_button --> 
+		</span></td>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$images['reply_locked'] = "$current_template_images/{LANG}/reply-locked.gif";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod tabulated survey at topic head
+$images['fill_out_survey'] = "$current_template_images/{LANG}/fill_out_survey.gif";
+$images['change_survey_answers'] = "$current_template_images/{LANG}/change_survey_answers.gif";
+// end mod tabulated survey at topic head
+	
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

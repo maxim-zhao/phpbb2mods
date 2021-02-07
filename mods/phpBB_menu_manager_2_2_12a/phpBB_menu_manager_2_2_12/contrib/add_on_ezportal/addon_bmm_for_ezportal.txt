@@ -1,0 +1,493 @@
+##############################################################
+## MOD Title:		ADD-ON: phpBB Menu Manager on ezPortal
+## MOD Author: OXPUS < webmaster@oxpus.de > (Karsten Ude) http://www.oxpus.de
+## MOD Description:	Replace the navigation block on ezPortal with a configurable portal menu
+## MOD Version:		2.2.11
+##
+## Installation Level:	Easy
+## Installation Time:	2-5 Minutes
+## Files To Edit:	3
+##			portal.php
+##			includes/constants.php
+##			templates/subSilver/portal_body.tpl
+##
+## Included Files:	9
+##			add_on_ezportal/board_menu_manager.php
+##			add_on_ezportal/templates/subSilver/board_menu_categories_admin.tpl
+##			add_on_ezportal/templates/subSilver/board_menu_categories_edit.tpl
+##			add_on_ezportal/templates/subSilver/board_menu_categories_sort.tpl
+##			add_on_ezportal/templates/subSilver/board_menu_config.tpl
+##			add_on_ezportal/templates/subSilver/board_menu_links_set.tpl
+##			add_on_ezportal/templates/subSilver/board_menu_links_sort.tpl
+##			add_on_ezportal/templates/subSilver/board_menu_merge.tpl
+##			add_on_ezportal/templates/subSilver/board_menu_welcome.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+##
+## SQL / Database changes
+## ----------------------
+## Instead using the SQL commands you can upload the file
+##		portal_menu_install.php
+## to your phpbb root directory and run this with your browser.
+## This file will do all nessassary changes in the database for you.
+## After using this file, please delete it to avoid errors.
+##
+##############################################################
+## MOD History:
+##
+##   2006-08-17 - Version 2.2.11
+##      - FIX HTML Validation
+##	  For update look into the folder updates
+##
+##   2006-01-03 - Version 2.2.10
+##      - FIX Security issue
+##	  For update replace the file add_on_ezportal/board_menu_manager.php
+##
+##   2006-01-01 - Version 2.2.9
+##      - FIX Layout issue
+##	  For update replace the files
+##		- add_on_ezportal/board_menu_manager.php
+##		- add_on_ezportal/templates/subSilver/board_menu_welcome.tpl
+##
+##   2005-12-17 - Version 2.2.8
+##      - FIX security bugs
+##	  For update replace the files
+##	  - board_menu_manager.php
+##	  - templates/subSilver/board_menu_welcome.tpl
+##
+##   2005-12-13 - Version 2.2.7
+##      - FIX little layout error
+##	  For update replace the file board_menu_config.tpl.
+##
+##   2005-12-10 - Version 2.2.6
+##      - FIX little layout error
+##	  For update replace the files board_menu_manager.php and board_menu_links_sort.tpl.
+##
+##   2005-11-26 - Version 2.2.5
+##      - Recheck Files for malfunctions SQL-Statements.
+##	  For update just replace the file board_menu_manager.php.
+##
+##   2005-10-18 - Version 2.2.4
+##      - Re-recheck instructions for submitting in MOD Database on http://www.phpbb.com
+##	  For Update reinstall this add-on on portal.php and replace the file board_menu_manager.php.
+##
+##   2005-09-29 - Version 2.2.3
+##      - Re-recheck instructions for submitting in MOD Database on http://www.phpbb.com
+##	  For Update reinstall this add-on replace each .tpl-file.
+##
+##   2005-09-06 - Version 2.2.2
+##      - Re-recheck instructions for submitting in MOD Database on http://www.phpbb.com
+##	  For Update replace all files from this add-on!
+##
+##   2005-08-29 - Version 2.2.1
+##      - Recheck instructions for submitting in MOD Database on http://www.phpbb.com
+##
+##   2005-06-23 - Version 2.2.0
+##      - Add some statistic data
+##	  For update replace the files lang_board_menu.php, board_menu_manager.php and
+##	  board_menu_links_admin.tpl.
+##
+##   2005-06-10 - Version 2.1.1
+##      - FIX little sql error on portal if there are no links or user have not
+##	  yet choose some links.
+##	  For update look into the folder updates.
+##
+##   2004-09-03 - Version 2.1.0
+##      - Add switch sorting fix links by user on/off
+##
+##   2004-07-07 - Version 2.0.1
+##      - Display all links for the userlevel a registered user will be have
+##	  For update look into the folder update.
+##
+##   2004-06-21 - Version 2.0.0
+##	- Rewritten the code to avoid errors on user menu.
+##	  For update look into the folder update.
+##
+##   2004-06-01 - Version 1.4.6
+##	- Fix compatibility with memberlist from Profile Control Panel
+##	  For update replace the complete code for portal.php
+##
+##   2004-05-31 - Version 1.4.5
+##	- Fix changing link auth might produce errors
+##	  For update replace board_menu_manager.php
+##
+##   2004-05-22 - Version 1.4.4
+##	- Fix changing link auth will not affect portal navigation
+##	  For update replace board_menu_manager.php
+##
+##   2004-04-30 - Version 1.4.3
+##	- Fix deleting link will destroy all user settings for portal navigation
+##	  Fix sorting portal navigation based on user settings incl. the fixed links
+##	  Fix layout on add/remove links
+##	  Add new sorting for setting a link on first/last position (only board menu!)
+##	  For update look into the folder updates
+##
+##   2004-04-27 - Version 1.4.2
+##	- Fix missing fields in portal_menu_install.php
+##	  Fix displaying guest links until user have select his own links.
+##
+##   2004-04-24 - Version 1.4.1
+##	- Renaming the Add-On to phpBB Menu Manager
+##      - Fix a bug in portal navigation. For update look into the folder updates
+##
+##   2004-04-21 - Version 1.4.0
+##      - Adding mark/unmark all chooseable links
+##	- Adding reorder links like default sorting
+##	- Adding choose between category name and line or both in portal as seperator
+##	  For update look into the folder updates
+##
+##   2004-04-18 - Version 1.3.0
+##      - Adding LESS_ADMIN and fix links on the portal navigation
+##	  For update completely reinstall this add-on after updating the basic mod to 1.4.0!!!
+##
+##   2004-04-18 - Version 1.2.0
+##      - Seperates the settings for the portal navigation
+##	  For update completely reinstall this add-on
+##
+##   2004-04-15 - Version 1.1.0
+##      - To update please look to the update description
+##
+##   2004-04-11 - Version 1.0.0
+##      - First release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+CREATE TABLE phpbb_board_menu_cat (
+	cat_id MEDIUMINT( 8 ) NOT NULL auto_increment,
+	cat_name VARCHAR( 50 ) NOT NULL ,
+	cat_sort MEDIUMINT( 8 ) NOT NULL ,
+	show_cat_name TINYINT( 1 ) DEFAULT '1' NOT NULL ,
+	show_seperator TINYINT( 1 ) DEFAULT '0' NOT NULL ,
+PRIMARY KEY (cat_id)
+);
+
+CREATE TABLE phpbb_board_menu_merge (
+	cat_id MEDIUMINT( 8 ) NOT NULL,
+	link_id MEDIUMINT( 8 ) NOT NULL
+);
+
+CREATE TABLE phpbb_user_portal_links (
+	user_id MEDIUMINT( 8 ) NOT NULL ,
+	portal_link MEDIUMINT( 8 ) NOT NULL ,
+	portal_sort MEDIUMINT( 8 ) NOT NULL
+);
+
+ALTER TABLE phpbb_board_links ADD bl_psort MEDIUMINT( 8 ) NOT NULL;
+ALTER TABLE phpbb_board_links ADD bl_fix TINYINT( 1 ) DEFAULT '0' NOT NULL;
+
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('bl_fix_sort', '0');
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy add_on_ezportal/board_menu_manager.php to board_menu_manager.php
+copy add_on_ezportal/templates/subSilver/board_menu_categories_admin.tpl to templates/subSilver/board_menu_categories_admin.tpl
+copy add_on_ezportal/templates/subSilver/board_menu_categories_edit.tpl to templates/subSilver/board_menu_categories_edit.tpl
+copy add_on_ezportal/templates/subSilver/board_menu_categories_sort.tpl to templates/subSilver/board_menu_categories_sort.tpl
+copy add_on_ezportal/templates/subSilver/board_menu_config.tpl to templates/subSilver/board_menu_config.tpl
+copy add_on_ezportal/templates/subSilver/board_menu_links_set.tpl to templates/subSilver/board_menu_links_set.tpl
+copy add_on_ezportal/templates/subSilver/board_menu_links_sort.tpl to templates/subSilver/board_menu_links_sort.tpl
+copy add_on_ezportal/templates/subSilver/board_menu_merge.tpl to templates/subSilver/board_menu_merge.tpl
+copy add_on_ezportal/templates/subSilver/board_menu_welcome.tpl to templates/subSilver/board_menu_welcome.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+portal.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// Generate the page
+//
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//
+// Create the personal board menu
+$sql = "SELECT * FROM " . USER_PORTAL_LINKS_TABLE . "
+	WHERE user_id = " . $userdata['user_id'] . "
+	ORDER BY portal_sort";
+if ( !$result = $db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+}
+$portal_links_count = $db->sql_numrows($result);
+$mpl_links = array();
+$mpl_sort = array();
+$mpl_fix_links = array();
+$mpl_fix_sort = array();
+if ( $portal_links_count != 0 )
+{
+	while ( $row = $db->sql_fetchrow($result) )
+	{
+		$mpl_links[] = $row['portal_link'];
+		$mpl_sort[] = $row['portal_sort'];
+	}
+}
+$db->sql_freeresult($result);
+
+include_once($phpbb_root_path . 'includes/functions_board_menu.'.$phpEx);
+
+$bml_level_access = get_bllink_access();
+$bml_fix = ( $bml_level_access == '' ) ? ' WHERE bl_fix = 1' : ' AND bl_fix = 1';
+
+$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . "
+	$bml_level_access
+	$bml_fix
+	ORDER BY bl_psort DESC";
+if ( !$result = $db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+}
+
+$i = 1;
+if ( $portal_links_count != 0 )
+{
+	if ( $board_config['bl_fix_sort'] == 1 )
+	{
+		while ( $row = $db->sql_fetchrow($result) )
+		{
+			$fix_link_id = $row['bl_id'];
+			if ( !in_array($fix_link_id, $mpl_links) )
+			{
+				$mpl_links[] = $fix_link_id;
+				$mpl_sort[] = 0 - $i;
+				$i++;
+			}
+		}
+	}
+	else
+	{
+		while ( $row = $db->sql_fetchrow($result) )
+		{
+			$mpl_fix_links[] = $row['bl_id'];
+			$mpl_fix_sort[] = 0 - $i;
+			$i++;
+		}
+	}
+}
+else
+{
+	while ( $row = $db->sql_fetchrow($result) )
+	{
+		$mpl_links[] = $row['bl_id'];
+		$mpl_sort[] = 0 - $i;
+		$i++;
+	}
+}
+$db->sql_freeresult($result);
+
+$sql_cat = "SELECT * FROM " . BOARD_MENU_CAT_TABLE . "
+	    ORDER BY cat_sort";
+if ( !$result2 = $db->sql_query($sql_cat) )
+{
+	message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+}
+
+$portal_menu_links = $mcat_ids = '';
+$mcat = $mcatname = $mshow_catname = $mshow_seperator = array();
+
+while ( $row2 = $db->sql_fetchrow($result2) )
+{
+	$mcategory = $row2['cat_name'];
+	$mcatname[] = $lang[$mcategory];
+	$mcat[] = $row2['cat_id'];
+	$mshow_catname[] = $row2['show_cat_name'];
+	$mshow_seperator[] = $row2['show_seperator'];
+
+	if ( $userdata['session_logged_in'] && $portal_links_count != 0 )
+	{
+		if ( $board_config['bl_fix_sort'] == 1 )
+		{
+			array_multisort($mpl_sort, SORT_DESC, $mpl_links);
+		}
+		else
+		{
+			unset($mpl_user_links);
+			unset($mpl_user_sort);
+			$mpl_user_links = array();
+			$mpl_user_sort = array();
+			for ( $i = 0; $i < count($mpl_links); $i++ )
+			{
+				if ( $mpl_fix_links[0] != '' && !in_array($mpl_links[$i], $mpl_fix_links) )
+				{
+					$mpl_user_links[] = $mpl_links[$i];
+					$mpl_user_sort[] = $mpl_sort[$i];
+				}
+			}
+
+			unset($mpl_links);
+			unset($mpl_sort);
+			$mpl_links = array();
+			$mpl_sort = array();
+
+			for ( $i = 0; $i < count($mpl_fix_links); $i++ )
+			{
+				$mpl_links[] = $mpl_fix_links[$i];
+				$mpl_sort[] = $mpl_fix_sort[$i];
+			}
+
+			for ( $i = 0; $i < count($mpl_user_links); $i++ )
+			{
+				$mpl_links[] = $mpl_user_links[$i];
+				$mpl_sort[] = $mpl_user_sort[$i];
+			}
+		}
+
+		$user_portal_links = implode(',', $mpl_links);
+		$user_portal_links = ($user_portal_links == '' ) ? 0 : $user_portal_links;
+	}
+
+	$mcat_ids .= ($mcat_ids == '') ? $row2['cat_id'] : ', '.$row2['cat_id'];
+}
+
+if ( $userdata['session_logged_in'] && $portal_links_count != 0 )
+{
+	if ( $board_config['bl_fix_sort'] == 1 )
+	{
+		$sql_order = 'ORDER BY';
+
+		for ( $i = 0; $i < count($mpl_links); $i++ )
+		{
+			$sql_order .= ( $sql_order == 'ORDER BY' ) ? ' l.bl_id = '.$mpl_links[$i] : ', l.bl_id = '.$mpl_links[$i];
+		}
+	}
+	else
+	{
+		$sql_order = '';
+	}
+
+	$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . " l, " . BOARD_MENU_MERGE_TABLE . " m
+		WHERE l.bl_id IN ($user_portal_links)
+		AND l.bl_id = m.link_id
+		AND m.cat_id IN ($mcat_ids)
+		$sql_order";
+	if ( !$result = $db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+	}
+}
+else
+{
+	$sqlwhereaccess = get_bllink_access();
+	$sql_where_extend = ( $sqlwhereaccess == '' ) ? ' WHERE ' : ' AND ';
+	$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . " l, " . BOARD_MENU_MERGE_TABLE . " m
+		$sqlwhereaccess
+		$sql_where_extend l.bl_id = m.link_id
+		AND m.cat_id IN ($mcat_ids)
+		ORDER BY l.bl_psort, l.bl_id";
+	if ( !$result = $db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+	}
+}
+
+$bl_theme_path = get_bl_theme();
+$board_config['bl_seperator_content'] = str_replace('SPACE', '&nbsp;&nbsp;&nbsp;', $board_config['bl_seperator_content']);
+$portal_menu_link_sep = $portal_menu_link_name = $portal_menu_link = array();
+
+while ( $row = $db->sql_fetchrow($result) )
+{
+	$portal_menu_link_sep[$row['cat_id']][] = ( $board_config['bl_seperator'] == 1 ) ? '<img src="'.$board_config['bl_seperator_content'].'" border="0" alt="'.$row['bl_seperator_content'].'" />&nbsp;' : $board_config['bl_seperator_content'];
+	$portal_menu_link_img[$row['cat_id']][] = ( $row['bl_img'] != '' ) ? '<img src="'.$bl_theme_path.$row['bl_img'].'" border="0" alt="'.$row['bl_img'].'" />&nbsp;' : '';
+
+	$portal_menu_link_name[$row['cat_id']][] = $lang[$row['bl_name']];
+
+	if (substr($row['bl_link'],0,10) != 'javascript')
+	{
+		$u_portal_menu_link[$row['cat_id']][] = append_sid($row['bl_link'].'.'.$phpEx.(($row['bl_parameter'] != '') ? '?'.$row['bl_parameter'] : ''));
+	}
+	else
+	{
+		$u_portal_menu_link[$row['cat_id']][] = $row['bl_link'];
+	}
+}
+
+for ($i = 0; $i < count($mcatname); $i++)
+{
+	if (count($u_portal_menu_link[$mcat[$i]]) != 0)
+	{
+		$portal_menu_cat = ( $mshow_seperator[$i] == TRUE ) ? '<hr />' : '';
+		$portal_menu_cat .= ( $mshow_catname[$i] == TRUE ) ? '<b>'.$mcatname[$i].'</b><br />' : '';
+
+		$template->assign_block_vars('portal_menu_cat', array(
+			'PORTAL_MENU_CATEGORY' => $portal_menu_cat)
+		);
+
+		for ($j = 0; $j < count($u_portal_menu_link[$mcat[$i]]); $j++)
+		{
+			$template->assign_block_vars('portal_menu_cat.portal_menu_links', array(
+				'PORTAL_MENU_LINK_SEP' => $portal_menu_link_sep[$mcat[$i]][$j],
+				'PORTAL_MENU_LINK_IMG' => $portal_menu_link_img[$mcat[$i]][$j],
+				'PORTAL_MENU_LINK_NAME' => $portal_menu_link_name[$mcat[$i]][$j],
+				'U_PORTAL_MENU_LINK' => $u_portal_menu_link[$mcat[$i]][$j])
+			);
+		}
+	}
+}
+// Create the personal board menu
+//
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+define('USER_BOARD_LINKS_TABLE', $table_prefix.'user_board_links');
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+define('USER_PORTAL_LINKS_TABLE', $table_prefix.'user_portal_links');
+define('BOARD_MENU_CAT_TABLE', $table_prefix.'board_menu_cat');
+define('BOARD_MENU_MERGE_TABLE', $table_prefix.'board_menu_merge');
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/portal_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				<a href="{U_PORTAL}">{L_HOME}</a><br />
+				<a href="{U_INDEX}">{L_FORUM}</a><br />
+				<a href="{U_MEMBERLIST}">{L_MEMBERLIST}</a><br />
+				<a href="{U_FAQ}">{L_FAQ}</a><br />
+				<a href="{U_SEARCH}">{L_SEARCH}</a><br />
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				<!-- BEGIN portal_menu_cat -->
+				{portal_menu_cat.PORTAL_MENU_CATEGORY}
+				<!-- BEGIN portal_menu_links -->
+				{portal_menu_cat.portal_menu_links.PORTAL_MENU_LINK_SEP}{portal_menu_cat.portal_menu_links.PORTAL_MENU_LINK_IMG}<a href="{portal_menu_cat.portal_menu_links.U_PORTAL_MENU_LINK}" class="mainmenu">{portal_menu_cat.portal_menu_links.PORTAL_MENU_LINK_NAME}</a><br />
+				<!-- END portal_menu_links -->
+				<!-- END portal_menu_cat -->
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

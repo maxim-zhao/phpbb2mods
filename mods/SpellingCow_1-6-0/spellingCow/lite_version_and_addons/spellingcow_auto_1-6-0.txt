@@ -1,0 +1,357 @@
+## easymod compliant
+############################################################## 
+## MOD Title:    SpellingCow Auto Spell Check - auto
+## MOD Author:   Nuttzy99 < nospam@blizzhackers.com > (Craig Nuttall) http://www.spellingcow.com
+##
+## MOD Description:  Once you have the free spellingcow.com service
+##    working on your board, use this MOD to give your users the
+##    option to automatically spell check before submitting posts.
+## MOD Version:  1.6.0
+## 
+## Installation Level:  EASY
+## Installation Time:   10 minutes
+## Files To Edit:       posting.php
+##                      privmsg.php
+##                      includes/usercp_register.php
+##                      templates/subSilver/posting_body.tpl
+##                      templates/subSilver/profile_add_body.tpl
+##                      language/lang_english/lang_main.php
+## Included Files:      n/a
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+############################################################## 
+##
+## Author Notes:
+##     + REQUIRES spellingcow_lite_1-6-0.txt already be installed
+##     + As terms of service, SpellingCow.com does require appropriate link backs (this is
+##         a condition of the SpellingCow service, not this GPL'd MOD).
+##     + If you don't want the auto checking feature to be on by default, follow the instructions
+##         in the SQL command
+##     + requires spellingcow already be installed ( http://www.spellingcow.com )
+##     + Should work with all versions phpBB
+##     + installable with EasyMOD
+##
+############################################################## 
+##
+## MOD History:
+##    2004-07-05 - Version 1.6.0
+##         + no changes made to this file
+##    2004-07-05 - Version 1.0.2
+##         + made this lite version
+##    2004-06-21 - Version 1.0.0
+##         + initial release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+
+#
+#-----[ SQL ]---------------------------------
+#
+# NOTE: if you don't want the checker to be on by default, change "DEFAULT '1';" to "DEFAULT '0';"
+#    or you can use the spellingcow_auto_off.txt MOD to turn it off by default at any time
+#
+ALTER TABLE `phpbb_users` ADD `user_autospell` TINYINT( 1 ) DEFAULT '1';
+
+
+#
+#-----[ OPEN ]---------------------------------
+#
+posting.php
+
+
+#
+#-----[ FIND ]---------------------------------
+#
+	'SMILIES_STATUS' => $smilies_status,
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+// SPELLINGCOW - begin
+	'AUTO_SPELL' => $userdata['user_autospell'],
+// SPELLINGCOW - end
+
+#
+#-----[ OPEN ]---------------------------------
+#
+privmsg.php
+
+
+#
+#-----[ FIND ]---------------------------------
+#
+	'SMILIES_STATUS' => $smilies_status,
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+// SPELLINGCOW - begin
+	'AUTO_SPELL' => $userdata['user_autospell'],
+// SPELLINGCOW - end
+
+#
+#-----[ OPEN ]---------------------------------
+#
+includes/usercp_register.php
+
+
+#
+#-----[ FIND ]---------------------------------
+#
+#   NOTE - the complete line to find is:
+# $allowsmilies = ( isset($HTTP_POST_VARS['allowsmilies']) ) ? ( ($HTTP_POST_VARS['allowsmilies']) ? TRUE : 0 ) : $board_config['allow_smilies'];
+#
+isset($HTTP_POST_VARS['allowsmilies']
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+// SPELLINGCOW - begin
+		$spellcheck = ( isset($HTTP_POST_VARS['spellcheck']) ) ? ( ($HTTP_POST_VARS['spellcheck']) ? TRUE : 0 ) : TRUE ;
+// SPELLINGCOW - end
+
+#
+#-----[ FIND ]---------------------------------
+#
+#   NOTE - the complete line to find is:
+# $allowsmilies = ( isset($HTTP_POST_VARS['allowsmilies']) ) ? ( ($HTTP_POST_VARS['allowsmilies']) ? TRUE : 0 ) : $userdata['user_allowsmile'];
+#
+isset($HTTP_POST_VARS['allowsmilies']
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+// SPELLINGCOW - begin
+		$spellcheck = ( isset($HTTP_POST_VARS['spellcheck']) ) ? ( ($HTTP_POST_VARS['spellcheck']) ? TRUE : 0 ) : $userdata['user_autospell'];
+// SPELLINGCOW - end
+
+#
+#-----[ FIND ]---------------------------------
+#
+#   NOTE - the complete lines to find are:
+# $sql = "UPDATE " . USERS_TABLE . "
+# 	SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) ."', user_icq = '" . str_replace("\'", "''", $icq) . "', user_website = '" . str_replace("\'", "''", $website) . "', user_occ = '" . str_replace("\'", "''", $occupation) . "', user_from = '" . str_replace("\'", "''", $location) . "', user_interests = '" . str_replace("\'", "''", $interests) . "', user_sig = '" . str_replace("\'", "''", $signature) . "', user_sig_bbcode_uid = '$signature_bbcode_uid', user_viewemail = $viewemail, user_aim = '" . str_replace("\'", "''", str_replace(' ', '+', $aim)) . "', user_yim = '" . str_replace("\'", "''", $yim) . "', user_msnm = '" . str_replace("\'", "''", $msn) . "', user_attachsig = $attachsig, user_allowsmile = $allowsmilies, user_allowhtml = $allowhtml, user_allowbbcode = $allowbbcode, user_allow_viewonline = $allowviewonline, user_notify = $notifyreply, user_notify_pm = $notifypm, user_popup_pm = $popup_pm, user_timezone = $user_timezone, user_dateformat = '" . str_replace("\'", "''", $user_dateformat) . "', user_lang = '" . str_replace("\'", "''", $user_lang) . "', user_style = $user_style, user_active = $user_active, user_actkey = '" . str_replace("\'", "''", $user_actkey) . "'" . $avatar_sql . "
+#
+$sql = "UPDATE " . USERS_TABLE
+	SET
+
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+user_allowsmile = $allowsmilies,
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+ user_autospell = $spellcheck,
+
+
+#
+#-----[ FIND ]---------------------------------
+#
+#   NOTE - the complete lines to find are:
+# $sql = "INSERT INTO " . USERS_TABLE . "	(user_id, username, user_regdate, user_password, user_email, user_icq, user_website, user_occ, user_from, user_interests, user_sig, user_sig_bbcode_uid, user_avatar, user_avatar_type, user_viewemail, user_aim, user_yim, user_msnm, user_attachsig, user_allowsmile, user_allowhtml, user_allowbbcode, user_allow_viewonline, user_notify, user_notify_pm, user_popup_pm, user_timezone, user_dateformat, user_lang, user_style, user_level, user_allow_pm, user_active, user_actkey)
+# 	VALUES ($user_id, '" . str_replace("\'", "''", $username) . "', " . time() . ", '" . str_replace("\'", "''", $new_password) . "', '" . str_replace("\'", "''", $email) . "', '" . str_replace("\'", "''", $icq) . "', '" . str_replace("\'", "''", $website) . "', '" . str_replace("\'", "''", $occupation) . "', '" . str_replace("\'", "''", $location) . "', '" . str_replace("\'", "''", $interests) . "', '" . str_replace("\'", "''", $signature) . "', '$signature_bbcode_uid', $avatar_sql, $viewemail, '" . str_replace("\'", "''", str_replace(' ', '+', $aim)) . "', '" . str_replace("\'", "''", $yim) . "', '" . str_replace("\'", "''", $msn) . "', $attachsig, $allowsmilies, $allowhtml, $allowbbcode, $allowviewonline, $notifyreply, $notifypm, $popup_pm, $user_timezone, '" . str_replace("\'", "''", $user_dateformat) . "', '" . str_replace("\'", "''", $user_lang) . "', $user_style, 0, 1, ";
+#
+$sql = "INSERT INTO " . USERS_TABLE
+	VALUES
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+user_allowsmile,
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+ user_autospell,
+
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+$allowsmilies,
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+ $spellcheck,
+
+
+#
+#-----[ FIND ]---------------------------------
+#
+	$allowsmilies = $userdata['user_allowsmile'];
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+// SPELLINGCOW - begin
+	$spellcheck = $userdata['user_autospell'];
+// SPELLINGCOW - end
+
+#
+#-----[ FIND ]---------------------------------
+#
+#   NOTE - the complete line to find is:
+#		'ALWAYS_ALLOW_SMILIES_NO' => ( !$allowsmilies ) ? 'checked="checked"' : '',
+#
+'ALWAYS_ALLOW_SMILIES_NO' =>
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+// SPELLINGCOW - begin
+		'ALWAYS_SPELL_CHECK_YES' => ( $spellcheck ) ? 'checked="checked"' : '',
+		'ALWAYS_SPELL_CHECK_NO' => ( !$spellcheck ) ? 'checked="checked"' : '',
+// SPELLINGCOW - end
+
+#
+#-----[ FIND ]---------------------------------
+#
+#   NOTE - the complete line to find is:
+#		'L_ALWAYS_ALLOW_SMILIES' => $lang['Always_smile'],
+#
+		'L_ALWAYS_ALLOW_SMILIES' =>
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+// SPELLINGCOW - begin
+		'L_ALWAYS_SPELL_CHECK' => $lang['Always_spellcheck'],
+// SPELLINGCOW - end
+
+#
+#-----[ OPEN ]---------------------------------
+#
+language/lang_english/lang_main.php
+
+
+#
+#-----[ FIND ]---------------------------------
+#
+#   NOTE - the complete line to find is:
+# $lang['Always_smile'] = 'Always enable Smilies';
+#
+$lang['Always_smile']
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+// SPELLINGCOW - begin
+$lang['Always_spellcheck'] = 'Always check Spelling before posting';
+// SPELLINGCOW - end
+
+#
+#-----[ OPEN ]---------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+
+#
+#-----[ FIND ]---------------------------------
+#
+function checkForm() {
+	formErrors = false;    
+
+
+#
+#-----[ BEFORE, ADD ]---------------------------------
+#
+
+// SPELLINGCOW - begin
+function auto_check_spelling()
+{
+	// if we are auto checking, set value to 2 so the submit from checkForm will fail; open the checker window
+	if (document.post.auto_spell_check.value == 1)
+	{
+		document.post.auto_spell_check.value = 2 ;
+		window.open('spell-gw.php?mode=load&form=post&auto=check&source=message&button=post&type=phpBB', '_spellcheck', 'HEIGHT=484,resizable=yes,scrollbars=yes,WIDTH=595');
+	}
+}
+// SPELLINGCOW - end
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+
+// SPELLINGCOW - begin
+	// if we set value to 2, then that means we are auto spell checking, so fail
+	if (document.post.auto_spell_check.value == 2)
+	{
+		// reset our value
+		document.post.auto_spell_check.value = 1 ;
+		return false;
+	}
+// SPELLINGCOW - end
+
+#
+#-----[ FIND ]---------------------------------
+#
+#   NOTE - the complete line to find is:
+# <td class="catBottom" colspan="2" align="center" height="28"> {S_HIDDEN_FORM_FIELDS}<input type="submit" tabindex="5" name="preview" class="mainoption" value="{L_PREVIEW}" onclick="javascript:preview_press()" />&nbsp;<input type="submit" accesskey="s" tabindex="6" name="post" class="mainoption" value="{L_SUBMIT}" /></td>
+#
+value="{L_SUBMIT}"
+
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+value="{L_SUBMIT}"
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+ onclick="javascript:auto_check_spelling()"
+
+
+#
+#-----[ OPEN ]---------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+
+
+#
+#-----[ FIND ]---------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BOARD_LANGUAGE}:</span></td>
+
+
+#
+#-----[ BEFORE, ADD ]---------------------------------
+#
+<!-- SPELLINGCOW begin -->
+	<tr> 
+	  <td class="row1"><span class="gen">{L_ALWAYS_SPELL_CHECK}:</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="spellcheck" value="1" {ALWAYS_SPELL_CHECK_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="spellcheck" value="0" {ALWAYS_SPELL_CHECK_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+<!-- SPELLINGCOW end -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]---------------------------------
+#
+# EoM

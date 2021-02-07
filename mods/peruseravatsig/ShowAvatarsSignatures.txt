@@ -1,0 +1,331 @@
+############################################################## 
+## MOD Title: View/Disable Avatars/Signatures 
+## MOD Author: r6untouchable < admin@throttlejunkies.com > (Ryan) N/A 
+## MOD Description: Lets users choose to view/disable avatars/sigs 
+## MOD Version: 1.0.0 
+## 
+## Installation Level: (Intermediate) 
+## Installation Time: ~15-20 Minutes 
+## Files To Edit: 
+##               includes/ucercp_register.php 
+##               language/lang_english/lang_main.php 
+##               admin/admin_users.php
+##               templates/subSilver/admin/user_edit_body.tpl
+##               templates/subSilver/profile_add_body.tpl
+##               templates/subSilver/viewtopic_body.tpl
+##               viewtopic.php
+## Included Files: (N/A) 
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes: Please place the SQL commands in a text file and run them that way.
+## 
+##############################################################
+## MOD History: 
+## 
+##   2003-08-30 - Version 1.0.0 
+##      - Initial Release 
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+ALTER TABLE phpbb_users ADD COLUMN user_showavatars tinyint(1) default '1'; 
+ALTER TABLE phpbb_users ADD COLUMN user_showsignatures tinyint(1) default '1';
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_register.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$allowsmilies = ( isset($HTTP_POST_VARS['allowsmilies']) ) ? ( ($HTTP_POST_VARS['allowsmilies']) ? TRUE : 0 ) : $board_config['allow_smilies'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$showavatars = ( isset($HTTP_POST_VARS['showavatars']) ) ? ( ($HTTP_POST_VARS['showavatars']) ? TRUE : 0 ) : TRUE; 
+$showsignatures = ( isset($HTTP_POST_VARS['showsignatures']) ) ? ( ($HTTP_POST_VARS['showsignatures']) ? TRUE : 0 ) : TRUE;
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$allowsmilies = ( isset($HTTP_POST_VARS['allowsmilies']) ) ? ( ($HTTP_POST_VARS['allowsmilies']) ? TRUE : 0 ) : $userdata['user_allowsmile'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$showavatars = ( isset($HTTP_POST_VARS['showavatars']) ) ? ( ($HTTP_POST_VARS['showavatars']) ? TRUE : 0 ) : $userdata['user_showavatars'];
+$showsignatures = ( isset($HTTP_POST_VARS['showsignatures']) ) ? ( ($HTTP_POST_VARS['showsignatures']) ? TRUE : 0 ) : $userdata['user_showsignatures'];
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "UPDATE " . USERS_TABLE . "
+	SET
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_allowsmile = $allowsmilies,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_showavatars = $showavatars, user_showsignatures = $showsignatures,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+// Get current date
+//
+$sql = "INSERT INTO "
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_allowsmile,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_showavatars, user_showsignatures,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+VALUES ($user_id,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$allowsmilies,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ $showavatars, $showsignatures,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$allowsmilies = $userdata['user_allowsmile'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$showavatars = $userdata['user_showavatars'];
+$showsignatures = $userdata['user_showsignatures'];
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+display_avatar_gallery($mode,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$allowsmilies,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ $showavatars, $showsignatures,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+'ALWAYS_ALLOW_SMILIES_NO' => ( !$allowsmilies ) ? 'checked="checked"' : '',
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+'SHOW_AVATARS_YES' => ( $showavatars ) ? 'checked="checked"' : '',
+'SHOW_AVATARS_NO' => ( !$showavatars ) ? 'checked="checked"' : '',
+'SHOW_SIGNATURES_YES' => ( $showsignatures ) ? 'checked="checked"' : '',
+'SHOW_SIGNATURES_NO' => ( !$showsignatures ) ? 'checked="checked"' : '',
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+'L_ALWAYS_ADD_SIGNATURE' => $lang['Always_add_sig'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+'L_SHOW_AVATARS' => $lang['Show_avatars'],
+'L_SHOW_SIGNATURES' => $lang['Show_signatures'],
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+//
+// That's all, Folks!
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$lang['Show_avatars'] = 'Show Avatars in Topic';
+$lang['Show_signatures'] = 'Show Signatures in Topic';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_users.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$allowsmilies = ( isset( $HTTP_POST_VARS['allowsmilies']) ) ? intval( $HTTP_POST_VARS['allowsmilies'] ) : $board_config['allow_smilies'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$showavatars = ( isset( $HTTP_POST_VARS['showavatars']) ) ? intval( $HTTP_POST_VARS['showavatars'] ) : $board_config['showavatars'];
+$showsignatures = ( isset( $HTTP_POST_VARS['showsignatures']) ) ? intval( $HTTP_POST_VARS['showsignatures'] ) : $board_config['showsignatures'];
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "UPDATE " . USERS_TABLE . "
+	SET
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_allowsmile = $allowsmilies,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_showavatars = $showavatars, user_showsignatures = $showsignatures,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$allowsmilies = $this_userdata['user_allowsmile'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$showavatars = $this_userdata['user_showavatars'];
+$showsigatures = $this_userdata['user_showsignatures'];
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$s_hidden_fields .= '<input type="hidden" name="allowsmilies" value="' . $allowsmilies . '" />';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$s_hidden_fields .= '<input type="hidden" name="showavatars" value="' . $showavatars . '" />';
+$s_hidden_fields .= '<input type="hidden" name="showsignatures" value="' . $showsignatures . '" />';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+'ALWAYS_ALLOW_SMILIES_NO' => (!$allowsmilies) ? 'checked="checked"' : '',
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+'SHOW_AVATARS_YES' => ($showavatars) ? 'checked="checked"' : '',
+'SHOW_AVATARS_NO' => (!$showavatars) ? 'checked="checked"' : '',
+'SHOW_SIGNATURES_YES' => ($showsignatures) ? 'checked="checked"' : '',
+'SHOW_SIGNATURES_NO' => (!$showsignatures) ? 'checked="checked"' : '',
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+'L_ALWAYS_ALLOW_SMILIES' => $lang['Always_smile'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+'L_SHOW_AVATARS' => $lang['Show_avatars'],
+'L_SHOW_SIGNATURES' => $lang['Show_signatures'],
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/user_edit_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+<input type="radio" name="allowsmilies" value="0" {ALWAYS_ALLOW_SMILIES_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr>
+		<td class="row1"><span class="gen">{L_SHOW_AVATARS}:</span></td>
+		<td class="row2">
+			<input type="radio" name="showavatars" value="1" {SHOW_AVATARS_YES} />
+			<span class="gen">{L_YES}</span>
+			<input type="radio" name="showavatars" value="0" {SHOW_AVATARS_NO} />
+			<span class="gen">{L_NO}</span></td>
+	</tr>
+	<tr>
+		<td class="row1"><span class="gen">{L_SHOW_SIGNATURES}:</span></td>
+		<td class="row2">
+			<input type="radio" name="showsignatures" value="1" {SHOW_SIGNATURES_YES} />
+			<span class="gen">{L_YES}</span>
+			<input type="radio" name="showsignatures" value="0" {SHOW_SIGNATURES_NO} />
+			<span class="gen">{L_NO}</span></td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+<input type="radio" name="allowsmilies" value="0" {ALWAYS_ALLOW_SMILIES_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr>
+		<td class="row1"><span class="gen">{L_SHOW_AVATARS}:</span></td>
+		<td class="row2">
+			<input type="radio" name="showavatars" value="1" {SHOW_AVATARS_YES} />
+			<span class="gen">{L_YES}</span>
+			<input type="radio" name="showavatars" value="0" {SHOW_AVATARS_NO} />
+			<span class="gen">{L_NO}</span></td>
+	</tr>
+	<tr>
+		<td class="row1"><span class="gen">{L_SHOW_SIGNATURES}:</span></td>
+		<td class="row2">
+			<input type="radio" name="showsignatures" value="1" {SHOW_SIGNATURES_YES} />
+			<span class="gen">{L_YES}</span>
+			<input type="radio" name="showsignatures" value="0" {SHOW_SIGNATURES_NO} />
+			<span class="gen">{L_NO}</span></td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/viewtopic_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+{postrow.POSTER_AVATAR}
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+
+<!-- BEGIN switch_showavatars --> 
+<br />{postrow.POSTER_AVATAR} 
+<!-- END switch_showavatars -->
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+{postrow.SIGNATURE}
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+
+<!-- BEGIN switch_showsignatures --> 
+{postrow.SIGNATURE} 
+<!-- END switch_showsignatures -->
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+viewtopic.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+'U_POST_ID' => $postrow[$i]['post_id']) 
+   );
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+if ($userdata['user_showavatars']) 
+   { 
+      $template->assign_block_vars('postrow.switch_showavatars', array()); 
+   }
+if ($userdata['user_showsignatures']) 
+   { 
+      $template->assign_block_vars('postrow.switch_showsignatures', array()); 
+   }
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

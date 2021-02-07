@@ -1,0 +1,143 @@
+############################################################## 
+## MOD Title: Guess Timezone
+## MOD Author: TerraFrost < terrafrost@phpbb.com > (Jim Wigginton) http://www.frostjedi.com/terra/wordpress/
+## MOD Description: Forget memorizing the GMT offset - let your browser decide what timezone you're in!
+## MOD Version: 1.0.0
+##
+## Installation Level: easy
+## Installation Time: 5 Minutes
+##
+## Files To Edit: 5
+##      admin/admin_users.php
+##      includes/usercp_register.php
+##      language/lang_english/lang_main.php
+##      templates/subSilver/profile_add_body.tpl
+##      templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files: 0
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##   The latest version of this mod can be found here:
+##   http://www.frostjedi.com/terra/scripts/phpbb/guess_tz.zip
+##
+##############################################################
+## MOD History:
+##
+##   2007-01-13 - Version 1.0.0
+##      - initial release
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]------------------------------------------
+#
+			'L_TIMEZONE' => $lang['Timezone'],
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+			'L_GUESS_TIMEZONE' => $lang['Guess_Timezone'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_TIMEZONE' => $lang['Timezone'],
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		'L_GUESS_TIMEZONE' => $lang['Guess_Timezone'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+$lang['Guess_Timezone'] = 'Guess Timezone';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+# eg. at the begining of the file,
+#
+<form action="{S_PROFILE_ACTION}" {S_FORM_ENCTYPE} method="post">
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+<script language="JavaScript" type="text/javascript">
+<!--
+
+function guessTimezone() {
+	var diff = -(new Date()).getTimezoneOffset();
+	document.forms[0].timezone.value = Math.floor(diff / 60) + ((Math.abs(diff) % 60) / 60);
+}
+
+//-->
+</script>
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row2"><span class="gensmall">{TIMEZONE_SELECT}</span></td>
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	  <td class="row2"><span class="gensmall">{TIMEZONE_SELECT}</span>&nbsp;&nbsp;<input type="button" class="button" value="{L_GUESS_TIMEZONE}" onclick="guessTimezone()" /></td>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+# eg. at the begining of file,
+#
+<h1>{L_USER_TITLE}</h1>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+<script language="JavaScript" type="text/javascript">
+<!--
+
+function guessTimezone() {
+	var diff = -(new Date()).getTimezoneOffset();
+	document.forms[0].timezone.value = Math.floor(diff / 60) + ((Math.abs(diff) % 60) / 60);
+}
+
+//-->
+</script>
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row2">{TIMEZONE_SELECT}</td>
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	  <td class="row2">{TIMEZONE_SELECT}&nbsp;&nbsp;<input type="button" class="button" value="{L_GUESS_TIMEZONE}" onclick="guessTimezone()" /></td>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

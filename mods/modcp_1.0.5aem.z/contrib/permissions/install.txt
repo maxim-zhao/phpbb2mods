@@ -1,0 +1,342 @@
+##############################################################
+## MOD Title:		ModCP Admin_ug_auth Module
+## MOD Author:		Kooky
+## MOD Description:	This PART explain how to edit your own templates files for the Mod CP
+## MOD Version:		1.0.5
+##
+## Installation Level:	moderate
+## Installation Time:	5 Minutes
+##
+## Files To Edit:	2
+##			modcp/admin_ug_auth.php
+##			templates/subSilver/modcp/auth_select_body.tpl
+## Included Files:	N/A
+##
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## 1. Copyright and special thanks!
+## -----------
+## This program is free software, you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation.
+##
+## This mod was made by Niels for his phpBB2 pre-loaded version.
+## This individual part and the package were made by Kooky with courtesy of Niels.
+## This individual Mod is quite different with the original...
+## For any support about this mod, please don't contact Niels.
+##
+## If you want to add this Mod to any database, please don't add
+## my e-mail address to a topic, just point to my website (see above).
+## (for spamming prevention)
+##
+## 2. Feature list
+## -----------
+## Before use this PART don't forget to edit your file admin_ug_auth.php
+## and its body, then copy them to your modcp directories.
+##
+## If you have not sure about what you are doing, don't use this PART,
+## this could be an issue for your moderators to take control of your board.
+## Therefore, don't make any mistake with these lines.
+## Otherwise use pre-edited files (use them at your own risk, don't bother
+## me with hacking attempt).
+##
+## 3. Compatibility / EasyMOD
+## -----------
+## This MOD is compatible with phpBB 2.0.9 - 2.0.10
+##
+## It is also compatible with EasyMOD of Nuttzy and can be
+## installed by it but is not yet certified EMC (EasyMOD Compliant)!
+## http://area51.phpbb.com/phpBB22/viewforum.php?sid=&f=15
+##
+## 4. Official last version link
+## -----------
+## Check this official link for latest updates...
+## http://perso.edeign.com/kooky/
+##
+##############################################################
+## MOD History:
+##
+## 2003/??/?? - Version X.X.X
+##	- No History
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ COPY ]------------------------------------------
+#
+copy root/admin/admin_ug_auth.php to modcp/admin_ug_auth.php
+copy root/templates/subSilver/admin/auth_ug_body.tpl to templates/subSilver/modcp/auth_ug_body.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+modcp/admin_ug_auth.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$module['Groups']['Permissions'] = $filename . "?mode=group";
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//	$module['Groups']['Permissions'] = $filename . "?mode=group";
+#
+#-----[ FIND ]------------------------------------------
+#
+while( list($var, $param) = @each($params) )
+{
+	if ( !empty($HTTP_POST_VARS[$param]) || !empty($HTTP_GET_VARS[$param]) )
+	{
+		$$var = ( !empty($HTTP_POST_VARS[$param]) ) ? $HTTP_POST_VARS[$param] : $HTTP_GET_VARS[$param];
+	}
+	else
+	{
+		$$var = "";
+	}
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$mode=user;
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	//
+	// Carry out requests
+	//
+	if ( $mode == 'user' && $HTTP_POST_VARS['userlevel'] == 'admin' && $user_level != ADMIN )
+	{
+		//
+		// Make user an admin (if already user)
+		//
+		if ( $userdata['user_id'] != $user_id )
+		{
+
+		... (to ...)
+			//
+			// Checks complete, make updates to DB
+			//
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	//
+	// Carry out requests
+	//
+			$change_mod_list = ( isset($HTTP_POST_VARS['moderator']) ) ? $HTTP_POST_VARS['moderator'] : false;
+
+			if ( empty($adv) )
+			{
+				$change_acl_list = ( isset($HTTP_POST_VARS['private']) ) ? $HTTP_POST_VARS['private'] : false;
+			}
+			else
+			{
+				$change_acl_list = array();
+				for($j = 0; $j < count($forum_auth_fields); $j++)
+				{
+					$auth_field = $forum_auth_fields[$j];
+
+					while( list($forum_id, $value) = @each($HTTP_POST_VARS['private_' . $auth_field]) )
+					{
+						$change_acl_list[$forum_id][$auth_field] = $value;
+					}
+				}
+			}
+
+			$sql = "SELECT * 
+				FROM " . FORUMS_TABLE . " f
+				ORDER BY forum_order";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't obtain forum information", "", __LINE__, __FILE__, $sql);
+			}
+
+			$forum_access = array();
+			while( $row = $db->sql_fetchrow($result) )
+			{
+				$forum_access[] = $row;
+			}
+			$db->sql_freeresult($result);
+
+			$sql = ( $mode == 'user' ) ? "SELECT aa.* FROM " . AUTH_ACCESS_TABLE . " aa, " . USER_GROUP_TABLE . " ug, " . GROUPS_TABLE. " g WHERE ug.user_id = $user_id AND g.group_id = ug.group_id AND aa.group_id = ug.group_id AND g.group_single_user = " . TRUE : "SELECT * FROM " . AUTH_ACCESS_TABLE . " WHERE group_id = $group_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't obtain user/group permissions", "", __LINE__, __FILE__, $sql);
+			}
+
+			$auth_access = array();
+			while( $row = $db->sql_fetchrow($result) )
+			{
+				$auth_access[$row['forum_id']] = $row;
+			}
+			$db->sql_freeresult($result);
+
+			$forum_auth_action = array();
+			$update_acl_status = array();
+			$update_mod_status = array();
+
+			for($i = 0; $i < count($forum_access); $i++)
+			{
+				$forum_id = $forum_access[$i]['forum_id'];
+
+				if (
+					( isset($auth_access[$forum_id]['auth_mod']) && $change_mod_list[$forum_id]['auth_mod'] != $auth_access[$forum_id]['auth_mod'] ) || 
+					( !isset($auth_access[$forum_id]['auth_mod']) && !empty($change_mod_list[$forum_id]['auth_mod']) ) 
+				)
+				{
+					$update_mod_status[$forum_id] = $change_mod_list[$forum_id]['auth_mod'];
+
+					if ( !$update_mod_status[$forum_id] )
+					{
+						$forum_auth_action[$forum_id] = 'delete';
+					}
+					else if ( !isset($auth_access[$forum_id]['auth_mod']) )
+					{
+						$forum_auth_action[$forum_id] = 'insert';
+					}
+					else
+					{
+						$forum_auth_action[$forum_id] = 'update';
+					}
+				}
+
+				for($j = 0; $j < count($forum_auth_fields); $j++)
+				{
+					$auth_field = $forum_auth_fields[$j];
+
+					if( $forum_access[$i][$auth_field] == AUTH_ACL && isset($change_acl_list[$forum_id][$auth_field]) )
+					{
+						if ( ( empty($auth_access[$forum_id]['auth_mod']) && 
+							( isset($auth_access[$forum_id][$auth_field]) && $change_acl_list[$forum_id][$auth_field] != $auth_access[$forum_id][$auth_field] ) || 
+							( !isset($auth_access[$forum_id][$auth_field]) && !empty($change_acl_list[$forum_id][$auth_field]) ) ) ||
+							!empty($update_mod_status[$forum_id])
+						)
+						{
+							$update_acl_status[$forum_id][$auth_field] = ( !empty($update_mod_status[$forum_id]) ) ? 0 :  $change_acl_list[$forum_id][$auth_field];
+
+							if ( isset($auth_access[$forum_id][$auth_field]) && empty($update_acl_status[$forum_id][$auth_field]) && $forum_auth_action[$forum_id] != 'insert' && $forum_auth_action[$forum_id] != 'update' )
+							{
+								$forum_auth_action[$forum_id] = 'delete';
+							}
+							else if ( !isset($auth_access[$forum_id][$auth_field]) && !( $forum_auth_action[$forum_id] == 'delete' && empty($update_acl_status[$forum_id][$auth_field]) ) )
+							{
+								$forum_auth_action[$forum_id] = 'insert';
+							}
+							else if ( isset($auth_access[$forum_id][$auth_field]) && !empty($update_acl_status[$forum_id][$auth_field]) ) 
+							{
+								$forum_auth_action[$forum_id] = 'update';
+							}
+						}
+						else if ( ( empty($auth_access[$forum_id]['auth_mod']) && 
+							( isset($auth_access[$forum_id][$auth_field]) && $change_acl_list[$forum_id][$auth_field] == $auth_access[$forum_id][$auth_field] ) ) && $forum_auth_action[$forum_id] == 'delete' )
+						{
+							$forum_auth_action[$forum_id] = 'update';
+						}
+					}
+				}
+			}
+
+			//
+			// Checks complete, make updates to DB
+			//
+#
+#-----[ FIND ]------------------------------------------
+#
+			$message = $lang['Auth_updated'] . '<br /><br />' . sprintf($l_auth_return, '<a href="' . append_sid("admin_ug_auth.$phpEx?mode=$mode") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_admin_index'], '<a href="' . append_sid("index.$phpEx?pane=right") . '">', '</a>');
+		}
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			$message = $lang['Auth_updated'] . '<br /><br />' . sprintf($l_auth_return, '<a href="' . append_sid("admin_ug_auth.$phpEx?mode=$mode") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_admin_index'], '<a href="' . append_sid("index.$phpEx?pane=right") . '">', '</a>');
+#
+#-----[ FIND ]------------------------------------------
+#
+				message_die(GENERAL_ERROR, "Couldn't update user level", "", __LINE__, __FILE__, $sql);
+			}
+		}
+
+		message_die(GENERAL_MESSAGE, $message);
+	}
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				message_die(GENERAL_ERROR, "Couldn't update user level", "", __LINE__, __FILE__, $sql);
+			}
+		}
+
+		message_die(GENERAL_MESSAGE, $message);
+#
+#-----[ FIND ]------------------------------------------
+#
+		$s_user_type = ( $is_admin ) ? '<select name="userlevel"><option value="admin" selected="selected">' . $lang['Auth_Admin'] . '</option><option value="user">' . $lang['Auth_User'] . '</option></select>' : '<select name="userlevel"><option value="admin">' . $lang['Auth_Admin'] . '</option><option value="user" selected="selected">' . $lang['Auth_User'] . '</option></select>';
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		$s_user_type = ( $is_admin ) ? $lang['Auth_Admin'] : (($this_userdata['user_level'] == MOD ) ? $lang['Is_Moderator'] : $lang['Auth_User']);
+#
+#-----[ FIND ]------------------------------------------
+#
+	//
+	// Select a user/group
+	//
+	include('./page_header_mod.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start add - Selection Box Mod
+	$sql = "SELECT user_id, username
+	FROM " . USERS_TABLE . "
+	WHERE user_id <> " . ANONYMOUS . "
+	ORDER BY username";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not obtain user list', '', __LINE__, __FILE__, $sql);
+	}
+
+	$select_list = '';
+	if ( $row = $db->sql_fetchrow($result) )
+	{
+		$select_list .= '';
+		do
+		{
+			$select_list .= '<option value="' . $row['user_id'] . '">' . $row['username'] . '</option>';
+		}
+		while ( $row = $db->sql_fetchrow($result) );
+	}
+	// End add - Selection Box Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_' . $l_type . '_TITLE' => ( $mode == 'user' ) ? $lang['Auth_Control_User'] : $lang['Auth_Control_Group'],
+		'L_' . $l_type . '_EXPLAIN' => ( $mode == 'user' ) ? $lang['User_auth_explain'] : $lang['Group_auth_explain'],
+		'L_' . $l_type . '_SELECT' => ( $mode == 'user' ) ? $lang['Select_a_User'] : $lang['Select_a_Group'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// Start add - Selection Box Mod
+		'S_USER_SELECT' => $select_list,
+		// End add - Selection Box Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/modcp/auth_select_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		<td class="row1" align="center">{S_HIDDEN_FIELDS}{S_AUTH_SELECT}&nbsp;&nbsp;<input type="submit" value="{L_LOOK_UP}" class="mainoption" />&nbsp;</td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		<td class="row1" align="center"><input type="text" class="post" name="username" maxlength="50" size="20" /> <select name="username_list" onchange="document.forms['post'].username.value = document.forms['post'].username_list.options[document.forms['post'].username_list.selectedIndex].text">{S_USER_SELECT}</select> <input type="hidden" name="mode" value="edit" />{S_HIDDEN_FIELDS}<input type="submit" name="submituser" value="{L_LOOK_UP}" class="mainoption" /> <input type="submit" name="usersubmit" value="{L_FIND_USERNAME}" class="liteoption" onClick="window.open('{U_SEARCH_USER}', '_phpbbsearch', 'HEIGHT=250,resizable=yes,WIDTH=400');return false;" /></td>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

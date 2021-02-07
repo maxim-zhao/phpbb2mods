@@ -1,0 +1,138 @@
+######################################################## 
+## 外掛名稱: 要求重寄帳號啟用電子郵件
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 未完成帳號啟用的會員可以要求重新寄出帳號啟用的電子郵件
+## 外掛版本: 1.0.2
+## 
+## 安裝難度: 簡單
+## 安裝時間: 3 分鐘 
+##
+## 需要編輯的檔案: 3
+##	login.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	templates/subSilver/login_body.tpl
+##
+## 附加的檔案: 3
+##	root/request_actmail.php
+##	root/request_actmail.tpl
+##	root/lang_chinese_traditional_taiwan/resend_activation_email.tpl
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.21 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##
+## 	監控更新進度: http://sourceforge.net/project/filemodule_monitor.php?filemodule_id=195274
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2006-06-24 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2005-07-16 - 版本 1.0.1
+##      - 增加了帳號啟用方式的檢查
+## 
+##   2005-09-02 - 版本 1.0.2
+##      - 修正 $send_activation_interval 的預設值
+##	- 在 login_body.tpl 增加了一個 switch
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# 請記得修改成你的資料表名稱
+ALTER TABLE phpbb_users ADD user_actmail_last_checked INTEGER(11) NOT NULL DEFAULT 0;
+# 
+#-----[ 複製 ]------------------------------------------ 
+#
+copy root/request_actmail.php to request_actmail.php
+copy root/request_actmail.tpl to templates/subSilver/request_actmail.tpl
+copy root/lang_chinese_traditional_taiwan/resend_activation_email.tpl to language/lang_chinese_traditional_taiwan/email/resend_activation_email.tpl
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_main.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Resend Account Activation E-mail MOD
+$lang['Resend_activation_email'] = '重寄帳號啟用電子郵件';
+$lang['Invalid_activation'] = '會員帳號的啟用只能由系統管理員來執行';
+$lang['Invalid_uaername'] = '無效的會員名稱';
+$lang['Invalid_email'] = '無效的電子郵件';
+$lang['Already_activated'] = '你的帳號已經啟用了.';
+$lang['No_actkey'] = '你的帳號沒有啟用序號.<br />請跟網管或是系統管理員聯絡詢問相關資訊';
+$lang['Send_actmail_flood_error'] = '您要求的時間間隔太短<br />請稍後再試！';
+$lang['Resend_activation_email_done'] = '您要求的啟用電子郵件已送出, 請檢查您的電子郵件信箱以取得帳號啟用的相關資訊.';
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+login.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			'L_SEND_PASSWORD' => $lang['Forgotten_password'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			'L_RESEND_ACTIVATION_EMAIL' => $lang['Resend_activation_email'],	// Resend Account Activation E-mail MOD
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			'U_SEND_PASSWORD' => append_sid("profile.$phpEx?mode=sendpassword"),
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			'U_RESEND_ACTIVATION_EMAIL' => append_sid("request_actmail.$phpEx"),	// Resend Account Activation E-mail MOD
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			'S_HIDDEN_FIELDS' => $s_hidden_fields)
+		);
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		if ( !isset($HTTP_GET_VARS['admin']) )
+		{
+			$template->assign_block_vars('switch_resend_activation_email_block', array() );
+		}
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/login_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			<td colspan="2"><span class="gensmall"><a href="{U_SEND_PASSWORD}" class="gensmall">{L_SEND_PASSWORD}</a></span></td>
+		  </tr>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		<!-- BEGIN switch_resend_activation_email_block -->
+		  <tr align="center"> 
+			<td colspan="2"><span class="gensmall"><a href="{U_RESEND_ACTIVATION_EMAIL}" class="gensmall">{L_RESEND_ACTIVATION_EMAIL}</a></span></td>
+		  </tr>
+		<!-- END switch_resend_activation_email_block -->
+#
+#-----[ DIY 手動設定說明 ]------------------------------------------ 
+#
+打開 request_actmail.php 並且依照你自己的需求修改 $send_activation_interval 的設定
+目前預設的要求間距是 3600 秒, 也就是說, 會員得等待 60 分鐘才能再次要求寄送郵件
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

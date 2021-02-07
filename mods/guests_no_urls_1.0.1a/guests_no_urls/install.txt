@@ -1,0 +1,225 @@
+##############################################################
+## MOD Title: Disallow guests to post URL's
+##
+## MOD Author: h-o < N/A > (N/A) http://www.phpbb.com/phpBB/profile.php?mode=viewprofile&u=110020
+##
+## MOD Description: In order to prevent spam by guests, they are not allowed to post messages
+##                  with clickable URL's beginning with "[url", "http:" or "www.". The settings
+##                  ("on" or "off") as well as the text to identify the URL's are configurable
+##                  in the ACP (see the two screenshots in the "contrib" directory).
+##
+## MOD Version: 1.0.1
+##
+## Installation Level: (Easy)
+## Installation Time: 10 Minutes
+##
+## Files To Edit: 5
+##      admin/admin_board.php
+##      includes/functions_post.php,
+##      language/lang_english/lang_admin.php
+##      language/lang_english/lang_main.php
+##      templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files: (N/A)
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+##
+## Author Notes:
+##
+## After having forums (and guestbooks) opened for guests and trying
+## out many MOD's to prevent spam, I realized that the only way to
+## block spam is to disallow guests to post URL's, as it is the
+## only intention of spammers to post messages with clickable URL's.
+##
+## The settings are configurable in the ACP:
+##
+## General Admin -> Configuration -> User and Forum Basic Settings:
+##
+## -> "Disallow URL postings for guests" ("on" or "off", default "off").
+##    Please select "on" and submit in the ACP in order to prevent spam
+##    by guests :-)
+##
+## -> "Text to identify URL's in guest postings" (default: "[url, www.,
+##    http:") which can be separated by commas.
+##
+## This MOD is EasyMod 0.3.0 compliant.
+##
+##############################################################
+##
+## MOD History:
+##
+##   2006-08-17 - Version 1.0.1
+##      - install_german.txt for German translation
+##      - removed "https:, ftp: and ftps:" from SQL command (disallow_guesturl_text)
+##        because only rarely used by spammers
+##
+##   2006-08-06 - Version 1.0.0
+##      - Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]-----------------------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('disallow_guesturl', '0');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('disallow_guesturl_text','[url, www., http:');
+
+#
+#-----[ OPEN ]----------------------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+$smtp_no = ( !$new['smtp_delivery'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ AFTER, ADD ]----------------------------------------------------
+#
+
+// MOD Start: Disallow guests to post messages with url's
+$disallow_guesturl_yes = ( $new['disallow_guesturl'] ) ? "checked=\"checked\"" : "";
+$disallow_guesturl_no = ( !$new['disallow_guesturl'] ) ? "checked=\"checked\"" : "";
+
+$disallow_guesturl_text = $new['disallow_guesturl_text'];
+// MOD End: Disallow guests to post messages with url's
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+	"L_RESET" => $lang['Reset'],
+
+#
+#-----[ AFTER, ADD ]----------------------------------------------------
+#
+
+	// MOD Start: Disallow guests to post messages with url's
+	"L_DISALLOW_GUESTURL" => $lang['Disallow_guesturl'],
+	"L_DISALLOW_GUESTURL_EXPLAIN" => $lang['Disallow_guesturl_explain'],
+	"L_DISALLOW_GUESTURL_TEXT" => $lang['Disallow_guesturl_text'],
+	"L_DISALLOW_GUESTURL_TEXT_EXPLAIN" => $lang['Disallow_guesturl_text_explain'],
+
+	"DISALLOW_GUESTURL_YES" => $disallow_guesturl_yes,
+	"DISALLOW_GUESTURL_NO" => $disallow_guesturl_no,
+	"DISALLOW_GUESTURL_TEXT" => $disallow_guesturl_text, 
+	// MOD End: Disallow guests to post messages with url's
+
+#
+#-----[ OPEN ]----------------------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+		$error_msg .= (!empty($error_msg)) ? '<br />' . $lang['Empty_subject'] : $lang['Empty_subject'];
+	}
+
+#
+#-----[ AFTER, ADD ]----------------------------------------------------
+#
+
+// MOD Start: Disallow guests to post messages with url's
+	if (!$userdata['session_logged_in'] && $board_config['disallow_guesturl'])
+	{
+		$disallow_guesturl_array = explode(',', $board_config['disallow_guesturl_text']);
+
+		// Check if $message contains one of the strings like "http:"...
+		for ($i = 0; $i < count($disallow_guesturl_array); $i++)
+		{
+			// stristr() used instead of eregi() because of searching for "[url" which contains a squared bracket
+			if (trim($disallow_guesturl_array[$i]) != '' && stristr($message, trim($disallow_guesturl_array[$i])))
+			{
+				$error_msg .= (!empty($error_msg)) ? '<br />' . $lang['Disallow_guesturl'] : $lang['Disallow_guesturl'];
+				break;
+			}
+		}
+	}
+// MOD End: Disallow guests to post messages with url's
+
+#
+#-----[ OPEN ]----------------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+
+//
+// That's all Folks!
+
+#
+#
+#-----[ BEFORE, ADD ]---------------------------------------------------
+#
+
+// MOD Start: Disallow guests to post messages with url's
+$lang['Disallow_guesturl'] = 'Disallow URL postings for guests';
+$lang['Disallow_guesturl_explain'] = 'Determines whether guests are disallowed to post messages with URL\'s in order to prevent spam';
+$lang['Disallow_guesturl_text'] = 'Text to identify URL\'s in guest postings';
+$lang['Disallow_guesturl_text_explain'] = 'Separate with commas, e.g. www., http:';
+// MOD End: Disallow guests to post messages with url's
+
+#
+#-----[ OPEN ]----------------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+
+//
+// That's all, Folks!
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------------
+#
+
+// MOD Start: Disallow guests to post messages with url's
+$lang['Disallow_guesturl'] = 'Guests are not allowed to post messages with URL\'s.';
+// MOD End: Disallow guests to post messages with url's
+
+#
+#-----[ OPEN ]----------------------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_MAX_POLL_OPTIONS}</td>
+		<td class="row2"><input class="post" type="text" name="max_poll_options" size="4" maxlength="4" value="{MAX_POLL_OPTIONS}" /></td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]----------------------------------------------------
+#
+
+<!-- MOD Start: Disallow guests to post messages with url's -->
+	<tr>
+		<td class="row1">{L_DISALLOW_GUESTURL} <br /><span class="gensmall">{L_DISALLOW_GUESTURL_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="disallow_guesturl" value="1" {DISALLOW_GUESTURL_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="disallow_guesturl" value="0" {DISALLOW_GUESTURL_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_DISALLOW_GUESTURL_TEXT}<br /><span class="gensmall">{L_DISALLOW_GUESTURL_TEXT_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="30" maxlength="255" name="disallow_guesturl_text" value="{DISALLOW_GUESTURL_TEXT}" /></td>
+	</tr>
+<!-- MOD End: Disallow guests to post messages with url's -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

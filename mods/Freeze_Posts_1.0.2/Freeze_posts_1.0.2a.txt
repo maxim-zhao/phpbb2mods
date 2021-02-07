@@ -1,0 +1,1555 @@
+#########################################################################################
+## MOD Title: Freeze Posts - preventive moderators check posts insertion (extreme moderation)
+## MOD Author: axe70 < axew3@w3it.org > (Alessio Nanni) http://www.w3it.org 
+## MOD Description: This mod allow admin to give for each Forum the 'Freeze/Unfreeze' status in the ACP.
+## If Freeze Status is Enabled in a Forum, all posts made by a normal user on that forum must be validate from a 
+## moderator before to become visible for all users. Admin can choose if frozen posts are hidden or listed on each forum list 
+## until moderators approval.
+## MOD Version: 1.0.2a
+##
+## Installation Level: Intermediate
+## Installation Time: 25 Minutes 
+##
+##  Files To Edit: 18
+##      
+##     admin/admin_forums.php 
+##     index.php
+##     includes/constants.php
+##     includes/functions_post.php
+##     includes/topic_review.php
+##     posting.php
+##     search.php    
+##     viewforum.php
+##     viewtopic.php
+##     modcp.php
+##     templates/subSilver/viewforum_body.tpl
+##     templates/subSilver/modcp_body.tpl
+##     templates/subSilver/modcp_split.tpl
+##     templates/subSilver/admin/forum_edit_body.tpl
+##     templates/subSilver/subSilver.cfg
+##     templates/subSilver/viewtopic_body.tpl
+##     language/lang_english/lang_main.php
+##     language/lang_english/lang_admin.php
+##
+## Included Files: (1)
+## templates/subSilver/images/lang_english/icon_unfreeze.gif
+## 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes:
+##
+##  Tested on phpBB version 2.0.21
+##  2006-17-03 - Version 1.0.0a
+##  2006-23-05 - Version 1.0.0b (thanks to polkadotcat for his patiences tests on it).
+##  One ADD instruction on index.php is repeated for 3 times, (sql instruction for differents databases), put attention on it, MySQL is the 3rd one (you can change only the 3rd one if your database is MySQL).
+##  Now should work on all version if required instructions are founded on files.
+##############################################################
+## MOD History: 
+## 2006-17-03 - Version 1.0.0a - Initial relase, very basic features 
+## 2006-23-05 - Version 1.0.0b - Fix bugs on sticky posts, announcements, edited posts, search and others minors.
+## 2006-17-08 - Version 1.0.1a - Added the mass approve feature on modCP. Moderators can mass-approve frozen posts from modcp. 
+##                               A warning notice appear on redirection while validating a post, if the topic still contain some posts that aren't approved. 
+##                               Fixed bug that discover post's content on 'quote'.
+## 2006-17-09 - Version 1.0.2a - Added show-hide option on ACP for frozen posts. Administrator can choose if frozen posts are listed on each forum until moderators approval. 
+##                               Forum Index now display as latest post forum, only validated posts.
+##                               Tested on easymod.
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################  
+
+# 
+#-----[ SQL ]--------------------------------------------------------- 
+#
+
+ALTER TABLE `phpbb_forums` ADD `forum_freeze` TINYINT( 4 ) NOT NULL DEFAULT '0';
+ALTER TABLE `phpbb_forums` ADD `forum_freeze_display_mode` TINYINT( 4 ) NOT NULL DEFAULT '1';
+ALTER TABLE `phpbb_forums` ADD `forum_freeze_only_first_mode` TINYINT( 4 ) NOT NULL DEFAULT '1';
+ALTER TABLE `phpbb_topics` ADD `topic_freeze` INT( 1 ) NOT NULL DEFAULT '0';
+ALTER TABLE `phpbb_posts` ADD `post_freeze` INT( 1 ) NOT NULL DEFAULT '0';
+
+# 
+#-----[ COPY ]--------------------------------------------------------- 
+#
+
+copy templates/subSilver/images/lang_english/icon_unfreeze.gif to templates/subSilver/images/lang_english/icon_unfreeze.gif
+
+#
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+
+admin/admin_forums.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#  
+ 
+$forumstatus = $row['forum_status'];
+			
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$forumfreezestatus = $row['forum_freeze'];
+$forumfreezedisplaystatus = $row['forum_freeze_display_mode'];
+$forumfreezeonlyfirststatus = $row['forum_freeze_only_first_mode'];
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+# 	
+		
+$forumstatus = FORUM_UNLOCKED;
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+#
+
+$forumfreezestatus = FORUM_UNFREEZE;
+$forumfreezedisplaystatus = FORUM_FREEZE_DISPLAY_OFF;
+$forumfreezeonlyfirststatus = FORUM_FREEZE_ONLY_FIRST_OFF;
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+			
+$forumstatus == ( FORUM_LOCKED ) ? $forumlocked = "selected=\"selected\"" : $forumunlocked = "selected=\"selected\"";
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+#
+
+$forumfreezestatus == ( FORUM_FREEZE ) ? $forumfreeze = "selected=\"selected\"" : $forumunfreeze = "selected=\"selected\"";
+$forumfreezedisplaystatus == ( FORUM_FREEZE_DISPLAY_OFF ) ? $forumfreezedisplayoff = "selected=\"selected\"" : $forumfreezedisplayon = "selected=\"selected\"";
+$forumfreezeonlyfirststatus == ( FORUM_FREEZE_ONLY_FIRST_OFF ) ? $forumfreezeonlyfirstoff = "selected=\"selected\"" : $forumfreezeonlyfirston = "selected=\"selected\"";
+			
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+$statuslist .= "<option value=\"" . FORUM_LOCKED . "\" $forumlocked>" . $lang['Status_locked'] . "</option>\n";
+	
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+#
+
+$freezestatuslist = "<option value=\"" . FORUM_UNFREEZE . "\" $forumunfreeze>" . $lang['Status_unfreeze'] . "</option>\n";
+$freezestatuslist .= "<option value=\"" . FORUM_FREEZE . "\" $forumfreeze>" . $lang['Status_freeze'] . "</option>\n"; 
+$freezestatuslistdisplay = "<option value=\"" . FORUM_FREEZE_DISPLAY_OFF . "\" $forumfreezedisplayoff>" . $lang['Status_freeze_display_off'] . "</option>\n";
+$freezestatuslistdisplay .= "<option value=\"" . FORUM_FREEZE_DISPLAY_ON . "\" $forumfreezedisplayon>" . $lang['Status_freeze_display_on'] . "</option>\n"; 
+$freezeonlyfirststatuslist = "<option value=\"" . FORUM_FREEZE_ONLY_FIRST_OFF . "\" $forumfreezeonlyfirstoff>" . $lang['Status_freeze_display_off'] . "</option>\n";
+$freezeonlyfirststatuslist .= "<option value=\"" . FORUM_FREEZE_ONLY_FIRST_ON . "\" $forumfreezeonlyfirston>" . $lang['Status_freeze_display_on'] . "</option>\n"; 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	
+'S_STATUS_LIST' => $statuslist,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+#
+	
+'S_STATUS_FREEZE' => $freezestatuslist,
+'S_STATUS_FREEZE_DISPLAY' => $freezestatuslistdisplay,
+'S_STATUS_FREEZE_ONLY_FIRST' => $freezeonlyfirststatuslist,
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+
+'L_FORUM_STATUS' => $lang['Forum_status'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+#
+
+'L_FORUM_FREEZE' => $lang['Forum_freeze_settings'],
+'L_FORUM_STATUS_FREEZE_MODE' => $lang['Forum_status_freeze_display_onoff'],
+'L_FORUM_FREEZE_MODE_ONLY_FIRST' => $lang['Forum_freeze_only_first'],
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+
+$sql = "INSERT INTO " . FORUMS_TABLE . " (forum_id, forum_name, cat_id, forum_desc, forum_order, forum_status, prune_enable" . $field_sql . ")
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+#
+
+forum_status,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ forum_freeze, forum_freeze_display_mode, forum_freeze_only_first_mode,
+ 
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+
+VALUES ('" . $next_id . "', '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', $next_order, " . intval($HTTP_POST_VARS['forumstatus']) . ", " . intval($HTTP_POST_VARS['prune_enable']) . $value_sql . ")";
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+#
+
+intval($HTTP_POST_VARS['forumstatus']) . ",
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ " . intval($HTTP_POST_VARS['forumfreezestatus']) . ", " . intval($HTTP_POST_VARS['forumfreezedisplaystatus']) . ", " . intval($HTTP_POST_VARS['forumfreezeonlyfirststatus']) . ",
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+
+SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', cat_id = " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", forum_desc = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . ", prune_enable = " . intval($HTTP_POST_VARS['prune_enable']) . "
+	
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+#
+
+intval($HTTP_POST_VARS['forumstatus']) . ",
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ forum_freeze = " . intval($HTTP_POST_VARS['forumfreezestatus']) . ", forum_freeze_display_mode = " . intval($HTTP_POST_VARS['forumfreezedisplaystatus']) . ", forum_freeze_only_first_mode = " . intval($HTTP_POST_VARS['forumfreezeonlyfirststatus']) . ",
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#  
+
+index.php
+   
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id
+	
+# 
+#-----[ IN-LINE FIND ]-------------------------------------------------------- 
+#	
+
+$sql = "SELECT f.*,
+			
+# 
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------------------------- 
+#
+
+ p.post_freeze,
+		
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$last_post .= '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $forum_data[$j]['forum_last_post_id']) . '#' . $forum_data[$j]['forum_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" border="0" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" /></a>';
+
+# 
+#-----[ REPLACE WITH ]-------------------------------------------------------- 
+#
+
+	 if ( intval($forum_data[$j]['post_freeze']) == 0 )
+		{ 
+		 $last_post .= '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $forum_data[$j]['forum_last_post_id']) . '#' . $forum_data[$j]['forum_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" border="0" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" /></a>';
+		}
+	else
+		{    
+		 $last_post .= '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $forum_data[$j]['forum_last_post_id']) . '#' . $forum_data[$j]['forum_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" border="0" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" /></a><br />' . $lang['Last_isfreeze'];
+		}
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+
+includes/constants.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+   
+define('FORUM_LOCKED', 1);
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+define('FORUM_UNFREEZE', 0);
+define('FORUM_FREEZE', 1);
+define('FORUM_FREEZE_DISPLAY_ON', 0);
+define('FORUM_FREEZE_DISPLAY_OFF', 1);
+define('FORUM_FREEZE_ONLY_FIRST_ON', 0);
+define('FORUM_FREEZE_ONLY_FIRST_OFF', 1);
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+
+includes/functions_post.php
+	
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#  
+
+global $board_config, $lang, $db, $phpbb_root_path, $phpEx;
+	
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+#	
+
+$phpbb_root_path,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------ 
+# 
+
+ $forum_freeze_status,
+	
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE . " (topic_title, topic_poster, topic_time, forum_id, topic_status, topic_type, topic_vote) VALUES ('$post_subject', " . $userdata['user_id'] . ", $current_time, $forum_id, " . TOPIC_UNLOCKED . ", $topic_type, $topic_vote)" : "UPDATE " . TOPICS_TABLE . " SET topic_title = '$post_subject', topic_type = $topic_type " . (($post_data['edit_vote'] || !empty($poll_title)) ? ", topic_vote = " . $topic_vote : "") . " WHERE topic_id = $topic_id";
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+topic_vote
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+, topic_freeze
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+$topic_vote
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+, $forum_freeze_status
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+   
+$sql = ($mode != "editpost") ? "INSERT INTO " . POSTS_TABLE . " (topic_id, forum_id, poster_id, post_username, post_time, poster_ip, enable_bbcode, enable_html, enable_smilies, enable_sig) VALUES ($topic_id, $forum_id, " . $userdata['user_id'] . ", '$post_username', $current_time, '$user_ip', $bbcode_on, $html_on, $smilies_on, $attach_sig)" : "UPDATE " . POSTS_TABLE . " SET post_username = '$post_username', enable_bbcode = $bbcode_on, enable_html = $html_on, enable_smilies = $smilies_on, enable_sig = $attach_sig" . $edited_sql . " WHERE post_id = $post_id";
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+poster_id,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ post_freeze,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+$userdata['user_id'] . ",
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ $forum_freeze_status,
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+global $db;
+
+# 
+#-----[ IN-LINE FIND ]-------------------------------------------------------- 
+#
+
+$db
+
+# 
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------------------------- 
+#
+
+, $forum_freeze_status, $sl_forum_last_post_id
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+if ($row = $db->sql_fetchrow($result))
+				{
+					$forum_update_sql .= ($row['last_post_id']) ? ', forum_last_post_id = ' . $row['last_post_id'] : ', forum_last_post_id = 0';
+				}
+
+# 
+#-----[ REPLACE WITH ]-------------------------------------------------------- 
+#
+
+if ($row = $db->sql_fetchrow($result) && intval($forum_freeze_status) > 0)
+			{
+		   $forum_update_sql .= ($row['last_post_id']) ? ', forum_last_post_id = ' . $sl_forum_last_post_id  : ', forum_last_post_id = 0';
+			}
+ else
+			{
+			 $forum_update_sql .= ($row['last_post_id']) ? ', forum_last_post_id = ' . $row['last_post_id'] : ', forum_last_post_id = 0';
+			}
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+else if ($mode != 'poll_delete')
+	{
+		$forum_update_sql .= ", forum_last_post_id = $post_id" . (($mode == 'newtopic') ? ", forum_topics = forum_topics $sign" : ""); 
+		$topic_update_sql = "topic_last_post_id = $post_id" . (($mode == 'reply') ? ", topic_replies = topic_replies $sign" : ", topic_first_post_id = $post_id");
+	}
+
+# 
+#-----[ REPLACE WITH ]-------------------------------------------------------- 
+#
+
+else if ( $mode != 'poll_delete' && intval($forum_freeze_status > 0 ))
+	{
+		$forum_update_sql .= ", forum_last_post_id = $sl_forum_last_post_id" . (($mode == 'newtopic') ? ", forum_topics = forum_topics $sign" : ""); 
+		$topic_update_sql = "topic_last_post_id = $post_id" . (($mode == 'reply') ? ", topic_replies = topic_replies $sign" : ", topic_first_post_id = $post_id");
+	}
+	
+	else if ( $mode != 'poll_delete' )
+        {
+					$forum_update_sql .= ", forum_last_post_id = $post_id" . (($mode == 'newtopic') ? ", forum_topics = forum_topics $sign" : ""); 
+		      $topic_update_sql = "topic_last_post_id = $post_id" . (($mode == 'reply') ? ", topic_replies = topic_replies $sign" : ", topic_first_post_id = $post_id");
+	      }
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+# 
+
+includes/topic_review.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$message = $row['post_text'];
+
+# 
+#-----[ REPLACE WITH ]-------------------------------------------------------- 
+# 
+
+if( intval($row['post_freeze']) > 0 )
+			{
+		     $message =  $lang['Post_Freeze'];
+			}
+		 else 
+		 {
+		   $message = $row['post_text'];
+		 }
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#	 
+	 
+posting.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$sql = "SELECT f.*, t.topic_id, t.topic_status, t.topic_type, t.topic_first_post_id, t.topic_last_post_id, t.topic_vote, p.post_id, p.poster_id" . $select_sql . "
+
+# 
+#-----[ IN-LINE FIND ]-------------------------------------------------------- 
+#
+
+p.poster_id
+
+# 
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------------------------- 
+#
+
+, p.post_freeze
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+if ( $mode == 'editpost' || $mode == 'delete' || $mode == 'poll_delete' )
+	{
+	
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+#
+
+	 $sql = "SELECT forum_freeze, forum_last_post_id 
+			FROM " . FORUMS_TABLE . "
+			WHERE forum_id = $forum_id";
+		if (!($result = $db->sql_query($sql)))
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain forum freeze information', '', __LINE__, __FILE__, $sql);
+		}
+		$row = $db->sql_fetchrow($result);
+    $forum_freeze_status = intval($row['forum_freeze']);
+    $sl_forum_last_post_id = intval($row['forum_last_post_id']);
+    if($is_auth['auth_mod'])
+    {
+     $forum_freeze_status = 0;
+    }
+		
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$post_data['topic_type'] = POST_NORMAL;
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+#
+
+$sql = "SELECT forum_freeze, forum_last_post_id , forum_freeze_only_first_mode 
+			FROM " . FORUMS_TABLE . "
+			WHERE forum_id = $forum_id";
+		if (!($result = $db->sql_query($sql)))
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain forum freeze information', '', __LINE__, __FILE__, $sql);
+		}
+		$row = $db->sql_fetchrow($result);
+    $forum_freeze_status = intval($row['forum_freeze']);
+    $sl_forum_last_post_id = intval($row['forum_last_post_id']);
+    $forum_freeze_only_first_status = intval($row['forum_freeze_only_first_mode']);
+    if ( (!$is_auth['auth_mod']) && ($post_data['first_post'] == TRUE) && (intval($forum_freeze_only_first_status) > 0) )
+    {
+			$forum_freeze_status = $forum_freeze_status;
+		}
+		else if ( (!$is_auth['auth_mod']) && ($post_data['first_post'] == FALSE) && (intval($forum_freeze_only_first_status) > 0) )
+		{
+			$forum_freeze_status = 0;
+		}	
+		else if ( (!$is_auth['auth_mod']) && ($post_data['first_post'] == TRUE) && (intval($forum_freeze_only_first_status) < 1) )
+		{
+			$forum_freeze_status = $forum_freeze_status;
+		}
+		else if ( (!$is_auth['auth_mod']) && ($post_data['first_post'] == FALSE) && (intval($forum_freeze_only_first_status) < 1) )
+		{
+			$forum_freeze_status = $forum_freeze_status;
+		}		
+		else 
+		{
+			$forum_freeze_status = 0;
+		}	 
+	 
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$bbcode_uid = '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+#
+
+$sql = "SELECT forum_freeze, forum_last_post_id, forum_freeze_only_first_mode  
+			FROM " . FORUMS_TABLE . "
+			WHERE forum_id = $forum_id";
+		if (!($result = $db->sql_query($sql)))
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain forum freeze information', '', __LINE__, __FILE__, $sql);
+		}
+		$row = $db->sql_fetchrow($result);
+    $forum_freeze_status = intval($row['forum_freeze']);
+    $sl_forum_last_post_id = intval($row['forum_last_post_id']);
+    $forum_freeze_only_first_status = intval($row['forum_freeze_only_first_mode']);
+     if ( (!$is_auth['auth_mod']) && ($post_data['first_post'] == TRUE) && (intval($forum_freeze_only_first_status) > 0) )
+    {
+			$forum_freeze_status = $forum_freeze_status;
+		}
+		else if ( (!$is_auth['auth_mod']) && ($post_data['first_post'] == FALSE) && (intval($forum_freeze_only_first_status) > 0) )
+		{
+			$forum_freeze_status = 0;
+		}	
+		else if ( (!$is_auth['auth_mod']) && ($post_data['first_post'] == TRUE) && (intval($forum_freeze_only_first_status) < 1) )
+		{
+			$forum_freeze_status = $forum_freeze_status;
+		}
+		else if ( (!$is_auth['auth_mod']) && ($post_data['first_post'] == FALSE) && (intval($forum_freeze_only_first_status) < 1) )
+		{
+			$forum_freeze_status = $forum_freeze_status;
+		}		
+		else 
+		{
+			$forum_freeze_status = 0;
+		}	
+		
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#	  
+	  
+obtain_word_list($orig_word, $replace_word);
+	
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+#
+
+     if ( $mode == 'quote' && ( intval($post_info['post_freeze']) > 0 ) )
+     {
+    	if(!$is_auth['auth_mod'])
+      {
+			$subject = ( $post_data['first_post'] ) ? $post_info['topic_title'] : $post_info['post_subject'];
+		  $message = $lang['Post_Freeze'];
+      }
+      else 
+    	{
+		   $subject = ( $post_data['first_post'] ) ? $post_info['topic_title'] : $post_info['post_subject'];
+		   $message = $post_info['post_text'];
+      }
+     }	
+	 
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+
+search.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+WHERE p.post_id IN ($search_results)
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------------- 
+#
+
+AND p.post_freeze != 1
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#  
+    
+viewforum.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_time, p.post_username
+	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . USERS_TABLE . " u2
+	WHERE t.forum_id = $forum_id 
+		AND t.topic_poster = u.user_id
+		AND p.post_id = t.topic_last_post_id
+		AND p.poster_id = u2.user_id
+		AND t.topic_type = " . POST_ANNOUNCE . " 
+	ORDER BY t.topic_last_post_id DESC ";
+if ( !($result = $db->sql_query($sql)) )
+{
+   message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+}
+
+# 
+#-----[ REPLACE WITH ]-------------------------------------------------------- 
+#
+
+$sql = "SELECT forum_freeze, forum_freeze_display_mode 
+			FROM " . FORUMS_TABLE . "
+			WHERE forum_id = $forum_id";
+		if (!($result = $db->sql_query($sql)))
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain forum freeze information', '', __LINE__, __FILE__, $sql);
+		}
+		$row = $db->sql_fetchrow($result);
+    $forum_freeze_status = intval($row['forum_freeze']);
+    $freeze_display_mode = intval($row['forum_freeze_display_mode']);
+    
+if(!$is_auth['auth_mod'] && ( $forum_freeze_status > 0 ) && ( $freeze_display_mode > 0 ))
+{
+$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_freeze, p.post_time, p.post_username
+	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . USERS_TABLE . " u2
+	WHERE t.forum_id = $forum_id 
+		AND t.topic_poster = u.user_id
+		AND p.post_id = t.topic_last_post_id
+		AND p.poster_id = u2.user_id
+		AND p.post_freeze < 1
+		AND t.topic_type = " . POST_ANNOUNCE . " 
+	ORDER BY t.topic_last_post_id DESC ";
+	if ( !($result = $db->sql_query($sql)) )
+{
+   message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+}
+	}
+	else
+{
+$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_freeze, p.post_time, p.post_username
+	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . USERS_TABLE . " u2
+	WHERE t.forum_id = $forum_id 
+		AND t.topic_poster = u.user_id
+		AND p.post_id = t.topic_last_post_id
+		AND p.poster_id = u2.user_id
+		AND t.topic_type = " . POST_ANNOUNCE . " 
+	ORDER BY t.topic_last_post_id DESC ";
+	if ( !($result = $db->sql_query($sql)) )
+{
+   message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+}
+	}	
+	
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_username, p2.post_username AS post_username2, p2.post_time 
+	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TABLE . " p2, " . USERS_TABLE . " u2
+	WHERE t.forum_id = $forum_id
+		AND t.topic_poster = u.user_id
+		AND p.post_id = t.topic_first_post_id
+		AND p2.post_id = t.topic_last_post_id
+		AND u2.user_id = p2.poster_id 
+		AND t.topic_type <> " . POST_ANNOUNCE . " 
+		$limit_topics_time
+	ORDER BY t.topic_type DESC, t.topic_last_post_id DESC 
+	LIMIT $start, ".$board_config['topics_per_page'];
+if ( !($result = $db->sql_query($sql)) )
+{
+   message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+}
+
+# 
+#-----[ REPLACE WITH ]-------------------------------------------------------- 
+#
+
+if(!$is_auth['auth_mod'] && ( $forum_freeze_status > 0 ) && ( $freeze_display_mode > 0 ))
+{
+$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_freeze, p2.post_freeze, p.post_username, p2.post_username AS post_username2, p2.post_time 
+	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TABLE . " p2, " . USERS_TABLE . " u2
+	WHERE t.forum_id = $forum_id
+		AND t.topic_poster = u.user_id
+		AND p.post_id = t.topic_first_post_id
+		AND p.post_freeze < 1
+		AND p2.post_id = t.topic_last_post_id
+		AND u2.user_id = p2.poster_id 
+		AND t.topic_type <> " . POST_ANNOUNCE . " 
+		$limit_topics_time
+	ORDER BY t.topic_type DESC, t.topic_last_post_id DESC 
+	LIMIT $start, ".$board_config['topics_per_page'];
+if ( !($result = $db->sql_query($sql)) )
+{
+   message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+}
+}
+else
+{
+$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_freeze, p2.post_freeze, p.post_username, p2.post_username AS post_username2, p2.post_time 
+	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TABLE . " p2, " . USERS_TABLE . " u2
+	WHERE t.forum_id = $forum_id
+		AND t.topic_poster = u.user_id
+		AND p.post_id = t.topic_first_post_id
+		AND p2.post_id = t.topic_last_post_id
+		AND u2.user_id = p2.poster_id 
+		AND t.topic_type <> " . POST_ANNOUNCE . " 
+		$limit_topics_time
+	ORDER BY t.topic_type DESC, t.topic_last_post_id DESC 
+	LIMIT $start, ".$board_config['topics_per_page'];
+if ( !($result = $db->sql_query($sql)) )
+{
+   message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+}
+}
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+ 
+$folder_new = $images['folder_announce_new'];
+		
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------------- 
+#
+
+$latest_is_freezed = $lang['Last_isfreeze'];
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$folder_new = $images['folder_sticky_new'];
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------------- 
+#
+
+$latest_is_freezed = $lang['Last_isfreeze'];
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$folder_new = $images['folder_hot_new'];
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------------- 
+#
+
+$latest_is_freezed = $lang['Last_isfreeze'];
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$folder_new = $images['folder_new'];
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------------- 
+#
+
+$latest_is_freezed = $lang['Last_isfreeze'];
+		
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+	
+$last_post_url = '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $topic_rowset[$i]['topic_last_post_id']) . '#' . $topic_rowset[$i]['topic_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" border="0" /></a>';
+	
+# 
+#-----[ REPLACE WITH ]-------------------------------------------------------- 
+# 
+
+   if( intval($topic_rowset[$i]['post_freeze']) > 0 )
+   {
+     $last_post_url = '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $topic_rowset[$i]['topic_last_post_id']) . '#' . $topic_rowset[$i]['topic_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" border="0" /></a>';
+    }
+      else 
+       {
+          unset($latest_is_freezed);
+  	         $last_post_url = '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $topic_rowset[$i]['topic_last_post_id']) . '#' . $topic_rowset[$i]['topic_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" border="0" /></a>';
+        }
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+'L_TOPIC_FOLDER_ALT' => $folder_alt,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------------ 
+#
+
+'L_FREEZEPOST' => $latest_is_freezed,
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+
+viewtopic.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$delpost_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_delpost'] . '" alt="' . $lang['Delete_post'] . '" title="' . $lang['Delete_post'] . '" border="0" /></a>';
+		$delpost = '<a href="' . $temp_url . '">' . $lang['Delete_post'] . '</a>';
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+#				
+
+	if(intval($post_freeze = $postrow[$i]['post_freeze']) == 1)
+	  {
+	  	$temp_url = "modcp.$phpEx?mode=unfreeze&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id'] . "&amp;" . POST_TOPIC_URL . "=" . $topic_id . "&amp;sid=" . $userdata['session_id'];
+		  $unfreeze_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_unfreeze'] . '" alt="' . $lang['Unfreeze_post'] . '" title="' . $lang['Unfreeze_post'] . '" border="0" /></a>';
+		  $unfreezepost = '<a href="' . $temp_url . '">' . $lang['Unfreeze_post'] . '</a>';
+	 }
+	  else
+	   {
+	  	$temp_url = "";
+		  $unfreeze_img = '';
+		  $unfreezepost = '';
+	    }
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#		
+
+$l_edited_by = '';
+	}
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+#
+
+if ((!$is_auth['auth_mod'] ) && intval($post_freeze = $postrow[$i]['post_freeze']) == 1)
+	{
+   $message = $lang['Post_Freeze'];
+   }
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+'DELETE' => $delpost,
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+#
+
+    'UNFREEZE_IMG' => $unfreeze_img,
+		'UNFREEZE' => $unfreezepost,
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+   
+modcp.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$unlock = ( isset($HTTP_POST_VARS['unlock']) ) ? TRUE : FALSE;
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+#
+
+$unfreeze = ( isset($HTTP_POST_VARS['unfreeze']) ) ? TRUE : FALSE;
+$mass_unfreeze = ( isset($HTTP_POST_VARS['mass_unfreeze']) ) ? TRUE : FALSE;
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+else if ( $unlock )
+	{
+		$mode = 'unlock';
+	}
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+#
+
+	else if ( $unfreeze )
+	{
+		$mode = 'unfreeze';
+	}
+	else if ( $mass_unfreeze )
+	{
+		$mode = 'mass_unfreeze';
+	}
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$sql = "SELECT u.username, p.*, pt.post_text, pt.bbcode_uid, pt.post_subject, p.post_username
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+#
+
+p.post_username
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------ 
+#	
+
+, p.post_freeze
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$post_subject = ( $postrow[$i]['post_subject'] != '' ) ? $postrow[$i]['post_subject'] : $topic_title;
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+#
+
+$post_frozen= '';
+if( intval($postrow[$i]['post_freeze']) > 0 )
+{
+ $post_frozen = $lang['Last_isfreeze'];
+}
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+'POST_SUBJECT' => $post_subject,
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+#
+
+'L_SPLIT_FROZEN' => $post_frozen,
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$template->pparse('split_body');
+			}
+		}
+		break;
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+#	
+
+case 'unfreeze':
+
+	 if ( empty($HTTP_POST_VARS['topic_id_list']) && empty($topic_id) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['None_selected']);
+		}
+
+		$topics = ( isset($HTTP_POST_VARS['topic_id_list']) ) ?  $HTTP_POST_VARS['topic_id_list'] : array($topic_id);
+
+		$topic_id_sql = '';
+		for($i = 0; $i < count($topics); $i++)
+		{
+			$topic_id_sql .= ( ( $topic_id_sql != "") ? ', ' : '' ) . intval($topics[$i]);
+		}
+		
+		$sql = "UPDATE " . POSTS_TABLE . " 
+			SET post_freeze = 0 
+				WHERE post_id = '$post_id'
+					AND forum_id = $forum_id";
+				
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not update topics table', '', __LINE__, __FILE__, $sql);
+		}
+		
+		$sql = "SELECT p.*
+	   FROM " . POSTS_TABLE . " p
+	   WHERE p.topic_id = $topic_id";
+    if ( !($result = $db->sql_query($sql)) )
+    {
+	   message_die(GENERAL_ERROR, "Could not obtain post/user information.", '', __LINE__, __FILE__, $sql);
+    }
+
+   $postrow = array();
+  if ($row = $db->sql_fetchrow($result))
+  {
+	 do
+	{
+		$postrow[] = $row;
+	}
+	while ($row = $db->sql_fetchrow($result));
+	$db->sql_freeresult($result);
+
+	$total_posts = count($postrow);
+  }
+
+	for($i = 0; $i < $total_posts; $i++)
+	 {
+		if ( intval($postrow[$i]['post_freeze']) > 0 ) 
+		 {
+		 	$stillFreeze = 1;	 
+		 }
+	 }
+	 
+	$sql = "SELECT p.post_time
+	FROM " . POSTS_TABLE . " p
+	WHERE p.topic_id = $topic_id";
+				
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not select post_time', '', __LINE__, __FILE__, $sql);
+		}
+		
+	$row = $db->sql_fetchrow($result);
+  $data_new_unfreeze = intval($row['post_time']);
+
+  $sql = "SELECT f.*, p.post_time
+				FROM ( " . FORUMS_TABLE . " f
+				LEFT JOIN " . POSTS_TABLE . " p ON p.post_id = f.forum_last_post_id )";
+				
+  if ( !($result = $db->sql_query($sql)) )
+  {
+	 message_die(GENERAL_ERROR, "Could not select post_time", '', __LINE__, __FILE__, $sql);
+  }
+  $postrow = $db->sql_fetchrow($result);
+  $data_act_last_forum_post = intval($postrow['post_time']);
+	
+	if (intval($data_new_unfreeze) > intval($data_act_last_forum_post))
+  {
+   $sql = "UPDATE " . FORUMS_TABLE . " 
+						SET forum_last_post_id = $post_id
+						WHERE forum_id = $forum_id";
+						if ( !$db->sql_query($sql) )
+					{
+						message_die(GENERAL_ERROR, 'Could not update forum_last_post_id information.', '', __LINE__, __FILE__, $sql);
+					}
+   }	
+	 
+		if  ( (!empty($topic_id)) && $stillFreeze == TRUE )
+		{
+		  $redirect_page = "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;sid=" . $userdata['session_id'];
+			$message = $lang['frozen_still_exist'] . '<br /><br />' . sprintf($lang['Click_return_topic'], '<a href="' . $redirect_page . '">', '</a>');
+		}
+		elseif  ( !empty($topic_id) )
+		{
+			$redirect_page = "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;sid=" . $userdata['session_id'];
+			$message = sprintf($lang['Click_return_topic'], '<a href="' . $redirect_page . '">', '</a>');
+		}
+		else
+		{
+			$redirect_page = "modcp.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'];
+			$message = sprintf($lang['Click_return_modcp'], '<a href="' . $redirect_page . '">', '</a>');
+		}
+		
+		$message = $message . '<br \><br \>' . sprintf($lang['Click_return_forum'], '<a href="' . "viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'] . '">', '</a>');
+
+		$template->assign_vars(array(
+			'META' => '<meta http-equiv="refresh" content="3;url=' . $redirect_page . '">')
+		);
+
+		message_die(GENERAL_MESSAGE, $lang['Post_Unfreezed'] . '<br /><br />' . $message);
+
+		break;
+		
+		case 'mass_unfreeze':
+	if ( empty($HTTP_POST_VARS['topic_id_list']) && empty($topic_id) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['None_selected']);
+		}
+
+		$topics = ( isset($HTTP_POST_VARS['topic_id_list']) ) ?  $HTTP_POST_VARS['topic_id_list'] : array($topic_id);
+
+		$topic_id_sql = '';
+ for($i = 0; $i < count($topics); $i++)
+	{
+			$topic_id_sql .= ( ( $topic_id_sql != "") ? ', ' : '' ) . intval($topics[$i]);
+		
+		$sql = "SELECT topic_last_post_id  
+				FROM " . TOPICS_TABLE . "
+				WHERE topic_id IN ($topic_id_sql) 
+				AND forum_id = $forum_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not select topic_last_post_id', '', __LINE__, __FILE__, $sql);
+		}
+	  $row = $db->sql_fetchrow($result);
+    $data_topic_last_post_id = intval($row['topic_last_post_id']);
+		 
+		$sql = "SELECT post_id, post_time
+				FROM " . POSTS_TABLE . "
+				WHERE topic_id IN ($topic_id_sql) 
+				AND forum_id = $forum_id
+				AND post_id = $data_topic_last_post_id";
+				
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not select post_time', '', __LINE__, __FILE__, $sql);
+		}
+	$postrow = $db->sql_fetchrow($result);
+	$unfreeze_post_id = intval($postrow['post_id']);
+  $unfreeze_post_time = intval($postrow['post_time']);
+     
+     $sql = "SELECT f.*, p.post_time
+				FROM ( " . FORUMS_TABLE . " f
+				LEFT JOIN " . POSTS_TABLE . " p ON p.post_id = f.forum_last_post_id )";
+  if ( !($result = $db->sql_query($sql)) )
+  {
+	  message_die(GENERAL_ERROR, "Could not select forum_last_post_id", '', __LINE__, __FILE__, $sql);
+  }
+    $postrow = $db->sql_fetchrow($result);
+    $data_act_last_forum_post = intval($postrow['post_time']);
+	
+	 if (intval($unfreeze_post_time) > intval($data_act_last_forum_post))
+   {
+     $sql = "UPDATE " . FORUMS_TABLE . " 
+						SET forum_last_post_id = $unfreeze_post_id
+						WHERE forum_id = $forum_id";
+						if ( !$db->sql_query($sql) )
+					{
+						message_die(GENERAL_ERROR, 'Could not update forum_last_post_id information.', '', __LINE__, __FILE__, $sql);
+					}
+   }	
+      
+ }
+
+		$sql = "UPDATE " . POSTS_TABLE . " 
+			SET post_freeze = 0
+			WHERE topic_id IN ($topic_id_sql) 
+				AND forum_id = $forum_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not update posts table', '', __LINE__, __FILE__, $sql);
+		}
+
+		if ( !empty($topic_id) )
+		{
+			$redirect_page = "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;sid=" . $userdata['session_id'];
+			$message = sprintf($lang['Click_return_topic'], '<a href="' . $redirect_page . '">', '</a>');
+		}
+		else
+		{
+			$redirect_page = "modcp.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'];
+			$message = sprintf($lang['Click_return_modcp'], '<a href="' . $redirect_page . '">', '</a>');
+		}
+
+		$message = $message . '<br \><br \>' . sprintf($lang['Click_return_forum'], '<a href="' . "viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'] . '">', '</a>');
+
+		$template->assign_vars(array(
+			'META' => '<meta http-equiv="refresh" content="3;url=' . $redirect_page . '">')
+		);
+
+		message_die(GENERAL_MESSAGE, $lang['Mass_Unfreeze_Success'] . '<br /><br />' . $message);
+
+		break;
+		
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+		
+'L_UNLOCK' => $lang['Unlock'],
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+'L_MASS_UNFREEZE' => $lang['Mass_Unfreeze'],
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$sql = "SELECT t.*, u.username, u.user_id, p.post_time
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+#
+
+p.post_time
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------ 
+#
+
+, p.post_freeze
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+while ( $row = $db->sql_fetchrow($result) )
+		{
+			$topic_title = '';
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$cp_unfreeze_exp = '';
+  if( intval($row['post_freeze']) > 0 )
+	{
+	 $cp_unfreeze_exp = $lang['Mod_CP_unfreeze_explain'];
+	}
+			
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+'TOPIC_ID' => $topic_id,
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+'L_MOD_CP_EXPLAIN_UNFREEZE' => $cp_unfreeze_exp,	
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+# 
+
+templates/subSilver/viewforum_body.tpl
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+<td class="row3Right" align="center" valign="middle" nowrap="nowrap"><span class="postdetails">{topicrow.LAST_POST_TIME}<br />{topicrow.LAST_POST_AUTHOR} {topicrow.LAST_POST_IMG}</span></td>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+#
+
+{topicrow.LAST_POST_IMG}
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------ 
+#
+
+<br />{topicrow.L_FREEZEPOST}
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+# 
+
+templates/subSilver/modcp_body.tpl
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+<td class="row1">&nbsp;<span class="topictitle">{topicrow.TOPIC_TYPE}<a href="{topicrow.U_VIEW_TOPIC}" class="topictitle">{topicrow.TOPIC_TITLE}</a></span></td>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+
+{topicrow.TOPIC_TITLE}</a>
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------ 
+#
+
+&nbsp;{topicrow.L_MOD_CP_EXPLAIN_UNFREEZE}
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+<input type="submit" name="lock" class="liteoption" value="{L_LOCK}" />
+		&nbsp;
+		
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+<input type="submit" name="mass_unfreeze" class="liteoption" value="{L_MASS_UNFREEZE}" />
+		&nbsp;
+		
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+# 
+
+templates/subSilver/modcp_split.tpl
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+{postrow.POST_DATE}&nbsp;&nbsp;&nbsp;&nbsp;{L_POST_SUBJECT}: {postrow.POST_SUBJECT}</span></td>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+{postrow.POST_SUBJECT}
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------ 
+#
+
+ &nbsp;&nbsp; --> {postrow.L_SPLIT_FROZEN}
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+
+templates/subSilver/admin/forum_edit_body.tpl
+   
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#   
+
+   <td class="row2"><select name="forumstatus">{S_STATUS_LIST}</select></td>
+	</tr>
+	  
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+  <tr> 
+	  <td class="row1">{L_FORUM_FREEZE}</td>
+	  <td class="row2"><select name="forumfreezestatus">{S_STATUS_FREEZE}</select>
+<hr />
+	 {L_FORUM_STATUS_FREEZE_MODE}
+	  <select name="forumfreezedisplaystatus">{S_STATUS_FREEZE_DISPLAY}</select>
+<hr />
+	 {L_FORUM_FREEZE_MODE_ONLY_FIRST}
+	  <select name="forumfreezeonlyfirststatus">{S_STATUS_FREEZE_ONLY_FIRST}</select></td>
+	</tr>
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+   
+templates/subSilver/subSilver.cfg
+   
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+# 
+  
+$images['icon_edit'] = "$current_template_images/{LANG}/icon_edit.gif";
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$images['icon_unfreeze'] = "$current_template_images/{LANG}/icon_unfreeze.gif";
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+
+templates/subSilver/viewtopic_body.tpl
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+{postrow.IP_IMG}
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+
+IP_IMG}
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------ 
+#
+
+ {postrow.UNFREEZE_IMG}
+ 
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+ 
+$lang['Click_return_group']
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$lang['frozen_still_exist'] = 'Notice: the topic still contain posts that aren\'t approved!';
+   
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#  
+
+$lang['Last_Post'] = 'Last Post';
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$lang['Last_isfreeze'] = 'Waiting for validation';
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$lang['Delete_post'] = 'Delete this post';
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$lang['Unfreeze_post'] = 'Approve this post';
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+# 
+
+$lang['Mod_CP_explain'] = 'Using the form below you can perform mass moderation operations on this forum. You can lock, unlock, move or delete any number of topics.';
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$lang['Mod_CP_unfreeze_explain'] = 'This Topic contain posts that aren\'t still approved';
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$lang['Unlock'] = 'Unlock';
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$lang['Mass_Unfreeze'] = 'Approve Posts';
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#  
+
+$lang['No_Topics_Moved'] = 'No topics were moved.';
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$lang['Post_Unfreezed'] = 'The selected post has been approved.';
+$lang['Post_Freeze'] = 'This post has not been validated! This\'s the reason why you are reading this message and not the real content!';
+$lang['Mass_Unfreeze_Success'] = 'All frozen posts contained in the topics you have selected have been approved.';
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#  
+
+$lang['Status_unlocked'] = 'Unlocked';
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$lang['Status_freeze'] = 'Freeze Posts ENABLED';
+$lang['Status_unfreeze'] = 'Freeze Posts DISABLED';
+$lang['Status_freeze_display_off'] = 'Yes';
+$lang['Status_freeze_display_on'] = 'No';
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$lang['Forum_status'] = 'Forum status';
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$lang['Forum_freeze_settings'] = 'Freeze Posts Limitation:<br />if enabled, each Post inserted on this forum must be validate by a Moderator before become accessible for all users.';
+$lang['Forum_status_freeze_display_onoff'] = 'Hide frozen posts in forums list for normal users until moderators approval?';
+$lang['Forum_freeze_only_first'] = 'Do you want validation enabled only for firsts topic\'s posts and not for all replies?';
+
+#-----[ SAVE/CLOSE ALL FILES ]----------------------------------------------
+# 
+# EoM

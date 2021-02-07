@@ -1,0 +1,112 @@
+######################################################## 
+## 外掛名稱: 在私人訊息中顯示 Skype 圖示
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: This add-on display a skype (http://www.skype.com/) button in your forum's private message
+## 外掛版本: 1.0.2
+## 
+## 安裝難度: 簡單 
+## 安裝時間: 3 分鐘 
+##
+## 需要編輯的檔案: 2
+##	privmsg.php
+##	templates/subSilver/privmsgs_read_body.tpl
+##
+## 附加的檔案: 0
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 /
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.19 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2005-10-02 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2006-01-17 - 版本 1.0.1
+##      - 把 "callto://" 改成 "skype:" 因為 <引用>callto:// 協定已是作廢的 (因為安全考量和其他原因)</引用>
+##
+##   2006-04-02 - 版本 1.0.2
+##      - 移除多餘的 "/"
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+privmsg.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$sql = "SELECT u.username AS username_1, u.user_id AS user_id_1
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+u.user_yim,
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ u.user_skype,
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$yim_img = ( $privmsg['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $privmsg['user_yim'] . '&amp;.src=pg"><img src="' . $images['icon_yim'] . '" alt="' . $lang['YIM'] . '" title="' . $lang['YIM'] . '" border="0" /></a>' : '';
+	$yim = ( $privmsg['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $privmsg['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	$skype_img = ( $privmsg['user_skype'] ) ? '<a href="skype:' . $privmsg['user_skype'] . '"><img src="' . $images['icon_skype'] . '" alt="' . $lang['SKYPE'] . '" title="' . $lang['SKYPE'] . '" border="0" /></a>' : '';
+	$skype = ( $privmsg['user_skype'] ) ? '<a href="skype:' . $privmsg['user_skype'] . '">' . $lang['SKYPE'] . '</a>' : '';
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		'YIM_IMG' => $yim_img,
+		'YIM' => $yim)
+
+# 
+#-----[ 取代為 ]------------------------------------------ 
+#
+		'YIM_IMG' => $yim_img,
+		'YIM' => $yim,
+		'SKYPE_IMG' => $skype_img,
+		'SKYPE' => $skype)
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/privmsgs_read_body.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			  {WWW_IMG} {AIM_IMG} {YIM_IMG} {MSN_IMG}
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+{MSN_IMG}
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ {SKYPE_IMG}
+
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

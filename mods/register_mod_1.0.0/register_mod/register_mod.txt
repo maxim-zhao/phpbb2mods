@@ -1,0 +1,503 @@
+##############################################################
+## MOD Title: Register Parameter Mod
+## MOD Author: Stephen_A < phpbb2mods@tty.org.uk > (Steve Atty) www.tty.org.uk
+## MOD Description: Change "mode=register" to confuse bots
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit: admin/admin_board.php, 
+##                admin/admin_users.php,
+##                includes/page_header.php,
+##                includes/usercp_register.php,
+##                language/lang_english/lang_admin.php,
+##                templates/subSilver/admin/board_config_body.tpl
+## Included Files: n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## This MOD makes the registration mode flag easily adjustable through the Admin Control Panel
+## which should help defeat bots using preconstructed urls to register on your site.
+##
+##.This MOD requires phpBB v2.0.20 or later.
+##
+## Prior to installing this mod, you need to add the following configuration items to your
+## phpbb_config table:
+##
+## INSERT INTO phpbb_config (config_name,config_value) VALUES ('register_val','register');
+##
+## Of course, you need to substitute the names for YOUR config table and the variable names you
+## want to use.
+##
+## IMPORTANT
+## If you are using any templates other than subSilver then admin/board_config_body.tpl,
+## in each of them will need to be modified, as well.
+## 
+## If you are using other ANTI-SPAM mods you may find that those mods also use the mode=register code and so
+## you will need to change those references accordinlgly. Specifically EXreaction's Anti-Spam ACP adds a log_spam line 
+## to usercp_register.php which will need changing to work with this mod.
+##
+## If you are using any languages other than English, lang_admin.php in each language will need to
+## be modified, as well.
+##
+##
+##############################################################
+## MOD History:
+##
+##   2005-02-10 - Version 1.0.0
+##      - mod created
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]-------------------------------------------
+#
+INSERT INTO phpbb_config (config_name,config_value) VALUES ('register_val','register');
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_ALLOW_AUTOLOGIN_EXPLAIN" => $lang['Allow_autologin_explain'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'L_REGISTER_VAL' => $lang['Register_Val'],
+	'L_REGISTER_VAL_EXPLAIN' => $lang['Register_Val_explain'], 
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'AUTOLOGIN_TIME' => (int) $new['max_autologin_time'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	"REGISTER_VAL" => $new['register_val'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------
+# 
+#
+'U_REGISTER' => append_sid('profile.'.$phpEx.'?mode=register'),
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+?mode=register'
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+?mode='.$board_config['register_val']
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+profile.php
+#
+#-----[ FIND ]------------------------------------------
+# .
+#
+         else if ( $mode == 'editprofile' || $mode == 'register' )
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$mode == 'register' 
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+$mode == $board_config['register_val']
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$coppa = ( ( !$HTTP_POST_VARS['coppa'] && !$HTTP_GET_VARS['coppa'] ) || $mode == "register") ? 0 : TRUE;
+                  
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$mode == "register" 
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+$mode == $board_config['register_val']
+#
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+
+#-----[ FIND ]------------------------------------------
+#
+global $userdata, $template, $lang, $phpbb_root_path, $phpEx;
+
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$phpEx;
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+$board_config, $phpEx;
+
+
+#-----[ FIND ]------------------------------------------
+#
+
+"U_AGREE_OVER13" => append_sid("profile.$phpEx?mode=register&amp
+                  
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+mode=register 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+mode=".$board_config['register_val']."
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+"U_AGREE_UNDER13" => append_sid("profile.$phpEx?mode=register&amp
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+mode=register 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+mode=".$board_config['register_val']."
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if ( $mode == 'register' && !isset($HTTP_POST_VARS
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode == 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+$mode == 'register' )
+
+#
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val'] )
+
+#
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if ( $mode == 'register' )
+                  
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+
+$mode == 'register'
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if ($mode == 'register' && ($userdata['session_logged_in'] || $username == $userdata['username']))
+                  
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode == 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+else if ( $mode == 'register' )
+                  
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode == 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if ($board_config['enable_confirm'] && $mode == 'register')
+                  
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode == 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if ( $email != $userdata['user_email'] || $mode == 'register' )                 
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode == 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if ( $board_config['allow_namechange'] || $mode == 'register' )
+              
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode == 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+else if ( $username != $userdata['username'] || $mode == 'register')
+              
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode == 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if (strtolower($username) != strtolower($userdata['username']) || $mode == 'register')
+              
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode == 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if ( ($mode == 'register') || ($board_config['allow_namechange']) )
+              
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode == 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if (!empty($board_config['enable_confirm']) && $mode == 'register')
+              
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode == 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+'L_NEW_PASSWORD' => ( $mode == 'register' ) ? $lang['Password'] : $lang['New_password'],
+              
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode == 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode == $board_config['register_val']
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if ( $mode != 'register' )
+              
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$mode != 'register' 
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+
+$mode != $board_config['register_val']
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+# Partial line match. Actual line is much longer.
+#
+
+$lang['Autologin_time_explain'] =
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+$lang['Register_Val']= "Register value";
+$lang['Register_Val_explain']= "Case-sensitive <i>value</i> for registration mode";
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+# Partial line match. Actual line is much longer.
+#
+
+<td class="row1">{L_AUTOLOGIN_TIME}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	<tr>
+		<td class="row1">{L_REGISTER_VAL}<br /><span class="gensmall">{L_REGISTER_VAL_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="40" maxlength="255" name="register_val" value="{REGISTER_VAL}" /></td>
+	</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM
+#

@@ -1,0 +1,188 @@
+##############################################################
+## MOD Title:   UploadPic (Update to v1.3.0)
+## MOD Author:  buegelfalte < N/A > ( B.Funke ) http://forum.beehave.de
+## MOD Description:
+##   This is only the UPDATE-file ! For a complete installation
+##   and version-history see uploadpic.txt
+##
+##   These instructions will update UploadPic from version
+##   1.2.6 to 1.3.0
+##
+## MOD Version: 1.3.0
+##
+## Installation Level: Easy
+##
+## Installation Time: 1 Minute
+## Files To Edit:
+##   posting.php
+##   admin/index.php
+##   includes/constants.php
+##   language/lang_english/lang_admin.php
+##   language/lang_english/lang_main.php
+##   templates/subSilver/subSilver.cfg
+##
+## This MOD will install using EasyMOD!
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy uploadpic.php to uploadpic.php
+copy admin/*.* to admin/*.*
+copy includes/*.* to includes/*.*
+copy templates/subSilver/uploadpic_body.tpl to templates/subSilver/uploadpic_body.tpl
+copy templates/subSilver/admin/*.* to templates/subSilver/admin/*.*
+copy templates/subSilver/images/lang_english/*.* to templates/subSilver/images/lang_english/*.*
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+if ($userdata['user_allow_uploadpic'] == 1)
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+if (($userdata['user_allow_uploadpic'] == 1) && ($userdata['user_posts'] >= intval($board_config['uploadpic_minposts'])))
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_UPLOADPIC' => $lang['UploadPic'],
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	'L_UPLOADPIC' => (file_exists($images['uploadpic_button'])) ? '<img src="'.$images['uploadpic_button'].'" name="upbutton" alt="'.$lang['UploadPic'].'" title="'.$lang['UploadPic'].'" border="0">' : $lang['UploadPic'],
+
+#
+#-----[ OPEN ]--------------------------------------------
+#
+admin/index.php
+
+#
+#-----[ FIND ]--------------------------------------------
+#
+						case PAGE_FAQ:
+							$location = $lang['Viewing_FAQ'];
+							$location_url = "index.$phpEx?pane=right";
+							break;
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+						// MOD UploadPic - begin
+						case PAGE_UPLOADPIC:
+							$location = $lang['UploadPic'];
+							$location_url = "index.$phpEx?pane=right";
+							break;
+						// MOD UploadPic - end
+
+#
+#-----[ FIND ]--------------------------------------------
+#
+					case PAGE_FAQ:
+						$location = $lang['Viewing_FAQ'];
+						$location_url = "index.$phpEx?pane=right";
+						break;
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+					// MOD UploadPic - begin
+					case PAGE_UPLOADPIC:
+						$location = $lang['UploadPic'];
+						$location_url = "index.$phpEx?pane=right";
+						break;
+					// MOD UploadPic - end
+
+#
+#-----[ OPEN ]--------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]--------------------------------------------
+#
+define('PAGE_GROUPCP', -11);
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+// MOD UploadPic - begin
+define('PAGE_UPLOADPIC', -1240);
+// MOD UploadPic - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// UploadPic
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['UploadPic_menu_latest'] = 'UploadPic recent';
+$lang['UP_Censor'] = 'Censor';
+$lang['UP_CensorAsk'] = 'Censor this image? (file will be overwritten)';
+$lang['UP_CMSShort'] = 'CMS';
+$lang['UP_conf_forcepath'] = 'Force picture-path<br />(<u>Caution</u>: please read the <a href="http://www.beehave.de/forum/viewtopic.php?t=574" target="_blank"><strong>FAQ</strong></a>, chapter III. 8. before using this)';
+$lang['UP_conf_minposts'] = 'min. number of posts before a user is allowed to upload<br />(only users with permission)';
+$lang['UP_conf_numlatest'] = 'Number of latest uploads to view in the ACP';
+$lang['UP_Filename'] = 'Filename';
+$lang['UP_Information'] = 'Information';
+$lang['UP_KBShort'] = 'KB';
+$lang['UP_LatestUploads'] = 'The latest %d uploads';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// UploadPic
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['UP_ErrMinposts'] = 'You have to write at least %d posts to be allowed to upload.';
+
+#
+#-----[ OPEN ]------------------------------------------
+# NOTE: apply this change to ALL your templates
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$current_template_images = $current_template_path . "/images";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// MOD UploadPic - begin
+$images['uploadpic_button'] = "$current_template_images/{LANG}/up_button.gif";
+$images['uploadpic_censorgif'] = "$current_template_images/{LANG}/up_censored.gif";
+$images['uploadpic_censorjpg'] = "$current_template_images/{LANG}/up_censored.jpg";
+$images['uploadpic_censorpng'] = "$current_template_images/{LANG}/up_censored.png";
+// MOD UploadPic - end
+
+#
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

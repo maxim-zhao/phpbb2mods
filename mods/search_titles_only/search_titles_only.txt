@@ -1,0 +1,255 @@
+##############################################################
+## MOD Title: Search Titles Only
+## MOD Author: drathbun < N/A > (Dave Rathbun) http://www.phpBBDoctor.com
+## MOD Description: 
+## MOD Version: 1.0.0
+##
+##
+## Installation Level: Easy
+## Installation Time: 5 Minutes
+## Files To Edit: includes/constants.php, language/lang_english/lang_main.php, templates/subSilver/search_body.tpl, search.php
+## Included Files: 
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## In the standard phpBB system you can search Titles +
+## Message, or Message Only, but not Title Only. This MOD adds
+## that functionality.
+##############################################################
+## MOD History:
+##
+##	2005-06-01 - Version 1.0.0
+##		Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+includes/constants.php
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+?>
+
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+define(SEARCH_ENTIRE_MESSAGE, 0);
+define(SEARCH_MESSAGE_ONLY, 1);
+define(SEARCH_TITLE_ONLY, 2);
+// END Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+language/lang_english/lang_main.php
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+$lang['Search_msg_only'] = 'Search message text only';
+
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+// BEGIN Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+$lang['Search_title_only'] = 'Search message title only';
+// END Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+templates/subSilver/search_body.tpl
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+		<td class="row2" valign="middle"><span class="genmed"><select class="post" name="search_time">{S_TIME_OPTIONS}</select><br /><input type="radio" name="search_fields" value="all" checked="checked" /> {L_SEARCH_MESSAGE_TITLE}<br /><input type="radio" name="search_fields" value="msgonly" /> {L_SEARCH_MESSAGE_ONLY}</span></td>
+
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+{L_SEARCH_MESSAGE_ONLY}
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------
+#
+<br /><input type="radio" name="search_fields" value="titleonly" /> {L_SEARCH_TITLE_ONLY}
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+search.php
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	$search_fields = ( $HTTP_POST_VARS['search_fields'] == 'all' ) ? 1 : 0;
+
+
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+	// BEGIN Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+	switch ( $HTTP_POST_VARS['search_fields'] )
+	{
+		case 'all' :
+			$search_fields = SEARCH_ENTIRE_MESSAGE;
+			break;
+		case 'msgonly' :
+			$search_fields = SEARCH_MESSAGE_ONLY;
+			break;
+		case 'titleonly' :
+			$search_fields = SEARCH_TITLE_ONLY;
+			break;
+		default :
+			$search_fields = SEARCH_ENTIRE_MESSAGE;
+			break;
+	}
+	// END Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	$search_fields = 0;
+
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+	// BEGIN Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+	$search_fields = SEARCH_ENTIRE_MESSAGE;
+	// END Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+			$search_msg_only = ( !$search_fields ) ? "AND m.title_match = 0" : ( ( strstr($multibyte_charset, $lang['ENCODING']) ) ? '' : '' );
+
+
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+			// BEGIN Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+			$search_word_sql = ( $search_fields == SEARCH_MESSAGE_ONLY ) ? "AND m.title_match = 0" : '' ;
+			$search_word_sql = ( $search_fields == SEARCH_TITLE_ONLY ) ? "AND m.title_match = 1" : $search_word_sql ;
+			// END Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+							$sql = "SELECT m.post_id 
+								FROM " . SEARCH_WORD_TABLE . " w, " . SEARCH_MATCH_TABLE . " m 
+								WHERE w.word_text LIKE '$match_word' 
+									AND m.word_id = w.word_id 
+									AND w.word_common <> 1 
+									$search_msg_only";
+
+
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+							// BEGIN Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+							$sql = 'SELECT 	m.post_id
+								FROM 	' . SEARCH_WORD_TABLE . ' w
+								, 	' . SEARCH_MATCH_TABLE . " m
+								WHERE w.word_text LIKE '$match_word'
+								AND m.word_id = w.word_id
+								AND w.word_common <> 1
+									$search_word_sql";
+							// END Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+							$search_msg_only = ( $search_fields ) ? "OR post_subject LIKE '$match_word'" : '';
+
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+							// BEGIN Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+							// The following code sets up the search of the actual post, given
+							// the words found in the prior search
+							switch ( $search_fields )
+							{
+								case SEARCH_MESSAGE_ONLY :
+									$search_sql = '';
+									break;
+								case SEARCH_ENTIRE_MESSAGE :
+									$search_sql = "OR post_subject LIKE '$match_word'";
+									break;
+								case SEARCH_TITLE_ONLY :
+									$search_sql = "AND post_subject LIKE '$match_word'";
+									break;
+								default :
+									$search_sql = '';
+							}
+							// END Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+								$search_msg_only";
+
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+								$search_sql";
+
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	'L_SEARCH_MESSAGE_TITLE' => $lang['Search_title_msg'], 
+
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+	// BEGIN Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+	'L_SEARCH_TITLE_ONLY' => $lang['Search_title_only'],
+	// END Search Titles Only 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,172 @@
+##############################################################
+## MOD Title: Expire Unactivated Accounts By Timeframe
+## MOD Author: harknell < harknell@onezumi.com > (N/A) http://www.onezumi.com
+## MOD Description: Adds a new Admin area under User Administration that allows the admin
+## of the forum to delete all unactivated user registrations (typically by spammers) by choosing different time amounts (immediate, 1 day ago, 1 week, 1 month, 3 months, 6 months, 1 year)
+## and also select if the admin wants the function to be automated (using the same technique as the forum Prune function).
+## MOD Version: 2.0.1
+##
+## Installation Level: 	Intermediate
+## Installation Time: 	10 Minutes
+## Files To Edit: 	language/lang_english/lang_admin.php
+##			includes/constants.php
+##			viewforum.php
+##
+## Included Files: 	admin/admin_expire_unactivated.php
+##			templates/subSilver/admin/board_expire_accounts.tpl
+##			includes/expire_unactivated_automation.php
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:	The most annoying part of running a forum is dealing with the spammers that constantly try to use
+##			your site for their Google rank. I end up deleting a ton of their accounts, even with adequate
+##			anti-bot stuff, they're now using more real people to create accounts. In most cases the accounts
+##			are created with fake email address with no intention of ever being activated. This mod makes
+##			it easy for an admin to simply blow away any of these unactivated accounts on their forum and clean things
+##			up on a periodic basis. Version 2.0.1 adds in automation, which works in the same manner as the Prune function.
+##
+##############################################################
+## MOD History:
+##
+##   2006-09-24 - Version 1.0.0
+##      - intial release
+##   2006-11-14 - Version 1.1.0
+##      - Added extended Time range up to one year
+##      - Corrected delete function to avoid deleting temporarily de-activated users
+##      - Bug Fixes and language independent 'Anonymous' recognition added
+##   2007-01-03 - Version 1.2.0	
+##	- Added more robust deletion from forum tables to more fully remove all traces of unactivated users
+##   2007-02-21 - Version 2.0.0	
+##      - Added Automated function for system.
+##   2007-11-08 - Version 2.0.1	
+##	- Revised Code to XHTML compliance.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+############################################################## 
+
+#
+#-----[ SQL ]------------------------------------------
+#
+INSERT INTO phpbb_config ( config_name, config_value ) VALUES ('expire_automation_enable', '0');
+CREATE TABLE phpbb_unactivated_automation (
+expire_id TINYINT(4) UNSIGNED NOT NULL DEFAULT '0',
+automation_timeframe INT(11) UNSIGNED NOT NULL DEFAULT '0',
+last_autoexpire_time varchar(60) NOT NULL DEFAULT '0',
+PRIMARY KEY (`expire_id`)
+);
+INSERT INTO phpbb_unactivated_automation ( expire_id, automation_timeframe, last_autoexpire_time) VALUES ('1', '0', '0');
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy root/admin_expire_unactivated.php to admin/admin_expire_unactivated.php
+copy root/board_expire_accounts.tpl to templates/subSilver/admin/board_expire_accounts.tpl
+copy root/expire_unactivated_automation.php to includes/expire_unactivated_automation.php
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['Restore_DB'] = 'Restore Database';
+
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+// Expire Unactivated Accounts By Timeframe Mod addition
+$lang['Expire'] = 'Expire Unactivated Users';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['User_special_explain'] = 'These fields are not able to be modified by the users.  Here you can set their status and other options that are not given to users.';
+
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+// Expire Unactivated Accounts By Timeframe Mod addition
+$lang['expire_account_title'] = 'Unactivated Account Expiration System';
+$lang['expire_explain'] = 'Select the timeframe beyond which you would like to expire unactivated accounts. Any accounts registered before the selected time amount will be deleted from the database. <b>Warning</b>: This cannot be undone once submitted.';
+$lang['expire_choose'] = 'I would like to expire all unactivated accounts that were registered before:';
+$lang['expire_select_value'] = 'Select Timeframe';
+$lang['expire_one_hour'] = 'One Hour ago(~immediate)';
+$lang['expire_one_day'] = 'One Day ago';
+$lang['expire_one_week'] = 'One Week ago';
+$lang['expire_one_month'] = 'One Month ago';
+$lang['expire_three_months'] = 'Three Months ago';
+$lang['expire_six_months'] = 'Six Months ago';
+$lang['expire_one_year'] = 'One Year ago';
+$lang['accounts_expired'] = 'Accounts were expired properly.';
+$lang['noexpired_accounts'] = 'No timeframe was selected, no Accounts were expired.';
+$lang['return_expired_accounts'] = 'Click %sHere%s to return to Unactivated Account Expiration System';
+$lang['expire_account_automation_explain'] = 'Select a Timeframe from the drop down menu and click the Activate Automation button to turn on the Automated version of this System. To change the timeframe select a different timeframe and re-click the Activate Automation button. To Turn off Automation simply click the Disable Automation button.';
+$lang['expire_account_automation_on'] = 'Automation is currently <b>ON</b>';
+$lang['expire_account_automation_off'] = 'Automation is currently <b>OFF</b>';
+$lang['expire_account_automation_turnoff'] = 'Disable Automation';
+$lang['expire_account_automation_turnon'] = 'Activate Automation';
+$lang['expire_account_automation_timeframe'] = '<br />Your Current Automated Timeframe is: ';
+$lang['expire_account_automation_nowon'] = 'Automation feature was successfully activated.';
+$lang['expire_account_automation_nowoff'] = 'Automation feature was successfully deactivated.';
+$lang['expire_account_automation_notimeframe'] = 'No Timeframe was supplied for Automation, please select a Timeframe before clicking Activate Automation';
+$lang['expire_account_automation_lastrun'] = '<br />The Automated Expire function was last run: ';
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+// Expire Unactivated Accounts By Timeframe Mod addition
+define('EXPIRE_UNACTIVATED_AUTOMATION_TABLE', $table_prefix.'unactivated_automation');
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// End of forum prune
+//
+
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+
+//
+// Expire Unactivated accounts Automation hook
+//
+if ( $is_auth['auth_mod'] && $board_config['expire_automation_enable'] )
+{
+		include($phpbb_root_path . 'includes/expire_unactivated_automation.'.$phpEx);
+		auto_expire_unactivated_accounts();
+
+}
+//
+// End of Expire Unactivated accounts Automation hook
+//
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

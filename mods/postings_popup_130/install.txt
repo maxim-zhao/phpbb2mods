@@ -1,0 +1,281 @@
+##############################################################
+## MOD Title: Postings Popup 
+## MOD Author: david63 < david.wood63@btopenworld.com > (David Wood) http://www.david-wood.me.uk
+## MOD Description:   This MOD will create a link from the replies in view forum which will create a popup 
+##         window showing the users who have made posts to that topic together with the number 
+##         of posts that they have made. 
+## MOD Version: 1.3.0
+##
+## Installation Level:	Easy
+## Installation Time:	~5 minutes
+## Files To Edit:   6
+##			search.php
+##			viewforum.php
+##			lang_main.php
+##			overall_header.tpl
+##			search_results_topics.tpl
+##			viewforum_body.tpl
+## Included Files:
+##			postings_popup.php
+##			postings_popup.tpl
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+##
+## Author Notes:
+##
+############################################################## 
+## MOD History: 
+## 
+##   
+##   2004-01-09 - Version 1.3.0
+##	- Amended to use Simple Header & Footer
+##   2003-08-18 - Version 1.2.1
+##	- Checked 2.0.6 compatible
+##	- Corrected some languge conflics
+##   2003-08-01 - Version 1.2.0
+##	- Amended to have postings popup for search results
+##	- Moved the JavaSript into overall_header.tpl
+##	- Minor code & cosmetic changes
+##	- Included missing language variables
+##   2003-07-30 - Version 1.1.1
+##	- Removed mouseover JavaScript - it was buggy
+##	- Minor cosmetic changes
+##   2003-07-29 - Version 1.1.0
+##	- Sorted posts in descending order (thanks to Keiichi)
+##	- Display mouseover message on viewforum
+##	- Reuse popup window
+##	- Link to User Profile
+##	- Link to user posts
+##	- Link to View Topic
+##	- Minor code improvements
+##   2003-07-06 - Version 1.0.0
+##      - Initial Release 
+##   2003-07-05 - Version 0.0.5
+##      - Standardised code
+##      - Corrected missing link hover
+##   2003-07-05 - Version 0.0.4
+##      - Cosmetic changes
+##      - Author flagged
+##   2003-07-05 - Version 0.0.3
+##      - Added scrollbars to popup window
+##   2003-07-04 - Version 0.0.2
+##      - Corrected users being listed more than once
+##   2003-07-04 - Version 0.0.1
+##      - Intial Beta Release
+##
+################################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+################################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+
+copy postings_popup.php to postings_popup.php
+copy postings_popup.tpl to templates/subSilver/postings_popup.tpl
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+search.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+if ( isset($HTTP_POST_VARS['search_author']) || isset($HTTP_GET_VARS['search_author']))
+{
+	$search_author = ( isset($HTTP_POST_VARS['search_author']) ) ? $HTTP_POST_VARS['search_author'] : $HTTP_GET_VARS['search_author'];
+}
+else
+{
+	$search_author = '';
+}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+if ( isset($HTTP_POST_VARS['search_topic']) || isset($HTTP_GET_VARS['search_topic']))
+{
+	$search_topic = ( isset($HTTP_POST_VARS['search_topic']) ) ? $HTTP_POST_VARS['search_topic'] : $HTTP_GET_VARS['search_topic'];
+}
+else
+{
+	$search_topic = '';
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		$sql = "SELECT post_id 
+			FROM " . POSTS_TABLE . " 
+			WHERE poster_id IN ($matching_userids)";
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+
+		if ($search_topic !='')
+		{
+			$sql = "SELECT post_id 
+				FROM " . POSTS_TABLE . " 
+				WHERE poster_id IN ($matching_userids)
+				AND topic_id = $search_topic";
+		}
+		else
+		{
+			$sql = "SELECT post_id 
+				FROM " . POSTS_TABLE . " 
+				WHERE poster_id IN ($matching_userids)";
+		}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+					'L_TOPIC_FOLDER_ALT' => $folder_alt,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+					'U_POSTINGS_POPUP' => append_sid("postings_popup.$phpEx?t=$topic_id"),
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+					'L_AUTHOR' => $lang['Author'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+					'L_POPUP_MESSAGE' => $lang['Postings_popup_message'],
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+viewforum.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+			'L_AUTHOR' => $lang['Author'], 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+			'L_POPUP_MESSAGE' => $lang['Postings_popup_message'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+			'L_TOPIC_FOLDER_ALT' => $folder_alt, 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+			'U_POSTINGS_POPUP' => append_sid("postings_popup.$phpEx?t=$topic_id"),
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+//
+// That's all, Folks!
+
+# 
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+
+//
+// Postings Popup Mod
+$lang['Postings_popup_message'] = 'Display number of posts for each poster in this topic';
+$lang['Profile_message'] = 'Display the profile for this poster';
+$lang['Posts_message'] = 'Display the posts for this topic by this poster';
+$lang['Postings_popup_title'] = 'Number of Posts';
+$lang['Postings_popup_starter'] = 'Topic Starter';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+<head>
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------
+#
+
+<script language="javascript" type="text/javascript">
+<!--
+function NewWindow(mypage,myname)
+{
+	settings='width=250,height=300,top=0,left=0,toolbar=no,location=no,directories=no,status=no,menubar=no,resizable=yes,scrollbars=yes';
+	PopupWin=window.open(mypage,myname,settings);
+	PopupWin.focus();
+}
+// -->
+</script>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+templates/subSilver/search_results_topics.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+<td class="row2" align="center" valign="middle"><span class="postdetails">{searchresults.REPLIES}</span></td>
+
+# 
+#-----[ REPLACE WITH ]----------------------------------
+#
+
+<td class="row2" align="center" valign="middle"><span class="postdetails"><a href="{searchresults.U_POSTINGS_POPUP}" onclick="NewWindow(this.href,'PopupWin');return false" onfocus="this.blur()"; title="{L_POPUP_MESSAGE}">{searchresults.REPLIES}</a></span></td>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+templates/subSilver/viewforum_body.tpl
+
+# 
+#-----[ FIND ]--------------------------------------------
+#
+
+<td class="row2" align="center" valign="middle"><span class="postdetails">{topicrow.REPLIES}</span></td>
+
+# 
+#-----[ REPLACE WITH ]-------------------------------------
+#
+
+<td class="row2" align="center" valign="middle"><span class="postdetails"><a href="{topicrow.U_POSTINGS_POPUP}" onclick="NewWindow(this.href,'PopupWin');return false" onfocus="this.blur()"; title="{L_POPUP_MESSAGE}">{topicrow.REPLIES}</a></span></td>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]----------------------------
+# EoM

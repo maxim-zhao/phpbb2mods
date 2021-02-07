@@ -1,0 +1,172 @@
+##############################################################
+## MOD Title: Visual Confirmation on New Posters
+## MOD Author: Thoul < thoul@phpbbsmith.com > (Jeremy Rogers) http://www.phpbbsmith.com
+## MOD Description:
+##		Adds visual confirmation to the posting form for new posters.
+## MOD Version: 2.0.0
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit:
+##		admin/admin_board.php,
+##		templates/subSilver/posting_body.tpl
+##		templates/subSilver/admin/board_config_body.tpl
+## Included Files:
+##		install.php,
+##		vc.php,
+##		language/lang_english/lang_vc_newposts.php,
+##		mods/vc_newposts/config.php,
+##		mods/vc_newposts/constants.php,
+##		mods/vc_newposts/vc_newposts.php,
+##		templates/subSilver/admin/vc_newposts.tpl,
+##		templates/subSilver/vc_newposts/standard.tpl,
+##		templates/subSilver/vc_newposts/photo.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public ##############################################################
+## Author Notes:
+##
+## These are instructions from upgrading this modification from version 1.0.0 to
+## version 2.0.0.  If you are installing this modification for the first time,
+## please see the instructions in install.txt instead.
+##
+## After installing, go the Admin Panel > General > Configuration page.  At
+## the bottom of this page, you'll find new settings related to this
+## modification.  You should adjust these as you desire.
+##
+## If you want to use this modification with a type of Visual Confirmation
+## other than the standard phpBB visual confirmation image, you will need to
+## install another modification for that type of confirmation first.  This
+## modification currently supports the following:
+##	-Default phpBB 2.0.21 visual confirmation,
+##	-Advanced Visual Confirmation 1.1.1,
+##	-Photo Visual Confirmation 1.0.0 - 1.0.1a,
+##	-FreeCap Visual Confirmation 0.0.3.
+## Options for the last two of these will not appear in the Admin Panel until
+## they are installed and functioning, to prevent you from setting up the board
+## incorrectly.
+##
+##############################################################
+## BEFORE FOLLOWING THESE INSTRUCTIONS, YOU SHOULD BACK UP ALL RELATED FILES.
+##############################################################
+
+#
+#-----[ COPY ]--------------------------------------
+#
+
+copy root/*.* to *.*
+
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------------
+#
+
+Run install.php by visiting it in your web browser, for example
+http://www.yoursite.com/phpBB2/install.php
+Choose the "Upgrade" option.
+This will upgrade the database portions of the hack. If you prefer to run the
+queries manually, check contrib/upgrades/100_to_200.sql.
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+<?php
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+// This file modified for Visual Confirmation on New Posters
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+$template->pparse("body");
+
+#
+#-----[ BEFORE, ADD ]--------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Visual Confirmation on New Posters - Begin Code Alteration
+//
+require_once($phpbb_root_path . 'mods/vc_newposts/config.' . $phpEx);
+//
+// Visual Confirmation on New Posters - End Code Alteration
+//----------------------------------------------------------------------
+
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+<!-- Visual Confirmation on New Posters - Begin Code Alteration -->
+<!-- BEGIN confirm -->
+	<tr>
+		<td class="row1">
+			<span class="gen">{L_CONFIRM_CODE}: * </span><br /><span class="gensmall">{L_CONFIRM_CODE_EXPLAIN}</span>
+		</td>
+		<td class="row2" align="center">{CONFIRM_IMG}<br /><input type="text" class="post" style="width: 200px" name="{FIELD_NAME}" size="10" maxlength="10" value="" /><br /> <span class="gensmall">{L_CONFIRM_CODE_IMPAIRED}</span></td>
+	</tr>
+<!-- END confirm -->
+<!-- Visual Confirmation on New Posters - End Code Alteration -->
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+<!-- Visual Confirmation on New Posters - Begin Code Alteration -->
+{VC_NEWPOSTS}
+<!-- Visual Confirmation on New Posters - End Code Alteration -->
+
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]--------------------------------------
+#
+# Just needs to be the first line in the file. Might be a different line for
+# some templates.
+#
+
+<h1>{L_CONFIGURATION_TITLE}</h1>
+
+#
+#-----[ BEFORE, ADD ]--------------------------------------
+#
+
+<!-- This file modified for Visual Confirmation on New Posters -->
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+	<tr>
+		<td class="row1">{L_SMTP_PASSWORD}<br /><span class="gensmall">{L_SMTP_PASSWORD_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="password" name="smtp_password" value="{SMTP_PASSWORD}" size="25" maxlength="255" /></td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+<!-- Visual Confirmation on New Posters - Begin Code Alteration -->
+{VC_NEWPOSTS}
+<!-- Visual Confirmation on New Posters - End Code Alteration -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

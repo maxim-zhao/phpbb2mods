@@ -1,0 +1,241 @@
+##############################################################
+## MOD Title:		Clone posts (upgrade from 1.0.1 or 1.0.1a to 1.0.2)
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Description:	This upgrades an installation of the clone posts mod
+##			from version 1.0.1 or 1.0.1a to 1.0.2
+##
+## MOD Version:		1.0.2
+##
+## Installation Level:	(Easy)
+## Installation Time:	10 Minutes
+##
+## Files To Edit: 	posting.php
+##			language/lang_english/lang_main.php
+##
+## Included Files: 	clone.php
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 	Note: this is an upgrade mod that assumes you already have version 1.0.1 or 1.0.1a of the clone posts mod installed
+##			######################################
+##			Important: if you are running my tabulated survey at topic head mod, you must make the following four additional changes:
+##			OPEN
+##			posting.php
+##
+##			FIND
+##			$page_title = ( $clonepost ) ? $lang['Clone_post'] : $lang['Post_a_new_topic'];
+##
+##			AFTER, ADD
+##			// start mod tabulated survey at topic head
+##			// if this is an existing topic with a survey in it, pass the survey_id to the template so it can be retrieved when the edited post is resubmitted
+##			if($post_info['topic_survey'])
+##			{
+##				// ok, this is in fact an existing topic with a survey in it, so retrieve the question data from the survey table
+##				// and store that data in $survey_info.  $survey_info gets used later on in this file (where the survey template in built) but meanwhile
+##				// we'll stick survey survey_id into the hidden fields to get passed on to the template (so that
+##				// it can be retrieved when the edited post gets resubmitted).
+##				$sql = "SELECT survey_id, survey_caption, group_ids, show_order, show_nonresponders, max_number_of_questions, lines_to_skip, survey_height, widths, questions, question_types, question_selections, question_sums, question_selected_text, question_response_caps, question_average_round
+##					FROM " . SURVEY_TABLE . "
+##					WHERE topic_id = $topic_id";
+##
+##				if ( !($result = $db->sql_query($sql)) )
+##				{
+##					message_die(GENERAL_ERROR, "Could not get survey info the survey table", '', __LINE__, __FILE__, $sql);
+##				}
+##				$survey_info = $db->sql_fetchrow($result);
+##				$db->sql_freeresult($result);
+##			}
+##			// end mod tabulated survey at topic head
+##
+##			FIND
+##			if( $mode == 'editpost' && $post_info['topic_survey'] == 1)
+##
+##			REPLACE WITH
+##			if( ($mode == 'editpost' || $clonepost) && $post_info['topic_survey'] == 1)
+##
+##			FIND
+##			if( $mode == 'newtopic' || $post_info['topic_survey'] == 0 )
+##
+##			REPLACE WITH
+##			if( ($mode == 'newtopic' && !$clonepost) || $post_info['topic_survey'] == 0 )
+##
+##			FIND
+##			if( $mode == 'editpost' && $post_info['topic_survey'] == 1)
+##
+##			REPLACE WITH
+##			if( ($mode == 'editpost' || $clonepost) && $post_info['topic_survey'] == 1)
+##
+##
+##			Also note: once you install the version of my tabulated survey at topic head mod that gives you the option to specify a time for when the 
+##			survey expires (I haven't uploaded that as of August 28 but I will sometime in the next few days), you will need to add to the above SELECT statement,
+##			right after "lines_to_skip,", the following:
+##			survey_length,
+##
+##############################################################
+## MOD History:
+##
+##   2005-08-28 - Version 1.0.2
+##		  initial version of upgrade to 1.0.2
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy root/clone.php to clone.php
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Start session management
+//
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+//
+// start mod clone posts: if the user is cloning a post, reset $mode to editpost and fetch the target forum_id but set a flag so that the matter will be specially handled later
+//
+if ( $mode == 'clonepost' )
+{
+	$mode = 'editpost';
+	$clonepost = TRUE;
+	$clone_target_forum_id = intval($HTTP_POST_VARS['forum_id']);
+}
+// end mod clone posts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$is_auth_type = 'auth_edit';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		// start mod clone posts (and end mod too)...tinker with authorization since clone posts (masquerading as editposts) have different auth rules 
+		$is_auth_type = ( $clonepost ) ? 'auth_post' : 'auth_edit';
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: actual line is longer
+	if ( $post_info['forum_status']
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+!$is_auth['auth_mod']
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ && !$clonepost 
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: actual line is longer
+	else if ( $mode != 'newtopic' 
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+$mode != 'newtopic'
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ && !$clonepost 
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if ( $post_info['poster_id'] != $userdata['user_id'] && !$is_auth['auth_mod'] )
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+!$is_auth['auth_mod']
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ && (!$clonepost || !$is_auth['auth_post'])
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		{
+			$username = ( $post_info['user_id'] == ANONYMOUS && !empty($post_info['post_username']) ) ? $post_info['post_username'] : '';
+		}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		// start mod clone posts (and end mod too)...at this point, now that message, subject etc have been filled in, then treat any clone as newpost rather than as editpost
+		if( $clonepost )
+		{
+			$forum_id = ($clone_target_forum_id) ? $clone_target_forum_id : $forum_id;
+
+			// fetch forum name
+			$sql = "SELECT forum_name
+				FROM " . FORUMS_TABLE . "
+				WHERE forum_id = $forum_id";
+
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain new forum name for cloned post', '', __LINE__, __FILE__, $sql);
+			}
+
+			$row = $db->sql_fetchrow($result);
+			$forum_name = $row['forum_name'];
+			$user_sig = ( $userdata['user_sig'] != '' ) ? $userdata['user_sig'] : '';
+			$username = ($userdata['session_logged_in']) ? $userdata['username'] : '';
+			$mode = 'newtopic';
+		}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$page_title = $lang['Post_a_new_topic'];
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		$page_title = ( $clonepost ) ? $lang['Clone_post'] : $lang['Post_a_new_topic'];
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['Forum_selection_explain'] = 'Using the form below you can specify where to post the cloned post. <br />If you change your mind and don\'t want to clone this post, click the \'cancel clone\' button.';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+$lang['Forum_selection_explain'] = 'Using the form below you can specify where to post the cloned post. <br />When you click \'Clone post as a new topic\', a clone of the original post will open up in edit mode and you can then change it before posting. <br />If you change your mind and don\'t want to clone this post, click the \'cancel clone\' button.';
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

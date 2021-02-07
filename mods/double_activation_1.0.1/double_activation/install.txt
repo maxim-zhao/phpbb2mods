@@ -1,0 +1,317 @@
+##############################################################
+## MOD Title: Double Activation
+## MOD Author: damnian < damnian at phpbb dot cc > (Dmitry Shechtman) http://www.phpbb.cc
+## MOD Description: Adds an option for 2-step activation
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 15 Minutes
+## Files To Edit: 6
+##  admin/admin_board.php
+##  includes/constants.php
+##  includes/usercp_activate.php
+##  includes/usercp_register.php
+##  language/lang_english/lang_admin.php
+##  templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files: N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/  
+##############################################################
+## Author Notes:
+##
+##	 Remember to select Both in Enable account activation!
+##############################################################
+## MOD History:
+##
+##   2007-01-13 - Version 1.0.1
+##      - Minor template fixes (thanks to kenerly)
+##      - Author details
+##
+##   2006-03-09 - Version 1.0.0
+##      - Submitted to MODDB
+##
+##   2006-03-05 - Version 0.1.2
+##      - ACP Both selection fix (thanks to Tapio)
+##      - 2.0.19 compatible
+##
+##   2006-01-03 - Version 0.1.1
+##      - 2.0.18 compatibility fix
+##
+##   2005-12-26 - Version 0.1.0
+##      - Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+# This is a partial match
+$activation_admin = 
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Start add - Double Activation MOD
+$activation_double = ( $new['require_activation'] == USER_ACTIVATION_DOUBLE ) ? "checked=\"checked\"" : "";
+// End add - Double Activation MOD
+#
+#-----[ FIND ]------------------------------------------ 
+#
+# This is a partial match
+	"L_ADMIN" => 
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Start add - Double Activation MOD
+	"L_DOUBLE" => $lang['Acc_Both'],
+	// End add - Double Activation MOD
+#
+#-----[ FIND ]------------------------------------------ 
+#
+# This is a partial match
+	"ACTIVATION_ADMIN_CHECKED" => $activation_admin, 
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Start add - Double Activation MOD
+	"ACTIVATION_DOUBLE" => USER_ACTIVATION_DOUBLE, 
+	"ACTIVATION_DOUBLE_CHECKED" => $activation_double, 
+	// End add - Double Activation MOD
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+define('USER_ACTIVATION_ADMIN', 2);
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Start add - Double Activation MOD
+define('USER_ACTIVATION_DOUBLE', 3);
+// End add - Double Activation MOD
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_activate.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	exit;
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Double Activation MOD
+$unhtml_specialchars_match = array('#&gt;#', '#&lt;#', '#&quot;#', '#&amp;#');
+$unhtml_specialchars_replace = array('>', '<', '"', '&');
+// End add - Double Activation MOD
+#
+#-----[ FIND ]------------------------------------------ 
+#
+				message_die(GENERAL_MESSAGE, $lang['Not_Authorised']);
+			}
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+		// Start add - Double Activation MOD
+		if (intval($board_config['require_activation']) == USER_ACTIVATION_DOUBLE && isset($HTTP_GET_VARS['acc_admin']) && $row['user_newpasswd'] == '')
+		{
+			if (!$userdata['session_logged_in'])
+			{
+				redirect(append_sid('login.' . $phpEx . '?redirect=profile.' . $phpEx . '&mode=activate&' . POST_USERS_URL . '=' . $row['user_id'] . '&act_key=' . trim($HTTP_GET_VARS['act_key'] . '&acc_admin')));
+			}
+			else if ($userdata['user_level'] != ADMIN)
+			{
+				message_die(GENERAL_MESSAGE, $lang['Not_Authorised']);
+			}
+		}
+		// End add - Double Activation MOD
+#
+#-----[ FIND ]------------------------------------------ 
+#
+# This is a partial match
+$sql = "UPDATE " . USERS_TABLE 
+#
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+		// Start add - Double Activation MOD
+		if ( $board_config['require_activation'] != USER_ACTIVATION_DOUBLE || $userdata['user_level'] == ADMIN || $sql_update_pass != '' )
+		{
+			$sql_update_active = "user_active = 1, user_actkey = ''";
+		}
+		else
+		{
+			$user_id = $row['user_id'];
+			$username = $row['username'];
+			
+			$user_actkey = gen_rand_string(true);
+			$key_len = 54 - ( strlen($server_url) );
+			$key_len = ( $key_len > 6 ) ? $key_len : 6;
+			$user_actkey = substr($user_actkey, 0, $key_len);
+
+			$sql_update_active = "user_actkey = '$user_actkey'";
+		}
+		// End add - Double Activation MOD
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+# This is a partial match
+SET user_active = 1, user_actkey = ''"
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_active = 1, user_actkey = ''"
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+" . $sql_update_active
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			message_die(GENERAL_ERROR, 'Could not update users table', '', __LINE__, __FILE__, $sql_update);
+		}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Start add - Double Activation MOD
+		if ( $user_actkey != '' )
+		{
+			$sql = 'SELECT user_email, user_lang 
+				FROM ' . USERS_TABLE . '
+				WHERE user_level = ' . ADMIN;
+			
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not select Administrators', '', __LINE__, __FILE__, $sql);
+			}
+			
+			include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+			$emailer = new emailer($board_config['smtp_delivery']);
+
+			while ($row = $db->sql_fetchrow($result))
+			{
+				$emailer->from($board_config['board_email']);
+				$emailer->replyto($board_config['board_email']);
+				
+				$emailer->email_address(trim($row['user_email']));
+				$emailer->use_template("admin_activate", $row['user_lang']);
+				$emailer->set_subject($lang['Reactivate']);
+
+				$emailer->assign_vars(array(
+					'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+					'EMAIL_SIG' => str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']),
+
+					'U_ACTIVATE' => $server_url . '?mode=activate&' . POST_USERS_URL . '=' . $user_id . '&act_key=' . $user_actkey . '&acc_admin')
+				);
+				$emailer->send();
+				$emailer->reset();
+			}
+			$db->sql_freeresult($result);
+
+			$template->assign_vars(array(
+				'META' => '<meta http-equiv="refresh" content="10;url=' . append_sid("index.$phpEx") . '">')
+			);
+
+			message_die(GENERAL_MESSAGE, $lang['Account_inactive_admin']);
+		}
+		else
+		// End add - Double Activation MOD
+#
+#-----[ FIND ]------------------------------------------ 
+#
+# This is a partial match
+if ( intval($board_config['require_activation']) == USER_ACTIVATION_ADMIN
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+intval($board_config['require_activation']) == USER_ACTIVATION_ADMIN
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+(intval($board_config['require_activation']) == USER_ACTIVATION_ADMIN || intval($board_config['require_activation']) == USER_ACTIVATION_DOUBLE)
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+# This is a partial match
+if ( $board_config['require_activation'] == USER_ACTIVATION_SELF
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$board_config['require_activation'] == USER_ACTIVATION_ADMIN
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ || $board_config['require_activation'] == USER_ACTIVATION_DOUBLE
+#
+#-----[ FIND ]------------------------------------------ 
+#
+# This is a partial match
+else if ( $board_config['require_activation'] == USER_ACTIVATION_SELF
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$board_config['require_activation'] == USER_ACTIVATION_SELF
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ || $board_config['require_activation'] == USER_ACTIVATION_DOUBLE
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+# This is a partial match
+$lang['Acc_Admin'] = 
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Start add - Double Activation MOD
+$lang['Acc_Both'] = 'Both';
+// End add - Double Activation MOD
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------ 
+#
+# This is a partial match
+<td class="row2"><input type="radio" name="require_activation" 
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+{L_ADMIN}
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+&nbsp; &nbsp;<input type="radio" name="require_activation" value="{ACTIVATION_DOUBLE}" {ACTIVATION_DOUBLE_CHECKED} />{L_DOUBLE}
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+#
+# EoM

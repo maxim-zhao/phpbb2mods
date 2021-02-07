@@ -1,0 +1,151 @@
+##############################################################
+## MOD Title: Topic posters
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com 
+## MOD Description: Turns the number of replies for a topic / forum into a link, where you can view who posted in that topic / forum, and how many posts that user made.
+## MOD Version: 1.1.0a
+## 
+## Installation Level: Easy
+## Installation Time: ~ 3 Minutes 
+## Files To Edit: 
+##		language/lang_english/lang_main.php
+##		viewforum.php
+##		index.php
+##
+## Included Files: 
+##		topicposters.php
+##		topicposters_body.tpl
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##	When you find a 'AFTER, ADD'-Statement, the Code has to be added after the last line quoted in the 'FIND'-Statement.
+##	When you find a 'BEFORE, ADD'-Statement, the Code has to be added before the last line quoted in the 'FIND'-Statement.
+##
+############################################################## 
+## MOD History: 
+##
+##
+##   2005-02-25 - Version 1.1.0a
+##      - Now uses constants for "t" and "f"
+##
+##   2005-01-29 - Version 1.1.0
+##      - You can now view who posted for complete forums too
+##
+##   2005-01-19 - Version 1.0.5
+##      - Up until now a user could find out the name of a topic which was started in a private forum. This has now been rectified
+##
+##   2005-01-10 - Version 1.0.4
+##      - Fixed url encoding problem in topicposters.php
+##
+##   2005-01-06 - Version 1.0.3
+##      - Fixed hardcoding language problems
+##
+##   2004-12-29 - Version 1.0.2
+##      - Fixed url encoding and another mistake in topicposters.php and MOD text
+##
+##   2004-12-15 - Version 1.0.1
+##      - Minor mistakes fixed
+##
+##   2004-12-11 - Version 1.0.0
+##      - Initial version
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy topicposters.php to topicposters.php
+copy templates/subSilver/topicposters_body.tpl to templates/subSilver/topicposters_body.tpl
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+//
+// That's all, Folks!
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+# 
+// Topic posters MOD, By Manipe (Begin)
+$lang['Topic_posters_users_who_posted'] = 'Users Who Posted In';
+$lang['Topic_posters_open_topic'] = 'Close Window and Open Topic';
+$lang['Topic_posters_open_forum'] = 'Close Window and Open Forum';
+$lang['Topic_posters'] = 'Topic Posters';
+$lang['Forum_posters'] = 'Forum Posters';
+// Topic posters MOS, By Manipe (End)
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+viewforum.php
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+		$topic_id = $topic_rowset[$i]['topic_id'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Topic posters MOD, By Manipe (Begin)
+		$topic_posters_url = append_sid($phpbb_root_path . "topicposters.$phpEx?" . POST_TOPIC_URL . "=$topic_id");
+		$replies_topic_posters = '<a href="' . $topic_posters_url . '" onclick="window.open(\'' . $topic_posters_url . '\', \'_topicposters\', \'height=300,resizable=yes,scrollbars=yes,width=290\');return false;"  target="_topicposters">' . $topic_rowset[$i]['topic_replies'] . '</a>';
+// Topic posters MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+			'REPLIES' => $replies,
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+// Topic posters MOD, By Manipe (Begin)
+			'REPLIES' => $replies_topic_posters,
+// Topic posters MOD, By Manipe (End)
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+index.php
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+							$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Topic posters MOD, By Manipe (Begin)
+							$topic_posters_url = append_sid($phpbb_root_path . "topicposters.$phpEx?" . POST_FORUM_URL . "=$forum_id");
+							$posts_topic_posters = '<a href="' . $topic_posters_url . '" onclick="window.open(\'' . $topic_posters_url . '\', \'_topicposters\', \'height=300,resizable=yes,scrollbars=yes,width=290\');return false;"  target="_topicposters">' . $forum_data[$j]['forum_posts'] . '</a>';
+// Topic posters MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+								'POSTS' => $forum_data[$j]['forum_posts'],
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+// Topic posters MOD, By Manipe (Begin)
+								'POSTS' => $posts_topic_posters,
+// Topic posters MOD, By Manipe (End)
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+
+# EoM

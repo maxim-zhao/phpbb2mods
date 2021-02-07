@@ -1,0 +1,221 @@
+##############################################################
+## MOD Title: Smart Dates Update 1.0.4 to 1.0.5
+## MOD Author: eviL3 < evil@phpbbmodders.net > (Igor Wiedler) http://phpbbmodders.net
+## MOD Description: Update instructions
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: 1 Minute
+##
+## Files To Edit:
+##		functions.php
+##		language/lang_english/lang_main.php
+##
+## Included Files: n/a
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##	2007-07-26 - Version 1.0.0
+##		- Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ( $smart_dates && $board_config['smart_dates_allow'] && $userdata['user_smart_dates'] )
+	{
+		$use_time	= false;
+		$now		= time();
+		$diff		= $now - $gmepoch;
+//		$diff		= $diff + (3600 * $tz);
+		switch ( true )
+		{
+			case ( $diff < 60 ):
+				$secs = gmdate('s', $diff);
+				if ( substr($secs, 0, 1) == '0' )
+				{
+					$secs = substr( $secs, 1 );
+				}
+				$l_seconds	= ( $secs == 1 ) ? $lang['Smart_dates_second'] : $lang['Smart_dates_seconds'];
+				$ret		= "$secs $l_seconds";
+			break;
+			
+			case ( $diff < 3600 ):
+				$mins = gmdate('i', $diff);
+				if ( substr($mins, 0, 1) == '0' )
+				{
+					$mins = substr( $mins, 1 );
+				}
+				$l_mins	= ( $mins == 1 ) ? $lang['Smart_dates_minute'] : $lang['Smart_dates_minutes'];
+				$ret	= "$mins $l_mins";
+			break;
+			
+			case ( $diff < (3600 * 24) ):
+				$hours		= gmdate('G', $diff);
+				$l_hours	= ( $hours == 1 ) ? $lang['Smart_dates_hour'] : $lang['Hours'];
+				$ret		= "$hours $l_hours";
+				$use_time	= true;
+			break;
+			
+			case ( $diff < (3600 * 24) * 2 ):
+				$ret		= $lang['Smart_dates_yesterday'];
+				$use_time	= true;
+			break;
+			
+			case ( ($diff > (3600 * 24) * 3) && ($diff < (3600 * 24) * 7) ):
+				$days		= gmdate('j', $diff);
+				$ret		= $days . ' ' . $lang['Days'];
+				$use_time	= true;
+			break;
+		}
+	}
+	
+	if ( $ret )
+	{
+		if( $ret != $lang['Smart_dates_yesterday'] )
+		{
+			$ret = sprintf( $lang['Smart_dates_ago'], $ret );
+		}
+		
+		if ( $board_config['smart_dates_time'] && $use_time )
+		{
+			$min_sec	= gmdate('g:i a', $gmepoch + (3600 * $tz));
+			$ret		.= ' ' . sprintf( $lang['Smart_dates_at'], $min_sec );
+		}
+	}
+	else
+	{
+		$ret = ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
+	}
+	
+	return $ret;
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	if ($smart_dates && $board_config['smart_dates_allow'] && $userdata['user_smart_dates'])
+	{
+		$use_time = false;
+		$diff = time() - $gmepoch;
+		switch (true)
+		{
+			case ($diff < 60):
+				$secs = (int) gmdate('s', $diff);
+				$ret = ($secs == 1) ? $lang['Smart_dates_second'] : sprintf($lang['Smart_dates_seconds'], $secs);
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+			break;
+			
+			case ($diff < 3600):
+				$mins = (int) gmdate('i', $diff);
+				$ret = ($mins == 1) ? $lang['Smart_dates_minute'] : sprintf($lang['Smart_dates_minutes'], $mins);
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+			break;
+			
+			case ($diff < (3600 * 24)):
+				$hours = (int) gmdate('G', $diff);
+				$ret = ($hours == 1) ? $lang['Smart_dates_hour'] : sptintf($lang['Smart_dates_hours'], $hours);
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+				$use_time = true;
+			break;
+			
+			case ($diff < (3600 * 24) * 2):
+				$ret = $lang['Smart_dates_yesterday'];
+				$use_time = true;
+			break;
+			
+			case (($diff > (3600 * 24) * 3) && ($diff < (3600 * 24) * 7)):
+				$days = gmdate('j', $diff);
+				$ret = $days . ' ' . $lang['Days'];
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+				$use_time = true;
+			break;
+		}
+	}
+	
+	if ($ret)
+	{
+		if ($board_config['smart_dates_time'] && $use_time)
+		{
+			$min_sec = gmdate('g:i a', $gmepoch + (3600 * $tz));
+			$ret = sprintf($lang['Smart_dates_at'], $ret, $min_sec);
+		}
+	}
+	else
+	{
+		$ret = (!empty($translate)) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
+	}
+	
+	return $ret;
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang += array(
+	/* Config */
+	'Smart_dates_use'			=> 'Use smart dates',
+	'Smart_dates_use_explain'	=> 'If this option is turned on, you will see how long ago a topic was posted instead of the date. If it\'s older than a week, the date will be displayed.',
+	/* Options */
+	'Smart_dates_enable'	=> 'Enable smart dates',
+	'Smart_dates_time'		=> 'Add time to smart dates',
+	/* Display */
+	'Smart_dates_ago' 		=> '%s ago',
+	'Smart_dates_at' 		=> 'at %s',
+	'Smart_dates_yesterday'	=> 'Yesterday',
+	/* Online record language fix */
+	'Smart_dates_onlinerecord'	=> 'Most users ever online was %1$s, <b>%2$s</b>',
+	/* Time strings */
+	'Smart_dates_second'	=> 'Second',
+	'Smart_dates_seconds'	=> 'Seconds',
+	'Smart_dates_minute'	=> 'Minute',
+	'Smart_dates_minutes'	=> 'Minutes',
+	'Smart_dates_hour'		=> 'Hour',
+);
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+$lang += array(
+	/* Config */
+	'Smart_dates_use'			=> 'Use smart dates',
+	'Smart_dates_use_explain'	=> 'If this option is turned on, you will see how long ago a topic was posted instead of the date. If it\'s older than a week, the date will be displayed.',
+	/* Options */
+	'Smart_dates_enable'	=> 'Enable smart dates',
+	'Smart_dates_time'		=> 'Add time to smart dates',
+	/* Display */
+	'Smart_dates_ago' 		=> '%s ago',
+	'Smart_dates_at' 		=> '%s at %s',
+	'Smart_dates_yesterday'	=> 'Yesterday',
+	/* Online record language fix */
+	'Smart_dates_onlinerecord'	=> 'Most users ever online was %1$s, <b>%2$s</b>',
+	/* Time strings */
+	'Smart_dates_second'	=> '1 second',
+	'Smart_dates_seconds'	=> '%s seconds',
+	'Smart_dates_minute'	=> '1 minute',
+	'Smart_dates_minutes'	=> '%s minutes',
+	'Smart_dates_hour'		=> '1 hour',
+	'Smart_dates_hours'		=> '%s hours',
+);
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

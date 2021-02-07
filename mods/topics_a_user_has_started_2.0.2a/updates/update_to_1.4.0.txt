@@ -1,0 +1,140 @@
+##############################################################
+## MOD Title: Topics a user has started (Update)
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com 
+## MOD Description: Updates this MOD to version 1.4.0 from version 1.3.2
+## MOD Version: 1.4.0
+## 
+## Installation Level: Easy
+## Installation Time: ~ 3 Minutes 
+## Files To Edit: 
+##		language/lang_english/lang_main.php
+##		index.php
+##		templates/subSilver/index_body.tpl
+##
+## Included Files: N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##	
+############################################################## 
+## MOD History: 
+##
+##
+##   2004-12-04 - Version 1.4.0
+##      - Now shows the total amount of topics started on the homepage (index.php)
+##
+##   2004-11-29 - Version 1.3.2
+##      - Changed the position of the topics started column in the memberlist
+##
+##   2004-11-27 - Version 1.3.1
+##      - Forgot to modify the colspan at the bottom of the memberlist
+##
+##   2004-11-24 - Version 1.3.0
+##      - Now shows in the memberlist the number of topics the user had started
+##
+##   2004-11-20 - Version 1.2.0
+##      - Added statistics, showing the percentage of topics the user posted to the total topics, and the average topics per day.
+##
+##   2004-11-19 - Version 1.1.3
+##      - Some more minor mistakes fixed
+##
+##   2004-11-13 - Version 1.1.2
+##      - Fixed problem with dangerous retrieving of $user variable
+##
+##   2004-11-03 - Version 1.1.1
+##      - Tried to fix problem with dangerous retrieving of $user variable
+##
+##   2004-10-28 - Version 1.1.0
+##      - Added function to search for the topics started by the user
+## 
+##   2004-10-23 - Version 1.0.0
+##      - First version, seems to work fine.
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------
+# 
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+$lang['Memberlist_topics_started'] = 'Topics';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+$lang['Total_topics_started_index'] = ' in <b>%d</b> topics';
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+index.php
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+$newest_user = $newest_userdata['username'];
+$newest_uid = $newest_userdata['user_id'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Topics a user has started MOD, by Manipe (Begin)
+$sql = "SELECT COUNT(*) as topic_count FROM " . TOPICS_TABLE;
+if ( !($result = $db->sql_query($sql)) )
+{
+ 	message_die(GENERAL_ERROR, 'Could not obtain topics started information', '', __LINE__, __FILE__, $sql);
+}
+$row = $db->sql_fetchrow($result);
+$total_topics =  ( $row['topic_count'] ) ? $row['topic_count'] : 0;
+$db->sql_freeresult($result);
+// Topics a user has started MOD, by Manipe (End)
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+		'TOTAL_POSTS' => sprintf($l_total_post_s, $total_posts),
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Topics a user has started MOD, By Manipe (Begin)
+		'TOTAL_TOPICS' => sprintf($lang['Total_topics_started_index'], $total_topics),
+// Topics a user has started MOD, By Manipe (End)
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+templates/subSilver/index_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------
+#Note: full line is longer
+	<td class="row1" align="left" width="100%"><span class="gensmall">{TOTAL_POSTS}<br />
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+{TOTAL_POSTS}
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+# 
+{TOTAL_TOPICS}
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+
+# EoM

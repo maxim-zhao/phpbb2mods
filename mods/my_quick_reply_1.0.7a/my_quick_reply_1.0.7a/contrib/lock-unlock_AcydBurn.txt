@@ -1,0 +1,94 @@
+##############################################################
+## MOD Title: My Quick Reply Lock/Unlock Addon
+## MOD Author: smitjel < autiger02@gmail.com > (Lee Smith) N/A
+## MOD Description: This addon puts a checkbox on the quick reply form for admins/mods to lock or unlock the topic as they post.
+## MOD Version: 1.0.2
+##
+## Installation Level: Easy
+## Installation Time: 1 Minute
+## Files To Edit: 2
+##		viewtopic.php
+##		templates/subSilver/viewtopic_body.tpl
+##
+## Included Files: none
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##	Before installing this addon, you must install the My Quick Reply mod AND Acyd Burn's lock/unlock mod.
+##
+##	His mod can be found here:
+##	http://www.phpbbhacks.com/download/248
+##
+##############################################################
+## MOD History:
+##
+##   2007-09-05 - Version 1.0.2
+##      - Added labels to checkboxes
+##
+##   2006-06-27 - Version 1.0.1
+##      - Updated to support My Quick Reply version 1.0.6+
+##
+##   2006-02-08 - Version 1.0.0 
+##      - Initial release
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+        $last_msg = "[QUOTE=\"$last_poster\"]" . $last_msg . "[/QUOTE]";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#	
+	// My Quick Reply mod Lock/Unlock addon
+	if ( $is_auth['auth_mod'] ) {
+		if ( $forum_topic_data['topic_status'] == TOPIC_LOCKED ) {
+			$template->assign_vars(array('MQR_LANG_UNLOCK_TOPIC' => $lang['Unlock_topic']));
+			$template->assign_block_vars('switch_my_quick_reply.switch_unlock_checkbox',array() );
+		}
+		elseif ( $forum_topic_data['topic_status'] == TOPIC_UNLOCKED ) {
+			$template->assign_vars(array('MQR_LANG_LOCK_TOPIC' => $lang['Lock_topic']));
+			$template->assign_block_vars('switch_my_quick_reply.switch_lock_checkbox',array() );
+		}
+	}
+	// My Quick Reply mod Lock/Unlock addon
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			<!-- END switch_member_functions -->
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#	
+			<!-- BEGIN switch_unlock_checkbox -->
+			<br /><input type="checkbox" name="unlock" id="unlock" /><label for="unlock">{MQR_LANG_UNLOCK_TOPIC}</label><br />
+			<!-- END switch_unlock_checkbox -->
+			<!-- BEGIN switch_lock_checkbox -->
+			<br /><input type="checkbox" name="lock" id="lock" /><label for="lock">{MQR_LANG_LOCK_TOPIC}</label><br />
+			<!-- END switch_lock_checkbox -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

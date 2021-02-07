@@ -1,0 +1,113 @@
+######################################################## 
+## MOD Title: Display Skype Icon in Private Message
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This add-on display a skype (http://www.skype.com/) button in your forum's private message
+## MOD Version: 1.0.2
+## 
+## Installation Level: Easy 
+## Installation Time: 3 Minutes 
+##
+## Files To Edit: 2
+##	privmsg.php
+##	templates/subSilver/privmsgs_read_body.tpl
+##
+## Included Files: 0
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.19. Can be installed using EasyMOD 0.3.0
+## 
+############################################################## 
+## MOD History: 
+##
+##   2005-10-02 - Version 1.0.0
+##      - Initial Release
+##
+##   2006-01-17 - Version 1.0.1
+##      - Change "callto://" to "skype:" as <quote>callto:// protocol is obsolete (due to security issues and otherwise)</quote>
+##
+##   2006-04-02 - Version 1.0.2
+##      - Remove extra "/"
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+privmsg.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$sql = "SELECT u.username AS username_1, u.user_id AS user_id_1
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+u.user_yim,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ u.user_skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$yim_img = ( $privmsg['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $privmsg['user_yim'] . '&amp;.src=pg"><img src="' . $images['icon_yim'] . '" alt="' . $lang['YIM'] . '" title="' . $lang['YIM'] . '" border="0" /></a>' : '';
+	$yim = ( $privmsg['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $privmsg['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$skype_img = ( $privmsg['user_skype'] ) ? '<a href="skype:' . $privmsg['user_skype'] . '"><img src="' . $images['icon_skype'] . '" alt="' . $lang['SKYPE'] . '" title="' . $lang['SKYPE'] . '" border="0" /></a>' : '';
+	$skype = ( $privmsg['user_skype'] ) ? '<a href="skype:' . $privmsg['user_skype'] . '">' . $lang['SKYPE'] . '</a>' : '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'YIM_IMG' => $yim_img,
+		'YIM' => $yim)
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+		'YIM_IMG' => $yim_img,
+		'YIM' => $yim,
+		'SKYPE_IMG' => $skype_img,
+		'SKYPE' => $skype)
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/privmsgs_read_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			  {WWW_IMG} {AIM_IMG} {YIM_IMG} {MSN_IMG}
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+{MSN_IMG}
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ {SKYPE_IMG}
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

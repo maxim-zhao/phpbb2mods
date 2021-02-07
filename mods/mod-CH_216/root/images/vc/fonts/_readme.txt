@@ -1,0 +1,1 @@
+Fonts provided here have been downloaded at : http://www.grsites.com/ and edited to keep only 0-9A-Z chars. The original font name and author appears in the font file properties.

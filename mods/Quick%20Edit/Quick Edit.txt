@@ -1,0 +1,186 @@
+############################################################## 
+## MOD Title: Quick Edit Mod
+## MOD Author: Anji Mito < N/A > (N/A) N/A 
+## MOD Description: A popup-box for faster editing posts.
+## MOD Version: 1.1.2 
+## 
+## Installation Level: Easy 
+## Installation Time: 5 Minutes 
+## Files To Edit: 4
+##		viewtopic.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/viewtopic_body.tpl
+##		templates/subSilver/overall_header.tpl 
+## Included Files: (n/a) 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2005-04-15 - Version 1.1.2 
+##      - Fix usage problem between Advanced Quick Reply MOD and Quick Reply MOD
+##   2005-04-13 - Version 1.1.1 
+##      - Added signiture button
+##   2005-04-12 - Version 1.0.1 
+##      - The strengthening demonstrated
+##   2005-04-11 - Version 1.0.0 
+##      - inititla release 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------
+#
+	'L_POST_SUBJECT' => $lang['Post_subject'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	//QUICK EDITPOST
+	'L_QUICK_EDIT' => $lang['Quick_edit'],
+	'L_EDIT_SIGNATURE' => $lang['Attach_signature'],
+	'L_EDIT_SUBMIT' => $lang['Edit_Post'],
+	//QUICK EDITPOST
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$edit = '<a href="' . $temp_url . '">' . $lang['Edit_delete_post'] . '</a>';
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		//QUICK EDITPOST
+		$bbcode_uid = $postrow[$i]['bbcode_uid'];
+		$edit_msg = $postrow[$i]['post_text'];
+		$edit_msg = str_replace(":1:$bbcode_uid", '', $edit_msg);
+		$edit_msg = str_replace(":$bbcode_uid", '', $edit_msg);        
+		$edit_msg = str_replace("'", '&#39;', $edit_msg);
+		$edit_post_id = $postrow[$i]['post_id'];
+		$edit_subject = $postrow[$i]['post_subject'];
+		$edit_url= $temp_url;
+		$edit_close = '';
+		$edit_sig = (( $userdata['session_logged_in'] ) ? $postrow[$i]['enable_sig'] : 0)?"checked='checked'":'';
+	
+#
+#-----[ FIND ]------------------------------------------
+#
+		$edit = '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		//QUICK EDITPOST
+		$edit_close ='style="VISIBILITY: hidden; POSITION: absolute"';
+		
+#
+#-----[ FIND ]------------------------------------------
+#		
+		'POST_SUBJECT' => $post_subject,
+		
+#
+#-----[ AFTER, ADD ]------------------------------------
+#		
+		//QUICK EDITPOST
+		'EDIT_URL' => $edit_url,
+		'EDIT_MSG' => $edit_msg,
+		'EDIT_POST_ID' => $edit_post_id,
+		'EDIT_SUBJECT' => $edit_subject,
+		'EDIT_CLOSE' => $edit_close,
+		'EDIT_SIG' => $edit_sig,
+		//QUICK EDITPOST
+
+#
+#-----[ OPEN ]------------------------------------------
+#		
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#	
+<td colspan="2"><span class="postbody">{postrow.MESSAGE}{postrow.SIGNATURE}</span><span class="gensmall">{postrow.EDITED_MESSAGE}</span></td>
+
+#
+#-----[ REPLACE WITH ]------------------------------------
+#	
+<td colspan="2"><span class="postbody"><form action="{postrow.EDIT_URL}" method='post' name='postid{postrow.EDIT_POST_ID}'>
+				<div id="e{postrow.EDIT_POST_ID}" style="VISIBILITY: hidden; POSITION: absolute">
+				<input type='hidden' name='mode' value='editpost'>
+				<input type='hidden' name='t' value='{postrow.EDIT_POST_ID}'>
+				<input type='hidden' name='subject' value='{postrow.EDIT_SUBJECT}'>
+				<input type='hidden' name='message' value='{postrow.EDIT_MSG}'>
+				<table border='0' cellpadding='10' cellspacing='1' width='40%' class='gensmall'>
+				<tr>
+				<td class='row2' valign='top' width='40%'><span class='gensmall'>
+				<div align="center"><b>{L_QUICK_EDIT}</b></div>
+				<textarea name='message' rows='4' cols='100%' wrap='virtual' tabindex='3' class='post2'>{postrow.EDIT_MSG}</textarea><br>
+				<div align="center"><input type='checkbox' name='attach_sig' {postrow.EDIT_SIG}>{L_EDIT_SIGNATURE}
+				<input CLASS='gensmall' type='submit' name='post' class='mainoption' value='{L_EDIT_SUBMIT}'>
+				<input name="r2" type="radio" checked value="" onClick="toggleT('e{postrow.EDIT_POST_ID}','h')">close</div>
+				</tr>
+				</table>
+				</div>
+				</form>{postrow.MESSAGE}{postrow.SIGNATURE}</span><span class="gensmall">{postrow.EDITED_MESSAGE}</span><br><span class="gensmall" {postrow.EDIT_CLOSE}> <input name="r2" type="radio"  value="" onClick="toggleT('e{postrow.EDIT_POST_ID}','s')"><b>{L_QUICK_EDIT}</b></span></td>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- BEGIN switch_enable_pm_popup -->
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+<script language="JavaScript"> 
+function toggleT(_w,_h) { 
+if(document.getElementById) { //This for Mozilla 
+if (_h=='s') eval("document.getElementById(_w).style.visibility='visible';"); 
+if (_h=='h') eval("document.getElementById(_w).style.visibility='hidden';"); 
+} 
+if (document.all) { // is IE 
+if (_h=='s') eval("document.all."+_w+".style.visibility='visible';"); 
+if (_h=='h') eval("document.all."+_w+".style.visibility='hidden';"); 
+} 
+else { // is NS? 
+if (_h=='s') eval("document.layers['"+_w+"'].visibility='show';"); 
+if (_h=='h') eval("document.layers['"+_w+"'].visibility='hide';"); 
+} 
+} 
+</script>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+// Quick Edit Mod
+$lang['Quick_edit'] = 'QUICK_EDIT';
+		
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#EoM

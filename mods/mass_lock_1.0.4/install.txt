@@ -1,0 +1,449 @@
+############################################################## EasyMod compliant
+## MOD Title: Mass-lock
+## MOD Author: siavash79 < siavash79_99@yahoo.com > (Siavash Rahnama) N/A
+## MOD Description: This mod automatically locks the topics that have not any posts for a while.
+## MOD Version: 1.0.3 
+## 
+## Installation Level: Easy
+## Installation Time: 10 Minutes 
+## Files To Edit: viewforum.php,
+##				admin/admin_board.php,
+##				admin/admin_forums.php,
+##				includes/constants.php,
+##				language/lang_english/lang_admin.php,
+##				templates/subSilver/admin/board_config_body.tpl,
+##				templates/subSilver/admin/forum_edit_body.tpl 
+##
+## Included Files: admin/admin_forum_lock.php,
+##				includes/lock.php,
+##				templates/subSilver/admin/forum_lock_body.tpl,
+##				templates/subSilver/admin/forum_lock_result_body.tpl,
+##				templates/subSilver/admin/forum_lock_select_body.tpl
+##				masslock_install.php
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: This mod is just a modified copy of "forum prune", orginated by "phpBB Group".
+## 
+############################################################## 
+## MOD History: 
+## 
+## Version 1.0.1
+## - MOD template changed.
+##
+## Version 1.0.2 :
+## - Bug fixed. (Error on makig new forum)
+##
+## 2003-09-25 - Version 1.0.3 :
+## - MOD updated for phpBB2.0.6 (no change but the new MOD template)
+##
+## 2003-11-06 - Version 1.0.4 :
+## - Fixed database query problem with Access Db.
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy includes/lock.php to includes/lock.php
+copy admin/admin_forum_lock.php to admin/admin_forum_lock.php
+copy templates/subSilver/admin/forum_lock_body.tpl to templates/subSilver/admin/forum_lock_body.tpl
+copy templates/subSilver/admin/forum_lock_result_body.tpl to templates/subSilver/admin/forum_lock_result_body.tpl
+copy templates/subSilver/admin/forum_lock_select_body.tpl to templates/subSilver/admin/forum_lock_select_body.tpl
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+viewforum.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+// End of forum prune
+//
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//Mass-lock mod
+if ( $is_auth['auth_mod'] && $board_config['lock_enable'] )
+{
+	if ( $forum_row['lock_next'] < time() && $forum_row['lock_enable'] )
+	{
+		include($phpbb_root_path . 'includes/lock.'.$phpEx);
+		require($phpbb_root_path . 'includes/functions_admin.'.$phpEx);
+		auto_lock($forum_id);
+	}
+}
+//end of Mass-lock mod
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$prune_no = ( !$new['prune_enable'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//Mass-lock mod
+$lock_yes = ( $new['lock_enable'] ) ? "checked=\"checked\"" : "";
+$lock_no = ( !$new['lock_enable'] ) ? "checked=\"checked\"" : "";
+//end of Mass-lock mod
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"S_CONFIG_ACTION" => append_sid("admin_board.$phpEx"),
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//Mass-lock mod
+	"L_ENABLE_LOCK" => $lang['Enable_Mass_lock'],
+	"LOCK_YES" => $lock_yes,
+	"LOCK_NO" => $lock_no, 
+//end of Mass-lock mod
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_forums.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				else
+				{
+					$prune_enabled = '';
+				}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//Mass-lock mod
+				if( $row['lock_enable'] )
+				{
+					$lock_enabled = "checked=\"checked\"";
+					$sql = "SELECT *
+               			FROM " . LOCK_TABLE . "
+               			WHERE forum_id = $forum_id";
+					if(!$pr_result = $db->sql_query($sql))
+					{
+						 message_die(GENERAL_ERROR, "Auto-Lock: Couldn't read auto_lock table.", __LINE__, __FILE__);
+        			}
+
+					$lo_row = $db->sql_fetchrow($pr_result);
+				}
+				else
+				{
+					$lock_enabled = '';
+				}
+//end of Mass-lock mod
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$forum_id = ''; 
+				$prune_enabled = '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+			//Mass-lock mod
+				$lock_enabled = '';
+			//end of Mass-lock mod
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				'S_PRUNE_ENABLED' => $prune_enabled,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+			//Mass-lock mod
+				'S_LOCK_ENABLED' => $lock_enabled,
+				'L_AUTO_LOCK' => $lang['Forum_Mass_locking'],
+				'L_LOCK_DAYS' => $lang['Mlock_days'],
+				'L_LOCK_FREQ' => $lang['Mlock_freq'],
+				'LOCK_DAYS' => ( isset($lo_row['lock_days']) ) ? $lo_row['lock_days'] : 7,
+				'LOCK_FREQ' => ( isset($lo_row['lock_freq']) ) ? $lo_row['lock_freq'] : 1,
+			//end of Mass-lock mod
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$sql = "INSERT INTO " . FORUMS_TABLE . " (forum_id, forum_name, cat_id, forum_desc, forum_order, forum_status, prune_enable
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, prune_enable
+
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, lock_enable
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				VALUES ('" . $next_id . "', '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', $next_order, " . intval($HTTP_POST_VARS['forumstatus']) . ", " . intval($HTTP_POST_VARS['prune_enable']) .
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+. intval($HTTP_POST_VARS['prune_enable']) .
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+", " . intval($HTTP_POST_VARS['lock_enable']) . 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+					message_die(GENERAL_ERROR, "Couldn't insert row in prune table", "", __LINE__, __FILE__, $sql);
+				}
+			}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//Mass-lock mod
+			if( $HTTP_POST_VARS['lock_enable'] )
+			{
+
+				if( $HTTP_POST_VARS['lock_days'] == "" || $HTTP_POST_VARS['lock_freq'] == "")
+				{
+					message_die(GENERAL_MESSAGE, $lang['Set_Mlock_data']);
+				}
+ 				$sql = "INSERT INTO " . LOCK_TABLE . " (forum_id, lock_days, lock_freq)
+					VALUES('" . $next_id . "', " . intval($HTTP_POST_VARS['lock_days']) . ", " . intval($HTTP_POST_VARS['lock_freq']) . ")";
+
+				if( !$result = $db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, "Couldn't insert row in lock table", "", __LINE__, __FILE__, $sql);
+				}
+			}
+//end of Mass-lock mod
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+					$HTTP_POST_VARS['prune_enable'] = 0;
+				}
+			}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//Mass-lock mod
+			if( isset($HTTP_POST_VARS['lock_enable']))
+			{
+				if( $HTTP_POST_VARS['lock_enable'] != 1 )
+				{
+					$HTTP_POST_VARS['lock_enable'] = 0;
+				}
+			}
+//end of Mass-lock mod
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', cat_id = " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", forum_desc = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . ", prune_enable = " . intval($HTTP_POST_VARS['prune_enable']) . "
+
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+" . intval($HTTP_POST_VARS['prune_enable']) . "
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, lock_enable = " . intval($HTTP_POST_VARS['lock_enable']) . "
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+					message_die(GENERAL_ERROR, "Couldn't Update Forum Prune Information","",__LINE__, __FILE__, $sql);
+				}
+
+			}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//Mass-lock mod
+			if( $HTTP_POST_VARS['lock_enable'] == 1 )
+			{
+				if( $HTTP_POST_VARS['lock_days'] == "" || $HTTP_POST_VARS['lock_freq'] == "" )
+				{
+					message_die(GENERAL_MESSAGE, $lang['Set_Mlock_data']);
+				}
+ 				$sql = "SELECT *
+					FROM " . LOCK_TABLE . "
+					WHERE forum_id = " . intval($HTTP_POST_VARS[POST_FORUM_URL]);
+				if( !$result = $db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, "Couldn't get forum Mass-lock Information","",__LINE__, __FILE__, $sql); 				}
+
+				if( $db->sql_numrows($result) > 0 )
+				{
+					$sql = "UPDATE " . LOCK_TABLE . "
+						SET	lock_days = " . intval($HTTP_POST_VARS['lock_days']) . ",	lock_freq = " . intval($HTTP_POST_VARS['lock_freq']) . "
+				 		WHERE forum_id = " . intval($HTTP_POST_VARS[POST_FORUM_URL]);
+				}
+				else
+				{
+					$sql = "INSERT INTO " . LOCK_TABLE . " (forum_id, lock_days, lock_freq)
+						VALUES(" . intval($HTTP_POST_VARS[POST_FORUM_URL]) . ", " . intval($HTTP_POST_VARS['lock_days']) . ", " . intval($HTTP_POST_VARS['lock_freq']) . ")";
+				}
+
+				if( !$result = $db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, "Couldn't Update Forum Autolock Information","",__LINE__, __FILE__, $sql);
+				}
+
+			}
+//end of Mass-lock mod
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				message_die(GENERAL_ERROR, "Couldn't delete forum prune information!", "", __LINE__, __FILE__, $sql);
+			} 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//Mass-lock mod
+			$sql = "DELETE FROM " . LOCK_TABLE . "
+				WHERE forum_id = $from_id";
+			if( !$result = $db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't delete forum lock information!", "", __LINE__, __FILE__, $sql);
+			}
+//end of Mass-lock mod
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/constants.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('PRUNE_TABLE', $table_prefix.'forum_prune');
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+//Mass-lock mod
+define('LOCK_TABLE', $table_prefix.'forum_lock');
+//end of Mass-lock mod
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+/language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// That's all Folks!
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+//Mass-lock mod
+$lang['MLock'] = 'Mass-Locking';
+$lang['Enable_Mass_lock'] = 'Enable Forum Mass-Locking';
+$lang['Forum_Mass_locking'] = 'Mass-locking';
+$lang['Mlock_freq'] = 'Check for topic age every';
+$lang['Mlock_days'] = 'Lock topics that have not been posted to in';
+$lang['Set_Mlock_data'] = 'You have turned on Mass-lock for this forum but did not set a frequency or number of days to lock. Please go back and do so.';
+$lang['Forum_Mass_Lock'] = 'Forum Mass-Lock';
+$lang['Forum_Mass_Lock_explain'] = 'This will lock any topic which has not been posted to within the number of days you select. If you do not enter a number then all topics will be locked. It will not lock topics in which polls are still running nor will it lock announcements. You will need to lock those topics manually.';
+$lang['Do_MLock'] = 'Do Mass Lock';
+$lang['MLock_topics_not_posted'] = 'Lock topics with no replies in this many days';
+$lang['Topics_Mlocked'] = 'Topics locked';
+$lang['MLock_success'] = 'Mass-Locking of forums was successful';
+$lang['Mlock'] = 'Mass-Locking';
+//end of Mass-lock mod
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td class="row2"><input type="radio" name="prune_enable" value="1" {PRUNE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="prune_enable" value="0" {PRUNE_NO} /> {L_NO}</td>
+	</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_ENABLE_LOCK}</td>
+		<td class="row2"><input type="radio" name="lock_enable" value="1" {LOCK_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="lock_enable" value="0" {LOCK_NO} /> {L_NO}</td>
+	</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/forum_edit_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			<td align="left" valign="middle">&nbsp;<input type="text" name="prune_freq" value="{PRUNE_FREQ}" size="5" class="post" />&nbsp;{L_DAYS}</td>
+		  </tr>
+	  </table></td>
+	</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<tr> 
+	  <td class="row1">{L_AUTO_LOCK}</td>
+	  <td class="row2"><table cellspacing="0" cellpadding="1" border="0">
+		  <tr> 
+			<td align="right" valign="middle">{L_ENABLED}</td>
+			<td align="left" valign="middle"><input type="checkbox" name="lock_enable" value="1" {S_LOCK_ENABLED} /></td>
+		  </tr>
+		  <tr> 
+			<td align="right" valign="middle">{L_LOCK_DAYS}</td>
+			<td align="left" valign="middle">&nbsp;<input class="post" type="text" name="lock_days" value="{LOCK_DAYS}" size="5" class="post" />&nbsp;{L_DAYS}</td>
+		  </tr>
+		  <tr> 
+			<td align="right" valign="middle">{L_LOCK_FREQ}</td>
+			<td align="left" valign="middle">&nbsp;<input class="post" type="text" name="lock_freq" value="{LOCK_FREQ}" size="5" class="post" />&nbsp;{L_DAYS}</td>
+		  </tr>
+	  </table></td>
+	</tr>
+
+#
+#-----[ COPY ]------------------------------------------ # You have to upload this file, logon to your forum, execute the file and delete it !
+copy masslock_install.php to masslock_install.php
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

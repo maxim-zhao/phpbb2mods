@@ -1,0 +1,427 @@
+#################################################################
+## MOD Title: Collapsed Categories By Default
+## MOD Author: Wicher < N/A > (N/A) http://www.detecties.com/phpbb2018
+## MOD Description: This mod lets you by default categories of your choice to be collapsed 
+##                  on entering the board.
+##                  Users can open and close them by clicking the Categorie name.
+##                  Default Collapsed Categories can be set in the ACP/Forum Admin/Management
+##  
+## MOD Version: 1.3.0
+## 
+## Installation Level:  Easy 
+## Installation Time:  10 minutes 
+## 
+## Files To Edit:    - index.php
+##                   - admin/admin_forums.php
+##                   - language/lang_english/lang_admin.php
+##                   - templates/subSilver/index_body.tpl
+##                   - templates/subSilver/subSilver.cfg
+##                   - templates/subSilver/admin/forum_admin_body.tpl
+##                   - templates/subSilver/admin/page_header.tpl
+## Included Files:   - templates/subSilver/images/blank.gif
+##		     - templates/subSilver/images/close.gif
+##		     - templates/subSilver/images/open.gif
+## License:      http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:   
+##		   This mod has been tested on phpbb 2.0.22 
+## 
+############################################################## 
+## MOD History: 
+##
+##   2006-12-28 - Version 1.3.0 
+##   - Replace a misplaced peace of code in this file.
+##   2006-12-28 - Version 1.2.0 
+##   - Took bug out index.php.
+##   2006-12-28 - Version 1.1.0 
+##   - Added total posts and topics and last post to collapsed catagory.
+##   2006-11-21 - Version 0.0.5 
+##   - Added + and - button.
+##   - Added unread / read image to closed on default categories.
+##   2006-11-20 - Version 0.0.4 
+##   - Catagories are now easier set in the forums admin.
+##   2006-11-18 - Version 0.0.3 
+##   - added CCbD_db_install.php
+##
+##   2006-11-15 - Version 0.0.2 
+##   
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------------
+# If you dont know how to add SQL into your database or if you are installing without easymod 
+you can upload root/CCbD_db_install-1.3.0.php to the root of your board files and execute it from your browser.
+# 
+#-----[ SQL ]------------------------------------------ 
+# if you are going to use CCbD_db_install-1.3.0.php then dont do this action.
+ALTER TABLE phpbb_categories ADD cat_collapsed TINYINT(1) NULL DEFAULT '0';
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy root/templates/subSilver/images/blank.gif to templates/subSilver/images/blank.gif
+copy root/templates/subSilver/images/close.gif to templates/subSilver/images/close.gif
+copy root/templates/subSilver/images/open.gif to templates/subSilver/images/open.gif
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+index.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "SELECT c.cat_id, c.cat_title, c.cat_order
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, c.cat_order
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, c.cat_collapsed
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$new_topic_data = array();
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// Collapsed Categories By Default by Wicher
+		$new_topic_catdata = array();
+		// End Collapsed Categories By Default by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$new_topic_data[$topic_data['forum_id']][$topic_data['topic_id']] = $topic_data['post_time'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// Collapsed Categories By Default by Wicher
+			$new_topic_catdata[$topic_data['forum_id']][$topic_data['topic_id']] = $topic_data['post_time'];
+			// End Collapsed Categories By Default by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	for($i = 0; $i < $total_categories; $i++)
+	{
+		$cat_id = $category_rows[$i]['cat_id'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// Collapsed Categories By Default by Wicher
+		unset($default_collapsed);
+		unset($i_size);
+		$default_collapsed = $category_rows[$i]['cat_collapsed'];
+
+		if ($default_collapsed != 1)
+		{
+			$collaps_opened = "";
+			$i_open_close = $images['cat_blank'];
+			$i_size = 'width="1" height="1"';
+		}
+		else
+		{
+			if (($viewcat != $cat_id))
+			{
+				$collaps_opened = "?" . POST_CAT_URL . "=$cat_id";
+				$i_open_close = $images['cat_open'];
+			}
+			else if (($viewcat == $cat_id))
+			{
+				$collaps_opened = "";
+				$i_open_close = $images['cat_close'];
+			}
+		}
+		// looking if there are unread topics
+		$unread_topics = false;
+		unset($last_forum_post_time);
+		for($j = 0; $j < $total_forums; $j++)
+		{
+			if ($viewcat != $cat_id)
+			{
+				if ($last_forum_post_time < $forum_data[$j]['post_time'])
+				{
+					$last_forum_post_time = $forum_data[$j]['post_time'];
+				}
+			}
+			if ( $forum_data[$j]['cat_id'] == $cat_id )
+			{
+				if ($viewcat != $cat_id)
+				{
+					$posts = $posts + $forum_data[$j]['forum_posts'];
+					$topics = $topics + $forum_data[$j]['forum_topics'];
+					if ( $forum_data[$j]['forum_last_post_id'] && $last_forum_post_time == $forum_data[$j]['post_time'])
+					{
+						$last_cat_post_time = create_date($board_config['default_dateformat'], $forum_data[$j]['post_time'], $userdata['user_timezone']);
+						$last_cat_post = $last_cat_post_time . '<br />';
+						$last_cat_post .= ( $forum_data[$j]['user_id'] == ANONYMOUS ) ? ( ($forum_data[$j]['post_username'] != '' ) ? $forum_data[$j]['post_username'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $forum_data[$j]['user_id']) . '">' . $forum_data[$j]['username'] . '</a> ';
+						$last_cat_post .= '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $forum_data[$j]['forum_last_post_id'] . '&fid=' . $forum_id) . '#' . $forum_data[$j]['forum_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" border="0" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" /></a>';
+					}
+				}
+				$forum_id = $forum_data[$j]['forum_id'];
+				if ( $is_auth_ary[$forum_id]['auth_view'] )
+				{
+					if ( $userdata['session_logged_in'] )
+					{
+						if ( !empty($new_topic_catdata[$forum_id]) )
+						{
+							while( list($check_topic_id, $check_post_time) = @each($new_topic_catdata[$forum_id]) )
+							{
+								if ( empty($tracking_topics[$check_topic_id]) )
+								{
+									$unread_topics = true;
+								}
+								else
+								{
+									if ( $tracking_topics[$check_topic_id] < $check_post_time )
+									{
+										$unread_topics = true;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		$folder_cat_image = ( $unread_topics  ) ? $images['folder_new'] : $images['folder']; 
+		$folder_cat_alt = ( $unread_topics  ) ? $lang['New_posts'] : $lang['No_new_posts']; 
+		// End Collapsed Categories By Default by Wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		if (isset($display_categories[$cat_id]) && $display_categories[$cat_id])
+		{
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+			// Collapsed Categories By Default by Wicher
+			if ($posts == 0 || $default_collapsed != 1 || $viewcat == $cat_id)
+			{
+				$posts = ' ';
+				$topics = ' ';
+				$last_cat_post = ' ';
+			}
+			// End Collapsed Categories By Default by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				'U_VIEWCAT' => append_sid("index.$phpEx?" . POST_CAT_URL . "=$cat_id"))
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+				// Collapsed Categories By Default by Wicher
+				'CAT_FOLDER_IMG' => $folder_cat_image, 
+				'L_CAT_FOLDER_ALT' => $folder_cat_alt,
+				'TOTAL_TOPICS' => $topics,
+				'TOTAL_POSTS' => $posts,
+				'LAST_CAT_POST' => $last_cat_post,
+				'U_VIEWCAT' => append_sid("index.$phpEx" . $collaps_opened),
+				'I_VIEWCAT' => $i_open_close,
+				'I_SIZE' => $i_size)
+				// End Collapsed Categories By Default by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			if ( $viewcat == $cat_id || $viewcat == -1 )
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			// Collapsed Categories By Default by Wicher
+			if (($viewcat == $cat_id) or ($default_collapsed == 0))
+			// End Collapsed Categories By Default by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_forums.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+			renumber_order('category');
+			$show_index = TRUE;
+
+			break;
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Collapsed Categories By Default by Wicher
+		case 'catcollaps':
+			$cat_id = intval($HTTP_GET_VARS[POST_CAT_URL]);
+			$sql = "UPDATE " . CATEGORIES_TABLE . "
+				SET cat_collapsed = 1
+				WHERE cat_id = $cat_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change category collapse yes", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'catopen':
+			$cat_id = intval($HTTP_GET_VARS[POST_CAT_URL]);
+			$sql = "UPDATE " . CATEGORIES_TABLE . "
+				SET cat_collapsed = 0
+				WHERE cat_id = $cat_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change category collapse no", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+		// End Collapsed Categories By Default by Wicher
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'L_CREATE_CATEGORY' => $lang['Create_category'], 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Collapsed Categories By Default by Wicher
+	'L_CAT_CLOSED_ON_INDEX' => $lang['Closed'], 
+	'L_CAT_OPENED_ON_INDEX' => $lang['Opened'], 
+	'L_ALT_CLOSED_ON_INDEX' => $lang['Closed_alt'], 
+	'L_ALT_OPENED_ON_INDEX' => $lang['Opened_alt'], 
+	"I_WICHERMOD" => $images['folder_hot'],
+	"U_WICHERMOD" => 'http://www.detecties.com/phpbb2018',
+	"L_WICHERMOD" => $lang['mymod'],
+	// End Collapsed Categories By Default by Wicher
+#
+#-----[ FIND ]------------------------------------------------
+#
+$sql = "SELECT cat_id, cat_title, cat_order
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+, cat_order
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+, cat_collapsed
+#
+#-----[ FIND ]------------------------------------------------
+#
+	for($i = 0; $i < $total_categories; $i++)
+	{
+		$cat_id = $category_rows[$i]['cat_id'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Collapsed Categories By Default by Wicher
+		$b_collapsed = ( $category_rows[$i]['cat_collapsed'] ) ? "opened_cat" : "closed_cat";
+		$b_opened = ( !$category_rows[$i]['cat_collapsed'] ) ? "opened_cat" : "closed_cat";
+		// End Collapsed Categories By Default by Wicher
+#
+#-----[ FIND ]------------------------------------------------
+#
+			'U_CAT_MOVE_DOWN' => append_sid("admin_forums.$phpEx?mode=cat_order&amp;move=15&amp;" . POST_CAT_URL . "=$cat_id"),
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			// Collapsed Categories By Default by Wicher
+			'U_CAT_CLOSED_ON_INDEX' => append_sid("admin_forums.$phpEx?mode=catcollaps&amp;" . POST_CAT_URL . "=$cat_id"),
+			'B_CAT_CLOSED_ON_INDEX' => $b_collapsed,
+			'U_CAT_OPENED_ON_INDEX' => append_sid("admin_forums.$phpEx?mode=catopen&amp;" . POST_CAT_URL . "=$cat_id"),
+			'B_CAT_OPENED_ON_INDEX' => $b_opened,
+			// End Collapsed Categories By Default by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['Create_category'] = 'Create new category';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Collapsed Categories By Default by Wicher
+$lang['Closed'] = 'Closed';
+$lang['Opened'] = 'Opened';
+$lang['Closed_alt'] = 'Click here to set this catagory to be closed at the index.'; 
+$lang['Opened_alt'] = 'Click here to set this catagory to be opened at the index.'; 
+$lang['mymod'] = 'One of Wicher\'s Mods'; // Never ever change this
+// End Collapsed Categories By Default by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/index_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<td class="catLeft" colspan="2" height="28"><span class="cattitle"><a href="{catrow.U_VIEWCAT}" class="cattitle">{catrow.CAT_DESC}</a></span></td>
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	<td class="catLeft" colspan="2" height="28">&nbsp;&nbsp;<a href="{catrow.U_VIEWCAT}"><img src="{catrow.I_VIEWCAT}" {catrow.I_SIZE} align="absmiddle" border="0" /></a><span class="cattitle">&nbsp;&nbsp;<img src="{catrow.CAT_FOLDER_IMG}" {catrow.I_SIZE} align="absmiddle" border="0" alt="{catrow.L_CAT_FOLDER_ALT}" title="{catrow.L_CAT_FOLDER_ALT}" />&nbsp;{catrow.CAT_DESC}</span></td>
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<td class="rowpic" colspan="3" align="right">&nbsp;</td>
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	<td class="rowpic" align="center"><span class="gensmall">&nbsp;{catrow.TOTAL_TOPICS}&nbsp;</span></td>
+	<td class="rowpic" align="center"><span class="gensmall">&nbsp;{catrow.TOTAL_POSTS}&nbsp;</span></td>
+	<td class="rowpic" align="center" nowrap><span class="gensmall">&nbsp;{catrow.LAST_CAT_POST}&nbsp;</span></td>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.cfg
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$images['forum_locked'] = "$current_template_images/folder_locked_big.gif";
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// Collapsed Categories By Default by Wicher
+$images['cat_close'] = "$current_template_images/close.gif";
+$images['cat_open'] = "$current_template_images/open.gif";
+$images['cat_blank'] = "$current_template_images/blank.gif";
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/forum_admin_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td class="catRight" align="center" valign="middle"><span class="gen">&nbsp;</span></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+<span class="gen">&nbsp;
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+<a href="{U_WICHERMOD}" target="_blank"><img src="../{I_WICHERMOD}" alt="{L_WICHERMOD}" title="{L_WICHERMOD}" border="0" align="left" /></a><span class="{catrow.B_CAT_CLOSED_ON_INDEX}"><a href="{catrow.U_CAT_CLOSED_ON_INDEX}" alt="{L_ALT_CLOSED_ON_INDEX}" title="{L_ALT_CLOSED_ON_INDEX}">{L_CAT_CLOSED_ON_INDEX}</a></span> <span class="{catrow.B_CAT_OPENED_ON_INDEX}"><a href="{catrow.U_CAT_OPENED_ON_INDEX}" alt="{L_ALT_OPENED_ON_INDEX}" title="{L_ALT_OPENED_ON_INDEX}">{L_CAT_OPENED_ON_INDEX}</a>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/page_header.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+a.gen:hover,a.genmed:hover,a.gensmall:hover	{ color: {T_BODY_HLINK}; text-decoration: underline; }
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+/* Collapsed Categories By Default by Wicher */
+.opened_cat { font-size : 12px; font-weight : bold;}
+.closed_cat { font-size : 12px;}
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

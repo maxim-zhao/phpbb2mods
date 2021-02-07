@@ -1,0 +1,372 @@
+##############################################################
+## MOD Title: View category name
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com
+## MOD Description: This shows the name of the category which the forum or topic is in when you're viewing that forum or topic, when you're posting in that topic, or when you're posting a new topic in that forum.
+## MOD Version: 1.2.0
+##
+## Installation Level: Easy
+## Installation Time: ~ 5 Minutes
+## Files To Edit:
+##		includes/functions.php
+##		templates/subSilver/modcp_body.tpl
+##		templates/subSilver/modcp_split.tpl
+##		templates/subSilver/posting_body.tpl
+##		templates/subSilver/viewforum_body.tpl
+##		templates/subSilver/viewtopic_body.tpl
+##		modcp.php
+##		posting.php
+##		viewforum.php
+##		viewtopic.php
+##
+##
+## Included Files: 
+##		updates/update_to_1.2.0.txt
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes:
+##
+## I'd like to thank GPHemsley (http://www.lttp.net/) for giving me inspiration to do this MOD, after I saw, and used his "View topic name while posting" MOD.
+##
+## Please use updates/update_to_1.2.0.txt to update to version 1.2.0 if you previously had version 1.0.0a installed.
+##
+##############################################################
+## MOD History:
+##
+##
+##   2005-08-06 - Version 1.2.0
+##      - Created a function instead of writing the sql command on every page
+##
+##   2005-07-23 - Version 1.0.1
+##      - Added the code to modcp.php
+##
+##   2005-02-21 - Version 1.0.0a
+##      - Coding errors fixed
+##
+##   2005-02-05 - Version 1.0.0
+##      - First release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]----------------------------------------
+#
+// View category name MOD, By Manipe (Begin)
+// Gets the category name and id of a particular forum.
+function get_category($forum_id){
+	global $db;
+
+	$sql = "SELECT c.cat_title, c.cat_id
+		FROM " . CATEGORIES_TABLE . " c, " . FORUMS_TABLE . " f
+		WHERE f.forum_id = '$forum_id'
+			AND c.cat_id = f.cat_id";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+	 	message_die(GENERAL_ERROR, 'Could not obtain category information', '', __LINE__, __FILE__, $sql);
+	}
+	$row = $db->sql_fetchrow($result);
+	$cat_info = array("id" => $row['cat_id'], "title" => $row['cat_title']);
+	$db->sql_freeresult($result);
+
+	return $cat_info;
+}
+// View category name MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/modcp_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<td align="left"><span class="nav">
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+->
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+-> <a href="{U_CAT}" class="nav">{CAT_NAME}</a> 
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/modcp_split.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	  <td align="left" class="nav"><a href="{U_INDEX}" class="nav">
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<span class="nav">
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+ -> <a href="{U_CAT}" class="nav">{CAT_NAME}</a>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+-> <a href="{U_VIEW_FORUM}" class="nav">{FORUM_NAME}</a>
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+->
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+-> <a href="{U_CAT}" class="nav">{CAT_NAME}</a> 
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	  <td align="left" valign="middle" class="nav" width="100%"><span class="nav">&nbsp;&nbsp;&nbsp;<a href="{U_INDEX}" class="nav">{L_INDEX}</a> -> <a class="nav" href="{U_VIEW_FORUM}">{FORUM_NAME}</a></span></td>
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+ <a class="nav" href="{U_VIEW_FORUM}">
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+ <a href="{U_CAT}" class="nav">{CAT_NAME}</a> ->
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	  <td align="left" valign="middle" width="100%"><span class="nav">&nbsp;&nbsp;&nbsp;<a href="{U_INDEX}" class="nav">{L_INDEX}</a> -> <a class="nav" href="{U_VIEW_FORUM}">{FORUM_NAME}</a></span></td>
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+ <a class="nav" href="{U_VIEW_FORUM}">
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+ <a href="{U_CAT}" class="nav">{CAT_NAME}</a> ->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<td align="left" valign="middle" width="100%"><span class="nav">&nbsp;&nbsp;&nbsp;<a href="{U_INDEX}" class="nav">{L_INDEX}</a> 
+	  -> <a href="{U_VIEW_FORUM}" class="nav">{FORUM_NAME}</a></span></td>
+  </tr>
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a href="{U_INDEX}" class="nav">{L_INDEX}</a>
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ -> <a href="{U_CAT}" class="nav">{CAT_NAME}</a>
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<td align="left" valign="middle" width="100%"><span class="nav">&nbsp;&nbsp;&nbsp;<a href="{U_INDEX}" class="nav">{L_INDEX}</a> 
+	  -> <a href="{U_VIEW_FORUM}" class="nav">{FORUM_NAME}</a></span></td>
+	<td align="right" valign="top" nowrap="nowrap"><span class="gensmall">{S_TIMEZONE}</span><br /><span class="nav">{PAGINATION}</span> 
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a href="{U_INDEX}" class="nav">{L_INDEX}</a>
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ -> <a href="{U_CAT}" class="nav">{CAT_NAME}</a>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+modcp.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Start session management
+//
+$userdata = session_pagestart($user_ip, $forum_id);
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// View category name MOD, By Manipe (Begin)
+$cat_info = get_category($forum_id);
+// View category name MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					'FORUM_NAME' => $forum_name, 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// View category name MOD, By Manipe (Begin)
+					'CAT_NAME' => $cat_info['title'],
+					'U_CAT' => append_sid($phpbb_root_path . "index.$phpEx?" . POST_CAT_URL . "=" . $cat_info['id']),
+// View category name MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			'FORUM_NAME' => $forum_name,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// View category name MOD, By Manipe (Begin)
+			'CAT_NAME' => $cat_info['title'],
+			'U_CAT' => append_sid($phpbb_root_path . "index.$phpEx?" . POST_CAT_URL . "=" . $cat_info['id']),
+// View category name MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$forum_name = $post_info['forum_name'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// View category name MOD, By Manipe (Begin)
+$cat_info = get_category($forum_id);
+// View category name MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'FORUM_NAME' => $forum_name,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// View category name MOD, By Manipe (Begin)
+	'CAT_NAME' => $cat_info['title'],
+	'U_CAT' => append_sid($phpbb_root_path . "index.$phpEx?" . POST_CAT_URL . "=" . $cat_info['id']),
+// View category name MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$template->set_filenames(array(
+	'body' => 'viewforum_body.tpl')
+);
+make_jumpbox('viewforum.'.$phpEx);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// View category name MOD, By Manipe (Begin)
+$cat_info = get_category($forum_id);
+// View category name MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'FORUM_ID' => $forum_id,
+	'FORUM_NAME' => $forum_row['forum_name'],
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// View category name MOD, By Manipe (Begin)
+	'CAT_NAME' => $cat_info['title'],
+	'U_CAT' => append_sid($phpbb_root_path . "index.$phpEx?" . POST_CAT_URL . "=" . $cat_info['id']),
+// View category name MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Send vars to template
+//
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// View category name MOD, By Manipe (Begin)
+$cat_info = get_category($forum_id);
+// View category name MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'FORUM_ID' => $forum_id,
+ 	'FORUM_NAME' => $forum_name,
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// View category name MOD, By Manipe (Begin)
+	'CAT_NAME' => $cat_info['title'],
+	'U_CAT' => append_sid($phpbb_root_path . "index.$phpEx?" . POST_CAT_URL . "=" . $cat_info['id']),
+// View category name MOD, By Manipe (End)
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

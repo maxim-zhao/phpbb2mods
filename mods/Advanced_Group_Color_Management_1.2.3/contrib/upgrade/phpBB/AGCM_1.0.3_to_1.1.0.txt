@@ -1,0 +1,1968 @@
+##############################################################
+## MOD Title: Advanced Group Color Management - Upgrade Instructions 1.0.3 to 1.1.0
+## MOD Author: Phantomk <phantomk@modmybb.com> (N/A) http://www.modmybb.com/
+## MOD Description:
+##         Modify's the Group system to add colors.
+## MOD Version: 1.1.0
+##
+## Installation Level: Advanced
+## Installation Time: 40 Minutes
+## Files To Edit: 19
+##               admin/admin_users.php
+##               admin/index.php
+##               includes/functions.php
+##               includes/functions_search.php
+##               includes/page_header.php
+##               includes/topic_review.php
+##               includes/usercp_register.php
+##               includes/usercp_viewprofile.php
+##               groupcp.php
+##               index.php
+##               memberlist.php
+##               modcp.php
+##               privmsg.php
+##               search.php
+##               viewforum.php
+##               viewonline.php
+##               viewtopic.php
+##               templates/subSilver/overall_header.tpl
+##               templates/subSilver/subSilver.css
+## Included Files: 10
+##               admin/admin_color.php
+##               includes/class_color.php
+##               language/lang_english/lang_admin_color.php
+##               language/lang_english/lang_main_color.php
+##               templates/subSilver/admin/color_edit_body.tpl
+##               templates/subSilver/admin/color_style_select.tpl
+##               templates/subSilver/images/arrow_down.gif
+##               templates/subSilver/images/arrow_up.gif
+##               templates/subSilver/search_color.tpl
+##               templates/picker.js
+##               install_color/*.*
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##      - Inspired By Advanced Username Color by:
+##         - aUsTiN <austin_inc@hotmail.com> (N/A) http://phpbb-amod.com/
+##      - Tigra Color Picker provided by:
+##         - SoftComplex <N/A> (N/A) http://www.softcomplex.com/
+##      - Special thanks to ptirhiik for his time and patience in answering my barrage of questions.
+##      - Thanks to Rabbit and No-L for the german translation.
+##
+##############################################################
+## MOD History:
+##
+##   2005-12-3 - Version 1.1.0
+##      - Cleaned up the install instructions.
+##      - Modified some instructions so that get_user_color is always called.
+##      - Upgraded the installer to handle the upgrade process for pre 1.1.0
+##      - Changed the theme field for storeing group colors from 'groupX' to 'gx'.
+##      - Added a non-existant group for the anonymous user which will allow admin's to define a
+##        color for any anonymous user.
+##      - Completely modified the get_user_color function to handle user_session_time,
+##        the users color will now change if they have not been online for a admin defined time.
+##        This option can be disabled and the time period changed in the AGCM panel.
+##      - Added a new css definition for "username_color" which will now allow more control for
+##        template authors to alter how the username is displayed.
+##
+##   2005-11-21 - Version 1.0.3
+##      - Cleaned up admin interface.
+##      - Added colors to modcp.php
+##      - 3 minor versions were done under 1.0.3 which were bug fixes for the install process.
+##
+##   2005-11-17 - Version 1.0.2
+##      - Removed SQL from install, caused too many problems.
+##      - Fixed a language bug.
+##      - Added missing colors to privmsg.php preview.
+##
+##   2005-11-12 - Version 1.0.1
+##      - Fixed installer issues.
+##
+##   2005-11-07 - Version 1.0.0
+##      - Added group color's to admin/index.php and includes/topic_review.php
+##      - Cleaned up installer
+##      - Cleaned up Admin Interface
+##      - Cleaned up some install find's and replace's
+##      - Cleaned up popup window for tiagra color picker (Work's in FF, IE and Opera)
+##      - Fixed a minor issue with other mod compatibility's in viewtopic.php
+##      - Upgraded phpBB compatibility to 2.0.18
+##      - Upgraded CH compatibility to 2.1.4
+##
+##   2005-10-04 - Version 0.2.2
+##      - Fixed the install file, multiple errors
+##      - Removed some code going into groupcp.php
+##      - Modified install file for common.php
+##
+##   2005-10-03 - Version 0.2.1
+##      - Added install file's
+##         - Automatically installs the sql and updates the group tables, as well as regenerates
+##           necessary cache for Cat Hierarchy
+##
+##   2005-09-29 - Version 0.2.0
+##      - Bug Fixes and Code Cosmetic Changes (Thanks to Budman)
+##      - Added admin_color.php to modify the color settings
+##      - Added colors to the groupcp.php for the group name
+##      - Added colors to the moderator list if the moderator is a group
+##      - Added Tigra Color Picker (replaceing the Color Wheel)
+##      - Added support for colors that are style specific
+##
+##   2005-09-22 - Version 0.1.0-RC2
+##      - Bug Fixes
+##
+##   2005-09-12 - Version 0.1.0-RC1
+##      - Changed legend link from groupcp to memberlist for Cat Hierarchy.
+##      - Added support for sync function in functions_admin. (Fixes colors when a topic is deleted/split/moved in modcp)
+##      - Modified the Legend to look like phpBB3 (Thanks to AJ Riddle)
+##      - Added support for deleteing/adding users from/to a group or deleteing a group entirely in groupcp.php and admin_groups.php
+##
+##   2005-08-29 - Version 0.0.10-b
+##      - Fixed colors not being displayed when viewing a forum or in search for Cat Hierarchy Install
+##      - Fixed small find / replace in install instructions for Cat Hierarchy
+##      - Fixed bug in ACP -> User Management
+##      - Fixed bug in Vanilla phpBB where colors would not show up for non mod/admins in legend for whoisonline
+##      - Fixed Auto Select bug in usercp_register.php
+##      - Group_color_select now checks for pending.
+##      - Both versions of install are now compatiable with EasyMod
+##
+##   2005-08-27 - Version 0.0.9-b
+##      - Fixed markers for the install, as they created issues.  Shouldn't have anymore.
+##      - Moved $colors->display_legend(); in page_header.php to index.php for Vanilla Installation
+##      - Reformated class_colors.php fixing alot of bugs with the vanilla phpBB functions, and some minor CH functions.
+##      - Fixed a missing class in search_color.tpl
+##      - Fixed a problem with legend variable not changeing in ACP
+##      - Updated Cat Hierarchy instructions to support 2.1.1RC6a, instructions are not to be used on 2.1.1RC5 as they are different in some areas
+##      - Fixed alot of bugs with phpBB install
+##
+##   2005-08-26 - Version 0.0.8-b
+##      - Fixed Color wheel, now functioning properly, I hope.
+##      - Moved the colorwheel.png to the images folder. (Thanks to Cr@ter$)
+##
+##   2005-08-23 - Version 0.0.7-b
+##      - Added markers to the install. (Thanks to Cr@ter$)
+##      - Fixed a FIND in Cat Hierarchy install. (Thanks to Cr@ter$)
+##      - Updated some missing code for search.php in Cat Hierarchy install.
+##
+##   2005-08-22 - Version 0.0.6-b
+##      - Changed includes/class_stats.php install instructions for Cat Hierarchy.
+##      - Redefined get_user_color function.
+##
+##   2005-08-22 - Version 0.0.5-b
+##      - Minor Bug Fixes.
+##      - Renamed phpbb_user field group_id to user_group_id.
+##      - Fixed drop down user group menu issue when only in one group.
+##
+##   2005-08-21 - Version 0.0.4-b
+##      - Cleaned up install txt's to reduce size.
+##      - Moved code from top of files to common.php.
+##
+##   2005-08-21 - Version 0.0.3-b
+##      - Second Beta Release.
+##      - Added Vanilla phpBB Install.
+##      - Minor Bug fixes.
+##      - ACP User Management added.
+##      - Known Bugs:
+##          - Drop down box appears in profile/admin ACP even if only in one/no group('s).
+##
+##   2005-08-20 - Version 0.0.2-b
+##      - First Beta Release.
+##      - ACP Group Management Added.
+##      - Profile Group Management, for users in multiple groups.
+##      - Fully intergrated into Cat Hierarchy.
+##      - Known Bugs:
+##          - admin_user.php interface not completed.
+##          - Drop down box appears in profile even if only in one group.
+##
+##   2005-08-16 - Version 0.0.1-b
+##      - Initial Private Beta.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy root/admin/admin_color.php to admin/admin_color.php
+copy root/includes/class_color.php to includes/class_color.php
+copy root/language/lang_english/lang_admin_color.php to language/lang_english/lang_admin_color.php
+copy root/language/lang_english/lang_main_color.php to language/lang_english/lang_main_color.php
+copy root/templates/subSilver/admin/color_edit_body.tpl to templates/subSilver/admin/color_edit_body.tpl
+copy root/templates/subSilver/admin/color_style_select.tpl to templates/subSilver/admin/color_style_select.tpl
+copy root/templates/subSilver/images/arrow_down.gif to templates/subSilver/images/arrow_down.gif
+copy root/templates/subSilver/images/arrow_up.gif to templates/subSilver/images/arrow_up.gif
+copy root/templates/subSilver/search_color.tpl to templates/subSilver/search_color.tpl
+copy root/templates/picker.js to templates/picker.js
+copy root/install_color/*.* to install_color/*.*
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+			'L_GROUP_COLOR_SELECT' => $lang['User_Group_Color'],
+			'L_GROUP_COLOR_SELECT_EXPLAIN' => $lang['User_Group_Color_Explain'],
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+			'L_GROUP_COLOR_SELECT' => $lang['AGCM_user_color'],
+			'L_GROUP_COLOR_SELECT_EXPLAIN' => $lang['AGCM_user_color_explain'],
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/index.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$username,
+// with
+//	$colors->get_user_color($onlinerow_reg[$i]['user_group_id'], $username),
+//-- modify
+					"USERNAME" => $colors->get_user_color($onlinerow_reg[$i]['user_group_id'], $username),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$username,
+// with
+//	$colors->get_user_color($onlinerow_reg[$i]['user_group_id'], $onlinerow_reg[$i]['user_session_time'], $username),
+//-- modify
+					"USERNAME" => $colors->get_user_color($onlinerow_reg[$i]['user_group_id'], $onlinerow_reg[$i]['user_session_time'], $username),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	 , user_group_id
+//-- modify
+			$sql = "SELECT user_id, username, user_group_id
+				FROM " . USERS_TABLE . "
+				WHERE user_id <> " . ANONYMOUS . "
+				ORDER BY user_id DESC
+				LIMIT 1";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	 , user_group_id, user_session_time
+//-- modify
+			$sql = "SELECT user_id, username, user_group_id, user_session_time
+				FROM " . USERS_TABLE . "
+				WHERE user_id <> " . ANONYMOUS . "
+				ORDER BY user_id DESC
+				LIMIT 1";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_search.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+function color_search()
+{
+	global $template, $lang, $theme;
+	$page_title = $lang['Color_Search'];
+
+	$template->set_filenames(array(
+		'search_color' => 'search_color.tpl')
+	);
+
+	$template->assign_vars(array(
+		'L_WEB_SAFE' => $lang['Web_safe'],
+		'L_WINDOWS_SYSTEM' => $lang['Windows_system'],
+		'L_GREY_SCALE' => $lang['Grey_scale'],
+		'L_MAC_OS' => $lang['Mac_os'],
+		'PAGE_TITLE' => $page_title,
+		'S_CONTENT_DIRECTION' => $lang['DIRECTION'],
+		'S_CONTENT_ENCODING' => $lang['ENCODING'],
+		'T_BODY_BGCOLOR' => '#'.$theme['body_bgcolor'])
+	);
+
+	$template->pparse('search_color');
+
+	return;
+}
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+function color_search()
+{
+	global $template, $lang, $theme;
+	$page_title = $lang['AGCM_color_search'];
+
+	$template->set_filenames(array(
+		'search_color' => 'search_color.tpl')
+	);
+
+	$template->assign_vars(array(
+		'L_WEB_SAFE' => $lang['AGCM_web_safe'],
+		'L_WINDOWS_SYSTEM' => $lang['AGCM_windows_system'],
+		'L_GREY_SCALE' => $lang['AGCM_grey_scale'],
+		'L_MAC_OS' => $lang['AGCM_mac_os'],
+		'PAGE_TITLE' => $page_title,
+		'S_CONTENT_DIRECTION' => $lang['DIRECTION'],
+		'S_CONTENT_ENCODING' => $lang['ENCODING'],
+		'T_BODY_BGCOLOR' => '#'.$theme['body_bgcolor'])
+	);
+
+	$template->pparse('search_color');
+
+	return;
+}
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	 u.user_group_id,
+//-- modify
+	$sql = "SELECT u.username, u.user_group_id, u.user_id, u.user_allow_viewonline, u.user_level, s.session_logged_in, s.session_ip
+		FROM ".USERS_TABLE." u, ".SESSIONS_TABLE." s
+		WHERE u.user_id = s.session_user_id
+			AND s.session_time >= ".( time() - 300 ) . "
+			$user_forum_sql
+		ORDER BY u.username ASC, s.session_ip ASC";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+	$sql = "SELECT u.username, u.user_id, u.user_group_id, u.user_session_time, u.user_allow_viewonline, u.user_level, s.session_logged_in, s.session_ip
+		FROM ".USERS_TABLE." u, ".SESSIONS_TABLE." s
+		WHERE u.user_id = s.session_user_id
+			AND s.session_time >= ".( time() - 300 ) . "
+			$user_forum_sql
+		ORDER BY u.username ASC, s.session_ip ASC";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	if ( $row['user_level'] == ADMIN )
+//	{
+//		$row['username'] = '<b>' . $row['username'] . '</b>';
+//		$style_color = 'style="color:#' . $theme['fontcolor3'] . '"';
+//	}
+//	else if ( $row['user_level'] == MOD )
+//	{
+//		$row['username'] = '<b>' . $row['username'] . '</b>';
+//		$style_color = 'style="color:#' . $theme['fontcolor2'] . '"';
+//	}
+//-- add
+				$row['username'] = '<b>' . $colors->get_user_color($row['user_group_id'], $row['username']) . '</b>';
+				$style_color = ' style="color:#' . $colors->get_user_color($row['user_group_id']) . '"';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	if ( $row['user_level'] == ADMIN )
+//	{
+//		$row['username'] = '<b>' . $row['username'] . '</b>';
+//		$style_color = 'style="color:#' . $theme['fontcolor3'] . '"';
+//	}
+//	else if ( $row['user_level'] == MOD )
+//	{
+//		$row['username'] = '<b>' . $row['username'] . '</b>';
+//		$style_color = 'style="color:#' . $theme['fontcolor2'] . '"';
+//	}
+//-- add
+				$style_color = ' style="color : #' . $colors->get_user_color($row['user_group_id'], $row['user_session_time']) . ';" class="username_color"';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+	'L_UPDATE_GROUP_COLOR' => $lang['Update_Group_Color'],
+	'L_SELECT' => $lang['Select'],
+	'L_GROUP_LEGEND' =>$lang['Legend_Online'],
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+	'L_GROUP_LEGEND' => $lang['AGCM_legend'],
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/topic_review.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	 u.user_group_id, 
+//-- modify
+	$sql = "SELECT u.username, u.user_group_id, u.user_id, p.*,  pt.post_text, pt.post_subject, pt.bbcode_uid
+		FROM " . POSTS_TABLE . " p, " . USERS_TABLE . " u, " . POSTS_TEXT_TABLE . " pt
+		WHERE p.topic_id = $topic_id
+			AND p.poster_id = u.user_id
+			AND p.post_id = pt.post_id
+		ORDER BY p.post_time DESC
+		LIMIT " . $board_config['posts_per_page'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+	$sql = "SELECT u.username, u.user_id, u.user_group_id, u.user_session_time, p.*,  pt.post_text, pt.post_subject, pt.bbcode_uid
+		FROM " . POSTS_TABLE . " p, " . USERS_TABLE . " u, " . POSTS_TEXT_TABLE . " pt
+		WHERE p.topic_id = $topic_id
+			AND p.poster_id = u.user_id
+			AND p.post_id = pt.post_id
+		ORDER BY p.post_time DESC
+		LIMIT " . $board_config['posts_per_page'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management --------------------------------------
+// here we replaced
+//	$poster,
+// with
+//	$colors->get_user_color($row['user_group_id'], $poster),
+//-- modify
+				'POSTER_NAME' => $colors->get_user_color($row['user_group_id'], $poster),
+//-- fin mod : Avanced Group Color Management ----------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management --------------------------------------
+// here we replaced
+//	$poster,
+// with
+//	$colors->get_user_color($row['user_group_id'], $row['user_session_time'], $poster),
+//-- modify
+				'POSTER_NAME' => $colors->get_user_color($row['user_group_id'], $row['user_session_time'], $poster),
+//-- fin mod : Avanced Group Color Management ----------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+		'L_GROUP_COLOR_SELECT' => $lang['User_Group_Color'],
+		'L_GROUP_COLOR_SELECT_EXPLAIN' => $lang['User_Group_Color_Explain'],
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+		'L_GROUP_COLOR_SELECT' => $lang['AGCM_user_color'],
+		'L_GROUP_COLOR_SELECT_EXPLAIN' => $lang['AGCM_user_color_explain'],
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	'USERNAME' => $profiledata['username'],
+//-- add
+	'USERNAME' => $colors->get_user_color($profiledata['user_group_id'], $profiledata['username']),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$profiledata['username'],
+// with
+//	$colors->get_user_color($profiledata['user_group_id'], $profiledata['user_session_time'], $profiledata['username']),
+//-- modify
+	'USERNAME' => $colors->get_user_color($profiledata['user_group_id'], $profiledata['user_session_time'], $profiledata['username']),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$profiledata['username']
+//-- with
+//	$colors->get_user_color($profiledata['user_group_id'], $profiledata['username'])
+//-- modify
+	'L_VIEWING_PROFILE' => sprintf($lang['Viewing_user_profile'], $colors->get_user_color($profiledata['user_group_id'], $profiledata['username'])),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$profiledata['username']
+//-- with
+//	$colors->get_user_color($profiledata['user_group_id'], $profiledata['user_session_time'], $profiledata['username'])
+//-- modify
+	'L_VIEWING_PROFILE' => sprintf($lang['Viewing_user_profile'], $colors->get_user_color($profiledata['user_group_id'], $profiledata['user_session_time'], $profiledata['username'])),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+groupcp.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, user_group_id
+//-- modify
+	$sql = "SELECT username, user_id, user_group_id, user_viewemail, user_posts, user_regdate, user_from, user_website, user_email, user_icq, user_aim, user_yim, user_msnm  
+		FROM " . USERS_TABLE . " 
+		WHERE user_id = " . $group_info['group_moderator'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, user_group_id, user_session_time
+//-- modify
+	$sql = "SELECT username, user_id, user_group_id, user_session_time, user_viewemail, user_posts, user_regdate, user_from, user_website, user_email, user_icq, user_aim, user_yim, user_msnm  
+		FROM " . USERS_TABLE . " 
+		WHERE user_id = " . $group_info['group_moderator'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+	$sql = "SELECT u.username, u.user_id, u.user_group_id, u.user_viewemail, u.user_posts, u.user_regdate, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_msnm, ug.user_pending 
+		FROM " . USERS_TABLE . " u, " . USER_GROUP_TABLE . " ug
+		WHERE ug.group_id = $group_id
+			AND u.user_id = ug.user_id
+			AND ug.user_pending = 0 
+			AND ug.user_id <> " . $group_moderator['user_id'] . " 
+		ORDER BY u.username"; 
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+	$sql = "SELECT u.username, u.user_id, u.user_group_id, u.user_session_time, u.user_viewemail, u.user_posts, u.user_regdate, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_msnm, ug.user_pending 
+		FROM " . USERS_TABLE . " u, " . USER_GROUP_TABLE . " ug
+		WHERE ug.group_id = $group_id
+			AND u.user_id = ug.user_id
+			AND ug.user_pending = 0 
+			AND ug.user_id <> " . $group_moderator['user_id'] . " 
+		ORDER BY u.username"; 
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+	$sql = "SELECT u.username, u.user_group_id, u.user_id, u.user_viewemail, u.user_posts, u.user_regdate, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_msnm
+		FROM " . GROUPS_TABLE . " g, " . USER_GROUP_TABLE . " ug, " . USERS_TABLE . " u
+		WHERE ug.group_id = $group_id
+			AND g.group_id = ug.group_id
+			AND ug.user_pending = 1
+			AND u.user_id = ug.user_id
+		ORDER BY u.username"; 
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+	$sql = "SELECT u.username, u.user_id, u.user_group_id, u.user_session_time, u.user_viewemail, u.user_posts, u.user_regdate, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_msnm
+		FROM " . GROUPS_TABLE . " g, " . USER_GROUP_TABLE . " ug, " . USERS_TABLE . " u
+		WHERE ug.group_id = $group_id
+			AND g.group_id = ug.group_id
+			AND ug.user_pending = 1
+			AND u.user_id = ug.user_id
+		ORDER BY u.username"; 
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	$username = $group_moderator['username'];
+//-- add
+	$username = $colors->get_user_color($group_moderator['user_group_id'], $group_moderator['username']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$group_moderator['username'];
+// with
+//	$colors->get_user_color($group_moderator['user_group_id'], $group_moderator['user_session_time'], $group_moderator['username']);
+//-- modify
+	$username = $colors->get_user_color($group_moderator['user_group_id'], $group_moderator['user_session_time'], $group_moderator['username']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management --------------------------------------
+//-- delete
+//	'GROUP_NAME' => $group_info['group_name'],
+//-- add
+		'GROUP_NAME' => $colors->get_user_color($group_info['group_id'], $group_info['group_name']),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$group_info['group_name'],
+// with
+//	$colors->get_user_color($group_info['group_id'], '0', $group_info['group_name']),
+//-- modify
+		'GROUP_NAME' => $colors->get_user_color($group_info['group_id'], '0', $group_info['group_name']),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	$username = $group_members[$i]['username'];
+//-- add
+		$username = $colors->get_user_color($group_members[$i]['user_group_id'], $group_members[$i]['username']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$group_members[$i]['username'];
+// with
+//	$colors->get_user_color($group_members[$i]['user_group_id'], $group_members[$i]['user_session_time'], $group_members[$i]['username']);
+//-- modify
+		$username = $colors->get_user_color($group_members[$i]['user_group_id'], $group_members[$i]['user_session_time'], $group_members[$i]['username']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	$username = $modgroup_pending_list[$i]['username'];
+//-- add
+				$username = $colors->get_user_color($modgroup_pending_list[$i]['user_group_id'], $modgroup_pending_list[$i]['username']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$modgroup_pending_list[$i]['username'];
+// with
+//	$colors->get_user_color($modgroup_pending_list[$i]['user_group_id'], $modgroup_pending_list[$i]['user_session_time'], $modgroup_pending_list[$i]['username']);
+//-- modify
+				$username = $colors->get_user_color($modgroup_pending_list[$i]['user_group_id'], $modgroup_pending_list[$i]['user_session_time'], $modgroup_pending_list[$i]['username']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+index.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// add
+$newest_user_group_id = $newest_userdata['user_group_id'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// add
+$newest_user_group_id = $newest_userdata['user_group_id'];
+$newest_user_session_time = $newest_userdata['user_session_time'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+			$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id, u.user_group_id 
+				FROM " . FORUMS_TABLE . " f, " . POSTS_TABLE . " p, " . USERS_TABLE . " u
+				WHERE p.post_id = f.forum_last_post_id 
+					AND u.user_id = p.poster_id  
+					UNION (
+						SELECT f.*, NULL, NULL, NULL, NULL
+						FROM " . FORUMS_TABLE . " f
+						WHERE NOT EXISTS (
+							SELECT p.post_time
+							FROM " . POSTS_TABLE . " p
+							WHERE p.post_id = f.forum_last_post_id  
+						)
+					)
+					ORDER BY cat_id, forum_order";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+			$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id, u.user_group_id, u.user_session_time 
+				FROM " . FORUMS_TABLE . " f, " . POSTS_TABLE . " p, " . USERS_TABLE . " u
+				WHERE p.post_id = f.forum_last_post_id 
+					AND u.user_id = p.poster_id  
+					UNION (
+						SELECT f.*, NULL, NULL, NULL, NULL
+						FROM " . FORUMS_TABLE . " f
+						WHERE NOT EXISTS (
+							SELECT p.post_time
+							FROM " . POSTS_TABLE . " p
+							WHERE p.post_id = f.forum_last_post_id  
+						)
+					)
+					ORDER BY cat_id, forum_order";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+			$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id, u.user_group_id 
+				FROM " . FORUMS_TABLE . " f, " . POSTS_TABLE . " p, " . USERS_TABLE . " u
+				WHERE p.post_id = f.forum_last_post_id(+)
+					AND u.user_id = p.poster_id(+)
+				ORDER BY f.cat_id, f.forum_order";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+			$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id, u.user_group_id, u.user_session_time 
+				FROM " . FORUMS_TABLE . " f, " . POSTS_TABLE . " p, " . USERS_TABLE . " u
+				WHERE p.post_id = f.forum_last_post_id(+)
+					AND u.user_id = p.poster_id(+)
+				ORDER BY f.cat_id, f.forum_order";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+			$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id, u.user_group_id
+				FROM (( " . FORUMS_TABLE . " f
+				LEFT JOIN " . POSTS_TABLE . " p ON p.post_id = f.forum_last_post_id )
+				LEFT JOIN " . USERS_TABLE . " u ON u.user_id = p.poster_id )
+				ORDER BY f.cat_id, f.forum_order";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+			$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id, u.user_group_id, u.user_session_time
+				FROM (( " . FORUMS_TABLE . " f
+				LEFT JOIN " . POSTS_TABLE . " p ON p.post_id = f.forum_last_post_id )
+				LEFT JOIN " . USERS_TABLE . " u ON u.user_id = p.poster_id )
+				ORDER BY f.cat_id, f.forum_order";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+	$sql = "SELECT aa.forum_id, u.user_id, u.username, u.user_group_id 
+		FROM " . AUTH_ACCESS_TABLE . " aa, " . USER_GROUP_TABLE . " ug, " . GROUPS_TABLE . " g, " . USERS_TABLE . " u
+		WHERE aa.auth_mod = " . TRUE . " 
+			AND g.group_single_user = 1 
+			AND ug.group_id = aa.group_id 
+			AND g.group_id = aa.group_id 
+			AND u.user_id = ug.user_id 
+		GROUP BY u.user_id, u.username, aa.forum_id 
+		ORDER BY aa.forum_id, u.user_id";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+	$sql = "SELECT aa.forum_id, u.user_id, u.username, u.user_group_id, u.user_session_time 
+		FROM " . AUTH_ACCESS_TABLE . " aa, " . USER_GROUP_TABLE . " ug, " . GROUPS_TABLE . " g, " . USERS_TABLE . " u
+		WHERE aa.auth_mod = " . TRUE . " 
+			AND g.group_single_user = 1 
+			AND ug.group_id = aa.group_id 
+			AND g.group_id = aa.group_id 
+			AND u.user_id = ug.user_id 
+		GROUP BY u.user_id, u.username, aa.forum_id 
+		ORDER BY aa.forum_id, u.user_id";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$row['username']
+//-- with
+//	$colors->get_user_color($row['user_group_id'], $row['username'])
+//-- modify
+		$forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '">' . $colors->get_user_color($row['user_group_id'], $row['username']) . '</a>';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$row['username']
+//-- with
+//	$colors->get_user_color($row['user_group_id'], $row['user_session_time'], $row['username'])
+//-- modify
+		$forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '">' . $colors->get_user_color($row['user_group_id'], $row['user_session_time'], $row['username']) . '</a>';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$row['group_name']
+//-- with
+//	$colors->get_user_color($row['group_id'], $row['group_name'])
+//-- modify
+		$forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . $colors->get_user_color($row['group_id'], $row['group_name']) . '</a>';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$row['group_name']
+//-- with
+//	$colors->get_user_color($row['group_id'], '0', $row['group_name'])
+//-- modify
+		$forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . $colors->get_user_color($row['group_id'], '0', $row['group_name']) . '</a>';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$newest_user
+//-- with
+//	$colors->get_user_color($newest_user_group_id, $newest_user)
+//-- modify
+		'NEWEST_USER' => sprintf($lang['Newest_user'], '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$newest_uid") . '">', $colors->get_user_color($newest_user_group_id, $newest_user), '</a>'), 
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$newest_user
+//-- with
+//	$colors->get_user_color($newest_user_group_id, $newest_user_session_time, $newest_user)
+//-- modify
+		'NEWEST_USER' => sprintf($lang['Newest_user'], '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$newest_uid") . '">', $colors->get_user_color($newest_user_group_id, $newest_user_session_time, $newest_user), '</a>'), 
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$forum_data[$j]['username']
+//-- with
+//	$colors->get_user_color($forum_data[$j]['user_group_id'], $forum_data[$j]['username'])
+//-- modify
+								$last_post .= ( $forum_data[$j]['user_id'] == ANONYMOUS ) ? ( ($forum_data[$j]['post_username'] != '' ) ? $forum_data[$j]['post_username'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $forum_data[$j]['user_id']) . '">' . $forum_data[$j]['username'] . '</a> ';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$forum_data[$j]['post_username'] . ' ' : $lang['Guest']
+//	$forum_data[$j]['username']
+//-- with
+//	$colors->get_user_color($forum_data[$j]['user_group_id'], '0', $forum_data[$j]['post_username']) . ' ' : $colors->get_user_color($forum_data[$j]['user_group_id'], '0', $lang['Guest'])
+//	$colors->get_user_color($forum_data[$j]['user_group_id'], $forum_data[$j]['user_session_time'], $forum_data[$j]['username'])
+//-- modify
+								$last_post .= ( $forum_data[$j]['user_id'] == ANONYMOUS ) ? ( ($forum_data[$j]['post_username'] != '' ) ? $colors->get_user_color($forum_data[$j]['user_group_id'], '0', $forum_data[$j]['post_username']) . ' ' : $colors->get_user_color($forum_data[$j]['user_group_id'], '0', $lang['Guest']) . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $forum_data[$j]['user_id']) . '">' . $forum_data[$j]['username'] . '</a> ';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+memberlist.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, user_group_id
+//-- modify
+$sql = "SELECT username, user_group_id, user_id, user_viewemail, user_posts, user_regdate, user_from, user_website, user_email, user_icq, user_aim, user_yim, user_msnm, user_avatar, user_avatar_type, user_allowavatar 
+	FROM " . USERS_TABLE . "
+	WHERE user_id <> " . ANONYMOUS . "
+	ORDER BY $order_by";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, user_group_id, user_session_time
+//-- modify
+$sql = "SELECT username, user_id, user_group_id, user_session_time, user_viewemail, user_posts, user_regdate, user_from, user_website, user_email, user_icq, user_aim, user_yim, user_msnm, user_avatar, user_avatar_type, user_allowavatar 
+	FROM " . USERS_TABLE . "
+	WHERE user_id <> " . ANONYMOUS . "
+	ORDER BY $order_by";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	'USERNAME' => $username,
+//-- add
+			'USERNAME' => $colors->get_user_color($row['user_group_id'], $username),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$username,
+// with
+//	$colors->get_user_color($row['user_group_id'], $row['user_session_time'], $username),
+//-- modify
+			'USERNAME' => $colors->get_user_color($row['user_group_id'], $row['user_session_time'], $username),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+modcp.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+			$sql = "SELECT u.username, u.user_group_id, p.*, pt.post_text, pt.bbcode_uid, pt.post_subject, p.post_username
+				FROM " . POSTS_TABLE . " p, " . USERS_TABLE . " u, " . POSTS_TEXT_TABLE . " pt
+				WHERE p.topic_id = $topic_id
+					AND p.poster_id = u.user_id
+					AND p.post_id = pt.post_id
+				ORDER BY p.post_time ASC";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+			$sql = "SELECT u.username, u.user_group_id, u.user_session_time, p.*, pt.post_text, pt.bbcode_uid, pt.post_subject, p.post_username
+				FROM " . POSTS_TABLE . " p, " . USERS_TABLE . " u, " . POSTS_TEXT_TABLE . " pt
+				WHERE p.topic_id = $topic_id
+					AND p.poster_id = u.user_id
+					AND p.post_id = pt.post_id
+				ORDER BY p.post_time ASC";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$poster,
+// with
+//	$colors->get_user_color($postrow[$i]['user_group_id'], $poster),
+//-- modify
+						'POSTER_NAME' => $colors->get_user_color($postrow[$i]['user_group_id'], $poster),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$poster,
+// with
+//	$colors->get_user_color($postrow[$i]['user_group_id'], $postrow[$i]['user_session_time'], $poster),
+//-- modify
+						'POSTER_NAME' => $colors->get_user_color($postrow[$i]['user_group_id'], $postrow[$i]['user_session_time'], $poster),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+		$sql = "SELECT u.user_id, u.username, u.user_group_id, COUNT(*) as postings 
+			FROM " . USERS_TABLE ." u, " . POSTS_TABLE . " p 
+			WHERE p.poster_id = u.user_id 
+				AND p.poster_ip = '" . $post_row['poster_ip'] . "'
+			GROUP BY u.user_id, u.username
+			ORDER BY " . (( SQL_LAYER == 'msaccess' ) ? 'COUNT(*)' : 'postings' ) . " DESC";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+		$sql = "SELECT u.user_id, u.username, u.user_group_id, u.user_session_time, COUNT(*) as postings 
+			FROM " . USERS_TABLE ." u, " . POSTS_TABLE . " p 
+			WHERE p.poster_id = u.user_id 
+				AND p.poster_ip = '" . $post_row['poster_ip'] . "'
+			GROUP BY u.user_id, u.username
+			ORDER BY " . (( SQL_LAYER == 'msaccess' ) ? 'COUNT(*)' : 'postings' ) . " DESC";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$username,
+// with
+//	$colors->get_user_color($row['user_group_id'], $username),
+//-- modify
+					'USERNAME' => $colors->get_user_color($row['user_group_id'], $username),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$username,
+// with
+//	$colors->get_user_color($row['user_group_id'], $row['user_session_time'], $username),
+//-- modify
+					'USERNAME' => $colors->get_user_color($row['user_group_id'], $row['user_session_time'], $username),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+		$sql = "SELECT t.*, u.username, u.user_id, u.user_group_id, p.post_time
+			FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p
+			WHERE t.forum_id = $forum_id
+				AND t.topic_poster = u.user_id
+				AND p.post_id = t.topic_last_post_id
+			ORDER BY t.topic_type DESC, p.post_time DESC
+			LIMIT $start, " . $board_config['topics_per_page'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+		$sql = "SELECT t.*, u.username, u.user_id, u.user_group_id, u.user_session_time, p.post_time
+			FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p
+			WHERE t.forum_id = $forum_id
+				AND t.topic_poster = u.user_id
+				AND p.post_id = t.topic_last_post_id
+			ORDER BY t.topic_type DESC, p.post_time DESC
+			LIMIT $start, " . $board_config['topics_per_page'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	 u.user_group_id AS user_group_id1, u2.user_group_id AS user_group_id2,
+//-- modify
+	$sql = "SELECT u.username AS username_1, u.user_id AS user_id_1, u2.username AS username_2, u2.user_id AS user_id_2, u.user_group_id AS user_group_id1, u2.user_group_id AS user_group_id2, u.user_sig_bbcode_uid, u.user_posts, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_regdate, u.user_msnm, u.user_viewemail, u.user_rank, u.user_sig, u.user_avatar, pm.*, pmt.privmsgs_bbcode_uid, pmt.privmsgs_text
+		FROM " . PRIVMSGS_TABLE . " pm, " . PRIVMSGS_TEXT_TABLE . " pmt, " . USERS_TABLE . " u, " . USERS_TABLE . " u2 
+		WHERE pm.privmsgs_id = $privmsgs_id
+			AND pmt.privmsgs_text_id = pm.privmsgs_id 
+			$pm_sql_user 
+			AND u.user_id = pm.privmsgs_from_userid 
+			AND u2.user_id = pm.privmsgs_to_userid";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id AS user_group_id_1, u2.user_group_id AS user_group_id_2, u.user_session_time AS user_session_time_1, u2.user_session_time AS user_session_time_2
+//-- modify
+	$sql = "SELECT u.username AS username_1, u.user_id AS user_id_1, u2.username AS username_2, u2.user_id AS user_id_2, u.user_group_id AS user_group_id_1, u2.user_group_id AS user_group_id_2, u.user_session_time AS user_session_time_1, u2.user_session_time AS user_session_time_2, u.user_sig_bbcode_uid, u.user_posts, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_regdate, u.user_msnm, u.user_viewemail, u.user_rank, u.user_sig, u.user_avatar, pm.*, pmt.privmsgs_bbcode_uid, pmt.privmsgs_text
+		FROM " . PRIVMSGS_TABLE . " pm, " . PRIVMSGS_TEXT_TABLE . " pmt, " . USERS_TABLE . " u, " . USERS_TABLE . " u2 
+		WHERE pm.privmsgs_id = $privmsgs_id
+			AND pmt.privmsgs_text_id = pm.privmsgs_id 
+			$pm_sql_user 
+			AND u.user_id = pm.privmsgs_from_userid 
+			AND u2.user_id = pm.privmsgs_to_userid";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	$username_from = $privmsg['username_1'];
+//-- add
+	$username_from = $colors->get_user_color($privmsg['user_group_id1'], $privmsg['username_1']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$privmsg['username_1'];
+// with
+//	$colors->get_user_color($privmsg['user_group_id_1'], $privmsg['user_session_time_1'], $privmsg['username_1']);
+//-- modify
+	$username_from = $colors->get_user_color($privmsg['user_group_id_1'], $privmsg['user_session_time_1'], $privmsg['username_1']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	$username_to = $privmsg['username_2'];
+//-- add
+	$username_to = $colors->get_user_color($privmsg['user_group_id2'], $privmsg['username_2']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$privmsg['username_2'];
+// with
+//	$colors->get_user_color($privmsg['user_group_id_2'], $privmsg['user_session_time_2'], $privmsg['username_2']);
+//-- modify
+	$username_to = $colors->get_user_color($privmsg['user_group_id_2'], $privmsg['user_session_time_2'], $privmsg['username_2']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	$to_username = (isset($HTTP_POST_VARS['username']) ) ? trim(htmlspecialchars(stripslashes($HTTP_POST_VARS['username']))) : '';
+//-- add
+		if (isset($HTTP_POST_VARS['username']))
+		{
+			$to_username = phpbb_clean_username($HTTP_POST_VARS['username']);
+
+			$sql = "SELECT username, user_group_id
+				FROM " . USERS_TABLE . "
+				WHERE username = '" . str_replace("\'", "''", $to_username) . "'
+					AND user_id <> " . ANONYMOUS;
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				$error = TRUE;
+				$error_msg = $lang['No_such_user'];
+			}
+
+			if ( $row = $db->sql_fetchrow($result) )
+			{
+				$to_username = $row['username'];
+				$to_user_group_id = $row['user_group_id'];
+			}
+		}
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	$to_username = (isset($HTTP_POST_VARS['username']) ) ? trim(htmlspecialchars(stripslashes($HTTP_POST_VARS['username']))) : '';
+//-- add
+		if (isset($HTTP_POST_VARS['username']))
+		{
+			$to_username = phpbb_clean_username($HTTP_POST_VARS['username']);
+
+			$sql = "SELECT username, user_group_id, user_session_time
+				FROM " . USERS_TABLE . "
+				WHERE username = '" . str_replace("\'", "''", $to_username) . "'
+					AND user_id <> " . ANONYMOUS;
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				$error = TRUE;
+				$error_msg = $lang['No_such_user'];
+			}
+
+			if ( $row = $db->sql_fetchrow($result) )
+			{
+				$to_username = $row['username'];
+				$to_user_group_id = $row['user_group_id'];
+				$to_user_session_time = $row['user_session_time'];
+			}
+		}
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$to_username,
+// with
+//	$colors->get_user_color($to_user_group_id, $to_username),
+//-- modify
+			'MESSAGE_TO' => $colors->get_user_color($to_user_group_id, $to_username),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$to_username,
+// with
+//	$colors->get_user_color($to_user_group_id, $to_user_session_time, $to_username),
+//-- modify
+			'MESSAGE_TO' => $colors->get_user_color($to_user_group_id, $to_user_session_time, $to_username),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$userdata['username'],
+// with
+//	$colors->get_user_color($userdata['user_group_id'], $userdata['username']),
+//-- modify
+			'MESSAGE_FROM' => $colors->get_user_color($userdata['user_group_id'], $userdata['username']),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$userdata['username'],
+// with
+//	$colors->get_user_color($userdata['user_group_id'], $userdata['user_session_time'], $userdata['username']),
+//-- modify
+			'MESSAGE_FROM' => $colors->get_user_color($userdata['user_group_id'], $userdata['user_session_time'], $userdata['username']),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+$sql = "SELECT pm.privmsgs_type, pm.privmsgs_id, pm.privmsgs_date, pm.privmsgs_subject, u.user_id, u.username, u.user_group_id 
+	FROM " . PRIVMSGS_TABLE . " pm, " . USERS_TABLE . " u ";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+$sql = "SELECT pm.privmsgs_type, pm.privmsgs_id, pm.privmsgs_date, pm.privmsgs_subject, u.user_id, u.username, u.user_group_id, u.user_session_time 
+	FROM " . PRIVMSGS_TABLE . " pm, " . USERS_TABLE . " u ";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	$msg_username = $row['username'];
+//-- add
+		$msg_username = $colors->get_user_color($row['user_group_id'], $row['username']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$row['username'];
+// with
+//	$colors->get_user_color($row['user_group_id'], $row['user_session_time'], $row['username']);
+//-- modify
+		$msg_username = $colors->get_user_color($row['user_group_id'], $row['user_session_time'], $row['username']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	 u.user_group_id,
+//-- modify
+			$sql = "SELECT pt.post_text, pt.bbcode_uid, pt.post_subject, p.*, f.forum_id, f.forum_name, t.*, u.username, u.user_id, u.user_group_id, u.user_sig, u.user_sig_bbcode_uid  
+				FROM " . FORUMS_TABLE . " f, " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TEXT_TABLE . " pt 
+				WHERE p.post_id IN ($search_results)
+					AND pt.post_id = p.post_id
+					AND f.forum_id = p.forum_id
+					AND p.topic_id = t.topic_id
+					AND p.poster_id = u.user_id";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+			$sql = "SELECT pt.post_text, pt.bbcode_uid, pt.post_subject, p.*, f.forum_id, f.forum_name, t.*, u.username, u.user_id, u.user_group_id, u.user_session_time, u.user_sig, u.user_sig_bbcode_uid  
+				FROM " . FORUMS_TABLE . " f, " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TEXT_TABLE . " pt 
+				WHERE p.post_id IN ($search_results)
+					AND pt.post_id = p.post_id
+					AND f.forum_id = p.forum_id
+					AND p.topic_id = t.topic_id
+					AND p.poster_id = u.user_id";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	 u.user_group_id as user_group_id1, u2.user_group_id as user_group_id2,
+//-- modify
+			$sql = "SELECT t.*, f.forum_id, f.forum_name, u.username, u.user_id, u.user_group_id as user_group_id1, u2.user_group_id as user_group_id2, u2.username as user2, u2.user_id as id2, p.post_username, p2.post_username AS post_username2, p2.post_time 
+				FROM " . TOPICS_TABLE . " t, " . FORUMS_TABLE . " f, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TABLE . " p2, " . USERS_TABLE . " u2
+				WHERE t.topic_id IN ($search_results) 
+					AND t.topic_poster = u.user_id
+					AND f.forum_id = t.forum_id 
+					AND p.post_id = t.topic_first_post_id
+					AND p2.post_id = t.topic_last_post_id
+					AND u2.user_id = p2.poster_id";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id as user_group_id_1, u2.user_group_id as user_group_id_2, u.user_session_time as user_session_time_1, u2.user_session_time as user_session_time_2
+//-- modify
+			$sql = "SELECT t.*, f.forum_id, f.forum_name, u.username, u.user_id, u2.username as user2, u2.user_id as id2, u.user_group_id as user_group_id_1, u2.user_group_id as user_group_id_2, u.user_session_time as user_session_time_1, u2.user_session_time as user_session_time_2, p.post_username, p2.post_username AS post_username2, p2.post_time 
+				FROM " . TOPICS_TABLE . " t, " . FORUMS_TABLE . " f, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TABLE . " p2, " . USERS_TABLE . " u2
+				WHERE t.topic_id IN ($search_results) 
+					AND t.topic_poster = u.user_id
+					AND f.forum_id = t.forum_id 
+					AND p.post_id = t.topic_first_post_id
+					AND p2.post_id = t.topic_last_post_id
+					AND u2.user_id = p2.poster_id";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	$poster .= ( $searchset[$i]['user_id'] != ANONYMOUS ) ? $searchset[$i]['username'] : ( ( $searchset[$i]['post_username'] != "" ) ? $searchset[$i]['post_username'] : $lang['Guest'] );
+//-- add
+				$poster .= ($searchset[$i]['user_id'] != ANONYMOUS) ? $colors->get_user_color($searchset[$i]['user_group_id'], $searchset[$i]['username']) : (($colors->get_user_color($searchset[$i]['user_group_id'], $searchset[$i]['post_username']) != "") ? $colors->get_user_color($searchset[$i]['user_group_id'], $searchset[$i]['post_username']) : $lang['Guest']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$searchset[$i]['username'] : ( ( $searchset[$i]['post_username'] != "" ) ? $searchset[$i]['post_username'] : $lang['Guest'] );
+//-- with
+//	$colors->get_user_color($searchset[$i]['user_group_id'], $searchset[$i]['user_session_time'], $searchset[$i]['username']) : ( ( $searchset[$i]['post_username'] != '' ) ? $colors->get_user_color($searchset[$i]['user_group_id'], '0', $searchset[$i]['post_username']) : $colors->get_user_color($searchset[$i]['user_group_id'], '0', $lang['Guest']) );
+//-- modify
+				$poster .= ( $searchset[$i]['user_id'] != ANONYMOUS ) ? $colors->get_user_color($searchset[$i]['user_group_id'], $searchset[$i]['user_session_time'], $searchset[$i]['username']) : ( ( $searchset[$i]['post_username'] != '' ) ? $colors->get_user_color($searchset[$i]['user_group_id'], '0', $searchset[$i]['post_username']) : $colors->get_user_color($searchset[$i]['user_group_id'], '0', $lang['Guest']) );
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$searchset[$i]['username']
+//-- with
+//	$colors->get_user_color($searchset[$i]['user_group_id1'], $searchset[$i]['username'])
+//-- modify
+				$topic_author .= ( $searchset[$i]['user_id'] != ANONYMOUS ) ? $colors->get_user_color($searchset[$i]['user_group_id1'], $searchset[$i]['username']) : ( ( $searchset[$i]['post_username'] != '' ) ? $searchset[$i]['post_username'] : $lang['Guest'] );
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$searchset[$i]['username'] : ( ( $searchset[$i]['post_username'] != '' ) ? $searchset[$i]['post_username'] : $lang['Guest'] );
+//-- with
+//	$colors->get_user_color($searchset[$i]['user_group_id_1'], $searchset[$i]['user_session_time_1'], $searchset[$i]['username']) : ( ( $searchset[$i]['post_username'] != '' ) ? $colors->get_user_color($searchset[$i]['user_group_id_1'], '0', $searchset[$i]['post_username']) : $colors->get_user_color($searchset[$i]['user_group_id_1'], '0', $lang['Guest']) );
+//-- modify
+				$topic_author .= ( $searchset[$i]['user_id'] != ANONYMOUS ) ? $colors->get_user_color($searchset[$i]['user_group_id_1'], $searchset[$i]['user_session_time_1'], $searchset[$i]['username']) : ( ( $searchset[$i]['post_username'] != '' ) ? $colors->get_user_color($searchset[$i]['user_group_id_1'], '0', $searchset[$i]['post_username']) : $colors->get_user_color($searchset[$i]['user_group_id_1'], '0', $lang['Guest']) );
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$searchset[$i]['user2']
+//-- with
+//	$colors->get_user_color($searchset[$i]['user_group_id2'], $searchset[$i]['user2'])
+//-- modify
+				$last_post_author = ( $searchset[$i]['id2'] == ANONYMOUS ) ? ( ($searchset[$i]['post_username2'] != '' ) ? $searchset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $searchset[$i]['id2']) . '">' . $colors->get_user_color($searchset[$i]['user_group_id2'], $searchset[$i]['user2']) . '</a>';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$searchset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $searchset[$i]['id2']) . '">' . $searchset[$i]['user2'] . '</a>';
+//-- with
+//	$colors->get_user_color($searchset[$i]['user_group_id_2'], '0', $searchset[$i]['post_username2']) . ' ' : $colors->get_user_color($searchset[$i]['user_group_id_2'], '0', $lang['Guest']) . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $searchset[$i]['id2']) . '">' . $colors->get_user_color($searchset[$i]['user_group_id_2'], $searchset[$i]['user_session_time_2'], $searchset[$i]['user2']) . '</a>';
+//-- modify
+				$last_post_author = ( $searchset[$i]['id2'] == ANONYMOUS ) ? ( ($searchset[$i]['post_username2'] != '' ) ? $colors->get_user_color($searchset[$i]['user_group_id_2'], '0', $searchset[$i]['post_username2']) . ' ' : $colors->get_user_color($searchset[$i]['user_group_id_2'], '0', $lang['Guest']) . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $searchset[$i]['id2']) . '">' . $colors->get_user_color($searchset[$i]['user_group_id_2'], $searchset[$i]['user_session_time_2'], $searchset[$i]['user2']) . '</a>';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+$sql = "SELECT u.user_id, u.username, u.user_group_id 
+	FROM " . AUTH_ACCESS_TABLE . " aa, " . USER_GROUP_TABLE . " ug, " . GROUPS_TABLE . " g, " . USERS_TABLE . " u
+	WHERE aa.forum_id = $forum_id 
+		AND aa.auth_mod = " . TRUE . " 
+		AND g.group_single_user = 1
+		AND ug.group_id = aa.group_id 
+		AND g.group_id = aa.group_id 
+		AND u.user_id = ug.user_id 
+	GROUP BY u.user_id, u.username  
+	ORDER BY u.user_id";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+$sql = "SELECT u.user_id, u.username, u.user_group_id, u.user_session_time 
+	FROM " . AUTH_ACCESS_TABLE . " aa, " . USER_GROUP_TABLE . " ug, " . GROUPS_TABLE . " g, " . USERS_TABLE . " u
+	WHERE aa.forum_id = $forum_id 
+		AND aa.auth_mod = " . TRUE . " 
+		AND g.group_single_user = 1
+		AND ug.group_id = aa.group_id 
+		AND g.group_id = aa.group_id 
+		AND u.user_id = ug.user_id 
+	GROUP BY u.user_id, u.username  
+	ORDER BY u.user_id";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$row['username']
+//-- with
+//	$colors->get_user_color($row['user_group_id'], $row['username'])
+//-- modify
+	$moderators[] = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '">' . $colors->get_user_color($row['user_group_id'], $row['username']) . '</a>';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$row['username']
+//-- with
+//	$colors->get_user_color($row['user_group_id'], $row['user_session_time'], $row['username'])
+//-- modify
+	$moderators[] = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '">' . $colors->get_user_color($row['user_group_id'], $row['user_session_time'], $row['username']) . '</a>';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$row['group_name']
+//-- with
+//	$colors->get_user_color($row['group_id'], $row['group_name'])
+//-- modify
+	$moderators[] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . $colors->get_user_color($row['group_id'], $row['group_name']) . '</a>';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- here we replaced
+//	$row['group_name']
+//-- with
+//	$colors->get_user_color($row['group_id'], '0', $row['group_name'])
+//-- modify
+	$moderators[] = '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" . $row['group_id']) . '">' . $colors->get_user_color($row['group_id'], '0', $row['group_name']) . '</a>';
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	u.user_group_id,
+//	u2.user_group_id as user_group_id2,
+//-- modify
+$sql = "SELECT t.*, u.username, u.user_group_id, u.user_id, u2.username as user2, u2.user_group_id as user_group_id2, u2.user_id as id2, p.post_time, p.post_username
+	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . USERS_TABLE . " u2
+	WHERE t.forum_id = $forum_id 
+		AND t.topic_poster = u.user_id
+		AND p.post_id = t.topic_last_post_id
+		AND p.poster_id = u2.user_id
+		AND t.topic_type = " . POST_ANNOUNCE . " 
+	ORDER BY t.topic_last_post_id DESC ";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time, u2.user_group_id as user_group_id_2, u2.user_session_time as user_session_time_2
+//-- modify
+$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, u.user_group_id, u.user_session_time, u2.user_group_id as user_group_id_2, u2.user_session_time as user_session_time_2, p.post_time, p.post_username
+	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . USERS_TABLE . " u2
+	WHERE t.forum_id = $forum_id 
+		AND t.topic_poster = u.user_id
+		AND p.post_id = t.topic_last_post_id
+		AND p.poster_id = u2.user_id
+		AND t.topic_type = " . POST_ANNOUNCE . " 
+	ORDER BY t.topic_last_post_id DESC ";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	 u.user_group_id,
+//	u2.user_group_id as user_group_id2,
+//-- modify
+$sql = "SELECT t.*, u.username, u.user_group_id, u.user_id, u2.username as user2, u2.user_group_id as user_group_id2, u2.user_id as id2, p.post_username, p2.post_username AS post_username2, p2.post_time 
+	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TABLE . " p2, " . USERS_TABLE . " u2
+	WHERE t.forum_id = $forum_id
+		AND t.topic_poster = u.user_id
+		AND p.post_id = t.topic_first_post_id
+		AND p2.post_id = t.topic_last_post_id
+		AND u2.user_id = p2.poster_id 
+		AND t.topic_type <> " . POST_ANNOUNCE . " 
+		$limit_topics_time
+	ORDER BY t.topic_type DESC, t.topic_last_post_id DESC 
+	LIMIT $start, ".$board_config['topics_per_page'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time, u2.user_group_id as user_group_id_2, u2.user_session_time as user_session_time_2
+//-- modify
+$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, u.user_group_id, u.user_session_time, u2.user_group_id as user_group_id_2, u2.user_session_time as user_session_time_2, p.post_username, p2.post_username AS post_username2, p2.post_time 
+	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TABLE . " p2, " . USERS_TABLE . " u2
+	WHERE t.forum_id = $forum_id
+		AND t.topic_poster = u.user_id
+		AND p.post_id = t.topic_first_post_id
+		AND p2.post_id = t.topic_last_post_id
+		AND u2.user_id = p2.poster_id 
+		AND t.topic_type <> " . POST_ANNOUNCE . " 
+		$limit_topics_time
+	ORDER BY t.topic_type DESC, t.topic_last_post_id DESC 
+	LIMIT $start, ".$board_config['topics_per_page'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+		$topic_rowset[$i]['username'] = $colors->get_user_color($topic_rowset[$i]['user_group_id'], $topic_rowset[$i]['username']);
+		$topic_rowset[$i]['user2'] = $colors->get_user_color($topic_rowset[$i]['user_group_id2'], $topic_rowset[$i]['user2']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+		$topic_rowset[$i]['username'] = $colors->get_user_color($topic_rowset[$i]['user_group_id'], $topic_rowset[$i]['user_session_time'], $topic_rowset[$i]['username']);
+		$topic_rowset[$i]['user2'] = $colors->get_user_color($topic_rowset[$i]['user_group_id_2'], $topic_rowset[$i]['user_session_time_2'], $topic_rowset[$i]['user2']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewonline.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id
+//-- modify
+$sql = "SELECT u.user_id, u.username, u.user_group_id, u.user_allow_viewonline, u.user_level, s.session_logged_in, s.session_time, s.session_page, s.session_ip
+	FROM ".USERS_TABLE." u, ".SESSIONS_TABLE." s
+	WHERE u.user_id = s.session_user_id
+		AND s.session_time >= ".( time() - 300 ) . "
+	ORDER BY u.username ASC, s.session_ip ASC";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+$sql = "SELECT u.user_id, u.username, u.user_group_id, u.user_session_time, u.user_allow_viewonline, u.user_level, s.session_logged_in, s.session_time, s.session_page, s.session_ip
+	FROM ".USERS_TABLE." u, ".SESSIONS_TABLE." s
+	WHERE u.user_id = s.session_user_id
+		AND s.session_time >= ".( time() - 300 ) . "
+	ORDER BY u.username ASC, s.session_ip ASC";
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	$username = $row['username'];
+//-- add
+			$username = $colors->get_user_color($row['user_group_id'], $row['username']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we replaced
+//	$row['username'];
+// with
+//	$colors->get_user_color($row['user_group_id'], $row['user_session_time'], $row['username']);
+//-- modify
+			$username = $colors->get_user_color($row['user_group_id'], $row['user_session_time'], $row['username']);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	if ( $row['user_level'] == ADMIN )
+//	{
+//		$username = '<b style="color:#' . $theme['fontcolor3'] . '">' . $username . '</b>';
+//	}
+//	else if ( $row['user_level'] == MOD )
+//	{
+//		$username = '<b style="color:#' . $theme['fontcolor2'] . '">' . $username . '</b>';
+//	}
+//-- add
+			if ( $row['user_level'] == ADMIN || $row['user_level'] == MOD )
+			{
+				$username = "<b>" . $username . "</b>";
+			}
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- delete
+//	if ( $row['user_level'] == ADMIN )
+//	{
+//		$username = '<b style="color:#' . $theme['fontcolor3'] . '">' . $username . '</b>';
+//	}
+//	else if ( $row['user_level'] == MOD )
+//	{
+//		$username = '<b style="color:#' . $theme['fontcolor2'] . '">' . $username . '</b>';
+//	}
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	 u.user_group_id,
+//-- modify
+$sql = "SELECT u.username, u.user_group_id, u.user_id, u.user_posts, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_regdate, u.user_msnm, u.user_viewemail, u.user_rank, u.user_sig, u.user_sig_bbcode_uid, u.user_avatar, u.user_avatar_type, u.user_allowavatar, u.user_allowsmile, p.*,  pt.post_text, pt.post_subject, pt.bbcode_uid
+	FROM " . POSTS_TABLE . " p, " . USERS_TABLE . " u, " . POSTS_TEXT_TABLE . " pt
+	WHERE p.topic_id = $topic_id
+		$limit_posts_time
+		AND pt.post_id = p.post_id
+		AND u.user_id = p.poster_id
+	ORDER BY p.post_time $post_time_order
+	LIMIT $start, ".$board_config['posts_per_page'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+// here we added
+//	, u.user_group_id, u.user_session_time
+//-- modify
+$sql = "SELECT u.username, u.user_id, u.user_group_id, u.user_session_time, u.user_posts, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_regdate, u.user_msnm, u.user_viewemail, u.user_rank, u.user_sig, u.user_sig_bbcode_uid, u.user_avatar, u.user_avatar_type, u.user_allowavatar, u.user_allowsmile, p.*,  pt.post_text, pt.post_subject, pt.bbcode_uid
+	FROM " . POSTS_TABLE . " p, " . USERS_TABLE . " u, " . POSTS_TEXT_TABLE . " pt
+	WHERE p.topic_id = $topic_id
+		$limit_posts_time
+		AND pt.post_id = p.post_id
+		AND u.user_id = p.poster_id
+	ORDER BY p.post_time $post_time_order
+	LIMIT $start, ".$board_config['posts_per_page'];
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management --------------------------------------
+// here we replaced
+//	$poster,
+// with
+//	$colors->get_user_color($postrow[$i]['user_group_id'], $poster),
+//-- modify
+		'POSTER_NAME' => $colors->get_user_color($postrow[$i]['user_group_id'], $poster),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management --------------------------------------
+// here we replaced
+//	$poster,
+// with
+//	$colors->get_user_color($postrow[$i]['user_group_id'], $postrow[$i]['user_session_time'], $poster),
+//-- modify
+		'POSTER_NAME' => $colors->get_user_color($postrow[$i]['user_group_id'], $postrow[$i]['user_session_time'], $poster),
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+.helpline { background-color: {T_TR_COLOR2}; border-style: none; }
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+.username_color { font-size : {T_FONTSIZE1}px; font-weight : bold; }
+a.username_color { font-size : {T_FONTSIZE1}px; font-weight : bold; text-decoration : none; }
+a.username_color:hover { font-size : {T_FONTSIZE1}px; font-weight : bold; color : {T_BODY_HLINK}; text-decoration : underline; }
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.css
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+.helpline { background-color: #DEE3E7; border-style: none; }
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+.username_color { font-size : 10px; font-weight : bold; }
+a.username_color { font-size : 10px; font-weight : bold; text-decoration : none; }
+a.username_color:hover { font-size : 10px; font-weight : bold; color : #DD6900; text-decoration : underline; }
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

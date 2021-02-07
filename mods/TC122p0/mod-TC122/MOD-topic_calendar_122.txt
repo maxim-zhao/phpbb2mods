@@ -1,0 +1,1204 @@
+##############################################################
+## MOD Title:		Topic Calendar - phpBB edition
+## MOD Author:		Ptirhiik <please_use_board@ptifo.clanmckeen.com> (Pierre) http://ptifo.clanmckeen.com
+## MOD Description:	This mod adds a calendar to your board, working with natural phpBB auth.
+##
+## MOD Version:		1.2.2
+##
+## Installation Level:	Easy
+## Installation Time:	40 Minutes
+## Files To Edit:
+##			common.php
+##			modcp.php
+##			posting.php
+##			search.php
+##			viewforum.php
+##			viewtopic.php
+##
+##			admin/admin_board.php
+##			admin/admin_forumauth.php
+##			admin/admin_ug_auth.php
+##			admin/admin_users.php
+##
+##			includes/auth.php
+##			includes/page_header.php
+##			includes/topic_review.php
+##			includes/usercp_register.php
+##
+##			templates/subSilver/admin/board_config_body.tpl
+##			templates/subSilver/admin/user_edit_body.tpl
+##			templates/subSilver/modcp_body.tpl
+##			templates/subSilver/modcp_split.tpl
+##
+##			templates/subSilver/overall_header.tpl
+##			templates/subSilver/posting_body.tpl
+##			templates/subSilver/posting_preview.tpl
+##			templates/subSilver/posting_topic_review.tpl
+##			templates/subSilver/profile_add_body.tpl
+##			templates/subSilver/search_results_posts.tpl
+##			templates/subSilver/search_results_topics.tpl
+##			templates/subSilver/subSilver.cfg
+##			templates/subSilver/subSilver.css
+##			templates/subSilver/viewforum_body.tpl
+##			templates/subSilver/viewtopic_body.tpl
+##
+## Included Files:
+##			root/*.*
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##	o This mod was originaly based on ModjavLinux's mycalendar 2.2.6, but differs now in so
+##	many points that it can't be qualified as an evolution, but rather a brand new way to
+##	manage events with a calendar. Anyway, it wouldn't have been fair to not mentioned the
+##	old-timer as the grand-father of this one :).
+##
+##	o The overview javascripts have been kindly designed by Markus (http://www.phpmix.com).
+##
+##	o this version is designed for vanilia phpBB.
+##
+##
+##	Birthday display:
+##	o this edition supports three user_birthday formats :
+##		MMDDYYYY : eg : Birthdays mod by TerraFrost ( http://www.phpbb.com/phpBB/viewtopic.php?t=342028 )
+##		YYYYMMDD : eg : old PCP
+##		D-M-Y    : eg : Birthday Event by Reddog ( http://www.reddevboard.com/forum/viewtopic.php?t=1256 )
+##
+##		To map birthdays in calendar, you have to copy the appropriate from contrib/birthday_drivers/includes,
+##		then to activate it in includes/class_calendar_birthday.php by uncommenting the appropriate constant :
+##		Drivers :
+##			MMDDYYYY : driver : includes/class_calendar_birthday_mdy.php, constant : define('BIRTHDAY_FMT', 'mdy');
+##			YYYYMMDD : driver : includes/class_calendar_birthday_ymd.php, constant : define('BIRTHDAY_FMT', 'ymd');
+##			D-M-Y    : driver : includes/class_calendar_birthday_dmy_sep.php, constant : define('BIRTHDAY_FMT', 'dmy_sep');
+##
+##
+##############################################################
+## MOD History:
+##
+##   2006-07-06 - Version 1.2.2
+##	- fix a bug with recent php version in class_calendar_backport.php, due to array_merge()
+##	- ensure the install will work with phpBB 2.0.21
+##
+##   2006-05-26 - Version 1.2.0
+##	- release
+##
+##   2006-04-26 - Version 1.2.0RC
+##      An entire rewrite of the mod, with :
+##	- an installer, base on the CH line ones,
+##	- a new layout for the scheduler
+##
+##   2003-11-11 - Version 1.0.1
+##	- no changes to the mod, only the installation description has been enhance to ease the
+##	installation with Categories hierarchy v 2.0.4 or greater
+##
+##   2003-10-30 - Version 1.0.0
+##      - fix a bug on DST date change in scheduler
+##	- fix the -1 issue in preview post
+##	- cut off softer the message in the overview event window
+##
+##   2003-09-14 - Version 1.0.0 beta 1.5
+##	- fix empty auths
+##	- various little design fixes
+##	- add forum selection
+##	- add prec/next month
+##	- upgrade mod-topics_list version
+##
+##   2003-09-09 - Version 1.0.0 beta 1.4
+##	- split the mod in two part for those having or planing to install the split topic type mod
+##	- adapt the mod to post icon mod
+##	- fix a collision between send email input field and events on flying windows
+##	- remove the jumbox on calendar view
+##	- fix overview window width and right position with mozilla
+##	- fix an error on days shown moved with events in little month box
+##	- add a link to return from schedular to calendar
+##
+##   2003-09-05 - Version 1.0.0 beta 1.3
+##	- fix the birthday issue on some server (DST active issue with mktime())
+##	- add default icons (in prevision for posts icon mod)
+##
+##   2003-08-26 - Version 1.0.0 beta 1.2
+##	- enhancement of the scheduler
+##      - getting various type events modularization
+##
+##   2003-08-28 - Version 1.0.0 beta 1.0a
+##      - first beta
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ COPY ]------------------------------------------------
+#
+COPY root/*.* TO *.*
+#
+#-----[ OPEN ]------------------------------------------------
+#
+common.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+if (file_exists('install') || file_exists('contrib'))
+{
+	message_die(GENERAL_MESSAGE, 'Please_remove_install_contrib');
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+include($phpbb_root_path.'includes/class_calendar_init.'.$phpEx);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+modcp.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			AND f.forum_id = t.forum_id";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+	$sql = preg_replace('/^SELECT /', 'SELECT t.topic_first_post_id, t.topic_calendar_time, t.topic_calendar_duration, ', $sql);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+// session id check
+if ($sid == '' || $sid != $userdata['session_id'])
+{
+	message_die(GENERAL_ERROR, 'Invalid_session');
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+$user->set();
+$calendar_api->set();
+$calendar_front_title = new front_calendar();
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+						'S_SPLIT_CHECKBOX' => $checkbox)
+					);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+					if ( $postrow[$i]['post_id'] == $topic_row['topic_first_post_id'] )
+					{
+						$calendar_front_title->topic_title('postrow', intval($topic_row['topic_calendar_time']), intval($topic_row['topic_calendar_duration']));
+					}
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				'L_TOPIC_FOLDER_ALT' => $folder_alt)
+			);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+			$calendar_front_title->topic_title('topicrow', intval($row['topic_calendar_time']), intval($row['topic_calendar_duration']));
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	default:
+		message_die(GENERAL_MESSAGE, $lang['No_valid_mode']);
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+if ( $mode != 'newtopic' )
+{
+	$sql = preg_replace('/^SELECT /', 'SELECT t.topic_first_post_id, t.topic_calendar_time, t.topic_calendar_duration, ', $sql);
+}
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+else
+{
+	message_die(GENERAL_MESSAGE, $lang['No_such_post']);
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+include($config->url('includes/class_calendar_posting'));
+
+$user->set();
+$calendar_api->set();
+$calendar_front_title = new front_calendar();
+$calendar_form = new calendar_form('posting', '', $is_auth, $post_data['first_post'] || ($mode == 'newtopic'));
+$calendar_form->read($post_info, $is_auth);
+$calendar_form->display();
+$calendar_form->force_auth($is_auth_type, $mode);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full lines are longer
+#
+			update_post_stats($mode,
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+		$calendar_form->validate($topic_id);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			'L_POST' => $lang['Post'])
+		);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+		$calendar_front_title->topic_title('', $calendar_form->time, $calendar_form->duration);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+search.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Look up data ...
+	//
+	if ( $search_results != '' )
+	{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+		$user->set();
+		$calendar_api->set();
+		$calendar_front_title = new front_calendar();
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+					'U_FORUM' => $forum_url)
+				);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+				if ( $searchset[$i]['post_id'] == $searchset[$i]['topic_first_post_id'] )
+				{
+					$calendar_front_title->topic_title('searchresults', $searchset[$i]['topic_calendar_time'], $searchset[$i]['topic_calendar_duration']);
+				}
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+					'U_VIEW_TOPIC' => $topic_url)
+				);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+				$calendar_front_title->topic_title('searchresults', $searchset[$i]['topic_calendar_time'], $searchset[$i]['topic_calendar_duration']);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$s_auth_can .= ( ( $is_auth['auth_vote'] ) ? $lang['Rules_vote_can'] : $lang['Rules_vote_cannot'] ) . '<br />';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+$user->set();
+$calendar_api->set();
+$calendar_front_title = new front_calendar();
+
+$s_auth_can .= ( ( $is_auth['auth_cal'] ) ? $lang['Rules_calendar_can'] : $lang['Rules_calendar_cannot'] ) . '<br />';
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			'U_VIEW_TOPIC' => $view_topic_url)
+		);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+		$calendar_front_title->topic_title('topicrow', $topic_rowset[$i]['topic_calendar_time'], $topic_rowset[$i]['topic_calendar_duration']);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$order_sql";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+$fields = array('f.auth_cal', 't.topic_first_post_id', 't.topic_calendar_time', 't.topic_calendar_duration');
+$sql = preg_replace('/^SELECT /', 'SELECT ' . implode(', ', $fields) . ', ', $sql);
+if ( $post_id )
+{
+	$sql = preg_replace('/GROUP BY /', 'GROUP BY ' . implode(', ', $fields) . ', ', $sql);
+}
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// End session management
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+$user->set();
+$calendar_api->set();
+$calendar_front_title = new front_calendar();
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$s_auth_can .= ( ( $is_auth['auth_vote'] ) ? $lang['Rules_vote_can'] : $lang['Rules_vote_cannot'] ) . '<br />';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+$s_auth_can .= ( ( $is_auth['auth_cal'] ) ? $lang['Rules_calendar_can'] : $lang['Rules_calendar_cannot'] ) . '<br />';
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		'U_POST_ID' => $postrow[$i]['post_id'])
+	);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+	if ( $postrow[$i]['post_id'] == $forum_topic_data['topic_first_post_id'] )
+	{
+		$calendar_front_title->topic_title('postrow', intval($forum_topic_data['topic_calendar_time']), intval($forum_topic_data['topic_calendar_duration']));
+	}
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+include($phpbb_root_path . 'includes/functions_selects.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+include($config->url('includes/class_calendar_settings'));
+
+$user->set();
+$calendar_api->set();
+$calendar_form = new calendar_admin_board_form('admin/admin_board');
+$calendar_form->read($config->data);
+$calendar_form->display();
+if ( isset($HTTP_POST_VARS['submit']) )
+{
+	$calendar_form->validate();
+}
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_forumauth.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'auth_pollcreate' => $lang['Pollcreate']);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+$user->set();
+$calendar_api->set();
+$field_names['auth_cal'] = $lang['Calendar'];
+$forum_auth_fields[] = 'auth_cal';
+
+// where stands auth_delete ?
+$delete_pos = array_flip(array_keys($field_names));
+$delete_pos = $delete_pos['auth_delete'];
+
+// add the auth to the presets
+foreach ( $simple_auth_ary as $preset_id => $presets)
+{
+	$simple_auth_ary[$preset_id][] = $presets[$delete_pos] == AUTH_ACL ? AUTH_ACL : AUTH_MOD;
+}
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_ug_auth.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'auth_pollcreate' => $lang['Pollcreate']);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+$user->set();
+$calendar_api->set();
+$forum_auth_fields[] = 'auth_cal';
+$auth_field_match['auth_cal'] = AUTH_CAL;
+$field_names['auth_cal'] = $lang['Calendar'];
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full lines are longer
+#
+//
+// Begin program
+//
+if ( $mode == 'edit' || $mode == 'save' &&
+{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+	include($config->url('includes/class_calendar_settings'));
+	$user->set();
+	$calendar_api->set();
+	$calendar_form = new calendar_profile_form('admin/admin_users');
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if( $HTTP_POST_VARS['deleteuser'] && ( $userdata['user_id'] != $user_id ) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+		$calendar_form->read($this_userdata);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				message_die(GENERAL_ERROR, 'Admin_user_fail', '', __LINE__, __FILE__, $sql);
+			}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+			$calendar_form->validate($user_id);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		//
+		// Now parse and display it as a template
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+		$calendar_form->read($this_userdata);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				"S_HIDDEN_FIELDS" => $s_hidden_fields)
+			);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+			$calendar_form->display(false);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			'S_PROFILE_ACTION' => append_sid("admin_users.$phpEx"))
+		);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+		$calendar_form->display(true);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/auth.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		default:
+			break;
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+	switch ( $type )
+	{
+		case AUTH_ALL:
+			$auth_fields = array_flip($auth_fields);
+			$auth_fields['auth_cal'] = $auth_fields['auth_delete'];
+			asort($auth_fields);
+			$auth_fields = array_keys($auth_fields);
+			break;
+
+		case AUTH_CAL:
+			$auth_fields = array('auth_cal');
+			break;
+	}
+	$a_sql = 'a.' . implode(', a.', $auth_fields);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+header ('Pragma: no-cache');
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+global $user, $config, $calendar_api;
+$user->set();
+$calendar_api->set();
+if ( !defined('IN_CALENDAR') && !defined('HAS_DIED') && (intval($config->data['calendar_header_cells']) || (intval($user->data['user_calendar_header_cells']) && !intval($config->data['calendar_header_cells_over']))) )
+{
+	include($config->url('includes/class_calendar_handler'));
+
+	calendar_extend_template();
+	$calendar_header_box = new calendar_header_box('index');
+	$calendar_header_box->display();
+	$calendar_header_box->destroy();
+	unset($calendar_header_box);
+	calendar_extend_template();
+}
+$template->assign_vars(array(
+	'L_CALENDAR' => $user->lang('Calendar'),
+	'I_CALENDAR' => $user->img('menu_calendar'),
+	'U_CALENDAR' => $config->url('calendar', '', true),
+));
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/topic_review.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				AND f.forum_id = t.forum_id";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+		$fields = array('f.auth_cal', 't.topic_first_post_id', 't.topic_calendar_time', 't.topic_calendar_duration');
+		$sql = preg_replace('/^SELECT /', 'SELECT ' . implode(', ', $fields) . ', ', $sql);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		message_die(GENERAL_ERROR, 'Could not obtain post/user information', '', __LINE__, __FILE__, $sql);
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+	global $user, $config, $calendar_api;
+
+	$user->set();
+	$calendar_api->set();
+	$calendar_front_title = new front_calendar();
+
+	// we need the topic informations
+	if ( $is_inline_review )
+	{
+		global $post_info;
+		$forum_row = $post_info;
+	}
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				'L_MINI_POST_ALT' => $mini_post_alt)
+			);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+			if ( $row['post_id'] == $forum_row['topic_first_post_id'] )
+			{
+				$calendar_front_title->topic_title('postrow', intval($forum_row['topic_calendar_time']), intval($forum_row['topic_calendar_duration']));
+			}
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$coppa = ( empty($HTTP_POST_VARS['coppa']) && empty($HTTP_GET_VARS['coppa']) ) ? 0 : TRUE;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+include($config->url('includes/class_calendar_settings'));
+
+$user->set();
+$calendar_api->set();
+$calendar_form = new calendar_profile_form('profile');
+$calendar_form->read($userdata);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				message_die(GENERAL_ERROR, 'Could not update users table', '', __LINE__, __FILE__, $sql);
+			}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+			$calendar_form->validate($user_id);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				message_die(GENERAL_ERROR, 'Could not insert data into user_group table', '', __LINE__, __FILE__, $sql);
+			}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+			$calendar_form->validate($user_id);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+	display_avatar_gallery($mode, $avatar_category,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+	$calendar_form->display(false);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		'S_PROFILE_ACTION' => append_sid("profile.$phpEx"))
+	);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+	$calendar_form->display(true);
+//-- fin mod : calendar --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full lines are longer
+#
+{SMTP_PASSWORD}
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	{CALENDAR_FORM}
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<!-- END avatar_local_gallery -->
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	{CALENDAR_FORM}
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/modcp_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full lines are longer
+#
+{topicrow.TOPIC_TITLE}</a></span></td>
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+{topicrow.TOPIC_TITLE}</a></span></td>
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+{topicrow.TOPIC_TITLE}</a></span>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<!-- BEGIN calendar_event -->
+		<span class="postdetails"><br />{topicrow.calendar_event.S_CALENDAR_EVENT}</span>
+		<!-- END calendar_event -->
+	  </td>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/modcp_split.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full lines are longer
+#
+{postrow.POST_SUBJECT}</span></td>
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+{postrow.POST_SUBJECT}</span></td>
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+{postrow.POST_SUBJECT}</span>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				<!-- BEGIN calendar_event -->
+				<span class="postdetails"><br />{postrow.calendar_event.S_CALENDAR_EVENT}</span>
+				<!-- END calendar_event -->
+			</td>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+<style type="text/css">
+<!--
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+.dom_overview_abshidden {
+	position: absolute;
+	visibility: hidden;
+	width: 300px;
+}
+#
+#-----[ FIND ]------------------------------------------------
+#
+<a href="{U_FAQ}" class="mainmenu">
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+<a href="{U_FAQ}" class="mainmenu">
+#
+#----------[ IN-LINE BEFORE, ADD ]----------------------------
+#
+<a href="{U_CALENDAR}" class="mainmenu"><img src="{I_CALENDAR}" width="12" height="13" border="0" alt="{L_CALENDAR}" hspace="3" />{L_CALENDAR}</a>&nbsp; &nbsp;
+#
+#-----[ FIND ]------------------------------------------------
+#
+		</table>
+
+		<br />
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		{CALENDAR_BOX}
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+	{POLLBOX}
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	{CALENDAR_FORM}
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/posting_preview.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+{POST_SUBJECT}</span></td>
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+{POST_SUBJECT}</span></td>
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+{POST_SUBJECT}</span>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			<!-- BEGIN calendar_event -->
+			<span class="postdetails"><br />{calendar_dates.S_CALENDAR_EVENT}</span>
+			<!-- END calendar_event -->
+		</td>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/posting_topic_review.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+{postrow.POST_SUBJECT}</span></td>
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+{postrow.POST_SUBJECT}</span></td>
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+{postrow.POST_SUBJECT}</span>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					<!-- BEGIN calendar_event -->
+					<span class="postdetails"><br />{postrow.calendar_event.S_CALENDAR_EVENT}</span>
+					<!-- END calendar_event -->
+				</td>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<!-- END switch_avatar_block -->
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	{CALENDAR_FORM}
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/search_results_posts.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+{searchresults.POST_SUBJECT}</a></b></span></td>
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+{searchresults.POST_SUBJECT}</a></b></span></td>
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+{searchresults.POST_SUBJECT}</a></b></span>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<!-- BEGIN calendar_event -->
+		<span class="postdetails"><br />{searchresults.calendar_event.S_CALENDAR_EVENT}</span>
+		<!-- END calendar_event -->
+	</td>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/search_results_topics.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+{searchresults.TOPIC_TITLE}</a></span><br /><span class="gensmall">{searchresults.GOTO_PAGE}</span></td>
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+{searchresults.TOPIC_TITLE}</a></span><br /><span class="gensmall">{searchresults.GOTO_PAGE}</span></td>
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+{searchresults.TOPIC_TITLE}</a></span><br />
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<!-- BEGIN calendar_event -->
+		<span class="postdetails">{searchresults.calendar_event.S_CALENDAR_EVENT}</span><br />
+		<!-- END calendar_event -->
+		<span class="gensmall">{searchresults.GOTO_PAGE}</span></td>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : calendar ------------------------------------------------------------
+//-- add
+$images['spacer'] = "$current_template_images/spacer.gif";
+$images['icon_calendar'] = "$current_template_images/icon_calendar.gif";
+$images['menu_calendar'] = "$current_template_images/icon_mini_calendar.gif";
+$images['icon_tiny_topic'] = "$current_template_images/icon_tiny_topic.gif";
+$images['icon_tiny_profile'] = "$current_template_images/icon_tiny_profile.gif";
+
+$images['up_arrow'] = "$current_template_images/icon_up_arrow.gif";
+$images['down_arrow'] = "$current_template_images/icon_down_arrow.gif";
+//-- fin mod : calendar --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.css
+#
+#-----[ FIND ]------------------------------------------------
+#
+body {
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+.dom_overview_abshidden {
+	position: absolute;
+	visibility: hidden;
+	width: 300px;
+}
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+{topicrow.TOPIC_TITLE}</a></span><span class="gensmall"><br />
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<!-- BEGIN calendar_event -->
+		</span><span class="postdetails">{topicrow.calendar_event.S_CALENDAR_EVENT}</span><span class="gensmall"><br />
+		<!-- END calendar_event -->
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+{postrow.POST_SUBJECT}</span></td>
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+{postrow.POST_SUBJECT}</span></td>
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+{postrow.POST_SUBJECT}</span>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					<!-- BEGIN calendar_event -->
+					<span class="postdetails"><br />{postrow.calendar_event.S_CALENDAR_EVENT}</span>
+					<!-- END calendar_event -->
+				</td>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

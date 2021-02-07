@@ -1,0 +1,1623 @@
+##############################################################
+#
+#	This one is to uninstall Topic Calendar 1.0.1
+#
+#	We are going to remove all additions to the files
+#
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_users DROP COLUMN user_calendar_birthday
+ALTER TABLE phpbb_users DROP COLUMN user_calendar_forum
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------
+#
+DELETE calendar.php
+DELETE calendar_scheduler.php
+DELETE includes/functions_calendar.php
+DELETE includes/toggle_display.js
+DELETE includes/mods_settings/mod_calendar.php
+DELETE language/lang_english/lang_extend_topic_calendar.php
+DELETE templates/subSilver/calendar_body.tpl
+DELETE templates/subSilver/calendar_box.tpl
+DELETE templates/subSilver/calendar_overview_profil.tpl
+DELETE templates/subSilver/calendar_overview_topic.tpl
+DELETE templates/subSilver/calendar_scheduler_body.tpl
+
+DELETE templates/subSilver/images/folder_calendar.gif
+DELETE templates/subSilver/images/icon_calendar.gif
+DELETE templates/subSilver/images/icon_mini_calendar.gif
+DELETE templates/subSilver/images/icon_tiny_profile.gif
+DELETE templates/subSilver/images/icon_tiny_topic.gif
+DELETE templates/subSilver/images/icon_down_arrow.gif
+DELETE templates/subSilver/images/icon_up_arrow.gif
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------
+#
+# Do this if you don't use another mod requiring the following files
+# (ie split topic type, announces suite and so)
+# if you are not sure, be sure to do a backup of this files to reput them easely
+#
+# coming from lang_settings mod
+#
+DELETE includes/lang_extend_mac.php
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------
+#
+# same thing : coming from mods settings mod
+#	nb: RMVDIR stands for ReMoVe DIRectory
+#
+DELETE admin/admin_board_extend.php
+DELETE templates/subSilver/admin/board_config_extend_body.tpl
+DELETE includes/functions_mods_settings.php
+DELETE language/lang_english/lang_extend_mods_settings.php
+RMVDIR includes/mods_settings/
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------
+#
+# the same : coming from topics list mod
+#
+DELETE includes/functions_topics_list.php
+DELETE templates/subSilver/topics_list_box.tpl
+DELETE templates/subSilver/images/folder_announce_own.gif
+DELETE templates/subSilver/images/folder_announce_new_own.gif
+DELETE templates/subSilver/images/folder_own.gif
+DELETE templates/subSilver/images/folder_new_own.gif
+DELETE templates/subSilver/images/folder_hot_own.gif
+DELETE templates/subSilver/images/folder_new_hot_own.gif
+DELETE templates/subSilver/images/folder_lock_own.gif
+DELETE templates/subSilver/images/folder_lock_new_own.gif
+DELETE templates/subSilver/images/folder_sticky_own.gif
+DELETE templates/subSilver/images/folder_sticky_new_own.gif
+##############################################################
+#
+#
+#	We are going to remove all additions to the files
+#
+#
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing : just delete the block
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/functions_calendar.'.$phpEx);
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing : just delete the block
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+$year	= ( !empty($HTTP_POST_VARS['topic_calendar_year']) ) ? intval($HTTP_POST_VARS['topic_calendar_year']) : '';
+$month	= ( !empty($HTTP_POST_VARS['topic_calendar_month']) ) ? intval($HTTP_POST_VARS['topic_calendar_month']) : '';
+$day	= ( !empty($HTTP_POST_VARS['topic_calendar_day']) ) ? intval($HTTP_POST_VARS['topic_calendar_day']) : '';
+$hour	= ( !empty($HTTP_POST_VARS['topic_calendar_hour']) ) ? intval($HTTP_POST_VARS['topic_calendar_hour']) : '';
+$min	= ( !empty($HTTP_POST_VARS['topic_calendar_min']) ) ? intval($HTTP_POST_VARS['topic_calendar_min']) : '';
+$d_day	= ( !empty($HTTP_POST_VARS['topic_calendar_duration_day']) ) ? intval($HTTP_POST_VARS['topic_calendar_duration_day']) : '';
+$d_hour	= ( !empty($HTTP_POST_VARS['topic_calendar_duration_hour']) ) ? intval($HTTP_POST_VARS['topic_calendar_duration_hour']) : '';
+$d_min	= ( !empty($HTTP_POST_VARS['topic_calendar_duration_min']) ) ? intval($HTTP_POST_VARS['topic_calendar_duration_min']) : '';
+if ( empty($year) || empty($month) || empty($day) )
+{
+	$year = '';
+	$month = '';
+	$day = '';
+	$hour = '';
+	$min = '';
+	$d_day = '';
+	$d_hour = '';
+	$d_min = '';
+}
+if (empty($hour) && empty($min))
+{
+	$hour = '';
+	$min = '';
+	$d_hour = '';
+	$d_min = '';
+}
+
+// start event
+$topic_calendar_time = 0;
+if (!empty($year))
+{
+	$topic_calendar_time = mktime( intval($hour), intval($min), 0, intval($month), intval($day), intval($year) );
+}
+
+// duration
+$topic_calendar_duration = 0;
+$d_dur = $d_day . $d_hour . $d_min;
+if ( !empty($topic_calendar_time) && !empty($d_dur) )
+{
+	$topic_calendar_duration = intval($d_day) * 86400 + intval($d_hour) * 3600 + intval($d_min) * 60;
+	if ($topic_calendar_duration < 0)
+	{
+		$topic_calendar_duration = 0;
+	}
+}
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing : just delete the block
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+$is_auth_type = '';
+$is_auth_type_cal = '';
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing : just delete the block
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+		if (!empty($topic_calendar_time))
+		{
+			$is_auth_type_cal = 'auth_cal';
+		}
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing : just delete the block
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we added
+//	, t.topic_calendar_time, t.topic_calendar_duration
+//-- modify
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing : just delete the block
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+, t.topic_calendar_time, t.topic_calendar_duration
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, t.topic_calendar_time, t.topic_calendar_duration
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# *snip* : nothing : just delete the selection
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing : just delete the line
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+	if (!empty($post_info['topic_calendar_duration']))
+	{
+		$post_info['topic_calendar_duration']++;
+	}
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+		$post_data['topic_calendar_time'] = $post_info['topic_calendar_time'];
+		$post_data['topic_calendar_duration'] = $post_info['topic_calendar_duration'];
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we added
+//	 || (!empty($is_auth_type_cal) && !$is_auth[$is_auth_type_cal])
+//-- modify
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+ || (!empty($is_auth_type_cal) && !$is_auth[$is_auth_type_cal])
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+ || (!empty($is_auth_type_cal) && !$is_auth[$is_auth_type_cal])
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing : just delete the selection
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+		if (!empty($is_auth_type_cal) && !$is_auth[$is_auth_type_cal])
+		{
+			message_die(GENERAL_MESSAGE, sprintf($lang['Sorry_' . $is_auth_type_cal], $is_auth[$is_auth_type_cal . "_type"]));
+		}
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+			$topic_calendar_time = ( $topic_calendar_time != $post_data['topic_calendar_time'] && !$is_auth['auth_cal']) ? $post_data['topic_calendar_time'] : $topic_calendar_time;
+			if (empty($topic_calendar_time)) $topic_calendar_time = 0;
+			$topic_calendar_duration = ( $topic_calendar_duration != $post_data['topic_calendar_duration'] && !$is_auth['auth_cal']) ? $post_data['topic_calendar_duration'] : $topic_calendar_duration;
+			if ( !empty($topic_calendar_duration) )
+			{
+				$topic_calendar_duration--;
+			}
+			if (empty($topic_calendar_time) || empty($topic_calendar_duration)) $topic_calendar_duration = 0;
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we have added
+//	, $topic_calendar_time, $topic_calendar_duration
+//-- modify prepare_post only
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+, $topic_calendar_time, $topic_calendar_duration
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, $topic_calendar_time, $topic_calendar_duration
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing : just delete the selection
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we added
+//	, $topic_calendar_time, $topic_calendar_duration
+//-- modify
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+, $topic_calendar_time, $topic_calendar_duration
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, $topic_calendar_time, $topic_calendar_duration
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing : just delete the selection
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+		if (!empty($topic_calendar_time))
+		{
+			$topic_calendar_duration_preview = $topic_calendar_duration-1;
+			if ($topic_calendar_duration_preview < 0)
+			{
+				$topic_calendar_duration_preview = 0;
+			}
+			$preview_subject .= get_calendar_title($topic_calendar_time, $topic_calendar_duration_preview);
+		}
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+//
+// Calendar type selection
+//
+$topic_type_cal = '';
+if ( $mode == 'newtopic' || ( $mode == 'editpost' && $post_data['first_post'] ) )
+{
+	if( $is_auth['auth_cal'])
+	{
+		$template->assign_block_vars('switch_type_cal', array());
+		$months = array( 
+			' ------------ ',
+			$lang['datetime']['January'], 
+			$lang['datetime']['February'], 
+			$lang['datetime']['March'],
+			$lang['datetime']['April'],
+			$lang['datetime']['May'],
+			$lang['datetime']['June'],
+			$lang['datetime']['July'],
+			$lang['datetime']['August'],
+			$lang['datetime']['September'],
+			$lang['datetime']['October'],
+			$lang['datetime']['November'],
+			$lang['datetime']['December'],
+		);
+
+		// get the date
+		$topic_calendar_time = ( !isset($HTTP_POST_VARS['topic_calendar_year']) || (($topic_calendar_time != intval($post_data['topic_calendar_time'])) && !$is_auth['auth_cal']) ) ? intval($post_data['topic_calendar_time']) : $topic_calendar_time;
+		$topic_calendar_duration = ( (!isset($HTTP_POST_VARS['topic_calendar_duration_day']) && !isset($HTTP_POST_VARS['topic_calendar_duration_hour']) && !isset($HTTP_POST_VARS['topic_calendar_duration_min']) ) || (($topic_calendar_duration != intval($post_data['topic_calendar_duration'])) && !$is_auth['auth_cal']) ) ? intval($post_data['topic_calendar_duration']) : $topic_calendar_duration;
+
+		// get the components of the event date
+		$year	= '';
+		$month	= '';
+		$day	= '';
+		$hour	= '';
+		$min	= '';
+		if (!empty($topic_calendar_time))
+		{
+			$year	= intval( date('Y', $topic_calendar_time) );
+			$month	= intval( date('m', $topic_calendar_time) );
+			$day	= intval( date('d', $topic_calendar_time) );
+			$hour	= intval( date('H', $topic_calendar_time) );
+			$min	= intval( date('i', $topic_calendar_time) );
+		}
+
+		// get the components of the duration
+		$d_day	= '';
+		$d_hour	= '';
+		$d_min	= '';
+		if ( !empty($topic_calendar_time) && !empty($topic_calendar_duration) )
+		{
+			$d_dur = intval($topic_calendar_duration);
+			$d_day = intval($d_dur / 86400);
+			$d_dur = $d_dur - 86400 * $d_day;
+			$d_hour = intval($d_dur / 3600);
+			$d_dur = $d_dur - 3600 * $d_hour;
+			$d_min = intval($d_dur / 60);
+		}
+
+		// raz if no date
+		if ( empty($year) || empty($month) || empty($day) )
+		{
+			$year	= '';
+			$month	= '';
+			$day	= '';
+			$hour	= '';
+			$min	= '';
+			$d_day	= '';
+			$d_hour	= '';
+			$d_min	= '';
+		}
+
+		// day list
+		$s_topic_calendar_day = '<select name="topic_calendar_day">';
+		for ($i=0; $i <= 31; $i++)
+		{
+			$selected = ( intval($day) == $i) ? ' selected="selected"' : '';
+			$s_topic_calendar_day .= '<option value="' . $i . '"' . $selected . '>' . ( ($i == 0) ? ' -- ' : str_pad($i, 2, '0', STR_PAD_LEFT) ) . '</option>';
+		}
+		$s_topic_calendar_day .= '</select>';
+
+		// month list
+		$s_topic_calendar_month = '<select name="topic_calendar_month">';
+		for ($i=0; $i <= 12; $i++)
+		{
+			$selected = ( intval($month) == $i ) ? ' selected="selected"' : '';
+			$s_topic_calendar_month .= '<option value="' . $i . '"' . $selected . '>' . $months[$i] . '</option>';
+		}
+		$s_topic_calendar_month .= '</select>';
+
+		// year list
+		$s_topic_calendar_year = '<select name="topic_calendar_year">';
+
+		$selected = empty($year) ? ' selected="selected"' : '';
+		$s_topic_calendar_year .= '<option value="0"' . $select . '> ---- </option>';
+
+		$start_year = ( (intval($year) > 1971 ) && (intval($year) <= date('Y', time())) ) ? intval($year)-1 : date('Y', time())-1;
+		for ($i = $start_year; $i <= date('Y', time())+10; $i++)
+		{
+			$selected = ( intval($year) == $i) ? ' selected="selected"' : '';
+			$s_topic_calendar_year .= '<option value="' . $i . '"' . $selected . '>' . $i . '</option>';
+		}
+		$s_topic_calendar_year .= '</select>';
+
+		// time
+		if (empty($hour) && empty($min))
+		{
+			$hour = '';
+			$min = '';
+		}
+		$topic_calendar_hour	= $hour;
+		$topic_calendar_min		= $min;
+
+		// duration
+		if ( empty($topic_calendar_hour) && empty($topic_calendar_min) )
+		{
+			$d_hour = '';
+			$d_min = '';
+		}
+		if ( empty($d_day) && empty($d_hour) && empty($d_min) )
+		{
+			$d_day = '';
+			$d_hour = '';
+			$d_min = '';
+		}
+		$topic_calendar_duration_day	= $d_day;
+		$topic_calendar_duration_hour	= $d_hour;
+		$topic_calendar_duration_min	= $d_min;
+	}
+}
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# *snip* : nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+	'L_CALENDAR_TITLE'			=> $lang['Calendar_event'],
+	'L_TIME'					=> $lang['Event_time'],
+	'L_CALENDAR_DURATION'		=> $lang['Calendar_duration'],
+	'L_DAYS'					=> $lang['Days'],
+	'L_HOURS'					=> $lang['Hours'],
+	'L_MINUTES'					=> $lang['Minutes'],
+	'L_TODAY'					=> $lang['Today'],
+
+	'TODAY_DAY'					=> date('d', time()),
+	'TODAY_MONTH'				=> date('m', time()),
+	'TODAY_YEAR'				=> date('Y', time()),
+
+	'S_CALENDAR_YEAR'			=> $s_topic_calendar_year,
+	'S_CALENDAR_MONTH'			=> $s_topic_calendar_month,
+	'S_CALENDAR_DAY'			=> $s_topic_calendar_day,
+
+	'CALENDAR_HOUR'				=> $topic_calendar_hour,
+	'CALENDAR_MIN'				=> $topic_calendar_min,
+	'CALENDAR_DURATION_DAY'		=> $topic_calendar_duration_day,
+	'CALENDAR_DURATION_HOUR'	=> $topic_calendar_duration_hour,
+	'CALENDAR_DURATION_MIN'		=> $topic_calendar_duration_min,
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+search.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/functions_calendar.'.$phpEx);
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+				if (!empty($searchset[$i]['topic_calendar_time']) && ($searchset[$i]['post_id'] == $searchset[$i]['topic_first_post_id']))
+				{
+					$post_subject .= '</a></b>' . get_calendar_title($searchset[$i]['topic_calendar_time'], $searchset[$i]['topic_calendar_duration']);
+				}
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+$s_auth_can .= ( ( $is_auth['auth_cal'] ) ? $lang['Rules_calendar_can'] : $lang['Rules_calendar_cannot'] ) . '<br />';
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/functions_calendar.'.$phpEx);
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we added
+//	, t.topic_first_post_id, t.topic_calendar_time, t.topic_calendar_duration
+//-- modify
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+, t.topic_first_post_id, t.topic_calendar_time, t.topic_calendar_duration
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, t.topic_first_post_id, t.topic_calendar_time, t.topic_calendar_duration
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+$topic_first_post_id = intval($forum_topic_data['topic_first_post_id']);
+$topic_calendar_time = intval($forum_topic_data['topic_calendar_time']);
+$topic_calendar_duration = intval($forum_topic_data['topic_calendar_duration']);
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+	if (!empty($topic_calendar_time) && ($postrow[$i]['post_id'] == $topic_first_post_id))
+	{
+		$post_subject .= get_calendar_title($topic_calendar_time, $topic_calendar_duration);
+	}
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/auth.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we added
+//	, a.auth_cal
+// and
+//	, 'auth_cal'
+//-- modify
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+, a.auth_cal
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, a.auth_cal
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+, 'auth_cal'
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, 'auth_cal'
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+		case AUTH_CAL:
+			$a_sql = 'a.auth_cal';
+			$auth_fields = array('auth_cal');
+			break;
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+define('AUTH_CAL', 20);
+define('POST_BIRTHDAY', 9);
+define('POST_CALENDAR', 10);
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+# do not process this if you have another mod requiring lang_settings or mods_settings mods
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- mod : mods settings ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+	global $db, $mods, $list_yes_no, $userdata;
+
+	//	get all the mods settings
+	$dir = @opendir($phpbb_root_path . 'includes/mods_settings');
+	while( $file = @readdir($dir) )
+	{
+		if( preg_match("/^mod_.*?\." . $phpEx . "$/", $file) )
+		{
+			include_once($phpbb_root_path . 'includes/mods_settings/' . $file);
+		}
+	}
+	@closedir($dir);
+//-- fin mod : mods settings -----------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+	include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+			include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we have added
+//	, $topic_calendar_time = 0, $topic_calendar_duration = 0
+//-- modify
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+, $topic_calendar_time = 0, $topic_calendar_duration = 0
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, $topic_calendar_time = 0, $topic_calendar_duration = 0
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+	//
+	// check calendar date
+	//
+	if ((!empty($topic_calendar_time)) && ($mode == 'newtopic' || ($mode == 'editpost' && $post_data['first_post'])))
+	{
+		$year	= intval(date( 'Y', $topic_calendar_time));
+		$month	= intval(date( 'm', $topic_calendar_time));
+		$day	= intval(date( 'd', $topic_calendar_time));
+		if (!checkdate($month, $day, $year))
+		{
+			$error_msg .= (!empty($error_msg) ? '<br />' : '') . sprintf($lang['Date_error'], $day, $month, $year);
+		}
+	}
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we have added
+//	, $topic_calendar_time = 0, $topic_calendar_duration = 0
+//-- modify
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+, $topic_calendar_time = 0, $topic_calendar_duration = 0
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, $topic_calendar_time = 0, $topic_calendar_duration = 0
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we have added
+//	, topic_calendar_time, topic_calendar_duration
+//	, $topic_calendar_time, $topic_calendar_duration
+// and
+//	, topic_calendar_time = $topic_calendar_time, topic_calendar_duration = $topic_calendar_duration
+//-- modify
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+, topic_calendar_time, topic_calendar_duration
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, topic_calendar_time, topic_calendar_duration
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, $topic_calendar_time, $topic_calendar_duration
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, topic_calendar_time = $topic_calendar_time, topic_calendar_duration = $topic_calendar_duration
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+if (!defined('IN_CALENDAR'))
+{
+	if ( intval($board_config['calendar_header_cells']) > 0 )
+	{
+		include_once($phpbb_root_path . './includes/functions_calendar.' . $phpEx);
+		display_calendar('CALENDAR_BOX', intval($board_config['calendar_header_cells']));
+	}
+}
+$template->assign_vars(array(
+	'L_CALENDAR'	=> $lang['Calendar'],
+	'I_CALENDAR'	=> $images['menu_calendar'],
+	'U_CALENDAR'	=> append_sid("./calendar.$phpEx"),
+	)
+);
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/topic_review.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we added
+//	, t.topic_calendar_time, t.topic_calendar_duration, t.topic_first_post_id
+//-- modify
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+, t.topic_calendar_time, t.topic_calendar_duration, t.topic_first_post_id
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, t.topic_calendar_time, t.topic_calendar_duration, t.topic_first_post_id
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+		$topic_calendar_time = intval($forum_row['topic_calendar_time']);
+		$topic_first_post_id = intval($forum_row['topic_first_post_id']);
+		$topic_calendar_duration = intval($forum_row['topic_calendar_duration']);
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+			if (!empty($topic_calendar_time) && ($topic_first_post_id == $row['post_id']))
+			{
+				$post_subject .= get_calendar_title($topic_calendar_time, $topic_calendar_duration);
+			}
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+<!-- mod : calendar -->
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<script language="JavaScript" type="text/javascript" src="includes/toggle_display.js"></script>
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<a href="{U_CALENDAR}" class="mainmenu"><img src="{I_CALENDAR}" width="12" height="13" border="0" alt="{L_CALENDAR}" hspace="3" />{L_CALENDAR}</a>&nbsp; &nbsp;
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+<a href="{U_CALENDAR}" class="mainmenu"><img src="{I_CALENDAR}" width="12" height="13" border="0" alt="{L_CALENDAR}" hspace="3" />{L_CALENDAR}</a>&nbsp; &nbsp;
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		{CALENDAR_BOX}
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+<!-- mod : calendar -->
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		  <!-- BEGIN switch_type_cal -->
+		  <tr><td colspan="2"><hr /></td></tr>
+		  <tr>
+			<td></td>
+			<td valign="top">
+				<table cellpadding="2" cellspacing="0" width="100%" border="0">
+				<tr>
+					<td align="right" nowrap="nowrap"><span class="gen"><b>{L_CALENDAR_TITLE}&nbsp;:</b></span></td>
+					<td align="left" width="100%">
+						<span class="genmed">
+							{S_CALENDAR_DAY}{S_CALENDAR_MONTH}{S_CALENDAR_YEAR}&nbsp;
+							<a href="#" name="#" class="genmed" onClick="document.post.topic_calendar_day.value={TODAY_DAY};document.post.topic_calendar_month.value={TODAY_MONTH};document.post.topic_calendar_year.value={TODAY_YEAR};" />{L_TODAY}</a>
+						</span>
+					</td>
+				</tr>
+				<tr>
+					<td align="right" nowrap="nowrap"><span class="gen"><b>{L_TIME}&nbsp;:</b></span></td>
+					<td align="left" width="100%">
+						<span class="genmed">
+							<input name="topic_calendar_hour" type="post" maxlength="2" size="3" value="{CALENDAR_HOUR}" />&nbsp;{L_HOURS}&nbsp;&nbsp;
+							<input name="topic_calendar_min" type="post" maxlength="2" size="3" value="{CALENDAR_MIN}" />&nbsp;{L_MINUTES}
+						</span>
+					</td>
+				</tr>
+				<tr><td></td><td><hr /></td></tr>
+				<tr>
+					<td align="right" nowrap="nowrap"><span class="gen"><b>{L_CALENDAR_DURATION}&nbsp;:</b></span></td>
+					<td align="left" width="100%">
+						<span class="genmed">
+							<input name="topic_calendar_duration_day" type="post" maxlength="5" size="3" value="{CALENDAR_DURATION_DAY}" />&nbsp;{L_DAYS}&nbsp;&nbsp;
+							<input name="topic_calendar_duration_hour" type="post" maxlength="5" size="3" value="{CALENDAR_DURATION_HOUR}" />&nbsp;{L_HOURS}&nbsp;&nbsp;
+							<input name="topic_calendar_duration_min" type="post" maxlength="5" size="3" value="{CALENDAR_DURATION_MIN}" />&nbsp;{L_MINUTES}
+						</span>
+					</td>
+				</tr>
+				</table>
+			</td>
+		  </tr>
+		  <tr><td colspan="2"><hr /></td></tr>
+		  <!-- END switch_type_cal -->
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+# Don't remove the part topics list if it is required for another mod
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : topics list -----------------------------------------------------------------------------
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+$images['icon_calendar']		= "$current_template_images/icon_calendar.gif";
+$images['menu_calendar']		= "$current_template_images/icon_mini_calendar.gif";
+$images['icon_tiny_topic']		= "$current_template_images/icon_tiny_topic.gif";
+$images['icon_tiny_profile']	= "$current_template_images/icon_tiny_profile.gif";
+$images['folder_birthday']		= "$current_template_images/folder_calendar.gif";
+
+$images['up_arrow']				= "$current_template_images/icon_up_arrow.gif";
+$images['down_arrow']			= "$current_template_images/icon_down_arrow.gif";
+//-- fin mod : calendar ----------------------------------------------------------------------------
+
+//-- mod : topics list -----------------------------------------------------------------------------
+//-- add
+$images['folder_global_announce']		= "$current_template_images/folder_announce.gif";
+$images['folder_global_announce_new']		= "$current_template_images/folder_announce_new.gif";
+$images['folder_global_announce_own']		= "$current_template_images/folder_announce_own.gif";
+$images['folder_global_announce_new_own']	= "$current_template_images/folder_announce_new_own.gif";
+$images['folder_own']				= "$current_template_images/folder_own.gif";
+$images['folder_new_own']			= "$current_template_images/folder_new_own.gif";
+$images['folder_hot_own']			= "$current_template_images/folder_hot_own.gif";
+$images['folder_hot_new_own']			= "$current_template_images/folder_new_hot_own.gif";
+$images['folder_locked_own']			= "$current_template_images/folder_lock_own.gif";
+$images['folder_locked_new_own']		= "$current_template_images/folder_lock_new_own.gif";
+$images['folder_sticky_own']			= "$current_template_images/folder_sticky_own.gif";
+$images['folder_sticky_new_own']		= "$current_template_images/folder_sticky_new_own.gif";
+$images['folder_announce_own']			= "$current_template_images/folder_announce_own.gif";
+$images['folder_announce_new_own']		= "$current_template_images/folder_announce_new_own.gif";
+//-- fin mod : topics list -------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+##############################################################
+#
+#
+#	The following matches part II (you have not topic split)
+#
+#
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/functions_calendar.'.$phpEx);
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+		$calendar_title = get_calendar_title($topic_rowset[$i]['topic_calendar_time'], $topic_rowset[$i]['topic_calendar_duration']);
+		if (!empty($calendar_title)) $calendar_title = '</a></span><a name="cal_' . $topic_id . '">' . $calendar_title . '<span class="topictitle">';
+		$topic_title .= $calendar_title;
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+##############################################################
+#
+#
+#	The following matches part III (you have not Categories Hierarchy 2.0.x)
+#
+#
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_forumauth.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we added for each row a new column for calendar auth similar to the sticky value
+// and add Calendar in the comment header
+//-- modify
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//                View      Read      Post      Reply
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+   Calendar
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# take care of the position for the following : you may have added other auths
+#
+	0  => array(AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_MOD
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+	0  => array(AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_MOD
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+	0  => array(AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG
+#
+#-----[ FIND ]------------------------------------------------
+#
+	1  => array(AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_MOD
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+	1  => array(AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_MOD
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+	1  => array(AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG
+#
+#-----[ FIND ]------------------------------------------------
+#
+	2  => array(AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_MOD
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+	2  => array(AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_MOD
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+	2  => array(AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG
+#
+#-----[ FIND ]------------------------------------------------
+#
+	3  => array(AUTH_ALL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+	3  => array(AUTH_ALL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+	3  => array(AUTH_ALL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+#
+#-----[ FIND ]------------------------------------------------
+#
+	4  => array(AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+	4  => array(AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+	4  => array(AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+#
+#-----[ FIND ]------------------------------------------------
+#
+	5  => array(AUTH_ALL, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+	5  => array(AUTH_ALL, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+	5  => array(AUTH_ALL, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+#
+#-----[ FIND ]------------------------------------------------
+#
+	6  => array(AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+	6  => array(AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+	6  => array(AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#----------[ REPLACE WITH ]-----------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we added
+//	, 'auth_cal'
+//-- modify
+#
+#-----[ FIND ]------------------------------------------------
+#
+, 'auth_cal'
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, 'auth_cal'
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#----------[ REPLACE WITH ]-----------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+	'auth_cal' => $lang['Calendar'],
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#----------[ REPLACE WITH ]-----------------------------------
+#
+# nothing
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_ug_auth.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+#
+#----------[ REPLACE WITH ]-----------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+// here we added
+//	, 'auth_cal'
+//-- modify
+#
+#----------[ REPLACE WITH ]-----------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+, 'auth_cal'
+#
+#----------[ IN-LINE FIND ]-----------------------------------
+#
+, 'auth_cal'
+#
+#----------[ IN-LINE REPLACE WITH ]---------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#----------[ REPLACE WITH ]-----------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+	'auth_cal' => AUTH_CAL,
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#----------[ REPLACE WITH ]-----------------------------------
+#
+# nothing
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : calendar --------------------------------------------------------------------------------
+//-- add
+	'auth_cal' => $lang['Calendar'],
+//-- fin mod : calendar ----------------------------------------------------------------------------
+#
+#----------[ REPLACE WITH ]-----------------------------------
+#
+# nothing
+
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------
+#
+Topic calendar 1.0.1 is now uninstalled.
+Go with the new installation description to install Topic Calendar 1.2.0
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

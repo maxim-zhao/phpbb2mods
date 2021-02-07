@@ -1,0 +1,856 @@
+############################################################## 
+## MOD Title:		Save posts as drafts (upgrade from 1.0.16 to 1.0.17c)
+## MOD Author:		asinshesq < N/A > (Alan) N/A
+## MOD Description:	Allow users to save their posts as drafts so they can begin a post and finish it later.
+##			Since it is a draft, others will not see it until it is done.
+##
+## MOD Version:		upgrade from 1.0.16 to 1.0.17c
+## 
+## Installation Level:	Easy
+## Installation Time:	20 Minutes ( 1 minute with easymod) 
+## Files To Edit:
+##			posting.php
+##			viewforum.php
+##			admin/admin_forum_prune.php
+##			admin/index.php
+##			includes/constants.php
+##			includes/functions_post.php
+##			language/lang_english/lang_admin.php
+##			templates/subSilver/admin/forum_prune_select_body.tpl
+##			templates/subSilver/admin/index_body.tpl
+##			templates/subSilver/posting_body.tpl
+##			templates/subSilver/search_results_topics.tpl
+##
+## Included Files:	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:	This is an upgrade mod.  You must already have version 1.0.16 installed in order to use this mod.
+##			IMPORTANT: 
+##			-	if you are not using the attachment mod, you must delete the
+##				line that reads: prune_attachments($sql_posts) in two places in this mod;
+##
+##			-	If you have already made the changes described in my January 2 and January 4 posts
+##				at http://www.phpbb.com/phpBB/viewtopic.php?t=223319, you need to delete the 
+##				commands at the end of this script that follow the 'IMPORTANT NOTE below
+##				(but leave in the SAVE/CLOSE ALL FILES and EOM commands at the end)
+##
+############################################################## 
+## MOD History:
+##
+##   2005-03-04	- Version 1.0.17c
+##		  made additional minor changes required for mod validation (no changes in functionality)
+##
+##   2005-02-19	- Version 1.0.17b
+##		  made additional minor changes required for mod validation (no changes in functionality)
+##
+##   2005-01-28	- Version 1.0.17a
+##		  made minor changes required for mod validation (no changes in functionality)
+##
+##   2005-01-10	- Version 1.0.17
+##		  added draft prune functions (note that auto prune will only work if you enable pruning in the ACP configuration page);
+##		  changed draft delete checkbox to draft delete button; added number of drafts and drafts per user to Forum stats in ACP;
+##		  fixed a post count and pagination error in search.php; fixed an error where if the user clicked to 
+##		  page 2 or higher in the draft and post list and then went back to page 1 the draft list would no longer be there;
+##		  changed it so that a guest who is not logged in will not see the save as drafts button; and
+##		  deleted a spurious reference to switch_not_save_a_draft_button that is no longer needed as a result of version 1.0.16 changes.
+##
+##   2004-11-15	- Version 1.0.16
+##		  fixed the treatment of polls in drafts so that they do not get lost when the draft is submitted as a real post;
+##		  corrected small error in prune.php that would result in pruning deleting drafts; and simplified posting_body.tpl so that
+##		  it no longer uses a <!-- END switch_not_save_as_draft_button --> concept (so that privmsg.php will not get messed up for people with PCP mod); as a result, got rid of all changes to privmsg.php 
+##
+##   2004-10-04	- Version 1.0.15
+##		  corrected small error in functions_admin.php that counted drafts as posts when it tries to sync a single topic.
+##
+##   2004-09-18	- Version 1.0.14
+##		  corrected small error in search.php that allowed it to count a draft as a new post when you click the new posts link on the index page;
+##		  also corrected problem in functions_admin.php that counted drafts as posts when it tries to sync a forum or topic (e.g. when you hit 'resync' in the forum management part of the ACP);
+##		  and modified things so that a user who isn't generally authorized to delete his own posts can now delete his own drafts
+##
+##   2004-09-5	- Version 1.0.13
+##		  no change in functionality...just changed method of inserting draft as a new post when you finally submit a draft (since method used in version 1.0.11 had some unnecessary steps in it); 
+##
+##   2004-09-2	- Version 1.0.12
+##		  broke up large find and replace blocks in mod to smaller bits as needed to get validation...no change in the coding from version 1.1.11; 
+##
+##   2004-08-29	- Version 1.0.11
+##		  changed mod so that it in effect creates a brand new post (with a new post_id and, if the post is a new topic, a brand new topic_id) when a draft finally gets submitted;
+##		  the old draft post (and topic if the draft is a new topic) get deleted when the new one is created;
+##		  since post_id now will always fall in same order as post_time, got rid of the changes that had been in prior drafts to places where sorts were done by post_id;
+##		  as a result, the order of post_id of all final posts is now the same as the order of post_time of all final posts (not critical but nice);
+##		  also fixed a minor error where a BEGIN_TRANSACTION statement did not have a corresponding END_TRANSACTION statement when the user saved the post as a draft (which
+##		  could have slowed up the board a bit when a user saves a draft)
+##
+##   2004-08-22	- Version 1.0.10
+##		  tweaked the mod so that post_id and topic_id get updated at the time the draft is finally submitted as real (so that there are never any 'sort' bugs)
+##
+##   2004-08-20	- Version 1.0.9
+##		  corrected the fix in 1.0.8
+##
+##   2004-08-20	- Version 1.0.8
+##		  fixed an error that prevented any regular users who are not moderators from deleting their own drafts
+##
+##   2004-08-06	- Version 1.0.7
+##		  fixed aditional errors in viewtopic that could have caused wrong displays when user hits newest or previous or next in a topic where there are unsubmitted drafts
+##
+##   2004-08-05	- Version 1.0.6
+##		  fixed an error in viewtopic that caused wrong pagination on occassion when there were umsubmitted drafts in a topic
+##
+##   2004-07-24	- Version 1.0.5
+##		  fixed a number of minor bugs and cleaned up code
+##
+##   2004-07-23	- Version 1.0.4
+##		  fixed privmsg.php so that submit and preview buttons show up on pm posts
+##
+##   2004-07-23	- Version 1.0.3
+##		  fixed minor problem where reply notifications didn't go out and post didn't get marked as new when you finally submit draft as a live post
+##
+##   2004-07-23	- Version 1.0.2
+##		  fixed minor problem where board stats didn't get updated after you finally submit a draft as a live post
+##
+##   2004-07-18	- Version 1.0.1
+##		  first release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ SQL ]-------------------------------------------------
+#
+CREATE TABLE phpbb_draft_prune (
+prune_id tinyint(1) unsigned NOT NULL default '1', 
+prune_days smallint(5) unsigned NOT NULL default '0', 
+prune_freq smallint(5) unsigned NOT NULL default '0', 
+prune_next int(11) unsigned NOT NULL default '0', 
+prune_enable tinyint(1) unsigned NOT NULL default '0' 
+);
+
+INSERT INTO phpbb_draft_prune (prune_id, prune_days, prune_freq) VALUES(1, 90, 10);
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$mode = editpost;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+$mode = 'editpost';
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+if ( $mode == 'editpost' && ( ( $is_auth['auth_delete'] && $post_data['last_post'] && ( !$post_data['has_poll'] || $post_data['edit_poll'] ) ) || $is_auth['auth_mod'] || $was_a_draft ) )
+// start mod save posts as drafts (and end mod too)...added was a draft stuff at end of preceding line to make sure that regular users who are not mods can always delete their own drafts
+
+{
+	$template->assign_block_vars('switch_delete_checkbox', array());
+}
+
+#
+#-----[ REPLACE WITH ]-------------------------------------------------
+#
+// start mod save posts as drafts...added was a post stuff at end because posts that are drafts get handled differently (they get a real delete button)
+if ( $mode == 'editpost' && ( ( $is_auth['auth_delete'] && $post_data['last_post'] && ( !$post_data['has_poll'] || $post_data['edit_poll'] ) ) || $is_auth['auth_mod'] ) && !$was_a_draft )
+{
+	$template->assign_block_vars('switch_delete_checkbox', array());
+}
+
+else if ( $mode == 'editpost' && $was_a_draft )
+{
+	$template->assign_block_vars('switch_delete_button', array());
+}
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+	'L_SAVE_AS_DRAFT' => $lang['Save_as_draft'],
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------------------
+#
+	'L_DELETE' => $lang['Delete'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		auto_prune($forum_id);
+	}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	// start mod save posts as drafts ... added separate auto pruning code for drafts
+	$sql = "SELECT * FROM " . DRAFT_PRUNE_TABLE . "
+		WHERE prune_id = 1";
+	
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not read auto draft_prune table', '', __LINE__, __FILE__, $sql);
+	}
+	
+	$auto_prune_data = $db->sql_fetchrow($result);
+	if ( $auto_prune_data['prune_next'] < time() && $auto_prune_data['prune_enable'] )
+	{
+		$prunedate = time() - ( $auto_prune_data['prune_days'] * 86400 );
+		$prunenext = time() + ($auto_prune_data['prune_freq'] * 86400);
+
+		$sql = "SELECT post_id
+			FROM " . POSTS_TABLE . "
+			WHERE post_draft=1
+			AND post_time < $prunedate";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain lists of draft posts to auto prune', '', __LINE__, __FILE__, $sql);
+		}
+		$sql_posts = '';
+		while( $row = $db->sql_fetchrow($result) )
+		{
+			$sql_posts .= ( ( $sql_posts != '' ) ? ', ' : '' ) . $row['post_id'];
+		}
+		$db->sql_freeresult($result);
+
+
+		if( $sql_posts != '' )
+		{
+			$sql = "SELECT t.topic_id
+				FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+				WHERE p.post_draft=1
+				AND p.post_time < $prunedate
+				AND t.topic_id = p.topic_id
+				AND t.topic_first_post_id = 0";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain lists of draft topics to auto prune', '', __LINE__, __FILE__, $sql);
+			}
+			$sql_topics = '';
+			while( $row = $db->sql_fetchrow($result) )
+			{
+				$sql_topics .= ( ( $sql_topics != '' ) ? ', ' : '' ) . $row['topic_id'];
+			}
+			$db->sql_freeresult($result);
+			
+			if( $sql_topics != '' )
+			{
+
+				$sql = "DELETE FROM " . TOPICS_TABLE . "
+						WHERE topic_id IN ($sql_topics)";
+				if ( !$db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not delete draft topics during auto prune', '', __LINE__, __FILE__, $sql);
+				}
+				$pruned_topics = $db->sql_affectedrows();
+				
+				$sql = "SELECT vote_id
+					FROM " . VOTE_DESC_TABLE . "
+					WHERE topic_id IN ($sql_topics)";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain lists of draft polls to auto prune', '', __LINE__, __FILE__, $sql);
+				}
+				$sql_polls = '';
+				while( $row = $db->sql_fetchrow($result) )
+				{
+					$sql_polls .= ( ( $sql_polls != '' ) ? ', ' : '' ) . $row['vote_id'];
+				}
+				$db->sql_freeresult($result);
+				
+				if( $sql_polls != '' )
+				{
+					$sql = "DELETE FROM " . VOTE_DESC_TABLE . "
+						WHERE vote_id IN ($sql_polls)";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Error in autopruning poll', '', __LINE__, __FILE__, $sql);
+					}
+					
+					$sql = "DELETE FROM " . VOTE_RESULTS_TABLE . "
+						WHERE vote_id IN ($sql_polls)";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Error in autopruning poll', '', __LINE__, __FILE__, $sql);
+					}
+				}
+			}
+
+			$sql = "DELETE FROM " . POSTS_TEXT_TABLE . "
+				WHERE post_id IN ($sql_posts)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete text of draft posts during auto prune', '', __LINE__, __FILE__, $sql);
+			}
+
+			$sql = "DELETE FROM " . POSTS_TABLE . "
+				WHERE post_id IN ($sql_posts)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete draft posts during auto prune', '', __LINE__, __FILE__, $sql);
+			}
+			prune_attachments($sql_posts);
+		}
+
+		
+		$sql = "UPDATE " . DRAFT_PRUNE_TABLE . "
+			SET prune_next = $prunenext";
+	
+		if ( !$db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Could not reset prune_next in auto draft_prune table', '', __LINE__, __FILE__, $sql);
+		}
+	}
+	// end mod save posts as drafts
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+admin/admin_forum_prune.php
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+if( isset($HTTP_POST_VARS['doprune']) )
+
+#
+#-----[ REPLACE WITH ]-------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...added references to draft prune and draft auto prune
+// so that those cases could be handled separately
+if( isset($HTTP_POST_VARS['doprune']) || isset($HTTP_POST_VARS['do_draft_prune']) || isset($HTTP_POST_VARS['draft_auto_prune']) )
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+	for($i = 0; $i < count($forum_rows); $i++)
+	{
+		$p_result = prune($forum_rows[$i]['forum_id'], $prunedate);
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------------------
+#
+	// start mod save posts as drafts...test to see if drafts are being pruned..if so, handle specially
+	if( isset($HTTP_POST_VARS['do_draft_prune']) )
+	{
+		$pruned_posts = 0;
+		$pruned_topics = 0;
+
+		$sql = "SELECT post_id
+				FROM " . POSTS_TABLE . "
+				WHERE post_draft=1
+				AND post_time < $prunedate";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain lists of draft posts to prune', '', __LINE__, __FILE__, $sql);
+		}
+		$sql_posts = '';
+		while( $row = $db->sql_fetchrow($result) )
+		{
+			$sql_posts .= ( ( $sql_posts != '' ) ? ', ' : '' ) . $row['post_id'];
+		}
+		$db->sql_freeresult($result);
+
+
+		if( $sql_posts != '' )
+		{
+			$sql = "SELECT t.topic_id
+					FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+					WHERE p.post_draft=1
+					AND p.post_time < $prunedate
+					AND t.topic_id = p.topic_id
+					AND t.topic_first_post_id = 0";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain lists of draft topics to prune', '', __LINE__, __FILE__, $sql);
+			}
+			$sql_topics = '';
+			while( $row = $db->sql_fetchrow($result) )
+			{
+				$sql_topics .= ( ( $sql_topics != '' ) ? ', ' : '' ) . $row['topic_id'];
+			}
+			$db->sql_freeresult($result);
+
+
+			
+			if( $sql_topics != '' )
+			{
+
+				$sql = "DELETE FROM " . TOPICS_TABLE . "
+						WHERE topic_id IN ($sql_topics)";
+				if ( !$db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not delete draft topics during prune', '', __LINE__, __FILE__, $sql);
+				}
+				$pruned_topics = $db->sql_affectedrows();
+				
+				$sql = "SELECT vote_id
+					FROM " . VOTE_DESC_TABLE . "
+					WHERE topic_id IN ($sql_topics)";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain lists of draft polls to prune', '', __LINE__, __FILE__, $sql);
+				}
+				$sql_polls = '';
+				while( $row = $db->sql_fetchrow($result) )
+				{
+					$sql_polls .= ( ( $sql_polls != '' ) ? ', ' : '' ) . $row['vote_id'];
+				}
+				$db->sql_freeresult($result);
+				
+				if( $sql_polls != '' )
+				{
+					$sql = "DELETE FROM " . VOTE_DESC_TABLE . "
+						WHERE vote_id IN ($sql_polls)";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Error in autopruning poll', '', __LINE__, __FILE__, $sql);
+					}
+					
+					$sql = "DELETE FROM " . VOTE_RESULTS_TABLE . "
+						WHERE vote_id IN ($sql_polls)";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Error in autopruning poll', '', __LINE__, __FILE__, $sql);
+					}
+				}
+			}
+
+			$sql = "DELETE FROM " . POSTS_TEXT_TABLE . "
+					WHERE post_id IN ($sql_posts)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete text of draft posts during prune', '', __LINE__, __FILE__, $sql);
+			}
+
+			$sql = "DELETE FROM " . POSTS_TABLE . "
+					WHERE post_id IN ($sql_posts)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete draft posts during prune', '', __LINE__, __FILE__, $sql);
+			}
+			$pruned_posts = $db->sql_affectedrows();
+			prune_attachments($sql_posts);
+		}
+
+		$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
+		$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+
+		$template->assign_block_vars('prune_results', array(
+			'ROW_COLOR' => '#' . $row_color,
+			'ROW_CLASS' => $row_class,
+			'FORUM_NAME' => $lang['Drafts'],
+			'FORUM_TOPICS' => $pruned_topics,
+			'FORUM_POSTS' => $pruned_posts)
+		);
+
+		$template->assign_vars(array(
+		'L_FORUM_PRUNE' => $lang['Draft_prune'],
+		'L_FORUM' => $lang['Drafts'],
+		'L_TOPICS_PRUNED' => $lang['Draft_topics_pruned'], 'Draft topics pruned',
+		'L_POSTS_PRUNED' => $lang['Draft_posts_pruned'], 'Draft posts pruned',
+		'L_PRUNE_RESULT' => $lang['Draft_pruning_successful'])
+		);
+	}
+
+	else if( isset($HTTP_POST_VARS['draft_auto_prune']) )
+	{
+		if( $HTTP_POST_VARS['prune_enable'] )
+		{
+			if( $HTTP_POST_VARS['prune_days'] == "" || $HTTP_POST_VARS['prune_freq'] == "")
+			{
+				message_die(GENERAL_MESSAGE, $lang['Set_prune_data']);
+			}
+
+			$sql = "UPDATE " . DRAFT_PRUNE_TABLE . "
+			SET prune_days = " . intval($HTTP_POST_VARS['prune_days']) . ",	prune_freq = " . intval($HTTP_POST_VARS['prune_freq']) . ", prune_enable = 1
+			WHERE prune_id = 1";
+			if( !$result = $db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't insert row in prune table", "", __LINE__, __FILE__, $sql);
+			}
+		}
+		
+		else
+		{
+			$sql = "UPDATE " . DRAFT_PRUNE_TABLE . "
+			SET prune_enable = 0
+			WHERE prune_id = 1";
+			if( !$result = $db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't insert row in prune table", "", __LINE__, __FILE__, $sql);
+			}
+		}
+
+		message_die(GENERAL_MESSAGE, 'Auto prune settings changed');
+		
+	}
+
+	else if( isset($HTTP_POST_VARS['doprune']) )
+	{
+	// end mod save posts as drafts...here, we pick up where the user has hit a regular forum doprune
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+		'L_PRUNE_RESULT' => $lang['Prune_success'])
+	);
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+	// start mod save posts as drafts (and end mod too)... added the close bracket on the next line
+	}
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+		$select_list .= '</select>';
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+// start mod save posts as drafts...added the following block to get information from the draft prune table, and
+// added in the stuff passed to the template in the next block a bunch of prune variables
+		$prune_data = $lang['Remove_drafts_not_modified'];
+		$prune_data .= '<input class="post" type="text" name="prunedays" size="4" /> ' . $lang['Days'];
+		$sql = "SELECT *
+		FROM " . DRAFT_PRUNE_TABLE . "
+		WHERE prune_id = 1";
+		if(!$draft_prune_result = $db->sql_query($sql))
+		{
+			 message_die(GENERAL_ERROR, "Couldn't read auto draft_prune table.", __LINE__, __FILE__);
+		}
+
+		$draft_prune_row = $db->sql_fetchrow($draft_prune_result);
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+			'L_LOOK_UP' => $lang['Look_up_Forum'],
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+			'L_DRAFT_PRUNE' => $lang['Draft_prune'],
+			'L_DO_PRUNE' => $lang['Do_Prune'],
+			'L_DRAFT_AUTO_PRUNE' => $lang['Draft_auto-prune'],
+			'L_ENABLED' => $lang['Enabled'],
+			'L_PRUNE_DAYS' => $lang['Remove_drafts_not_modified'],
+			'L_PRUNE_FREQ' => $lang['Check_draft_age'],
+			'L_DAYS' => $lang['Days'],
+			'L_SUBMIT' => $lang['Submit'],
+
+			'S_DRAFTPRUNE_ACTION' => append_sid("admin_forum_prune.$phpEx"),
+			'S_PRUNE_DATA' => $prune_data,
+			'S_PRUNE_ENABLED' => ( $draft_prune_row['prune_enable'] ) ? 'checked="checked"' : '',
+			'S_PRUNE_DAYS' => $draft_prune_row['prune_days'],
+			'S_PRUNE_FREQ' => $draft_prune_row['prune_freq'],
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$prune_data .= '<input class="post" type="text" name="prunedays" size="4"> ' . $lang['Days'];
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		$prune_data .= '<input class="post" type="text" name="prunedays" size="4" /> ' . $lang['Days'];
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+admin/index.php
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+
+		"L_USERS_PER_DAY" => $lang['Users_per_day'],
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+		"L_NUMBER_DRAFTS" => $lang['Number_of_drafts'],
+		"L_DRAFTS_PER_USER" => $lang['Drafts_per_user'],
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+	$users_per_day = sprintf("%.2f", $total_users / $boarddays);
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+// start mod save posts as drafts...added the following block, and also added number of drafts and
+// drafts per user to the language assignment to the template above and the variable assignment to the template below
+	$sql = "SELECT COUNT(*) AS count FROM " . POSTS_TABLE . " WHERE post_draft = 1";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not obtain lists of draft posts to count', '', __LINE__, __FILE__, $sql);
+	}
+	$drafts = $db->sql_fetchrow($result);
+	$total_drafts = $drafts['count'];
+	$db->sql_freeresult($result);
+	$drafts_per_user = sprintf("%.2f", $total_drafts / $total_users);
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+		"NUMBER_OF_USERS" => $total_users,
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+		"NUMBER_OF_DRAFTS" => $total_drafts,
+		"DRAFTS_PER_USER" => $drafts_per_user,
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+define('FORUMS_TABLE', $table_prefix.'forums');
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...added the definition of auto_prune_table in next line
+define('DRAFT_PRUNE_TABLE', $table_prefix.'draft_prune');
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$sql = ( ($mode != "editpost") || ($was_a_draft && !$save_as_draft) )? "INSERT INTO " . POSTS_TABLE . " (topic_id, forum_id, poster_id, post_username, post_time, poster_ip, enable_bbcode, enable_html, enable_smilies, enable_sig, post_draft) VALUES ($topic_id, $forum_id, " . $userdata['user_id'] . ", '$post_username', $current_time, '$user_ip', $bbcode_on, $html_on, $smilies_on, $attach_sig, $post_draft)" : "UPDATE " . POSTS_TABLE . " SET post_username = '$post_username', enable_bbcode = $bbcode_on, enable_html = $html_on, enable_smilies = $smilies_on, enable_sig = $attach_sig, post_draft = $post_draft" . $edited_sql . " WHERE post_id = $post_id";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	// if this is already a draft getting saved again as a draft, change the $sql so that it updates the post time...
+	if($was_a_draft && $save_as_draft)
+	{
+	$sql = "UPDATE " . POSTS_TABLE . " SET post_username = '$post_username', post_time = $current_time, enable_bbcode = $bbcode_on, enable_html = $html_on, enable_smilies = $smilies_on, enable_sig = $attach_sig, post_draft = $post_draft" . $edited_sql . " WHERE post_id = $post_id";
+	}
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------------------
+#
+// start mod save posts as drafts ... added teh following variables for pruning and auto pruning of drafts
+$lang['Drafts'] = 'Drafts';
+$lang['Draft_prune'] = 'Draft Prune';
+$lang['Draft_topics_pruned'] = 'Draft topics pruned';
+$lang['Draft_posts_pruned'] = 'Draft posts pruned';
+$lang['Draft_pruning_successful'] = 'pruning of drafts was successful';
+$lang['Draft_auto-prune'] = 'Draft Auto-Prune <br /> (only works if prune is enabled in ACP)';
+$lang['Remove_drafts_not_modified'] = 'Remove drafts that have not been modified for &nbsp; ';
+$lang['Check_draft_age'] = 'Check for draft age every &nbsp;';
+$lang['Number_of_drafts'] = 'Number of drafts';
+$lang['Drafts_per_user'] = 'Drafts per user';
+// end mod save posts as drafts
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+templates/subSilver/admin/forum_prune_select_body.tpl
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+</table></form>
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+<!-- save posts as drafts ... added the following block to give the user draft pruning and draft auto pruning tables to fill out -->
+<br /> <br /> <br /> <br />
+<h1>{L_DRAFT_PRUNE}</h1>
+
+<form method="post"	action="{S_DRAFTPRUNE_ACTION}">
+  <table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
+	<tr> 
+	  <th class="thHead">{L_DRAFT_PRUNE}</th>
+	</tr>
+	<tr>
+	  <td class="row1">{S_PRUNE_DATA}</td>
+	</tr>
+	<tr> 
+	  <td class="catBottom" align="center">
+		<input type="submit" name="do_draft_prune" value="{L_DO_PRUNE}" class="mainoption" />
+	  </td>
+	</tr>
+  </table>
+</form>
+
+<br /> <br />
+<form method="post"	action="{S_DRAFTPRUNE_ACTION}">
+  <table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
+	<tr> 
+	  <th class="thHead">{L_DRAFT_AUTO_PRUNE}</th>
+	</tr>
+	<tr> 
+	  <td class="row1" align="center">{L_ENABLED}
+		<input type="checkbox" name="prune_enable" {S_PRUNE_ENABLED} /></td>
+	</tr>
+	<tr> 
+	  <td class="row2" align="center">{L_PRUNE_DAYS}
+	  	<input type="text" name="prune_days" value="{S_PRUNE_DAYS}" size="5" class="post" />&nbsp;{L_DAYS}
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1" align="center">{L_PRUNE_FREQ}
+		<input type="text" name="prune_freq" value="{S_PRUNE_FREQ}" size="5" class="post" />&nbsp;{L_DAYS}
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="catBottom" align="center">
+		<input type="submit" name="draft_auto_prune" value="{L_SUBMIT}" class="mainoption" />
+	  </td>
+	</tr>
+  </table>
+</form>
+<!-- end mod save posts as drafts -->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/index_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<td class="row2"><b>{USERS_PER_DAY}</b></td>
+  </tr>
+  
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+  <tr> 
+  	<td class="row1" nowrap="nowrap">{L_NUMBER_DRAFTS}:</td>
+  	<td class="row2"><b>{NUMBER_OF_DRAFTS}</b></td>
+  	<td class="row1" nowrap="nowrap">{L_DRAFTS_PER_USER}:</td>
+  	<td class="row2"><b>{DRAFTS_PER_USER}</b></td>
+  </tr>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<!-- added begin and end switch_save_as_draft and stuff between it -->
+	  <td class="catBottom" colspan="3" align="center" height="28"> {S_HIDDEN_FORM_FIELDS}
+
+#
+#-----[ REPLACE WITH ]-----------------------------------------
+#
+	<!-- added begin and end switch_delete_button and switch_save_as_draft and stuff between them -->
+	  <td class="catBottom" colspan="3" align="center" height="28"> {S_HIDDEN_FORM_FIELDS}
+	  <!-- BEGIN switch_delete_button -->
+	  <input type="submit" tabindex="3" name="delete" class="mainoption" value="{L_DELETE}" />&nbsp;
+	  <!-- END switch_delete_button -->
+
+## IMPORTANT NOTE: If you have already made the changes described in my January 2 and January 4 posts at http://www.phpbb.com/phpBB/viewtopic.php?t=223319,
+## you need to delete the remaining commands (but leave in the SAVE/CLOSE ALL FILES and EOM commands at the end)
+#
+#-----[ OPEN ]------------------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$store_vars = array('search_results', 'total_match_count', 'split_search', 'sort_by', 'sort_dir', 'show_results', 'return_chars');
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+'return_chars'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+, 'draft_on'
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...added the draft_on variable in the next line so that if the user clicks to after page 1 of list and then goes back to page 1 the draft lists will appear 
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+						WHERE poster_id = " . $userdata['user_id'];
+						
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+						WHERE poster_id = " . $userdata['user_id'] . "
+						AND post_draft = 0";
+						// start mod save posts as drafts (and end mod too)...added a constraint in preceding line that post_draft be 0 so that drafts wouldn't get included
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+if ( $draft_on )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+if ( $draft_on && $start == 0 )
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+if ( $mode == 'newtopic' || $mode == 'reply' || $mode == 'quote' || $was_a_draft )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+if ( $userdata['session_logged_in'] && ( $mode == 'newtopic' || $mode == 'reply' || $mode == 'quote' || $was_a_draft ) )
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en-gb">Show Last Visited Users</title>
+		<description lang="en-gb"><![CDATA[This mod displays a list of all registered users that have visited the forum during the last 24 hours. Admins can see hidden users too.]]></description>
+		<author-notes lang="en-gb"><![CDATA[- This is a very simple mod that displays all the registered users who have visited your forum
+during the last 24 hours. Admins can see the hidden users too, exactly like the way the online users
+are displayed.
+
+- If you want to change the 24 hours to something else, you can change the "24" in the following code
+included in file "page_header.php":
+
+// change this if you want to change the timeframe
+// default is 24 hours (=1 day) and it should be given in hours
+$lastvisit_hours = 24;
+
+- Guests cannot be displayed because there are no details kept for them for such a long time.
+There are some db changes that have to be made if you want to display them too, but right now
+i'm not planning of doing it.]]></author-notes>
+		<author-group>
+			<author>
+				<realname>Tassos Chatzithomaoglou</realname>
+				<email>chatasos@psclub.gr</email>
+				<username>chatasos</username>
+				<homepage>http://www.psclub.gr</homepage>
+				<contributions />
+			</author>
+		</author-group>
+		<mod-version>
+			<major>1</major>
+			<minor>0</minor>
+			<revision>0</revision>
+		</mod-version>
+		<installation>
+			<level>easy</level>
+			<time>300</time>
+			<target-version>
+				<target-primary>2.0</target-primary>
+				<target-major allow="exact">2</target-major>
+				<target-minor allow="exact">0</target-minor>
+			</target-version>
+		</installation>
+		<history>
+			<entry>
+				<date>2006-06-10</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> First Stable release.</change>
+				</changelog>
+			</entry>
+		</history>
+	</header>
+	<action-group>
+		<open src="includes/page_header.php">
+			<edit>
+				<find><![CDATA[if (defined('SHOW_ONLINE'))
+{]]></find>
+				<action type="after-add"><![CDATA[/*****************************
+* MOD: Show last visited users
+* BEGIN: AFTER, ADD
+******************************/
+	$lastvisit_userlist = '';
+
+	// change this if you want to change the timeframe
+	// default is 24 hours (=1 day) and it should be given in hours
+	$lastvisit_hours = 24;	
+
+	// no need to execute code when viewing individual forum pages
+	if ( !isset($forum_id) )
+	{
+		$sql = "SELECT u.user_id, u.username, u.user_level, u.user_allow_viewonline
+			FROM " . USERS_TABLE . " u
+			WHERE u.user_session_time > " . (time() - 60*60*$lastvisit_hours) . "
+			ORDER BY u.username ASC";
+
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Error getting user list for last visited users', '', __LINE__, __FILE__, $sql);
+		}
+
+		$visible_lastvisit_users = 0;
+		$hidden_lastvisit_users = 0;
+		 
+		while ( $row = $db->sql_fetchrow($result) )
+		{
+			$style_color = '';
+			if ( $row['user_level'] == ADMIN )
+			{
+				$row['username'] = '<b>' . $row['username'] . '</b>';
+				$style_color = 'style="color:#' . $theme['fontcolor3'] . '"';
+			}
+			else if ( $row['user_level'] == MOD )
+			{
+				$row['username'] = '<b>' . $row['username'] . '</b>';
+				$style_color = 'style="color:#' . $theme['fontcolor2'] . '"';
+			}
+
+			if ( $row['user_allow_viewonline'] )
+			{
+				$user_link = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '"' . $style_color .'>' . $row['username'] . '</a>';
+				$visible_lastvisit_users++;
+			}
+			else
+			{
+				$user_link = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '"' . $style_color .'><i>' . $row['username'] . '</i></a>';
+				$hidden_lastvisit_users++;
+			}
+
+			if ( $row['user_allow_viewonline'] || $userdata['user_level'] == ADMIN )
+			{
+				$lastvisit_userlist .= ( $lastvisit_userlist != '' ) ? ', ' . $user_link : $user_link;
+			}
+		}
+
+		$db->sql_freeresult($result);	
+
+		if ( empty($lastvisit_userlist) )
+		{
+			$lastvisit_userlist = $lang['None'];
+		}
+		else
+		{
+			$lastvisit_userlist = $lang['Registered_users'] . ' ' . $lastvisit_userlist;
+		}
+
+		$total_lastvisit_users = $visible_lastvisit_users + $hidden_lastvisit_users;
+
+		$lastvisit_userlist = sprintf($lang['Last_visit_users'], $total_lastvisit_users, $lastvisit_hours, $visible_lastvisit_users, $hidden_lastvisit_users) . '<BR />' . $lastvisit_userlist;
+		
+	}
+/*****************************
+* MOD: Show last visited users
+* END: AFTER, ADD
+******************************/
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA['LOGGED_IN_USER_LIST' => $online_userlist,]]></find>
+				<action type="after-add"><![CDATA[/*****************************
+* MOD: Show last visited users
+* BEGIN: AFTER, ADD
+******************************/
+	'LAST_VISIT_USER_LIST' => $lastvisit_userlist,
+/*****************************
+* MOD: Show last visited users
+* END: AFTER, ADD
+******************************/]]></action>
+			</edit>
+		</open>
+		<open src="language/lang_english/lang_main.php">
+			<edit>
+				<comment lang="en-gb"><![CDATA[The original phpBB line is :
+$lang['Mod_online_color'] = '%sModerator%s';]]></comment>
+				<find><![CDATA[$lang['Mod_online_color'] =]]></find>
+				<action type="after-add"><![CDATA[/*****************************
+* MOD: Show last visited users
+* BEGIN: AFTER, ADD
+******************************/
+$lang['Last_visit_users'] = 'In total <b>%d</b> users have visited the forum in the last %d hours: %d Registered, %d Hidden';
+/*****************************
+* MOD: Show last visited users
+* END: AFTER, ADD
+******************************/
+]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/index_body.tpl">
+			<edit>
+				<comment lang="en-gb"><![CDATA[The original phpBB line is :
+  <td class="row1" align="center" valign="middle" rowspan="2">
+ so after the increment change, it should become :
+  <td class="row1" align="center" valign="middle" rowspan="3">]]></comment>
+				<find><![CDATA[<td class="row1" align="center" valign="middle" rowspan="{%:1}">]]></find>
+				<action type="operation"><![CDATA[%:1 +1]]></action>
+				<comment lang="en-gb">We add this as a comment just to keep track of changes</comment>
+				<action type="before-add"><![CDATA[	<!-- MOD: Show last visited users : INCREMENT rowspan +1 -->]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[{LOGGED_IN_USER_LIST}</span></td>
+  </tr>]]></find>
+				<action type="after-add"><![CDATA[<!--
+// ****************************
+// MOD: Show last visited users
+// BEGIN: AFTER, ADD
+// ****************************
+//-->
+  <tr> 
+	<td class="row1" align="left"><span class="gensmall">{LAST_VISIT_USER_LIST}</span></td>
+  </tr>
+<!--
+// ****************************
+// MOD: Show last visited users
+// END: AFTER, ADD
+// ****************************
+//-->]]></action>
+			</edit>
+		</open>
+	</action-group>
+</mod>

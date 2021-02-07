@@ -1,0 +1,193 @@
+############################################################## 
+## MOD Title: Refresh index.php 
+## MOD Author: [R: R@m$e$ :U] < Ramses@phpBBGuru.net > (Ramses) http://Ramses.phpBBGuru.net
+## MOD Description: Refresh index.php every x seconds (X - configure in admin)
+## MOD Version: 1.1.1 
+## 
+## Installation Level: Easy 
+## Installation Time: ~3 Minutes 
+## Files To Edit: 
+##      admin/admin_board.php, 
+##      language/lang_english/lang_admin.php
+##      templates/subSilver/admin/board_config_body.tpl
+##      index.php
+## Included Files: 
+##      root/db_update.php
+## 
+##      Translations/Russian 1.1.1.txt
+##      Updates/Refresh index.php [Update from 1.0.0 to 1.1.1].txt
+##      Updates/root/db_update.php
+##      Translations/Russian [Update 1.0.0 to 1.1.1].txt
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes: 
+##      Find bug? Please write me...
+## 
+##      This MOD forbidden for using on F1-Live.ru and all daughters projects of F1-Live.ru
+##      This MOD forbidden for modificating for F1-Live.ru and all daughters projects of F1-Live.ru
+##      Parts of this MOD forbidden for using on F1-Live.ru and all daughters projects of F1-Live.ru
+## 
+##      Run SQL-commands in phpMyAdmin or execute root/db_update.php
+##
+############################################################## 
+## MOD History: 
+## 
+##   2005-03-09 - Version 1.1.1 
+##      - Remake install
+##
+##   2005-02-13 - Version 1.1.0 
+##      - Config in admin =)
+##
+##   2005-02-13 - Version 1.0.0 
+##      - First version +)))
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+
+INSERT INTO phpbb_config (config_name, config_value) VALUES('refresh_index', 1);
+INSERT INTO phpbb_config (config_name, config_value) VALUES('refresh_index_time', 300);
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+admin/admin_board.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+$board_email_form_yes = ( $new['board_email_form'] ) ? "checked=\"checked\"" : "";
+$board_email_form_no = ( !$new['board_email_form'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// [start] Refresh index.php 1.1.1
+$refresh_index_yes = ( $new['refresh_index'] ) ? "checked=\"checked\"" : "";
+$refresh_index_no = ( !$new['refresh_index'] ) ? "checked=\"checked\"" : "";
+// [end] Refresh index.php 1.1.1
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+	"L_FLOOD_INTERVAL" => $lang['Flood_Interval'],
+	"L_FLOOD_INTERVAL_EXPLAIN" => $lang['Flood_Interval_explain'], 
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+
+	// [start] Refresh index.php 1.1.1
+	"L_REFRESH_INDEX" => $lang['Refresh_index'],
+	"L_REFRESH_INDEX_EXPLAIN" => $lang['Refresh_index_explain'], 
+	"L_REFRESH_INDEX_TIME" => $lang['Refresh_index_time'],
+	"L_REFRESH_INDEX_TIME_EXPLAIN" => $lang['Refresh_index_time_explain'], 
+	// [end] Refresh index.php 1.1.1
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+	"FLOOD_INTERVAL" => $new['flood_interval'],
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+
+	// [start] Refresh index.php 1.1.1
+	"REFRESH_INDEX_ENABLE" => $refresh_index_yes, 
+	"REFRESH_INDEX_DISABLE" => $refresh_index_no, 
+	"REFRESH_INDEX_TIME" => $new['refresh_index_time'],
+	// [end] Refresh index.php 1.1.1
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+
+// [start] Refresh index.php 1.1.1
+$lang['Refresh_index'] = 'Refresh index.php';
+$lang['Refresh_index_explain'] = 'If enabled, index.php will be refresh';
+$lang['Refresh_index_time'] = 'Time interval of refreshing index.php';
+$lang['Refresh_index_time_explain'] = 'Time interval, after which index.php refreshing. [ seconds; default - 300 ]';
+// [end] Refresh index.php 1.1.1
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+	<tr>
+		<td class="row1">{L_FLOOD_INTERVAL} <br /><span class="gensmall">{L_FLOOD_INTERVAL_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="flood_interval" value="{FLOOD_INTERVAL}" /></td>
+	</tr>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+
+	<tr>
+		<td class="row1">{L_REFRESH_INDEX}<br /><span class="gensmall">{L_REFRESH_INDEX_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="refresh_index" value="1" {REFRESH_INDEX_ENABLE} /> {L_ENABLED}&nbsp;&nbsp;<input type="radio" name="refresh_index" value="0" {REFRESH_INDEX_DISABLE} /> {L_DISABLED}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_REFRESH_INDEX_TIME} <br /><span class="gensmall">{L_REFRESH_INDEX_TIME_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="refresh_index_time" value="{REFRESH_INDEX_TIME}" /></td>
+	</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+index.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+//
+// End session management
+//
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// [start] Refresh index.php 1.1.1
+if ($board_config['refresh_index'])
+{
+	header('Refresh: ' . $board_config['refresh_index_time'] . '; URL=' . $server_protocol . $server_name . $server_port . $script_name . $url);
+}
+// [end] Refresh index.php 1.1.1
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

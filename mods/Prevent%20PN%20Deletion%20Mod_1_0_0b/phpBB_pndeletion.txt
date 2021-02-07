@@ -1,0 +1,92 @@
+############################################################## 
+## MOD Title: Prevent private messages from beeing deleted Mod
+## MOD Author: PhilippK < phpBB2004@kordowich.net > (Philipp Kordowich) http://phpbb.kordowich.net/
+## MOD Description: Keeps a copy of private messages sent to or recieved from a deleted user in the postbox of the sender or recipient 
+## MOD Version: 1.0.0b
+## 
+## Installation Level: Easy
+## Installation Time: 1 Minute 
+## Files To Edit: admin/admin_users.php
+## Included Files: n/a 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+## Read README.txt for further information
+############################################################## 
+## MOD History: 
+## Read README.txt for mod history
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------------
+# 
+admin/admin_users.php
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+			$sql = "SELECT privmsgs_id
+				FROM " . PRIVMSGS_TABLE . "
+				WHERE privmsgs_from_userid = $user_id 
+					OR privmsgs_to_userid = $user_id";
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+# 
+			$sql = "SELECT privmsgs_id
+				FROM " . PRIVMSGS_TABLE . "
+				WHERE (privmsgs_from_userid = $user_id AND privmsgs_type IN (" . PRIVMSGS_NEW_MAIL . "," . PRIVMSGS_UNREAD_MAIL . "," . PRIVMSGS_SENT_MAIL . "," . PRIVMSGS_SAVED_OUT_MAIL . "))
+					OR (privmsgs_to_userid = $user_id AND privmsgs_type IN (" . PRIVMSGS_NEW_MAIL . "," . PRIVMSGS_UNREAD_MAIL . "," . PRIVMSGS_READ_MAIL . "," . PRIVMSGS_SAVED_IN_MAIL . "))";
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+			if ( count($mark_list) )
+			{
+				$delete_sql_id = implode(', ', $mark_list);
+				
+				$delete_text_sql = "DELETE FROM " . PRIVMSGS_TEXT_TABLE . "
+					WHERE privmsgs_text_id IN ($delete_sql_id)";
+				$delete_sql = "DELETE FROM " . PRIVMSGS_TABLE . "
+					WHERE privmsgs_id IN ($delete_sql_id)";
+				
+				if ( !$db->sql_query($delete_sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not delete private message info', '', __LINE__, __FILE__, $delete_sql);
+				}
+				
+				if ( !$db->sql_query($delete_text_sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not delete private message text', '', __LINE__, __FILE__, $delete_text_sql);
+				}
+			}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+			// Updating the PM records
+			$sql = "UPDATE " . PRIVMSGS_TABLE . "
+				SET privmsgs_from_userid = " . DELETED . "
+				WHERE privmsgs_from_userid = $user_id";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not update private message info', '', __LINE__, __FILE__, $sql);
+			}
+			$sql = "UPDATE " . PRIVMSGS_TABLE . "
+				SET privmsgs_to_userid = " . DELETED . "
+				WHERE privmsgs_to_userid = $user_id";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not update private message info', '', __LINE__, __FILE__, $sql);
+			}
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

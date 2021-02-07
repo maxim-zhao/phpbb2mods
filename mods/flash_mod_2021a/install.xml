@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+  <header>
+    <license />
+    <title lang="en-gb">Flash MOD</title>
+    <description lang="en-gb">Flash BBcode tag MOD, with quick access buttons.
+
+$Id: install.xml,v 1.4 2006/09/26 11:30:22 david Exp $</description>
+    <author-notes lang="en-gb">You must have Multiple BBCode MOD installed for this to work.
+Get it here: http://www.phpbb.com/phpBB/viewtopic.php?t=145513</author-notes>
+    <author-group>
+      <author>
+        <realname>David Smith</realname>
+        <email>davidls14 AT yahoo DOT com DOT au</email>
+        <username>smithy_dll</username>
+        <homepage>http://david.smigit.com/projects/flash-mod/</homepage>
+        <contributions />
+      </author>
+    </author-group>
+    <mod-version>
+      <major>2</major>
+      <minor>0</minor>
+      <revision>21</revision>
+    </mod-version>
+    <installation>
+      <level>easy</level>
+      <time>510</time>
+      <target-version>
+        <target-primary>2.0</target-primary>
+        <target-major allow="exact">2</target-major>
+        <target-minor allow="exact">0</target-minor>
+        <target-minor allow="after">20</target-minor>
+      </target-version>
+    </installation>
+    <history>
+      <entry>
+        <date>2006-09-26</date>
+        <rev-version>
+          <major>2</major>
+          <minor>0</minor>
+          <revision>21</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change>Updated to phpBB 2.0.21 standards</change>
+        </changelog>
+      </entry>
+    </history>
+    <meta name="generator" content="Phpbb.ModTeam.Tools (c#)" />
+  </header>
+  <action-group>
+    <open src="includes/bbcode.php">
+      <edit>
+        <find>   $EMBB_widths = array(''</find>
+        <inline-edit>
+          <inline-find>array(''</inline-find>
+          <inline-action type="after-add">,'50'
+</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>   $EMBB_values = array(''</find>
+        <inline-edit>
+          <inline-find>$EMBB_values = array(''</inline-find>
+          <inline-action type="after-add">,'Flash'
+</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>	$bbcode_tpl['email'] = str_replace('{EMAIL}', '\\1', $bbcode_tpl['email']);</find>
+        <action type="after-add">	// Begin Flash MOD
+	$bbcode_tpl['flash'] = str_replace('{WIDTH}', '\\1', $bbcode_tpl['flash']);
+	$bbcode_tpl['flash'] = str_replace('{HEIGHT}', '\\2', $bbcode_tpl['flash']);
+	$bbcode_tpl['flash'] = str_replace('{LOOP}', '\\3', $bbcode_tpl['flash']);
+	$bbcode_tpl['flash'] = str_replace('{URL}', '\\4', $bbcode_tpl['flash']);
+	$bbcode_tpl['cf'] = str_replace('{URL}', '\\1', $bbcode_tpl['cf']);
+	// End   Flash MOD</action>
+      </edit>
+      <edit>
+        <find>	$replacements[] = $bbcode_tpl['email'];</find>
+        <action type="after-add">	// Begin Flash MOD
+	//[flash width= height= loop= ]and[/flash]code.. 
+	$patterns[] = "#\[flash width=([0-6]?[0-9]?[0-9]) height=([0-5]?[0-9]?[0-9]) loop=(true|false):$uid\](.*?)\[/flash:$uid\]#si"; 
+	$replacements[] = $bbcode_tpl[flash];
+	//[flash]and[/flash]code.. 
+	$patterns[] = "#\[flash:$uid\](.*?)\[/flash:$uid\]#si"; 
+	$replacements[] = $bbcode_tpl[cf];
+	// End   Flash MOD</action>
+      </edit>
+      <edit>
+        <find>	$text = preg_replace("#\[img\]((</find>
+        <action type="after-add">	// Begin Flash MOD
+	//[flash width= heigth= loop=] and[ /flash ]
+	$text = preg_replace("#\[flash width=([0-6]?[0-9]?[0-9]) height=([0-4]?[0-5]?[0-9]) loop=(true|false)\](([a-z]+?)://([^, \n\r]+))\[\/flash\]#si","[flash width=\\1 height=\\2 loop=\\3:$uid\]\\4[/flash:$uid]", $text); 
+	$text = preg_replace("#\[flash width=([0-6]?[0-9]?[0-9]) height=([0-4]?[0-5]?[0-9])\](([a-z]+?)://([^, \n\r]+))\[\/flash\]#si","[flash width=\\1 height=\\2 loop=false:$uid\]\\3[/flash:$uid]", $text); 
+	$text = preg_replace("#\[flash\](([a-z]+?)://([^, \n\r]+))\[\/flash\]#si","[flash:$uid\]\\1[/flash:$uid]", $text); 
+	// End   Flash MOD</action>
+        <comment lang="en-gb"><![CDATA[Note, the find is much longer:
+	$text = preg_replace("#\[img\]((http|ftp|https|ftps)://)([^ \?&=\#\"\n\r\t<]*?(\.(jpg|jpeg|gif|png)))\[/img\]#sie", "'[img:$uid]\\1' . str_replace(' ', '%20', '\\3') . '[/img:$uid]'", $text);]]></comment>
+      </edit>
+    </open>
+    <open src="language/lang_english/lang_main.php">
+      <edit>
+        <find>$lang['bbcode_f_help'] =
+</find>
+        <action type="after-add">
+$lang['bbcode_help']['flash'] = 'Flash: [flash width=000 height=000 loop=(true|false)]url to swf file[/flash] (alt+%s)';
+</action>
+        <comment lang="en-gb">NOTE: the full line to look for is:
+$lang['bbcode_f_help'] = "Font size: [size=x-small]small text[/size]";
+</comment>
+      </edit>
+    </open>
+    <open src="templates/subSilver/bbcode.tpl">
+      <edit>
+        <find><![CDATA[<!-- BEGIN email --><a href="mailto:{EMAIL}">{EMAIL}</a><!-- END email -->]]></find>
+        <action type="after-add"><![CDATA[
+<!-- BEGIN flash -->
+<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=5,0,0,0" width="{WIDTH}" height="{HEIGHT}">
+  <param name="allowScriptAccess" value="never" />
+  <param name="movie" value="{URL}" />
+  <param name="loop" value="{LOOP}" />
+  <param name="quality" value="high" />
+  <param name="scale" value="noborder" />
+  <param name="wmode" value="transparent" />
+  <param name="bgcolor" value="#000000" />
+  <embed allowScriptAccess="never" src="{URL}" loop="{LOOP}" quality="high" scale="noborder" wmode="transparent" bgcolor="#000000" width="{WIDTH}" height="{HEIGHT}" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"></embed> 
+</object><!-- END flash --> 
+
+<!-- BEGIN cf -->
+<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=5,0,0,0">
+  <param name="allowScriptAccess" value="never" />
+  <param name="movie" value="{URL}" />
+  <param name="quality" value="high" />
+  <param name="scale" value="noborder" />
+  <param name="wmode" value="transparent" />
+  <param name="bgcolor" value="#000000" />
+  <embed allowScriptAccess="never" src="{URL}" quality="high" scale="noborder" wmode="transparent" bgcolor="#000000" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/shockwave/download/index.cgi?P1_Prod_Version=ShockwaveFlash"></embed> 
+</object><!-- END cf -->
+]]></action>
+      </edit>
+    </open>
+    <open src="templates/subSilver/posting_body.tpl">
+      <edit>
+        <find>bbtags = new Array(
+</find>
+        <inline-edit>
+          <inline-find>'[url]','[/url]'
+</inline-find>
+          <inline-action type="after-add">,'[flash]','[/flash]'
+</inline-action>
+        </inline-edit>
+        <comment lang="en-gb">NOTE: the actual line to find is MUCH longer, containing all the bbcode tags
+</comment>
+      </edit>
+    </open>
+  </action-group>
+</mod>

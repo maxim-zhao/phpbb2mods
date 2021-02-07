@@ -1,0 +1,130 @@
+##############################################################
+## MOD Title: Forum specific Rules
+## MOD Author: Lord Le Brand < lordlebrand@hotmail.com > (n/a) n/a
+## MOD Description: This addon allows you to add rules on a per-forum basis.
+##                  They are displayed like this: rules.php?f=1
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: 1 Minute
+## Files To Edit: rules.php,
+##                language/lang_english/lang_rules.php
+##
+## Included Files:	n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2006-12-10 - Version 1.0.0
+##      - Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]---------------------------------
+#
+rules.php
+#
+#-----[ FIND ]---------------------------------
+#
+for($i = 0; $i < count($faq); $i++)
+{
+#
+#-----[ BEFORE, ADD ]---------------------------------
+#
+
+if ( isset ( $HTTP_GET_VARS[POST_FORUM_URL] ) )
+{
+	$forum_id = $HTTP_GET_VARS[POST_FORUM_URL];
+	$is_auth = array();
+	$is_auth = auth(AUTH_ALL, $forum_id, $userdata);
+	if ( key_exists( $forum_id, $forum_rules ) && sizeof( $forum_rules[$forum_id] ) && $is_auth['auth_read'] && $is_auth['auth_view'] )
+	{
+		for($i = 0; $i < count($forum_rules[$forum_id]); $i++)
+		{
+			if( $faq[$i][0] != '--' )
+			{
+				$faq_block[$j][$counter]['id'] = $counter_2;
+				$faq_block[$j][$counter]['question'] = $forum_rules[$forum_id][$i][0];
+				$faq_block[$j][$counter]['answer'] = $forum_rules[$forum_id][$i][1];
+		
+				$counter++;
+				$counter_2++;
+			}
+			else
+			{
+				$j = ( $counter != 0 ) ? $j + 1 : 0;
+		
+				$faq_block_titles[$j] = $forum_rules[$forum_id][$i][1];
+		
+				$counter = 0;
+			}
+		}
+	}
+	else
+	{
+		message_die(GENERAL_MESSAGE, $lang['No_forum_rules']);
+	}
+}
+else
+{
+
+#
+#-----[ FIND ]---------------------------------
+#
+		$counter = 0;
+	}
+}
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+}
+#
+#-----[ OPEN ]---------------------------------
+#
+language/lang_english/lang_rules.php
+#
+#-----[ FIND ]---------------------------------
+#
+// This ends the Rules entries
+//
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+
+/**
+ * Forum Specific rules
+ *
+ * To add forum specific rules, add the forum id to the array, like so:
+ *
+ *	$forum_rules = array(
+ *		1 => array(),
+ *		3 => array()
+ *	);
+ *
+ * Then add the entries to $forum_rules[forumid], see example below
+ */
+
+$forum_rules = array(
+	1 => array()
+);
+
+$forum_rules[1][] = array("--", "Posting guidelines for Forum ID 1");
+$forum_rules[1][] = array("Rule 1", "Posting in Forum ID 1 can only be done by admins");
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

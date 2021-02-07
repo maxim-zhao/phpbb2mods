@@ -1,0 +1,174 @@
+##########################################################[easymod friendly]###
+## MOD Title: Compatibility fix for Approval MOD / Topics Anywhere MOD
+##
+## MOD Author: uncle.f < soft@purple-yonder.com > (N/A) http://purple-yonder.com/approval_mod
+##
+## MOD Description: Compatibility fix for Topics Anywhere MOD v1.11.0.
+##                  Should be installed after the Approval MOD.
+##
+## MOD Version: 2.0.0.topics-anywhere-fix
+##
+## Installation Level: Easy
+##
+## Installation Time: 10 Minutes
+##
+## Files To Edit: topics_anywhere.php
+##
+## Included Files: n/a
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+###############################################################################
+##
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##
+###############################################################################
+##
+## Author Notes:
+##
+## - This fix should be applied only if you have Topics Anywhere MOD v1.11.0
+##   installed (http://www.afsvlaanderen.be/topics_anywhere/)
+##
+###############################################################################
+##
+## MOD History:
+##
+##   2007-06-16 - Fix released
+##
+###############################################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+###############################################################################
+
+
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+topics_anywhere.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+if (isset($HTTP_GET_VARS['so'])
+{
+$sql
+FROM
+WHERE
+$forum_sql
+AND
+AND
+AND
+AND
+$noreply_sql
+$startdate_sql
+$announce_sql
+$sticky_sql
+$locked_sql
+$moved_sql
+$reg_sql
+ORDER BY
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+= t.topic_last_post_id
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+= t.topic_last_post_approved AND t.topic_approve = 0
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+ORDER BY t.topic_last_post_id
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+ORDER BY t.topic_last_post_approved
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ($HTTP_GET_VARS['a'] == 'y')
+{
+$sql
+FROM
+WHERE
+$forum_sql
+AND
+AND
+AND
+AND
+$noreply_sql
+$startdate_sql
+ORDER BY
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+= t.topic_last_post_id
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+= t.topic_last_post_approved AND t.topic_approve = 0
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+ORDER BY t.topic_last_post_id
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+ORDER BY t.topic_last_post_approved
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ($limit)
+{
+$sql
+FROM
+WHERE
+$forum_sql
+AND
+AND
+AND
+AND
+AND
+$noreply_sql
+$startdate_sql
+$sticky_sql
+$locked_sql
+$moved_sql
+$reg_sql
+ORDER BY
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+= t.topic_last_post_id
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+= t.topic_last_post_approved AND t.topic_approve = 0
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+t.topic_last_post_id DESC
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+t.topic_last_post_approved DESC
+#
+#-----[ FIND ]---------------------------------------------
+#
+$data[$i]['topic_last_post_id'] = $topic_rowset[$i]['topic_last_post_id'];
+#
+#-----[ REPLACE WITH ]-----
+#
+				$data[$i]['topic_last_post_id'] = $topic_rowset[$i]['topic_last_post_approved'];
+#
+#
+#######################################################################################################################
+#
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------------------------
+#
+# EoM

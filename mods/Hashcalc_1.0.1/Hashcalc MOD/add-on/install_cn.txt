@@ -1,0 +1,181 @@
+######################################################## 
+## 外挂名称: Hashcalc MOD Add-on: Display Hash for all files in the chosen folder
+## 外挂作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外挂描述: 这个附加外挂允许显示在设定目录下的所有档案的校验码: MD5, SFV 和 SHA-1.
+## 外挂版本: 1.0.0
+## 
+## 安装难度: 简单
+## 安装时间: 5 分钟
+##
+## 需要编辑的档案: 5
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	includes/page_header.php
+##	hashcalc.php
+##	templates/subSilver/hashcalc_body.tpl
+##	templates/subSilver/hashcalc_results_body.tpl
+##
+## 附加的档案: 0
+##
+## 版权声明: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## 由于安全上的考量, 请检查: http://www.phpbb.com/mods/
+## 是否有此外挂的最新版本. 虽然在加入外挂资料库前，外挂已经经过检查
+## 但是这并不保证外挂中完全没有安全上的问题. 
+## 对于不在外挂资料库 (http://www.phpbb.com/mods/) 内的外挂
+## 将不会在 phpbb.com 的讨论板内给予支援 
+############################################################## 
+## 作者留言:
+##
+##	此外挂在 2.0.18 上测试过. 可以用 EasyMOD 0.3.0 来安装此外挂
+## 
+############################################################## 
+## 版本历史: 
+##
+##   2005-12-11 - 版本 1.0.0
+##      - 首次发布
+##
+############################################################## 
+## 在增加此外挂前, 请务必备份所有需要修改的档案
+##############################################################
+
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_main.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+$lang['No_hash_match'] =
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+$lang['Display_file_hash'] = '显示档案校验码列表';
+$lang['Empty_directory'] = '目录是空的';
+# 
+#-----[ 打开 ]------------------------------------------ 
+#  
+includes/page_header.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+	'U_HASHCALC' => append_sid('hashcalc.'.$phpEx),
+# 
+#-----[ 取代为 ]------------------------------------------ 
+# 
+	'U_HASHCALC' => append_sid("hashcalc.$phpEx?mode=display_hash"),
+# 
+#-----[ 打开 ]------------------------------------------ 
+#  
+hashcalc.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+		message_die(GENERAL_MESSAGE, $lang['No_hash_match']);
+	}
+}
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+else if ( $mode == "display_hash" )
+{
+	include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+
+	$template->set_filenames(array(
+		'hashcalc' => 'hashcalc_results_body.tpl')
+	);
+
+	make_jumpbox('viewforum.'.$phpEx);
+
+	$template->assign_vars(array(
+		"L_FILE" => $lang['File'],
+		"L_FILE_HASH" => $lang['File_hash'],
+		"L_HASH_MD5" => $lang['Hash_MD5'],
+		"L_HASH_SHA1" => $lang['Hash_SHA1'],
+		"L_HASH_SFV" => $lang['Hash_SFV'])
+	);
+
+	// Get directory and filename
+	$dir = @opendir($phpbb_root_path . $board_config['hashculc_file_path']);
+	
+	$files = array();
+	while (false !== ($filename = readdir($dir)))
+	{
+		if ($filename != "." && $filename != "..")
+		{
+			$files[] = $filename;
+		}
+	}
+	@closedir($dir);
+
+	if (count($files) == 0)
+	{
+		message_die(GENERAL_MESSAGE, $lang['Empty_directory']);
+	}
+
+	foreach ($files as $filename)
+	{
+		$filepath = $phpbb_root_path . $board_config['hashculc_file_path'].'/'.$filename;
+
+		$md5sum = md5_file($filepath);
+		$sha1_file = sha1_file($filepath);
+		$sfv_checksum = strtoupper(dechex(crc32(file_get_contents($filepath))));
+
+		$template->assign_block_vars('file_hashes', array(
+			"FILENAME" => $filename,
+			"MD5" => $md5sum,
+			"SHA1" => $sha1_file,
+			"SFV" => $sfv_checksum)
+		);
+	}
+
+	$template->pparse('hashcalc');
+
+	include($phpbb_root_path . 'includes/page_tail.'.$phpEx);
+}
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+	'L_SEARCH_FILE_HASH_EXPLAINED' => $lang['Search_file_hash_explained'],
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	'L_DISPLAY_FILE_HASH' => $lang['Display_file_hash'],
+
+	'U_DISPLAY_FILE_HASH' => append_sid("hashcalc.$phpEx?mode=display_hash"),
+# 
+#-----[ 打开 ]------------------------------------------ 
+#
+templates/subSilver/hashcalc_body.tpl
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+		<td align="left"><span class="nav"><a href="{U_INDEX}" class="nav">{L_INDEX}</a></span></td>
+	</tr>
+</table>
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+<p align="center"><span class="gen"><a href="{U_DISPLAY_FILE_HASH}" class="gen">{L_DISPLAY_FILE_HASH}</a></span></p>
+# 
+#-----[ 打开 ]------------------------------------------ 
+#
+templates/subSilver/hashcalc_results_body.tpl
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+	</tr>
+	<!-- END file_hash -->
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	<!-- BEGIN file_hashes -->
+	<tr>
+		<td class="row1" align="center"><span class="gen">{file_hashes.FILENAME}</span></td>
+		<td class="row2" align="left"><span class="gen">{L_HASH_MD5}: {file_hashes.MD5}<br />{L_HASH_SHA1}: {file_hashes.SHA1}<br />{L_HASH_SFV}: {file_hashes.SFV}</span></td>
+	</tr>
+	<!-- END file_hashes -->
+# 
+#-----[ 储存/关闭所有档案 ]------------------------------------------ 
+# 
+#
+# 外挂修正结束

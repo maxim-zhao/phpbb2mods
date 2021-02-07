@@ -1,0 +1,167 @@
+############################################################## 
+## MOD Title: Topic display order - upgrade from 1.0.1 to 1.0.2
+## MOD Author: Ptirhiik < admin@rpgnet-fr.com > (Ptirhiik) http://www.rpgnet-fr.com
+## MOD Description: 
+##		Upgrade topic display order from 1.0.1 to 1.0.2
+## MOD Version: 1.0.2
+## 
+## Installation Level: easy 
+## Installation Time: 10 Minutes 
+## Files To Edit: 
+##			viewforum.php
+##			templates/subSilver/viewforum_body.tpl
+##
+## Included Files: n/a
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##	this mod is just an upgrade for the topic display order mod v 1.0.1
+##
+##	- Part 1 is common to all installation
+##	- Part 2 is for installation without the split topic type v 2 mod
+##	- Part 3 is for installation with categories hierarchy v 2 mod
+############################################################## 
+## MOD History: 
+## 
+##   2003-09-14 - Version 1.0.2
+##      - minor adjustement in viewforum
+##	- split the descro in three parts
+## 
+##   2003-07-17 - Version 1.0.1
+##      - add the default choice in forum administration
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_forums ADD forum_display_sort TINYINT(1) NOT NULL;
+ALTER TABLE phpbb_forums ADD forum_display_order TINYINT(1) NOT NULL;
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- delete
+// $sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_username, p2.post_username AS post_username2, p2.post_time 
+//	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TABLE . " p2, " . USERS_TABLE . " u2
+//	WHERE t.forum_id = $forum_id
+//		AND t.topic_poster = u.user_id
+//		AND p.post_id = t.topic_first_post_id
+//		AND p2.post_id = t.topic_last_post_id
+//		AND u2.user_id = p2.poster_id 
+//		AND t.topic_type <> " . POST_ANNOUNCE . " 
+//		$limit_topics_time
+//	ORDER BY t.topic_type DESC, t.topic_last_post_id DESC 
+//	LIMIT $start, ".$board_config['topics_per_page'];
+//-- add
+//
+
+// default forum values
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- add
+// default forum values
+#
+#-----[ FIND ]------------------------------------------------
+#
+$order_list = '<select name="order">' . get_forum_display_sort_option($order_value, 'list', 'order') . '</select>';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// display
+$s_display_order = '&nbsp;' . $lang['Sort_by'] . ':&nbsp;' . $sort_list . $order_list . '&nbsp;';
+#
+#-----[ FIND ]------------------------------------------------
+#
+// read topics
+$sort_method = get_forum_display_sort_option($sort_value, 'field', 'sort');
+$order_method = get_forum_display_sort_option($order_value, 'field', 'order');
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// selected method
+$sort_method = get_forum_display_sort_option($sort_value, 'field', 'sort');
+$order_method = get_forum_display_sort_option($order_value, 'field', 'order');
+//-- fin mod : topic display order -----------------------------------------------------------------
+
+//-- mod : topic display order ---------------------------------------------------------------------
+// here we added 
+//	, $sort_method $order_method
+//-- modify
+#
+#-----[ FIND ]------------------------------------------------
+#
+make_jumpbox('viewforum.'.$phpEx);
+//-- mod : topic display order ---------------------------------------------------------------------
+//-- add
+$template->assign_vars(array(
+	'L_SORT_METHOD' => $lang['Sort_by'],
+	'S_SORT_METHOD' => $sort_list,
+	'S_ORDER'	=> $order_list,
+	)
+);
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+make_jumpbox('viewforum.'.$phpEx);
+#
+#-----[ FIND ]------------------------------------------------
+#
+if( $total_topics )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+//-- add
+$template->assign_vars(array(
+	'S_DISPLAY_ORDER' => $s_display_order
+	)
+);
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+//-- delete
+//		'PAGINATION' => generate_pagination("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;topicdays=$topic_days", $topics_count, $board_config['topics_per_page'], $start),
+//-- add
+		'PAGINATION' => generate_pagination("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;topicdays=$topic_days&amp;sort=$sort_value&amp;order=$order_value", $topics_count, $board_config['topics_per_page'], $start),
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+// here we added 
+//	&amp;sort=$sort_value&amp;order=$order_value
+//-- modify
+		'PAGINATION' => generate_pagination("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;topicdays=$topic_days&amp;sort=$sort_value&amp;order=$order_value", $topics_count, $board_config['topics_per_page'], $start),
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+	  <td class="catBottom" align="center" valign="middle" colspan="6" height="28"><span class="genmed">{L_DISPLAY_TOPICS}:&nbsp;{S_SELECT_TOPIC_DAYS}&nbsp;
+		&nbsp;{L_SORT_METHOD}:&nbsp;{S_SORT_METHOD}&nbsp;{S_ORDER}&nbsp;
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+	  <td class="catBottom" align="center" valign="middle" colspan="6" height="28"><span class="genmed">{L_DISPLAY_TOPICS}:&nbsp;{S_SELECT_TOPIC_DAYS}&nbsp;{S_DISPLAY_ORDER}
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

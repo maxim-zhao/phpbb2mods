@@ -1,0 +1,1420 @@
+######################################################## 
+## MOD Title: Business Card MOD
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This is a comprehensive Business Card modification. And it requires "Configure Member Profile Required Fields" MOD to be installed before using this MOD
+## MOD Version:	1.0.2
+## 
+## Installation Level: Intermediate 
+## Installation Time: 20 Minutes 
+##
+## Files To Edit: 24
+##	viewtopic.php
+##	memberlist.php
+##	admin/admin_board.php
+##	admin/admin_users.php
+##	admin/admin_profile_field.php
+##	includes/usercp_register.php
+##	includes/usercp_viewprofile.php
+##	includes/functions_validate.php
+##	includes/usercp_avatar.php
+##	includes/constants.php
+##	includes/page_header.php
+##	includes/functions.php
+##	language/lang_english/lang_admin.php
+##	language/lang_english/lang_main.php
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/profile_view_body.tpl
+##	templates/subSilver/memberlist_body.tpl
+##	templates/subSilver/viewtopic_body.tpl
+##	templates/subSilver/overall_header.tpl
+##	templates/subSilver/simple_header.tpl
+##	templates/subSilver/subSilver.css
+##	templates/subSilver/subSilver.cfg
+##	templates/subSilver/admin/user_edit_body.tpl
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/admin/admin_profile_field.tpl
+##
+## Included Files: 5
+##	root/lang_english/icon_bc.gif
+##	root/viewbc.php
+##	root/member_bclist.php
+##	root/bc_view_body.tpl
+##	root/member_bclist_body.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+##	This MOD requires "Configure Member Profile Required Fields" MOD to be installed before-hand
+##	It's currently available on:
+##		http://www.phpbb.com/phpBB/viewtopic.php?t=344484
+##		http://sourceforge.net/projects/macphpbbmod
+##
+## 	Tested on 2.0.19. Can be installed using EasyMOD 0.3.0
+##
+## Feature List:
+##	% ACP - Business Card Viewing privilege settings
+##	% ACP - Business Card registration fields input requirement settings
+##	% ACP - User Business Card registration fields in User Admin :: Management
+##	% Index - Link to Member Business Card List + viewing privilege control
+##	% Memberlist - Business Card image link to members' Business Cards + viewing privilege control
+##	% Viewtopic - Business Card image link to members' Business Cards + viewing privilege control
+##	% Viewprofile - Business Card image link to members' Business Cards + viewing privilege control
+##	% Registration - Business Card information + fields input requirement
+##	% Profile Edit - Business Card information + fields input requirement
+##	% Member Business Card List - Show every member's Business Card details + viewing privilege control
+##	% Business Card - Show a single member's Business Card details + viewing privilege control
+##
+############################################################## 
+## MOD History: 
+##
+##   2005-11-16 - Version 1.0.0
+##      - Initial Release
+##
+##   2005-12-11 - Version 1.0.1
+##      - Update PAGE constants to avoid clashes with my other MOD
+##
+##   2006-01-08 - Version 1.0.2
+##      - Small tweak to make the MOD installable on 2.0.19
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------------
+# 
+In case you have not read my Author's Note, This MOD requires "Configure Member Profile Required Fields" MOD
+It's currently available on:
+	http://www.phpbb.com/phpBB/viewtopic.php?t=344484
+	http://sourceforge.net/projects/macphpbbmod
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+ALTER TABLE phpbb_users ADD user_real_name VARCHAR(50) NOT NULL;
+ALTER TABLE phpbb_users ADD user_designation VARCHAR(100) NOT NULL;
+ALTER TABLE phpbb_users ADD user_country VARCHAR(50) NOT NULL;
+ALTER TABLE phpbb_users ADD user_company VARCHAR(100) NOT NULL;
+ALTER TABLE phpbb_users ADD user_company_address VARCHAR(255) NOT NULL;
+ALTER TABLE phpbb_users ADD user_com_add_bbcode_uid VARCHAR(10) NULL;
+ALTER TABLE phpbb_users ADD user_company_logo VARCHAR(255) NOT NULL;
+INSERT INTO phpbb_config VALUES('business_card_viewing','2');
+INSERT INTO phpbb_profile_config VALUES('real_name','1');
+INSERT INTO phpbb_profile_config VALUES('designation','0');
+INSERT INTO phpbb_profile_config VALUES('country','0');
+INSERT INTO phpbb_profile_config VALUES('company','0');
+INSERT INTO phpbb_profile_config VALUES('company_address','0');
+INSERT INTO phpbb_profile_config VALUES('company_logo','0');
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy root/viewbc.php to viewbc.php
+copy root/bc_view_body.tpl to templates/subSilver/bc_view_body.tpl
+copy root/member_bclist.php to member_bclist.php
+copy root/member_bclist_body.tpl to templates/subSilver/member_bclist_body.tpl
+copy root/lang_english/icon_bc.gif to templates/subSilver/images/lang_english/icon_bc.gif
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$lang['BC_mod'] = 'Business Card MOD Configurations';
+$lang['BC_viewing'] = 'Member business card information viewing privileges';
+$lang['BC_viewing_guest'] = 'Everyone';
+$lang['BC_viewing_member'] = 'Member only';
+$lang['BC_viewing_admin'] = 'Administrator only';
+$lang['BC_reg'] = 'Business Card MOD registration options';
+$lang['BC_information'] = 'Business Card information';
+$lang['BC_real_name'] = 'Real Name';
+$lang['BC_company'] = 'Company Name';
+$lang['BC_company_logo'] = 'Company Logo URI';
+$lang['BC_country'] = 'Country';
+$lang['BC_company_address'] = 'Company Address';
+$lang['BC_company_logo'] = 'Company Logo';
+$lang['BC_max_chars'] = 'There is a 255 character limit';
+$lang['BC_info_guest'] = 'This information will be publicly viewable';
+$lang['BC_info_member'] = 'This information will only be viewable by registered members';
+$lang['BC_info_admin'] = 'This information will only be viewable by administrator';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$lang['BC_information'] = 'Business Card Information';
+$lang['BC_real_name'] = 'Real Name';
+$lang['BC_company'] = 'Company Name';
+$lang['BC_designation'] = 'Designation';
+$lang['BC_country'] = 'Country';
+$lang['BC_company_address'] = 'Company Address';
+$lang['BC_company_logo'] = 'Company Logo';
+$lang['BC_max_chars'] = 'There is a 255 character limit';
+$lang['BC_info_guest'] = 'This information will be publicly viewable';
+$lang['BC_info_member'] = 'This information will only be viewable by registered members';
+$lang['BC_info_admin'] = 'This information will only be viewable by administrator';
+$lang['Business_card'] = 'Business Card';
+$lang['Viewing_bc'] = 'Viewing Business Card';
+$lang['Viewing_user_bc'] = 'Viewing Business Card :: %s';
+$lang['Member_bclist'] = 'Memeber Business Card List';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_users.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$interests = ( !empty($HTTP_POST_VARS['interests']) ) ? trim(strip_tags( $HTTP_POST_VARS['interests'] ) ) : '';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$real_name = ( !empty($HTTP_POST_VARS['real_name']) ) ? trim(strip_tags( $HTTP_POST_VARS['real_name'] ) ) : '';
+		$company = ( !empty($HTTP_POST_VARS['company']) ) ? trim(strip_tags( $HTTP_POST_VARS['company'] ) ) : '';
+		$designation = ( !empty($HTTP_POST_VARS['designation']) ) ? trim(strip_tags( $HTTP_POST_VARS['designation'] ) ) : '';
+		$country = ( !empty($HTTP_POST_VARS['country']) ) ? trim(strip_tags( $HTTP_POST_VARS['country'] ) ) : '';
+		$company_address = ( !empty($HTTP_POST_VARS['company_address']) ) ? trim(strip_tags( $HTTP_POST_VARS['company_address'] ) ) : '';
+		$company_logo = ( !empty($HTTP_POST_VARS['company_logo']) ) ? trim(strip_tags( $HTTP_POST_VARS['company_logo'] ) ) : '';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		validate_optional_fields($icq,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+$interests,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ $real_name, $company, $designation, $country, $company_address, $company_logo,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$interests = htmlspecialchars(stripslashes($interests));
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$real_name = htmlspecialchars(stripslashes($real_name));
+			$company = htmlspecialchars(stripslashes($company));
+			$designation = htmlspecialchars(stripslashes($designation));
+			$country = htmlspecialchars(stripslashes($country));
+			$company_address = htmlspecialchars(stripslashes($company_address));
+			$company_logo = htmlspecialchars(stripslashes($company_logo));
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				$error_msg .=  ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Signature_too_long'];
+			}
+		}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		if ($company_address != '')
+		{
+			$com_add_bbcode_uid = ( $allowbbcode ) ? make_bbcode_uid() : '';
+		}
+		$company_address = prepare_message($company_address, $allowhtml, $allowbbcode, $allowsmilies, $com_add_bbcode_uid);
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				SET " . $username_sql . $passwd_sql . "user_email =
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+user_interests = '" . str_replace("\'", "''", $interests) . "',
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ user_real_name = '" . str_replace("\'", "''", $real_name) . "', user_company = '" . str_replace("\'", "''", $company) . "', user_designation = '" . str_replace("\'", "''", $designation) . "', user_country = '" . str_replace("\'", "''", $country) . "', user_company_address = '" . str_replace("\'", "''", $company_address) . "', user_com_add_bbcode_uid = '" . str_replace("\'", "''", $com_add_bbcode_uid) . "', user_company_logo = '" . str_replace("\'", "''", $company_logo) . "',
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$interests = htmlspecialchars(stripslashes($interests));
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$real_name = htmlspecialchars(stripslashes($real_name));
+			$company = htmlspecialchars(stripslashes($company));
+			$designation = htmlspecialchars(stripslashes($designation));
+			$country = htmlspecialchars(stripslashes($country));
+			$company_address = htmlspecialchars(stripslashes($company_address));
+			$company_logo = htmlspecialchars(stripslashes($company_logo));
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$interests = htmlspecialchars($this_userdata['user_interests']);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$real_name = htmlspecialchars($this_userdata['user_real_name']);
+		$company = htmlspecialchars($this_userdata['user_company']);
+		$designation = htmlspecialchars($this_userdata['user_designation']);
+		$country = htmlspecialchars($this_userdata['user_country']);
+		$company_address = ($this_userdata['user_com_add_bbcode_uid'] != '') ? preg_replace('#:' . $this_userdata['user_com_add_bbcode_uid'] . '#si', '', $this_userdata['user_company_address']) : $this_userdata['user_company_address'];
+		$company_address = preg_replace($html_entities_match, $html_entities_replace, $company_address);
+		$company_logo = htmlspecialchars($this_userdata['user_company_logo']);
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="interests" value="' . str_replace("\"", "&quot;", $interests) . '" />';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="real_name" value="' . str_replace("\"", "&quot;", $real_name) . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="company" value="' . str_replace("\"", "&quot;", $company) . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="designation" value="' . str_replace("\"", "&quot;", $designation) . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="country" value="' . str_replace("\"", "&quot;", $country) . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="company_address" value="' . str_replace("\"", "&quot;", $company_address) . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="company_logo" value="' . str_replace("\"", "&quot;", $company_logo) . '" />';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$template->assign_vars(array(
+			'USERNAME' => $username,
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+		if ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST )
+		{
+			$bc_info_notice = $lang['BC_info_guest'];
+		}
+		elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER )
+		{
+			$bc_info_notice = $lang['BC_info_member'];
+		}
+		elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN )
+		{
+			$bc_info_notice = $lang['BC_info_admin'];
+		}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'INTERESTS' => $interests,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'BC_REAL_NAME' => $real_name,
+			'BC_COMPANY' => $company,
+			'BC_DESIGNATION' => $designation,
+			'BC_COUNTRY' => $country,
+			'BC_COMPANY_ADDRESS' => $company_address,
+			'BC_COMPANY_LOGO' => $company_logo,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'L_NO' => $lang['No'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+			'L_BC_INFORMATION' => $lang['BC_information'],
+			'L_BC_REAL_NAME' => ($required_field_config['real_name']) ? $lang['BC_real_name'] . ': *' : $lang['BC_real_name'] . ':',
+			'L_BC_COMPANY' => ($required_field_config['company']) ? $lang['BC_company'] . ': *' : $lang['BC_company'] . ':',
+			'L_BC_DESIGNATION' => ($required_field_config['designation']) ? $lang['BC_designation'] . ': *' : $lang['BC_designation'] . ':',
+			'L_BC_COUNTRY' => ($required_field_config['country']) ? $lang['BC_country'] . ': *' : $lang['BC_country'] . ':',
+			'L_BC_COMPANY_ADDRESS' => ($required_field_config['company_address']) ? $lang['BC_company_address'] . ': *' : $lang['BC_company_address'] . ':',
+			'L_BC_COMPANY_LOGO' => ($required_field_config['company_logo']) ? $lang['BC_company_logo'] . ': *' : $lang['BC_company_logo'] . ':',
+			'L_BC_MAX_CHAR' => $lang['BC_max_chars'],
+			'L_BC_INFO_NOTICE' => $bc_info_notice,
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_profile_field.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$user_interests_yes = ( $new['interests'] ) ? "checked=\"checked\"" : "";
+$user_interests_no = ( !$new['interests'] ) ? "checked=\"checked\"" : "";
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$user_real_name_yes = ( $new['real_name'] ) ? "checked=\"checked\"" : "";
+$user_real_name_no = ( !$new['real_name'] ) ? "checked=\"checked\"" : "";
+
+$user_company_yes = ( $new['company'] ) ? "checked=\"checked\"" : "";
+$user_company_no = ( !$new['company'] ) ? "checked=\"checked\"" : "";
+
+$user_designation_yes = ( $new['designation'] ) ? "checked=\"checked\"" : "";
+$user_designation_no = ( !$new['designation'] ) ? "checked=\"checked\"" : "";
+
+$user_country_yes = ( $new['country'] ) ? "checked=\"checked\"" : "";
+$user_country_no = ( !$new['country'] ) ? "checked=\"checked\"" : "";
+
+$user_company_address_yes = ( $new['company_address'] ) ? "checked=\"checked\"" : "";
+$user_company_address_no = ( !$new['company_address'] ) ? "checked=\"checked\"" : "";
+
+$user_company_logo_yes = ( $new['company_logo'] ) ? "checked=\"checked\"" : "";
+$user_company_logo_no = ( !$new['company_logo'] ) ? "checked=\"checked\"" : "";
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"L_USER_INTEREST" => $lang['Interests'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	'L_BC_INFORMATION' => $lang['BC_information'],
+	'L_BC_REAL_NAME' => $lang['BC_real_name'],
+	'L_BC_COMPANY' => $lang['BC_company'],
+	'L_BC_DESIGNATION' => $lang['BC_designation'],
+	'L_BC_COUNTRY' => $lang['BC_country'],
+	'L_BC_COMPANY_ADDRESS' => $lang['BC_company_address'],
+	'L_BC_COMPANY_LOGO' => $lang['BC_company_logo'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"ICQ_YES" => $user_icq_yes,
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	'BC_REAL_NAME_YES' => $user_real_name_yes,
+	'BC_REAL_NAME_NO' => $user_real_name_no,
+	'BC_COMPANY_YES' => $user_company_yes,
+	'BC_COMPANY_NO' => $user_company_no,
+	'BC_DESIGNATION_YES' => $user_designation_yes,
+	'BC_DESIGNATION_NO' => $user_designation_no,
+	'BC_COUNTRY_YES' => $user_country_yes,
+	'BC_COUNTRY_NO' => $user_country_no,
+	'BC_COMPANY_ADDRESS_YES' => $user_company_address_yes,
+	'BC_COMPANY_ADDRESS_NO' => $user_company_address_no,
+	'BC_COMPANY_LOGO_YES' => $user_company_logo_yes,
+	'BC_COMPANY_LOGO_NO' => $user_company_logo_no,
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$template->set_filenames(array(
+	"body" => "admin/board_config_body.tpl")
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$business_card_viewing_guest = ( $new['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST ) ? "checked=\"checked\"" : "";
+$business_card_viewing_member = ( $new['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER ) ? "checked=\"checked\"" : "";
+$business_card_viewing_admin = ( $new['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN ) ? "checked=\"checked\"" : "";
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"L_SUBMIT" => $lang['Submit'], 
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	"L_BUSINESS_CARD_MOD" => $lang['BC_mod'], 
+	"L_BUSINESS_CARD_VIEWING" => $lang['BC_viewing'], 
+	"L_BUSINESS_CARD_VIEWING_GUEST" => $lang['BC_viewing_guest'], 
+	"L_BUSINESS_CARD_VIEWING_MEMBER" => $lang['BC_viewing_member'], 
+	"L_BUSINESS_CARD_VIEWING_ADMIN" => $lang['BC_viewing_admin'], 
+	"L_BUSINESS_CARD_REG" => $lang['BC_reg'], 
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"COPPA_MAIL" => $new['coppa_mail'],
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	"BC_DISPLAY_GUEST" => BUSINESS_CARD_DISPLAY_GUEST, 
+	"BC_DISPLAY_GUEST_CHECKED" => $business_card_viewing_guest,
+	"BC_DISPLAY_MEMBER" => BUSINESS_CARD_DISPLAY_MEMBER, 
+	"BC_DISPLAY_MEMBER_CHECKED" => $business_card_viewing_member,
+	"BC_DISPLAY_ADMIN" => BUSINESS_CARD_DISPLAY_ADMIN, 
+	"BC_DISPLAY_ADMIN_CHECKED" => $business_card_viewing_admin,
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_register.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$strip_var_list = array('
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+'interests' => 'interests'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, 'real_name' => 'real_name', 'company' => 'company', 'designation' => 'designation', 'country' => 'country', 'company_logo' => 'company_logo'
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$trim_var_list = array('cur_password' => 'cur_password',
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, 'signature' => 'signature'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, 'company_address' => 'company_address'
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$signature = str_replace('<br />', "\n", $signature);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	$company_address = str_replace('<br />', "\n", $company_address);
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	validate_optional_fields($icq,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+$interests,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ $real_name, $company, $designation, $country, $company_address, $company_logo,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$interests = stripslashes($interests);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		$real_name = stripslashes($real_name);
+		$company = stripslashes($company);
+		$designation = stripslashes($designation);
+		$country = stripslashes($country);
+		$company_address = htmlspecialchars(stripslashes($company_address));
+		$company_logo = stripslashes($company_logo);
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	if ($board_config['enable_confirm'] && $mode == 'register')
+	{
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	if ( $required_field_config['real_name'] && empty($real_name))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['company'] && empty($company))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['designation'] && empty($designation))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['country'] && empty($country))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['company_address'] && empty($company_address))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['company_logo'] && empty($company_logo))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		rawurlencode($website);
+	}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	if ( $company_address != '' )
+	{
+		if ( !isset($com_add_bbcode_uid) || $com_add_bbcode_uid == '' )
+		{
+			$com_add_bbcode_uid = ( $allowbbcode ) ? make_bbcode_uid() : '';
+		}
+		$company_address = prepare_message($company_address, $allowhtml, $allowbbcode, $allowsmilies, $com_add_bbcode_uid);
+	}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				SET " . $username_sql . $passwd_sql . "user_email =
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+user_interests = '" . str_replace("\'", "''", $interests) . "',
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ user_real_name = '" . str_replace("\'", "''", $real_name) . "', user_company = '" . str_replace("\'", "''", $company) . "', user_designation = '" . str_replace("\'", "''", $designation) . "', user_country = '" . str_replace("\'", "''", $country) . "', user_company_address = '" . str_replace("\'", "''", $company_address) . "', user_company_logo = '" . str_replace("\'", "''", $company_logo) . "', user_com_add_bbcode_uid = '$com_add_bbcode_uid',
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "INSERT INTO " . USERS_TABLE . "	(user_id,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+user_interests,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ user_real_name, user_company, user_designation, user_country, user_company_address, user_company_logo, user_com_add_bbcode_uid,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				VALUES ($user_id, '" . str_replace("\'", "''", $username) 
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+'" . str_replace("\'", "''", $interests) . "',
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ '" . str_replace("\'", "''", $real_name) . "', '" . str_replace("\'", "''", $company) . "', '" . str_replace("\'", "''", $designation) . "', '" . str_replace("\'", "''", $country) . "', '" . str_replace("\'", "''", $company_address) . "', '" . str_replace("\'", "''", $company_logo) . "', '$com_add_bbcode_uid',
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+					'SITENAME' => $board_config['sitename']));
+			}
+			else
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+					'BC_REAL_NAME' => $real_name,
+					'BC_COMPANY' => $company,
+					'BC_DESIGNATION' => $designation,
+					'BC_COUNTRY' => $country,
+					'BC_COMPANY_ADDRESS' => $company_address,
+					'BC_COMPANY_LOGO' => $company_logo,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$interests = stripslashes($interests);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	$real_name = stripslashes($real_name);
+	$company = stripslashes($company);
+	$designation = stripslashes($designation);
+	$country = stripslashes($country);
+	$company_address = stripslashes($company_address);
+	$company_address = ($com_add_bbcode_uid != '') ? preg_replace("/:(([a-z0-9]+:)?)$com_add_bbcode_uid(=|\])/si", '\\3', $company_address) : $company_address;
+	$company_logo = stripslashes($company_logo);
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$interests = $userdata['user_interests'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	$real_name = $userdata['user_real_name'];
+	$company = $userdata['user_company'];
+	$designation = $userdata['user_designation'];
+	$country = $userdata['user_country'];
+	$com_add_bbcode_uid = $userdata['user_com_add_bbcode_uid'];
+	$company_address = ($com_add_bbcode_uid != '') ? preg_replace("/:(([a-z0-9]+:)?)$com_add_bbcode_uid(=|\])/si", '\\3', $userdata['user_company_address']) : $userdata['user_company_address'];
+	$company_logo = $userdata['user_company_logo'];
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	display_avatar_gallery($mode,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+$interests,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ $real_name, $company, $designation, $country, $company_address, $company_logo,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$template->assign_vars(array(
+		'USERNAME' => $username,
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	if ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST )
+	{
+		$bc_info_notice = $lang['BC_info_guest'];
+	}
+	elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER )
+	{
+		$bc_info_notice = $lang['BC_info_member'];
+	}
+	elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN )
+	{
+		$bc_info_notice = $lang['BC_info_admin'];
+	}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'INTERESTS' => $interests,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		'BC_REAL_NAME' => $real_name,
+		'BC_COMPANY' => $company,
+		'BC_DESIGNATION' => $designation,
+		'BC_COUNTRY' => $country,
+		'BC_COMPANY_ADDRESS' => str_replace('<br />', "\n", $company_address),
+		'BC_COMPANY_LOGO' => $company_logo,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'L_NO' => $lang['No'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		'L_BC_INFORMATION' => $lang['BC_information'],
+		'L_BC_REAL_NAME' => ($required_field_config['real_name']) ? $lang['BC_real_name'] . ': *' : $lang['BC_real_name'] . ':',
+		'L_BC_COMPANY' => ($required_field_config['company']) ? $lang['BC_company'] . ': *' : $lang['BC_company'] . ':',
+		'L_BC_DESIGNATION' => ($required_field_config['designation']) ? $lang['BC_designation'] . ': *' : $lang['BC_designation'] . ':',
+		'L_BC_COUNTRY' => ($required_field_config['country']) ? $lang['BC_country'] . ': *' : $lang['BC_country'] . ':',
+		'L_BC_COMPANY_ADDRESS' => ($required_field_config['company_address']) ? $lang['BC_company_address'] . ': *' : $lang['BC_company_address'] . ':',
+		'L_BC_COMPANY_LOGO' => ($required_field_config['company_logo']) ? $lang['BC_company_logo'] . ': *' : $lang['BC_company_logo'] . ':',
+		'L_BC_MAX_CHAR' => $lang['BC_max_chars'],
+		'L_BC_INFO_NOTICE' => $bc_info_notice,
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_viewprofile.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$profiledata['user_website'] . '</a>' : '&nbsp;';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$bc_filled = 0;
+if ( !empty($profiledata['user_real_name']) or !empty($profiledata['user_company']) or !empty($profiledata['user_designation']) or !empty($profiledata['user_country']) or !empty($profiledata['user_company_address']) or !empty($profiledata['user_company_logo']) )
+{
+	$bc_filled = 1;
+}
+
+$temp_url = append_sid("viewbc.$phpEx?" . POST_USERS_URL .'=' . $profiledata['user_id']);
+$bc_img = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav"><img src="' . $images['icon_bc'] . '" alt="' . $lang['Business_card'] . '" title="' . $lang['Business_card'] . '" border="0" /></a>' : '';
+$bc = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav">' . $lang['Business_card'] . '</a>' : '';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'WWW_IMG' => $www_img,
+	'WWW' => $www,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	'L_BC_CARD' => $lang['Business_card'],
+	'BC_IMG' => $bc_img,
+	'BC' => $bc,
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions_validate.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+function validate_optional_fields(&$icq,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+&$interests,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ &$real_name, &$company, &$designation, &$country, &$company_address, &$company_logo,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$check_var_length = array('aim'
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+'interests',
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ 'real_name', 'company', 'designation', 'country', 'company_address', 'company_logo',
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	return;
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	// Business Card MOD - Check compant logo
+	if ( !preg_match('#^(http)|(ftp):\/\/#i', $company_logo) )
+	{
+		$company_logo = 'http://' . $company_logo;
+	}
+
+	if ( !preg_match("#^((ht|f)tp://)([^ \?&=\#\"\n\r\t<]*?(\.(jpg|jpeg|gif|png))$)#is", $company_logo) )
+	{
+		$company_logo = '';
+	}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_avatar.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+function display_avatar_gallery($mode, 
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+&$interests,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ &$real_name, &$company, &$designation, &$country, &$company_address, &$company_logo,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$params = array('coppa', 'user_id',
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+'interests',
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ 'real_name', 'company', 'designation', 'country', 'company_address', 'company_logo',
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/constants.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+define('PAGE_TOPIC_OFFSET', 5000);
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+define('PAGE_VIEWBC', -2117);		// Business Card MOD
+define('PAGE_VIEWMEMBERBC', -2118);	// Business Card MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+// Table names
+define('CONFIRM_TABLE', $table_prefix.'confirm');
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+define('BUSINESS_CARD_DISPLAY_GUEST', 0);
+define('BUSINESS_CARD_DISPLAY_MEMBER', 1);
+define('BUSINESS_CARD_DISPLAY_ADMIN', 2);
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/page_header.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$nav_links_html .= sprintf($nav_link_proto, $nav_item, $nested_array['url'], $nested_array['title']);
+		}
+	}
+}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+if ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST )
+{
+	$template->assign_block_vars('switch_view_business_card', array());
+}
+elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER )
+{
+	if ( $userdata['user_level'] != ANONYMOUS )
+	{
+		$template->assign_block_vars('switch_view_business_card', array());
+	}
+}
+elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN )
+{
+	if ( $userdata['user_level'] == ADMIN )
+	{
+		$template->assign_block_vars('switch_view_business_card', array());
+	}
+}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_MEMBERLIST' => $lang['Memberlist'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	'L_MEMBER_BCLIST' => $lang['Member_bclist'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'U_MEMBERLIST' => append_sid('memberlist.'.$phpEx),
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	'U_MEMBER_BCLIST' => append_sid('member_bclist.'.$phpEx),
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+function bc_prepare($input, $bbcode_uid, $user_allowhtml, $user_allowsmile)
+{
+	global $board_config;
+
+	if ( !$board_config['allow_html'] || !$user_allowhtml)
+	{
+		if ( $input != '' )
+		{
+			$input = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $input);
+		}
+	}
+
+	if ($input != '' && $bbcode_uid != '')
+	{
+		$input = ($board_config['allow_bbcode']) ? bbencode_second_pass($input, $bbcode_uid) : preg_replace("/\:$bbcode_uid/si", '', $input);
+	}
+
+	if ( $input != '' )
+	{
+		$input = make_clickable($input);
+	}
+
+	if ( $board_config['allow_smilies'] )
+	{
+		if ( $user_allowsmile && $input != '' )
+		{
+			$input = smilies_pass($input);
+		}
+	}
+
+	if ( $input != '' )
+	{
+		$input = str_replace("\n", "\n<br />\n", $input);
+	}
+	
+	return $input;
+}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewtopic.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "SELECT u.username, u.user_id, u.user_posts,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+u.user_msnm,
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ u.user_real_name, u.user_company, u.user_designation, u.user_country, u.user_company_address, u.user_company_logo,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$www = ( $postrow[$i]['user_website'] ) ? '<a href="' . $postrow[$i]['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+		$bc_filled = 0;
+		if ( !empty($postrow[$i]['user_real_name']) or !empty($postrow[$i]['user_company']) or !empty($postrow[$i]['user_designation']) or !empty($postrow[$i]['user_country']) or !empty($postrow[$i]['user_company_address']) or !empty($postrow[$i]['user_company_logo']) )
+		{
+			$bc_filled = 1;
+		}
+
+		$temp_url = append_sid("viewbc.$phpEx?" . POST_USERS_URL . "=$poster_id");
+		$bc_img = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav"><img src="' . $images['icon_bc'] . '" alt="' . $lang['Business_card'] . '" title="' . $lang['Business_card'] . '" border="0" /></a>' : '';
+		$bc = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav">' . $lang['Business_card'] . '</a>' : '';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$www_img = '';
+		$www = '';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		$bc_img = '';
+		$bc = '';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$template->assign_block_vars('postrow', array(
+		'ROW_COLOR' => '#' . $row_color,
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	if ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST )
+	{
+		$bc_img = $bc_img;
+		$bc = $bc;
+	}
+	elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER )
+	{
+		$bc_img = ( $userdata['user_level'] != ANONYMOUS ) ? $bc_img : '&nbsp;';
+		$bc = ( $userdata['user_level'] != ANONYMOUS ) ? $bc : '&nbsp;';
+	}
+	elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN )
+	{
+		$bc_img = ( $userdata['user_level'] == ADMIN ) ? $bc_img : '&nbsp;';
+		$bc = ( $userdata['user_level'] == ADMIN ) ? $bc : '&nbsp;';
+	}
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'WWW_IMG' => $www_img,
+		'WWW' => $www,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		'BC_IMG' => $bc_img,
+		'BC' => $bc,
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+memberlist.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_EMAIL' => $lang['Email'],
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	'L_BC_CARD' => $lang['Business_card'],
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "SELECT username, user_id,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, user_allowavatar
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, user_real_name, user_company, user_designation, user_country, user_company_address, user_company_logo
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$www = ( $row['user_website'] ) ? '<a href="' . $row['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$bc_filled = 0;
+		if ( !empty($row['user_real_name']) or !empty($row['user_company']) or !empty($row['user_designation']) or !empty($row['user_country']) or !empty($row['user_company_address']) or !empty($row['user_company_logo']) )
+		{
+			$bc_filled = 1;
+		}
+
+		$temp_url = append_sid("viewbc.$phpEx?" . POST_USERS_URL . "=$user_id");
+		$bc_img = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav"><img src="' . $images['icon_bc'] . '" alt="' . $lang['Business_card'] . '" title="' . $lang['Business_card'] . '" border="0" /></a>' : '';
+		$bc = ( $bc_filled ) ? '<a href="' . $temp_url . '" onclick="window.open(\'' . $temp_url . '\', \'_phpbbbc\', \'HEIGHT=600,resizable=yes,scrollbars=yes,WIDTH=700\');return false;" target="_phpbbbc" class="nav">' . $lang['Business_card'] . '</a>' : '';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'WWW_IMG' => $www_img,
+			'WWW' => $www,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+			'BC_IMG' => $bc_img,
+			'BC' => $bc,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'U_VIEWPROFILE' => append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$user_id"))
+		);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		if ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_GUEST )
+		{
+			$template->assign_block_vars('memberrow.switch_view_business_card', array());
+		}
+		elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_MEMBER )
+		{
+			if ( $userdata['user_level'] != ANONYMOUS )
+			{
+				$template->assign_block_vars('memberrow.switch_view_business_card', array());
+			}
+		}
+		elseif ( $board_config['business_card_viewing'] == BUSINESS_CARD_DISPLAY_ADMIN )
+		{
+			if ( $userdata['user_level'] == ADMIN )
+			{
+				$template->assign_block_vars('memberrow.switch_view_business_card', array());
+			}
+		}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_PROFILE_INFO}</th>
+	</tr>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_BC_INFORMATION}</th>
+	</tr>
+	<tr> 
+		<td class="row2" colspan="2"><span class="gensmall">{L_ITEMS_REQUIRED}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row2" colspan="2"><span class="gensmall">{L_BC_INFO_NOTICE}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_REAL_NAME}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="real_name" size="40" maxlength="50" value="{BC_REAL_NAME}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_DESIGNATION}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="designation" size="40" maxlength="100" value="{BC_DESIGNATION}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="company" size="40" maxlength="50" value="{BC_COMPANY}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY_ADDRESS}</span><br /><span class="gensmall">{L_BC_MAX_CHAR}<br /><br />{HTML_STATUS}<br />{BBCODE_STATUS}<br />{SMILIES_STATUS}</span></td>
+	  <td class="row2"> 
+		<textarea name="company_address" style="width: 300px" rows="6" cols="30" class="post">{BC_COMPANY_ADDRESS}</textarea>
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY_LOGO}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="company_logo" size="40" maxlength="150" value="{BC_COMPANY_LOGO}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COUNTRY}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="country" size="40" maxlength="50" value="{BC_COUNTRY}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/profile_view_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<tr> 
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_EMAIL_ADDRESS}:</span></td>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	<!-- BEGIN switch_view_business_card -->
+		<tr> 
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_BC_CARD}:</span></td>
+		  <td class="row1" valign="middle" width="100%"><b><span class="gen">{BC_IMG}</span></b></td>
+		</tr>
+	<!-- END switch_view_business_card -->
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewtopic_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				<td valign="middle" nowrap="nowrap">{postrow.PROFILE_IMG} {postrow.PM_IMG} 
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+{postrow.WWW_IMG}
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ {postrow.BC_IMG}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/memberlist_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	  <th class="thTop" nowrap="nowrap">{L_USERNAME}</th>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	  <!-- BEGIN switch_view_business_card -->
+	  <th class="thTop" nowrap="nowrap">{L_BC_CARD}</th>
+	  <!-- END switch_view_business_card -->
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	  <td class="{memberrow.ROW_CLASS}" align="center"><span class="gen"><a href="{memberrow.U_VIEWPROFILE}" class="gen">{memberrow.USERNAME}</a></span></td>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	  <!-- BEGIN switch_view_business_card -->
+	  <td class="{memberrow.ROW_CLASS}" align="center" valign="middle">&nbsp;{memberrow.BC_IMG}&nbsp;</td>
+	  <!-- END switch_view_business_card -->
+# 
+#-----[ FIND ]------------------------------------------ 
+# Read "The INCREMENT Action" at http://www.phpbb.com/kb/article.php?article_id=39
+	  <td class="catBottom" colspan="{%:1}" height="28">&nbsp;</td>
+#
+#-----[ INCREMENT ]-------------------------------------
+# Read "The INCREMENT Action" at http://www.phpbb.com/kb/article.php?article_id=39
+%:1 +1
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.cfg
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$images['icon_www'] = "$current_template_images/{LANG}/icon_www.gif";
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$images['icon_bc'] = "$current_template_images/{LANG}/icon_bc.gif";
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/user_edit_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<tr> 
+	  <th class="thSides" colspan="2">{L_PROFILE_INFO}</th>
+	</tr>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_BC_INFORMATION}</th>
+	</tr>
+	<tr> 
+		<td class="row2" colspan="2"><span class="gensmall">{L_ITEMS_REQUIRED}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row2" colspan="2"><span class="gensmall">{L_BC_INFO_NOTICE}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_REAL_NAME}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="real_name" size="40" maxlength="50" value="{BC_REAL_NAME}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_DESIGNATION}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="designation" size="40" maxlength="100" value="{BC_DESIGNATION}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="company" size="40" maxlength="150" value="{BC_COMPANY}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY_ADDRESS}</span><br /><span class="gensmall">{L_BC_MAX_CHAR}<br /><br />{HTML_STATUS}<br />{BBCODE_STATUS}<br />{SMILIES_STATUS}</span></td>
+	  <td class="row2"> 
+		<textarea name="company_address" style="width: 300px" rows="6" cols="30" class="post">{BC_COMPANY_ADDRESS}</textarea>
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COMPANY_LOGO}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="company_logo" size="40" maxlength="150" value="{BC_COMPANY_LOGO}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BC_COUNTRY}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 300px" name="country" size="40" maxlength="50" value="{BC_COUNTRY}" />
+	  </td>
+	</tr>
+	<tr> 
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="avatar_gallery_path" value="{AVATAR_GALLERY_PATH}" /></td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_BUSINESS_CARD_MOD}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_BUSINESS_CARD_VIEWING}</td>
+		<td class="row2"><input type="radio" name="business_card_viewing" value="{BC_DISPLAY_GUEST}" {BC_DISPLAY_GUEST_CHECKED} />{L_BUSINESS_CARD_VIEWING_GUEST}&nbsp; &nbsp;<input type="radio" name="business_card_viewing" value="{BC_DISPLAY_MEMBER}" {BC_DISPLAY_MEMBER_CHECKED} />{L_BUSINESS_CARD_VIEWING_MEMBER}&nbsp; &nbsp;<input type="radio" name="business_card_viewing" value="{BC_DISPLAY_ADMIN}" {BC_DISPLAY_ADMIN_CHECKED} />{L_BUSINESS_CARD_VIEWING_ADMIN}</td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/admin_profile_field.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<tr>
+		<td class="catBottom" colspan="2" align="center">{S_HIDDEN_FIELDS}<input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" />
+		</td>
+	</tr>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_BC_INFORMATION}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_REAL_NAME}</td>
+		<td class="row2"><input type="radio" name="real_name" value="1" {BC_REAL_NAME_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="real_name" value="0" {BC_REAL_NAME_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_COMPANY}</td>
+		<td class="row2"><input type="radio" name="company" value="1" {BC_COMPANY_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="company" value="0" {BC_COMPANY_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_COMPANY_ADDRESS}</td>
+		<td class="row2"><input type="radio" name="company_address" value="1" {BC_COMPANY_ADDRESS_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="company_address" value="0" {BC_COMPANY_ADDRESS_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_COMPANY_LOGO}</td>
+		<td class="row2"><input type="radio" name="company_logo" value="1" {BC_COMPANY_LOGO_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="company_logo" value="0" {BC_COMPANY_LOGO_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_DESIGNATION}</td>
+		<td class="row2"><input type="radio" name="designation" value="1" {BC_DESIGNATION_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="designation" value="0" {BC_DESIGNATION_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_BC_COUNTRY}</td>
+		<td class="row2"><input type="radio" name="country" value="1" {BC_COUNTRY_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="country" value="0" {BC_COUNTRY_NO} /> {L_NO}</td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+.helpline { background-color: {T_TR_COLOR2}; border-style: none; }
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+/* Business Card MOD */
+.bc_dashed { border-bottom-color: #999999; border-bottom-style:dashed; border-bottom-width:thin; }
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+						<td align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_FAQ}" 
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+<td
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ height="25"
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				</table></td>
+			</tr>
+		</table>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+					<!-- BEGIN switch_view_business_card -->
+					<tr>
+						<td height="25" align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_MEMBER_BCLIST}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_members.gif" width="12" height="13" border="0" alt="{L_MEMBER_BCLIST}" hspace="3" />{L_MEMBER_BCLIST}</a>&nbsp;</span></td>
+					</tr>
+					<!-- END switch_view_business_card -->
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/simple_header.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+.helpline { background-color: {T_TR_COLOR2}; border-style: none; }
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+/* Business Card MOD */
+.bc_dashed { border-bottom-color: #999999; border-bottom-style:dashed; border-bottom-width:thin; }
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.css
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+.helpline { background-color: #DEE3E7; border-style: none; }
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+/* Business Card MOD */
+.bc_dashed { border-bottom-color: #999999; border-bottom-style:dashed; border-bottom-width:thin; }
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

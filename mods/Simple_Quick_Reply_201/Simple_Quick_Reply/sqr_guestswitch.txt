@@ -1,0 +1,137 @@
+##############################################################
+## MOD Title: Simple Quick Reply 2: Guest Switch Extension
+## MOD Author: Merri < vesa@piittinen.name > (Vesa Piittinen) http://vesa.piittinen.name/
+## MOD Description: Makes it possible to turn quick reply on/off for guests via admin panel. Install SQR2 first!
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 3 minutes
+## Files To Edit: admin/admin_board.php
+##                language/lang_english/lang_admin.php
+##                templates/subSilver/admin/board_config_body.tpl
+## Included Files: 0
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## This MOD has been tested on phpBB 2.0.23.
+##
+##############################################################
+##
+## MOD History:
+##
+##    2008-03-29 - Version 1.0.1
+##       - Removed the need for an additional file, SQL included in the MOD file.
+##
+##    2007-03-10 - Version 1.0.0
+##       - Finalized, submitting to MODs database.
+##
+##    2006-05-07 - Version 0.9.3
+##       - Initial version for Simple Quick Reply 1.9.3
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+INSERT INTO phpbb_config (`config_name`, `config_value`) VALUES ('quick_reply_guests', 1)
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->set_filenames(array(
+	"body" => "admin/board_config_body.tpl")
+);
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+// Simple Quick Reply MOD
+$sqr_guests_yes = ( $new['quick_reply_guests'] ) ? "checked=\"checked\"" : "";
+$sqr_guests_no = ( !$new['quick_reply_guests'] ) ? "checked=\"checked\"" : "";
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"SERVER_NAME" => $new['server_name'],
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+
+	"L_SQR_GUESTS" => $lang['sqr_guests'],
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"STYLE_SELECT" => $style_select,
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+
+	"SQR_GUESTS_YES" => $sqr_guests_yes,
+	"SQR_GUESTS_NO" => $sqr_guests_no,
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all Folks!
+// -------------------------------------------------
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+
+// Simple Quick Reply MOD
+$lang['sqr_guests'] = 'Guests can use the quick reply box';
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_DEFAULT_STYLE}</td>
+		<td class="row2">{STYLE_SELECT}</td>
+	</tr>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+	<tr>
+		<td class="row1">{L_SQR_GUESTS}</td>
+		<td class="row2"><input type="radio" name="quick_reply_guests" value="1" {SQR_GUESTS_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="quick_reply_guests" value="0" {SQR_GUESTS_NO} /> {L_NO}</td>
+	</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

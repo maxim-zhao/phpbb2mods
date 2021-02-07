@@ -1,0 +1,33 @@
+Remove Edited By for Admins (1.0.0)
+Provided by the phpBB Doctor (www.phpBBDoctor.com)
+
+If you want to remove the Edited By message for moderators as well as 
+Administrators use the following code segment in the After, Add operation in the 
+standard MOD. Do NOT use both, use only one or the other.
+
+	// BEGIN Remove Edited By for ADMINs, Mods 1.0.0 (www.phpBBDoctor.com) 
+	if ( in_array($userdata['user_level'], array (MOD, ADMIN) ) )
+	{ 
+		$edited_sql = ''; 
+	} 
+	// END Remove Edited By for ADMINs, Mods 1.0.0 (www.phpBBDoctor.com)
+
+
+If you want to remove *all* edited by messages, no matter who edits their own 
+posts, use this as the After, Add operation:
+
+	$edited_sql = '';
+
+In both of the above cases the "Find" operation is the same as what
+is in the standard MOD installation file.
+
+This MOD does NOT remove the edited by messages from existing posts. In order to 
+do that you will need to run the following SQL:
+
+update 	phpbb_posts
+set 	post_edit_time = NULL
+, 	post_edit_count = 0
+where 	post_edit_count > 0;
+
+Of course be sure to change phpbb_posts to whatever your actual table name is, 
+based on the prefix you selected when you installed your board.

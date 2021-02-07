@@ -1,0 +1,140 @@
+##############################################################
+## MOD Title:		PM threshold
+## MOD Author:		Ptirhiik < please_use_the_board@clanmckeen.com > (Pierre) http://ptifo.clanmckeen.com
+## MOD Description:	Add a minimum posts threshold before allowing pms
+##
+## MOD Version:		1.0.2
+##
+## Installation Level:	Easy
+## Installation Time:	10 Minutes
+## Files To Edit:
+##			privmsg.php
+##			admin/admin_board.php
+##			language/lang_english/lang_admin.php
+##			templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files:	n/a
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2007-10-07 - version 1.0.2
+##      - no changes: review of the install description to match phpBB.com wills
+##
+##   2003-01-24 - Version 1.0.0
+##      - first publication
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('pm_allow_threshold', '15');
+#
+#-----[ OPEN ]------------------------------------------------
+#
+privmsg.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : pm threshold --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+// End session management
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : pm threshold --------------------------------------------------------
+//-- add
+$pm_allow_threshold = isset($board_config['pm_allow_threshold']) ? $board_config['pm_allow_threshold'] : 15;
+if ( !$userdata['session_logged_in'] || ($userdata['user_posts'] < $pm_allow_threshold) )
+{
+	message_die(GENERAL_MESSAGE, 'Not_Authorised');
+}
+//-- fin mod : pm threshold ----------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : pm threshold --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$template->assign_vars(array(
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : pm threshold --------------------------------------------------------
+//-- add
+	'L_PM_ALLOW_THRESHOLD' => $lang['pm_allow_threshold'],
+	'L_PM_ALLOW_TRHESHOLD_EXPLAIN' => $lang['pm_allow_threshold_explain'],
+	'PM_ALLOW_THRESHOLD' => $new['pm_allow_threshold'],
+//-- fin mod : pm threshold ----------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : pm threshold --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : pm threshold --------------------------------------------------------
+//-- add
+$lang['pm_allow_threshold'] = 'Allow PM threshold';
+$lang['pm_allow_threshold_explain'] = 'Set here the minimal amount of posts the user has to write before being able to use the private messages.';
+//-- fin mod : pm threshold ----------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_INBOX_LIMIT}</td>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<tr>
+		<td class="row1">{L_PM_ALLOW_THRESHOLD}<br /><span class="gensmall">{L_PM_ALLOW_TRHESHOLD_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" maxlength="4" size="4" name="pm_allow_threshold" value="{PM_ALLOW_THRESHOLD}" /></td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

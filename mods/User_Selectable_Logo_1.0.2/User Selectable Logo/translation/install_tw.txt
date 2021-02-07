@@ -1,0 +1,470 @@
+######################################################## 
+## 外掛名稱: User Selectable Logo
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 這一個外掛允許會員在個人資料中從一組圖示中選擇一個作為 Header 的 Logo
+##	系統管理員可以在 ACP 中設定 Logo 的存放位置
+##	系統管理員可以在 ACP 中設是否允許會員選擇 Logo
+## 外掛版本:	1.0.2
+##
+## 安裝難度:	中等 
+## 安裝時間:	10 分鐘 
+##
+## 需要編輯的檔案:	9
+##	admin/admin_board.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	includes/page_header.php
+##	includes/functions_selects.php
+##	includes/usercp_register.php
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/overall_header.tpl
+##	templates/subSilver/profile_add_body.tpl
+##
+## 附加的檔案: 	2
+##	images/userlogo/subBlack.gif
+##	images/userlogo/subSilver.gif
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+### 	此外掛只在 2.0.17 上測試過, 但應該可以在所有的 2.0.x 上使用
+##	
+##	注意事項: 
+#		當允許會員選擇 logo 為否時, overall header 上的 logo 將會使用
+##		位於風格圖示文件夾中名為的 "logo_phpBB.gif" 的圖示
+##		所以，請確定所有風格內的所有  logo 的名稱是一樣的
+##		i.e. template/{EVERY_TEMPLATE}/images/logo_phpBB.gif
+##
+############################################################## 
+## 版本歷史: 
+##
+##   2004-02-15 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2004-02-18 - 版本 1.0.1
+##      - 修正了一個安裝指示的錯誤 (一個之前, 加上/之後, 加上的錯誤)
+##
+##   2005-08-14 - 版本 1.0.2
+##      - 重新提交 phpbb.com 認證
+##	- 在 2.0.17 上測試並且使用最新的 MOD template
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+INSERT INTO `phpbb_config` VALUES ('allow_user_select_logo', '0');
+INSERT INTO `phpbb_config` VALUES ('user_select_logo_image_path', 'images/userlogo');
+ALTER TABLE `phpbb_users` ADD `user_selected_logo` VARCHAR( 32 ) Default NULL ;
+
+# 
+#-----[ 複製 ]------------------------------------------ 
+#
+copy images/userlogo/*.gif to images/userlogo/*.gif
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_admin.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// User Selectable Logo
+$lang['User_logo_settings'] = '會員選擇 Logo 設定';
+$lang['User_logo_path'] = 'Logo 儲存路徑';
+$lang['User_logo_path_explain'] = '在您 phpBB 2 根目錄底下的路徑, 例如: images/userlogo';
+$lang['User_logo_allow'] = '允許會員選擇 logo';
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_main.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// User Selectable Logo
+$lang['User_logo'] = '選擇一個 Logo';
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+admin/admin_board.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+$smtp_no = ( !$new['smtp_delivery'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+// User Selectable Logo
+$userlogo_yes = ( $new['allow_user_select_logo'] ) ? "checked=\"checked\"" : "";
+$userlogo_no = ( !$new['allow_user_select_logo'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	"L_SMTP_PASSWORD_EXPLAIN" => $lang['SMTP_password_explain'], 
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// User Selectable Logo
+	"L_USER_LOGO_SETTING" => $lang['User_logo_settings'],
+	"L_USER_LOGO_PATH" => $lang['User_logo_path'],
+	"L_USER_LOGO_PATH_EXPLAIN" => $lang['User_logo_path_explain'],
+	"L_USER_LOGO_ALLOW" => $lang['User_logo_allow'],
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	"SMTP_PASSWORD" => $new['smtp_password'],
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// User Selectable Logo
+	"USERLOGO_YES" => $userlogo_yes,
+	"USERLOGO_NO" => $userlogo_no,
+	"USERLOGO_IMAGE_PATH" => $new['user_select_logo_image_path'],
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/functions_selects.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+//
+// User pick a forum logo ...
+//
+function userlogo_select($default, $select_name = "user_selected_logo", $dirname)
+{
+	global $phpEx, $phpbb_root_path;
+
+	$dir = opendir($phpbb_root_path . $dirname);
+	$user_selected_logo = array();
+	$count=0;
+	while( $file = @readdir($dir) )
+	{
+		if( !@is_dir(phpbb_realpath($phpbb_root_path . $dirname . '/' . $file)) )
+		{
+			if( preg_match('/(\.gif$|\.png$|\.jpg|\.jpeg)$/is', $file) )
+			{
+				$user_selected_logo[$count] = $file;
+				$count++;
+			}
+		}
+	}
+
+	closedir($dir);
+
+	@asort($user_selected_logo);
+	@reset($user_selected_logo);
+
+	$user_selected_logo_select = '<select name="' . $select_name . '" onchange="update_user_selected_logo(this.options[selectedIndex].value);">';
+
+	for( $i = 0; $i < count($user_selected_logo); $i++ )
+	{
+		if ($user_selected_logo[$i] == $default)
+		{
+			$user_selected_logo_select .= '<option value="' . $user_selected_logo[$i] . '" selected="selected">' . $user_selected_logo[$i] . '</option>'; 
+		}
+		else 
+		{
+			$user_selected_logo_select .= '<option value="' . $user_selected_logo[$i] . '">' . $user_selected_logo[$i] . '</option>';
+		}
+		$default_user_selected_logo = $user_selected_logo[0];
+	}
+	$user_selected_logo_select .= '</select>';
+	
+	$user_selected_logo_select .= ( $default ) ?  '&nbsp; <img name="user_selected_logo" src="'. $phpbb_root_path . $dirname . '/' . $default .'" border="0" alt="" /> &nbsp;' : '&nbsp; <img name="user_selected_logo" src="'. $phpbb_root_path . $dirname . '/' . $default_user_selected_logo .'" border="0" alt="" /> &nbsp;';
+
+	return $user_selected_logo_select;
+}
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/usercp_register.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$user_timezone = ( isset($HTTP_POST_VARS['timezone']) ) ? doubleval($HTTP_POST_VARS['timezone']) : $board_config['board_timezone'];
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// User Selectable Logo
+	$user_selected_logo = ( !empty($HTTP_POST_VARS['user_selected_logo']) ) ? htmlspecialchars($HTTP_POST_VARS['user_selected_logo']) : '';
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql . "user_email
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, user_timezone = $user_timezone
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, user_selected_logo = '$user_selected_logo'
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			//
+			// Get current date
+			//
+			$sql = "INSERT INTO " . USERS_TABLE . "	
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, user_timezone
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, user_selected_logo
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				VALUES ($user_id, '" . str_replace("\'", "''", $username) . "'
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, $user_timezone
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, '$user_selected_logo'
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$user_timezone = $userdata['user_timezone'];
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// User Selectable Logo
+	$user_selected_logo = $userdata['user_selected_logo'];
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	display_avatar_gallery($mode, $avatar_category
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, $user_timezone
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, $user_selected_logo
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		'TIMEZONE_SELECT' => tz_select($user_timezone, 'timezone'),
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		// User Selectable Logo
+		'USERLOGO_SELECT' => userlogo_select($userdata['user_selected_logo'], 'user_selected_logo', $board_config['user_select_logo_image_path']),
+		'USERLOGO_BASEDIR' => $phpbb_root_path . $board_config['user_select_logo_image_path'],
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		'L_EMAIL_ADDRESS' => $lang['Email_address'],
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		// User Selectable Logo
+		'L_USERLOGO' => $lang['User_logo'],
+		'S_ALLOW_USERLOGO' => $board_config['allow_user_select_logo'],
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		'S_FORM_ENCTYPE' => $form_enctype,
+		'S_PROFILE_ACTION' => append_sid("profile.$phpEx"))
+	);
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// User Selectable Logo
+	if ( $mode != 'register' )
+	{
+		if ( $board_config['allow_user_select_logo'] )
+		{
+			$template->assign_block_vars('switch_user_selected_logo_block', array() );
+		}
+	}
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/page_header.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$l_timezone = (count($l_timezone) > 1 && $l_timezone[count($l_timezone)-1] != 0) ? $lang[sprintf('%.1f', $board_config['board_timezone'])] : $lang[number_format($board_config['board_timezone'])];
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+// User Selectable Logo
+if ( !isset($board_config['allow_user_select_logo']) || empty($userdata['user_selected_logo']) )
+{
+	$user_selected_logo = 'templates/'.$theme['template_name'] .'/images/logo_phpBB.gif';
+}
+else
+{
+	$user_selected_logo = $board_config['user_select_logo_image_path'] . '/' . $userdata['user_selected_logo'];
+}
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'SITE_DESCRIPTION' => $board_config['site_desc'],
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// User Selectable Logo
+	'USERLOGO_SELECT' => $user_selected_logo,
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				<td><a href="{U_INDEX}"><img src="templates/subSilver/images/logo_phpBB.gif" border="0" alt="{L_INDEX}" vspace="1" /></a></td>
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+templates/subSilver/images/logo_phpBB.gif
+
+# 
+#-----[ 把該行取代為 ]------------------------------------------ 
+#
+{USERLOGO_SELECT}
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/profile_add_body.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+<form action="{S_PROFILE_ACTION}" {S_FORM_ENCTYPE} method="post">
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+<script language="javascript" type="text/javascript">
+<!--
+function update_user_selected_logo(newimage)
+{
+	document.user_selected_logo.src = "{USERLOGO_BASEDIR}/" + newimage;
+}
+//-->
+</script>
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	<!-- BEGIN switch_avatar_block -->
+	<tr> 
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	<!-- BEGIN switch_user_selected_logo_block -->
+	<tr> 
+	  <td class="row1"><span class="gen">{L_USERLOGO}:</span></td>
+	  <td class="row2"><span class="gensmall">{USERLOGO_SELECT}</span></td>
+	</tr>
+	<!-- END switch_user_selected_logo_block -->
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_AVATAR_SETTINGS}</th>
+	</tr>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_USER_LOGO_SETTING}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_USER_LOGO_ALLOW}</td>
+		<td class="row2"><input type="radio" name="allow_user_select_logo" value="1" {USERLOGO_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_user_select_logo" value="0" {USERLOGO_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_USER_LOGO_PATH} <br /><span class="gensmall">{L_USER_LOGO_PATH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="user_select_logo_image_path" value="{USERLOGO_IMAGE_PATH}" /></td>
+	</tr>
+
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+#
+# 外掛修正結束

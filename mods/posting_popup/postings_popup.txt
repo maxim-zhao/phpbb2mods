@@ -1,0 +1,112 @@
+##############################################################
+## MOD Title: Postings Popup 
+## MOD Author: david63 <david.wood63@btopenworld.com > (David Wood) <http://www.david-wood.me.uk> 
+## MOD Description:   This MOD will create a link from the replies in view forum which will create a popup 
+##         window showing the users who have made posts to that topic together with the number 
+##         of posts that they have made. 
+## MOD Version: 1.0.0
+##
+## Installation Level:	Easy
+## Installation Time:	~3 minutes
+## Files To Edit:	2
+##			viewforum.php
+##			viewforum_body.tpl
+## Included Files:
+##			postings_popup.php
+##			postings_popup.tpl
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+##
+## Author Notes:
+##
+############################################################## 
+## MOD History: 
+## 
+##   2003-07-06 - Version 1.0.0
+##      - Initial Release 
+##   2003-07-05 - Version 0.0.5
+##      - Standardised code
+##      - Corrected missing link hover
+##   2003-07-05 - Version 0.0.4
+##      - Cosmetic changes
+##      - Author flagged
+##   2003-07-05 - Version 0.0.3
+##      - Added scrollbars to popup window
+##   2003-07-04 - Version 0.0.2
+##      - Corrected users being listed more than once
+##   2003-07-04 - Version 0.0.1
+##      - Intial Beta Release
+##
+################################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+################################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+
+copy postings_popup.php to postings_popup.php
+copy postings_popup.tpl to templates/subSilver/postings_popup.tpl
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+viewforum.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+			'L_TOPIC_FOLDER_ALT' => $folder_alt, 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+			'U_POSTINGS_POPUP' => append_sid("postings_popup.$phpEx?t=$topic_id"),
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+templates/subSilver/viewforum_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+<form method="post" action="{S_POST_DAYS_ACTION}">
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+
+<script language="javascript" type="text/javascript">
+<!--
+var win=null;
+function NewWindow(mypage,myname){
+settings='width=250,height=300,top=0,left=0,resizable=yes,scrollbars=yes';
+win=window.open(mypage,myname,settings);}
+// -->
+</script>
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+<td class="row2" align="center" valign="middle"><span class="postdetails">{topicrow.REPLIES}</span></td>
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+
+<td class="row2" align="center" valign="middle"><span class="postdetails"><a href="{topicrow.U_POSTINGS_POPUP}" onclick="NewWindow(this.href,'');return false" onfocus="this.blur()">{topicrow.REPLIES}</a></span></td>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+# EoM

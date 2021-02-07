@@ -1,0 +1,480 @@
+##############################################################
+## MOD Title: BoardTracker Topic Tags Mod
+## MOD Author: BoardTracker < support@boardtracker.com > (N/A) http://www.boardtracker.com
+## MOD Description: Add a thread tagging system linked to global or site specific tag search on boardtracker.com
+## MOD Version: 1.0.1
+##
+## Installation Level: Intermediate
+## Installation Time: 20 Minutes
+## Files To Edit: 
+##	viewtopic.php,
+##      posting.php,
+##	functions_post.php,
+##      lang_main.php,
+##	posting_body.tpl,
+##	viewtopic_body.tpl
+##      
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: this mod adds thread tagging functionality similar to 
+## that often used on blogs and many places these days. Board owners
+## can choose to link to global tag search on boardtracker.com or site
+## specific search on boardtracker which requires a board id available
+## by registering for a free board admin account (of course for site search
+## your board needs to be indexed by boardtracker). 
+##############################################################
+## MOD History:
+##
+##   2006-01-20 - Version 1.0.1
+##	- slight change to ALTER table command, functionally the same, either way works fine.
+##	- shortened first FIND to a partial line for simplicity
+##
+##   2006-01-01 - Version 1.0.0
+##      - forced lowercase on tag display in viewtopic.php
+##	
+##   2006-01-01 - Version 0.5.0
+##      - first public beta release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+
+ALTER TABLE phpbb_topics ADD topic_tags CHAR(64) NOT NULL;
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line #149
+#
+
+$sql = "SELECT t.topic_id, t.topic_title, t.topic_status, t.topic_replies, t.topic_time, 
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+t.topic_title,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+
+t.topic_tags,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# about line #201
+#
+
+$topic_time = $forum_topic_data['topic_time'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# If you want to restrict tag search to your board only, you first need to have your
+# board indexed by boardtracker.com and then register for a free board owners account
+# on boardtracker, then take the board id provided and insert in the 'BoardID' 
+# field below. It is recommended to leave this blank and allow global tag searches 
+# as this will help circulate traffic between boards and provide your members with
+# a better service. Your board does not need to be indexed by boardtracker to use this
+# mod with the default global tag search.
+#
+
+// BoardTracker Tags Mod..
+
+$BoardID = ""; // Your board ID on boardtracker.com (optional)
+
+$topic_tags = $forum_topic_data['topic_tags'];
+if ($topic_tags != '') { 
+	$tags = $lang['Topic_Tags'] . ": ";
+	$words = split(",", $topic_tags);
+	$tagurl = "http://www.boardtracker.com/tag";
+	foreach ($words as $word) {
+		$word = strtolower(trim($word));
+        	$tags .= "<a href=\"$tagurl" . "/$word/" . "$BoardID\" rel=\"tag\">$word</a> ";
+		}
+	}
+//
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+'TOPIC_TITLE' => $topic_title,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+'TOPIC_TAGS' => $tags,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+# replace 'subSilver' with whatever skin you use
+#
+
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line #5
+#
+
+<td align="left" valign="bottom" colspan="2"><a class="maintitle" href="{U_VIEW_TOPIC}">{TOPIC_TITLE}</a><br />
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# you can actually stick this anywhere you like on the template
+#
+
+{TOPIC_TAGS}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+//
+// That's all, Folks!
+// -------------------------------------------------
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+// BoardTracker Tags Mod
+$lang['Topic_Tags'] = 'Topic Tags';
+$lang['Topic_Tags_Help'] = 'Comma separated keywords describing post';
+$lang['Invalid_Tags'] = 'Invalid characters in tags, only the following are allowed: a-z A-Z 0-9 - + , .';
+//
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+        <tr>
+          <td class="row1" width="22%"><span class="gen"><b>{L_SUBJECT}</b></span></td>
+          <td class="row2" width="78%"> <span class="gen">
+                <input type="text" name="subject" size="45" maxlength="60" style="width:450px" tabindex="2" class="post" value="{SUBJECT}" />
+                </span> </td>
+        </tr>
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+        <!-- BEGIN switch_new_topic -->
+        <tr>
+          <td class="row1" width="22%"><span class="gen"><b>{L_TOPIC_TAGS}</b></span></td>
+          <td class="row2" width="78%"> <span class="gen">
+                <input type="text" name="topic_tags" maxlength="64" size=25 tabindex="2" class="post" value="{TOPIC_TAGS}" /> {L_TOPIC_TAGS_HELP}
+                </span> </td>
+        </tr>
+        <!-- END switch_new_topic -->
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line #209
+#
+
+$select_sql = (!$submit) ? ', t.topic_title, p.enable_bbcode, p.enable_html, p.enable_smilies, p.enable_sig, p.post_username, pt.post_subject, pt.post_text, pt.bbcode_uid, u.username, u.user_id, u.user_sig, u.user_sig_bbcode_uid' : '';
+
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+t.topic_title,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+
+t.topic_tags,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# about line #254
+#
+
+$post_data['poster_id'] = $post_info['poster_id'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+$post_data['topic_tags'] = $post_info['topic_tags'];
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+$message = ( !empty($HTTP_POST_VARS['message']) ) ? $HTTP_POST_VARS['message'] : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+$topic_tags = ( !empty($HTTP_POST_VARS['topic_tags']) ) ? $HTTP_POST_VARS['topic_tags'] : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+prepare_post($mode, $post_data, $bbcode_on, $html_on, $smilies_on, $error_msg, $username, $bbcode_uid, $subject, $message, $poll_title, $poll_options, $poll_length);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$poll_length
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+
+, $topic_tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+submit_post($mode, $post_data, $return_message, $return_meta, $forum_id, $topic_id, $post_id, $poll_id, $topic_type, $bbcode_on, $html_on, $smilies_on, $attach_sig, $bbcode_uid, str_replace("\'", "''", $username), str_replace("\'", "''", $subject), str_replace("\'", "''", $message), str_replace("\'", "''", $poll_title), $poll_options, $poll_length);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$poll_length
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+
+, str_replace("\'", "''", $topic_tags)
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+$message = ( !empty($HTTP_POST_VARS['message']) ) ? htmlspecialchars(trim(stripslashes($HTTP_POST_VARS['message']))) : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+$topic_tags = ( !empty($HTTP_POST_VARS['topic_tags']) ) ? htmlspecialchars(trim(stripslashes($HTTP_POST_VARS['topic_tags']))) : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+$message = $post_info['post_text'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+$topic_tags =  $post_info['topic_tags'];
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if( !$userdata['session_logged_in'] || ( $mode == 'editpost' && $post_info['poster_id'] == ANONYMOUS ) )
+{
+        $template->assign_block_vars('switch_username_select', array());
+}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//
+// BoardTracker Tag Mod: Show tags entry box if new topic or edit..
+//
+
+if ( $mode == 'newtopic' || $mode == 'editpost')
+{
+        $template->assign_block_vars('switch_new_topic', array());
+}
+//
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+'SMILIES_STATUS' => $smilies_status,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+'TOPIC_TAGS' => $topic_tags,
+
+'L_TOPIC_TAGS' => $lang['Topic_Tags'],
+'L_TOPIC_TAGS_HELP' => $lang['Topic_Tags_Help'],
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+function prepare_post(&$mode, &$post_data, &$bbcode_on, &$html_on, &$smilies_on, &$error_msg, &$username, &$bbcode_uid, &$subject, &$message, &$poll_title, &$poll_options, &$poll_length)
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+&$poll_length
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+
+, &$topic_tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+        // Check subject
+        if (!empty($subject))
+        {
+                $subject = htmlspecialchars(trim($subject));
+        }
+        else if ($mode == 'newtopic' || ($mode == 'editpost' && $post_data['first_post']))
+        {
+                $error_msg .= (!empty($error_msg)) ? '<br />' . $lang['Empty_subject'] : $lang['Empty_subject'];
+        }
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+        // BoardTracker Tag Mod: Check topic tags
+        if (!empty($topic_tags))
+        {
+                if (!eregi("^[a-z0-9| |\,\-\+\.]+$", $topic_tags))
+                {
+                $error_msg .= (!empty($error_msg)) ? '<br />' . $lang['Invalid_Tags'] : "$topic_tags : " . $lang['Invalid_Tags'];
+                }
+        }
+	//
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_id, &$post_id, &$poll_id, &$topic_type, &$bbcode_on, &$html_on, &$smilies_on, &$attach_sig, &$bbcode_uid, $post_username, $post_subject, $post_message, $poll_title, &$poll_options, &$poll_length)
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+&$poll_length
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+
+, &$topic_tags
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE . " (topic_title, topic_poster, topic_time, forum_id, topic_status, topic_type, topic_vote) VALUES ('$post_subject', " . $userdata['user_id'] . ", $current_time, $forum_id, " . TOPIC_UNLOCKED . ", $topic_type, $topic_vote)" : "UPDATE " . TOPICS_TABLE . " SET topic_title = '$post_subject', topic_type = $topic_type " . (($post_data['edit_vote'] || !empty($poll_title)) ? ", topic_vote = " . $topic_vote : "") . " WHERE topic_id = $topic_id";
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+topic_vote
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+
+, topic_tags
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+$topic_vote
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+
+, '$topic_tags'
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+" WHERE topic_id = $topic_id";
+
+
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+
+ ", topic_tags = '$topic_tags'" .
+
+
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM
+

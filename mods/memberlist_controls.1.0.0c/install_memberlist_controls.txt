@@ -1,0 +1,321 @@
+##############################################################
+## MOD Title: Memberlist Controls
+## MOD Author: drathbun < N/A > (Dave Rathbun) http://www.phpBBDoctor.com
+## MOD Description: Use this simple MOD to apply conditions to your memberlist. Includes limits for active members only, post count, and last visit date. If memberlist requires active, then the "newest member" does as well.
+## MOD Version: 1.0.0
+##
+##
+## Installation Level: Easy
+## Installation Time: ~ 5 Minutes
+## Files To Edit: memberlist.php, includes/functions.php, language/lang_english/lang_admin.php, language/lang_english/lang_main.php, templates/subSilver/memberlist_body.tpl
+## Included Files: root/admin_memberlist.php, root/memberlist_controls_body.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## This MOD gives you an easy way to control which users will
+## be visible on your memberlist. THere are other MODs that
+## allow you to show only active members, that is just one of
+## the controls offered by this MOD. At this time it also
+## allows you to set restrictions for user post count and last
+## visit date as well.
+## 
+## The phpbb_config table is used to store the values, but the
+## code will default the values if they have not been set yet,
+## so you do not have to run any SQL insert statements prior to
+## installing this MOD.
+## 
+## If set the "active user" control is also applied to the
+## newest member as well as the total user count for your
+## board. That will keep inactive users from showing up as the
+## newest member, and your total user count for your board will
+## match the total active user count.
+##
+## Please install and test only ONE new MOD at a time. That
+## may seem like common sense, but you would be amazed at how
+## often this is not done. :-)
+##
+## Some of the FIND operations may have line numbers
+## associated with the operation. These line numbers are
+## derived from a set of baseline phpBB code and are generally
+## approximations only. Use them as a guideline if you find
+## more than one line in a similar location. Note that as you
+## add new lines to the file as you are editing that the line
+## numbers for the remaining portion of that file are nearly
+## always going to be wrong. We do not guarantee that there
+## will be line numbers on each FIND.
+##
+## Some actions have additional comments. Please review the
+## comments as they are intended to help you understand the
+## exact steps required to complete that specific action.
+##
+## This MOD has 33 install instructions.
+## This MOD is in RC status as of version 1.0.0.
+##############################################################
+## MOD History:
+##
+##	2006-09-29 - Version 1.0.0
+##		Release Candidate
+##
+##	2006-09-18 - Version 0.8.0
+##		Initial BETA release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]-------------------------------------
+#
+copy root/admin_memberlist_controls.php to admin/admin_memberlist_controls.php
+copy root/memberlist_controls_body.tpl to templates/subSilver/admin/memberlist_controls_body.tpl
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+memberlist.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 145 to 145, may not represent a complete row
+#
+$sql = "SELECT username
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Memberlist Controls 1.0.0 (www.phpBBDoctor.com)
+$phpbbdoctor_extra_sql = '';
+$memberlist_display = '';
+
+if (isset($board_config['phpbbdoctor_memberlist_active_required']))
+{
+	if ($board_config['phpbbdoctor_memberlist_active_required'] == '1')
+	{
+		$phpbbdoctor_extra_sql .= ' AND user_active = 1 ';
+		$memberlist_display .= $lang['Memberlist_display_active'];
+	}
+}
+
+if (isset($board_config['phpbbdoctor_memberlist_days_since_last_visit_required']))
+{
+	$control_value = intval($board_config['phpbbdoctor_memberlist_days_since_last_visit_required']);
+	if ($control_value > 0)
+	{
+		$control_value = time() - (86400 * $control_value);
+		$phpbbdoctor_extra_sql .= ' AND user_lastvisit >= ' . $control_value . ' ';
+		$memberlist_display .= ($memberlist_display <> '' ? ' ' . $lang['Memberlist_display_and'] : '') . sprintf($lang['Memberlist_display_days_since_last_visit'], $board_config['phpbbdoctor_memberlist_days_since_last_visit_required']);
+	}
+}
+
+if (isset($board_config['phpbbdoctor_memberlist_min_posts_required']))
+{
+	$control_value = intval($board_config['phpbbdoctor_memberlist_min_posts_required']);
+	if ($control_value > 0)
+	{
+		$phpbbdoctor_extra_sql .= ' AND user_posts >= ' . $control_value . ' ';
+		$memberlist_display .= ($memberlist_display <> '' ? ' ' . $lang['Memberlist_display_and'] : '') . sprintf($lang['Memberlist_display_user_posts'], $board_config['phpbbdoctor_memberlist_min_posts_required']);
+	}
+}
+
+if ($memberlist_display <> '')
+{
+	$memberlist_display = $lang['Memberlist_display_begin'] . $memberlist_display . '.';
+}
+// END Memberlist Controls 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 148 to 148, may not represent a complete row
+#
+ORDER BY $order_by
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+	$phpbbdoctor_extra_sql
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 279 to 279, may not represent a complete row
+#
+WHERE user_id <> " . ANONYMOUS
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+ANONYMOUS
+
+#
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------
+#
+. " $phpbbdoctor_extra_sql "
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 301 to 301, may not represent a complete row
+#
+'PAGINATION' => $pagination,
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+	'MEMBERLIST_DISPLAY' => $memberlist_display,
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 26 to 26, may not represent a complete row
+#
+global $db
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+$db
+
+#
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------
+#
+, $board_config
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 28 to 28, may not represent a complete row
+#
+switch
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+	// BEGIN Memberlist Controls 1.0.0 (www.phpBBDoctor.com)
+	if (isset($board_config['phpbbdoctor_memberlist_active_required']))
+	{
+		if ($board_config['phpbbdoctor_memberlist_active_required'] == '1')
+		{
+			$phpbbdoctor_extra_sql .= ' AND user_active = 1 ';
+		}
+	}
+	// END Memberlist Controls 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 33 to 33, may not represent a complete row
+#
+ANONYMOUS
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+ANONYMOUS
+
+#
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------
+#
+. $phpbbdoctor_extra_sql
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 39 to 39, may not represent a complete row
+#
+" . ANONYMOUS . "
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+					$phpbbdoctor_extra_sql
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 762 to 763, may not represent a complete row
+#
+//
+// That's all Folks!
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Memberlist Controls 1.0.0 (www.phpBBDoctor.com)
+$lang['Memberlist_Control'] = 'Memberlist Control';
+$lang['Memberlist_controls_title'] = 'Admin Memberlist Controls';
+$lang['Memberlist_controls_explain'] = 'Use this page to control what conditions have to be met in order for a user to be displayed on the memberlist';
+$lang['Memberlist_controls_setting'] = 'Memberlist Control';
+
+$lang['Memberlist_active_required'] = 'Active Status';
+$lang['Memberlist_active_required_explain'] = 'A one (1) means members must be active in order to be displayed on the memberlist, a zero (0) allows all members to be displayed.';
+$lang['Memberlist_min_posts_required'] = 'Min posts required';
+$lang['Memberlist_min_posts_required_explain'] = 'Set this value to to the minimum number of posts that a member must have in order to be displayed on the memberlist.';
+$lang['Memberlist_days_since_last_visit_required'] = 'Days since last visit';
+$lang['Memberlist_days_since_last_visit_required_explain'] = 'Set this value to zero (0) and it is off, set it to any positive value and that controls how many days a user can go without visiting your board and still show up on the memberlist. For example, if you enter 90 a user must visit your board at least once in 90 days in order to be displayed.';
+$lang['Memberlist_controls_updated'] = 'Memberlist Controls Updated';
+$lang['Click_return_list'] = 'Click %sHere%s to return to %s admin';
+// END Memberlist Controls 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 1021 to 1022, may not represent a complete row
+#
+//
+// That's all, Folks!
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Memberlist Controls 1.0.0 (www.phpBBDoctor.com)
+$lang['Memberlist_display_active'] = ' are active members';
+$lang['Memberlist_display_days_since_last_visit'] = ' have visited in the past %s days';
+$lang['Memberlist_display_user_posts'] = ' have at least %s posts';
+$lang['Memberlist_display_begin'] = '<br />Members are only displayed if they ';
+$lang['Memberlist_display_and'] = ' and ';
+// END Memberlist Controls 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+templates/subSilver/memberlist_body.tpl
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 35 to 35, may not represent a complete row
+#
+<td class="catBottom" colspan="8" height="28">&nbsp;
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+&nbsp;
+
+#
+#-----[ IN-LINE REPLACE WITH ]-------------------------------------
+#
+<span class="gensmall">{MEMBERLIST_DISPLAY}</span>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

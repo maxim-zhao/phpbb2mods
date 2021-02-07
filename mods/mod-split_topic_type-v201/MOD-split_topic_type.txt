@@ -1,0 +1,381 @@
+############################################################## 
+## MOD Title: Split topic type
+## MOD Author: Ptirhiik < admin@rpgnet-fr.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description:
+##		This mod splits the topic per type in the viewform display
+##
+## MOD Version: 2.0.1
+## 
+## Installation Level: Moderate
+## Installation Time: 10 Minutes
+## Files To Edit:
+##		viewforum.php
+##		includes/functions.php
+##		templates/subSilver/subSilver.cfg
+##		templates/subSilver/viewforum_body.tpl
+##
+## Included Files:
+##		mod_split_topic_type.php
+##		lang_extend_split_topic_type.php
+##
+##		--- lang settings ---
+##		mod-lang_settings/lang_extend_mac.php
+##
+##		--- mods settings ---
+##		mod-mods_settings/admin_board_extend.php
+##		mod-mods_settings/functions_mods_settings.php
+##		mod-mods_settings/lang_extend_mods_settings.php
+##		mod-mods_settings/board_config_extend_body.tpl
+##
+##		--- topics list ---
+##		mod-topics_list/functions_topics_list.php
+##		mod-topics_list/topics_list_box.tpl
+##		mod-topics_list/graph.gif/folder_announce_own.gif
+##		mod-topics_list/graph.gif/folder_announce_new_own.gif
+##		mod-topics_list/graph.gif/folder_own.gif
+##		mod-topics_list/graph.gif/folder_new_own.gif
+##		mod-topics_list/graph.gif/folder_hot_own.gif
+##		mod-topics_list/graph.gif/folder_new_hot_own.gif
+##		mod-topics_list/graph.gif/folder_lock_own.gif
+##		mod-topics_list/graph.gif/folder_lock_new_own.gif
+##		mod-topics_list/graph.gif/folder_sticky_own.gif
+##		mod-topics_list/graph.gif/folder_sticky_new_own.gif
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+##	o users can choose their prefered setup (required full mods settings mod to be installed).
+##		Admin can also choose to override the users choice for each setup parameter. 
+## 
+############################################################## 
+## MOD History: 
+##
+##   2003-10-21 - Version 2.0.1
+##	- add the lang_settings tool
+##	- upgrade the mods_settings tool
+## 
+##   2003-09-09 - Version 2.0.0
+##      - use of the functions_topics_list
+##	- use the mods_settings for user preferences
+##
+##   2003-07-13 - Version 1.0.5
+##      - allow to split the topic in boxes
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+#
+# This part is optional : do it only if you want your users to be able to choose their setup
+#	if you want so, you'll have to install the MOD-mods_settings mod included in the pack
+#
+# note also you haven't to add the user_split_global_announce if you don't use global announces mod
+#
+ALTER TABLE phpbb_users ADD user_split_global_announce TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_split_announce TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_split_sticky TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_split_topic_split TINYINT(1) DEFAULT '0' NOT NULL;
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy mod_split_topic_type.php to includes/mods_settings/mod_split_topic_type.php
+copy lang_extend_split_topic_type.php to language/lang_english/lang_extend_split_topic_type.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+# this part is relative to lang settings mod
+#
+copy mod-lang_settings/lang_extend_mac.php to includes/lang_extend_mac.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+# this part is relative to mods settings mod
+#
+copy mod-mods_settings/admin_board_extend.php to admin/admin_board_extend.php
+copy mod-mods_settings/functions_mods_settings.php to includes/functions_mods_settings.php
+copy mod-mods_settings/lang_extend_mods_settings.php to language/lang_english/lang_extend_mods_settings.php
+copy mod-mods_settings/board_config_extend_body.tpl to templates/subSilver/admin/board_config_extend_body.tpl
+#
+#-----[ COPY ]------------------------------------------------
+#
+# this part is relative to topics list mod
+#
+copy mod-topics_list/functions_topics_list.php to includes/functions_topics_list.php
+copy mod-topics_list/topics_list_box.tpl to templates/subSilver/topics_list_box.tpl
+copy mod-topics_list/graph.gif/folder_announce_own.gif to templates/subSilver/images/folder_announce_own.gif
+copy mod-topics_list/graph.gif/folder_announce_new_own.gif to templates/subSilver/images/folder_announce_new_own.gif
+copy mod-topics_list/graph.gif/folder_own.gif to templates/subSilver/images/folder_own.gif
+copy mod-topics_list/graph.gif/folder_new_own.gif to templates/subSilver/images/folder_new_own.gif
+copy mod-topics_list/graph.gif/folder_hot_own.gif to templates/subSilver/images/folder_hot_own.gif
+copy mod-topics_list/graph.gif/folder_new_hot_own.gif to templates/subSilver/images/folder_new_hot_own.gif
+copy mod-topics_list/graph.gif/folder_lock_own.gif to templates/subSilver/images/folder_lock_own.gif
+copy mod-topics_list/graph.gif/folder_lock_new_own.gif to templates/subSilver/images/folder_lock_new_own.gif
+copy mod-topics_list/graph.gif/folder_sticky_own.gif to templates/subSilver/images/folder_sticky_own.gif
+copy mod-topics_list/graph.gif/folder_sticky_new_own.gif to templates/subSilver/images/folder_sticky_new_own.gif
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+include($phpbb_root_path . 'common.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/functions_topics_list.'. $phpEx);
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Okay, lets dump out the page ...
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+#************************************************************************************
+#					NOTE :
+#					------
+# /!\ Important : I strongly recommand to mute all the lines between the nexts 
+#     ---------  			/* and */ 
+#		by adding // in front of each lines or by deleting all.
+#
+# ie: // if( $total_topics )
+#
+#************************************************************************************
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+// adjust the item id
+for ($i=0; $i < count($topic_rowset); $i++)
+{
+	$topic_rowset[$i]['topic_id'] = POST_TOPIC_URL . $topic_rowset[$i]['topic_id'];
+}
+
+// set the bottom sort option
+$footer = $lang['Display_topics'] . ':&nbsp;' . $select_topic_days . '&nbsp;' . ( !empty($s_display_order) ? $s_display_order : '') . '<input type="submit" class="liteoption" value="' . $lang['Go'] . '" name="submit" />';
+
+// send the list
+$allow_split_type = true;
+$display_nav_tree = false;
+topic_list('TOPICS_LIST_BOX', 'topics_list_box', $topic_rowset, '', $allow_split_type, $display_nav_tree, $footer);
+//-- delete
+/*
+//---------------------------------------
+//
+// Note : all the code that was standing there stands now in functions_topics_list.php, topic_list() func
+//
+//---------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$topics_count -= $total_announcements;
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+*/
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+}
+else
+{
+	//
+	// No topics
+	//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- delete
+/*
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Parse the page and print
+//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+*/
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- mod : language settings -----------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( $userdata['user_id'] != ANONYMOUS )
+	{
+		if ( !empty($userdata['user_lang']))
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+	global $db, $mods, $list_yes_no, $userdata;
+
+	//	get all the mods settings
+	$dir = @opendir($phpbb_root_path . 'includes/mods_settings');
+	while( $file = @readdir($dir) )
+	{
+		if( preg_match("/^mod_.*?\." . $phpEx . "$/", $file) )
+		{
+			include_once($phpbb_root_path . 'includes/mods_settings/' . $file);
+		}
+	}
+	@closedir($dir);
+//-- fin mod : profile cp --------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Set up style
+	//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+	include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		}
+
+		if ( empty($template) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+			include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topics list -----------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : topics list -----------------------------------------------------------------------------
+//-- add
+$images['folder_global_announce']		= "$current_template_images/folder_announce.gif";
+$images['folder_global_announce_new']		= "$current_template_images/folder_announce_new.gif";
+$images['folder_global_announce_own']		= "$current_template_images/folder_announce_own.gif";
+$images['folder_global_announce_new_own']	= "$current_template_images/folder_announce_new_own.gif";
+$images['folder_own']				= "$current_template_images/folder_own.gif";
+$images['folder_new_own']			= "$current_template_images/folder_new_own.gif";
+$images['folder_hot_own']			= "$current_template_images/folder_hot_own.gif";
+$images['folder_hot_new_own']			= "$current_template_images/folder_new_hot_own.gif";
+$images['folder_locked_own']			= "$current_template_images/folder_lock_own.gif";
+$images['folder_locked_new_own']		= "$current_template_images/folder_lock_new_own.gif";
+$images['folder_sticky_own']			= "$current_template_images/folder_sticky_own.gif";
+$images['folder_sticky_new_own']		= "$current_template_images/folder_sticky_new_own.gif";
+$images['folder_announce_own']			= "$current_template_images/folder_announce_own.gif";
+$images['folder_announce_new_own']		= "$current_template_images/folder_announce_new_own.gif";
+//-- fin mod : topics list -------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+<form method="post" action="{S_POST_DAYS_ACTION}">
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- mod : split topic type -->
+#
+#-----[ FIND ]------------------------------------------------
+#
+#
+#************************************************************************************
+#					NOTE :
+#					------
+#	The lines deleted here are reported in topics_list_box.tpl. You will probably
+#	want to customize topics_list_box.tpl the same way viewforum_body.tpl was if
+#	you use a particular template with other classes than the ones used by subSilver.
+#
+#************************************************************************************
+  <table
+	<tr> 
+	  <th
+	  <th
+	  <th
+	  <th
+	  <th
+	</tr>
+	<!-- BEGIN topicrow -->
+	<tr> 
+	  <td
+	  <td
+		{topicrow.GOTO_PAGE}</span></td>
+	  <td
+	  <td
+	  <td
+	  <td
+	</tr>
+	<!-- END topicrow -->
+	<!-- BEGIN switch_no_topics -->
+	<tr> 
+	  <td
+	</tr>
+	<!-- END switch_no_topics -->
+	<tr> 
+	  <td class="catBottom" 
+		<input type="submit" class="liteoption" value="{L_GO}" name="submit" />
+		</span></td>
+	</tr>
+  </table>
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+{TOPICS_LIST_BOX}
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

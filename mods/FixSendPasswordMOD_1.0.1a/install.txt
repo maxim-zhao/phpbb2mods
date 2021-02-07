@@ -1,0 +1,184 @@
+############################################################## 
+## MOD Title:   Fix Send Password MOD 
+## MOD Author:  Martin Truckenbrodt < webmaster@martin-truckenbrodt.com > (Martin Truckenbrodt) http://martin-truckenbrodt.com 
+## MOD Description: 
+##   There is a problem in phpBB2 with Send Password if Admin confirmation new user accounts is activated. 
+##   By default users are getting a email with an reactivation link. But they have not enough rights 
+##   to reactivated the account. 
+##   This MOD sends an emal to user only including the new password. 
+##   And the board admin gets an email with the reactivation link.
+##   
+## 
+## MOD Version: 1.0.1 
+## 
+## Installation Level: Easy 
+## Installation Time:  5 Minutes 
+## Files To Edit: 
+##   includes/usercp_activate.php 
+##   includes/usercp_sendpasswd.php 
+## 
+## Included Files: 
+##   root/language/lang_english/email/user_activate_passwd_user.tpl 
+##   root/language/lang_english/email/user_activate_passwd_webmaster.tpl 
+## 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##  This MOD is only necessary if you have activated admin confirmation for new accounts in your forum.
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2006-11-12 - Version 1.0.0
+##      - first release 
+## 
+##   2006-11-18 - Version 1.0.1
+##      - MOD renamed from Send Password Hofix MOD to Fix Send Password MOD
+##      - $user replaced with $user_activate  - http://www.phpbb.com/phpBB/viewtopic.php?p=2593868#2593868
+##      - 'u' secureing changed - http://www.phpbb.com/phpBB/viewtopic.php?t=471482
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+# 
+#-----[ COPY ]------------------------------------------------ 
+# 
+copy root/language/lang_english/email/user_activate_passwd_user.tpl to language/lang_english/email/user_activate_passwd_user.tpl
+copy root/language/lang_english/email/user_activate_passwd_webmaster.tpl to language/lang_english/email/user_activate_passwd_webmaster.tpl
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_activate.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "SELECT user_active, user_id, username, user_email, user_newpasswd, user_lang, user_actkey 
+	FROM " . USERS_TABLE . "
+	WHERE user_id = " . intval($HTTP_GET_VARS[POST_USERS_URL]);
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+// Fix Send Password MOD begin
+
+if( isset( $HTTP_GET_VARS[POST_USERS_URL]) || isset( $HTTP_POST_VARS[POST_USERS_URL]) ) 
+{
+	$user_activate = ( isset( $HTTP_POST_VARS[POST_USERS_URL]) ) ? intval( $HTTP_POST_VARS[POST_USERS_URL]) : intval( $HTTP_GET_VARS[POST_USERS_URL]); 
+}
+
+$sql = "SELECT user_active, user_id, username, user_email, user_newpasswd, user_lang, user_actkey 
+	FROM " . USERS_TABLE . "
+	WHERE user_id = " . $user_activate;
+// Fix Send Password MOD end
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		if ( intval($board_config['require_activation']) == USER_ACTIVATION_ADMIN && $sql_update_pass == '' )
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+// Fix Send Password MOD begin
+		if ( intval($board_config['require_activation']) == USER_ACTIVATION_ADMIN )
+// Fix Send Password MOD end
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_sendpasswd.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$emailer->from($board_config['board_email']);
+			$emailer->replyto($board_config['board_email']);
+
+			$emailer->use_template('user_activate_passwd', $row['user_lang']);
+			$emailer->email_address($row['user_email']);
+			$emailer->set_subject($lang['New_password_activation']);
+
+			$emailer->assign_vars(array(
+				'SITENAME' => $board_config['sitename'], 
+				'USERNAME' => $username,
+				'PASSWORD' => $user_password,
+				'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '', 
+
+				'U_ACTIVATE' => $server_url . '?mode=activate&' . POST_USERS_URL . '=' . $user_id . '&act_key=' . $user_actkey)
+			);
+			$emailer->send();
+			$emailer->reset();
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+// Fix Send Password MOD begin
+			if ( $board_config['require_activation'] == USER_ACTIVATION_ADMIN)
+			{
+				$sql = "SELECT user_email, user_lang 
+					FROM " . USERS_TABLE . "
+					WHERE user_level = " . ADMIN;
+				
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select Administrators', '', __LINE__, __FILE__, $sql);
+				}
+				
+				while ($row = $db->sql_fetchrow($result))
+				{
+					$emailer->from($board_config['board_email']);
+					$emailer->replyto($board_config['board_email']);
+					$emailer->email_address(trim($row['user_email']));
+					$emailer->use_template('user_activate_passwd_webmaster', $row['user_lang']);
+					$emailer->set_subject($lang['New_password_activation']);
+					$emailer->assign_vars(array(
+						'SITENAME' => $board_config['sitename'], 
+						'USERNAME' => $username,
+						'PASSWORD' => $user_password,
+						'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '', 
+						'U_ACTIVATE' => $server_url . '?mode=activate&' . POST_USERS_URL . '=' . $user_id . '&act_key=' . $user_actkey
+					));
+					$emailer->send();
+					$emailer->reset();
+				}
+				$db->sql_freeresult($result);
+
+				$emailer->from($board_config['board_email']);
+				$emailer->replyto($board_config['board_email']);
+				$emailer->email_address($row['user_email']);
+				$emailer->use_template('user_activate_passwd_user', $row['user_lang']);
+				$emailer->set_subject($lang['New_password_activation']);
+				$emailer->assign_vars(array(
+					'SITENAME' => $board_config['sitename'], 
+					'USERNAME' => $username,
+					'PASSWORD' => $user_password,
+					'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : ''
+				));
+				$emailer->send();
+				$emailer->reset();
+			}
+			else
+			{
+				$emailer->from($board_config['board_email']);
+				$emailer->replyto($board_config['board_email']);
+				$emailer->email_address($row['user_email']);
+				$emailer->use_template('user_activate_passwd', $row['user_lang']);
+				$emailer->set_subject($lang['New_password_activation']);
+				$emailer->assign_vars(array(
+					'SITENAME' => $board_config['sitename'], 
+					'USERNAME' => $username,
+					'PASSWORD' => $user_password,
+					'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '', 
+					'U_ACTIVATE' => $server_url . '?mode=activate&' . POST_USERS_URL . '=' . $user_id . '&act_key=' . $user_actkey
+				));
+				$emailer->send();
+				$emailer->reset();
+			}
+// Fix Send Password MOD end
+# 
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

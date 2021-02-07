@@ -1,0 +1,472 @@
+############################################################## 
+## MOD Title: 		Advanced Posts Merging
+## MOD Author: Xpert < xpert@phpbbguru.net > (N/A) http://www.phpbbguru.net/
+## MOD Description: 	This mod can merge posts from one user, posted 	after previous.
+##			Something like anti-flood system. 
+## MOD Version: 	2.1.2 
+## 
+## Installation Level: 	Easy 
+## Installation Time: 	10 Minutes 
+## Files To Edit (7): 	posting.php
+##			viewforum.php
+##			viewtopic.php
+##			admin/admin_board.php
+##			includes/functions_post.php
+##			includes/topic_review.php
+##			templates/subSilver/admin/board_config_body.tpl
+##			
+## Included Files (1): 	lang_merge.php
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes: 
+##
+##	Put "advanced_posts_merging_db_ins.php" into your phpBB root directory
+##	and run it after mod installation, then delete it. Don't forget
+##	to configure mod after installation, feature is disabled by default.	 
+##
+##	You can configure mod at Admin Center, section "Configuration",
+##	"General Board Settings". Also can edit messages at mod language file.
+##
+##	Mod uses not user-defined language, but the board default one.
+##
+##	Special thanks to:
+##	------------------------------------
+##	Mercuree < mercuree@moldova.cc > 
+##	ra < meos@mail.ru >
+##	Vladson < vladson@heatpc.com >
+##	oio < oio@overclockers.ru >
+##	Coagulant < profit@nm.ru >
+##	------------------------------------
+##	for ideas and/or testing.
+##
+##	You can install this mod with help of EasyMOD 0.0.13 by Nuttzy99.
+##
+##	If you use Attachment Mod by Acyd Burn, install a special addon for proper attaching files.
+## 
+############################################################## 
+## MOD History: 
+##
+##	2005-03-28 - Version 2.1.2
+##	- How-to fixes
+##	- New addon: disabling merging message at certain forums.
+## 
+##	2005-01-23 - Version 2.1.1 
+##	- Different how-to fixes, MOD is now compatible with EasyMOD. (Coagulant)
+##	- Fixed bug with incorrect special chars parsing. (YarNET)
+##	- MOD is now compatible with Attachment Mod by Acyd Burn.
+##
+##	2004-12-20 - Version 2.1.0 
+##	- New merge separators for proper smilies parsing.
+##
+##	2004-12-14 - Version 2.0.1 
+##	- Fixing bugs after big code rewrite :)
+##	- BBCode parsing errors now don't disturb users.
+##
+##	2004-12-12 - Version 2.0.0 
+##	- Big code rewrite.
+##
+##	2004-07-23 - Version 1.2.0 
+##	- Version number fix.
+##	- Posting code rewritten & some time bug-feature fixes.
+##	- New: flood interval on merging.
+## 
+##	2004-06-15 - Version 1.0.1 
+##	- Some sorting fixes - now merged posts are newest at the forums.
+##	  and topics with such posts are newest topics.
+## 
+##	2004-04-28 - Version 1.0.0 
+##	- Initial Release
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+INSERT INTO phpbb_config (config_name, config_value) VALUES('time_to_merge', 0); 
+INSERT INTO phpbb_config (config_name, config_value) VALUES('merge_flood_interval', 0); 
+ALTER TABLE phpbb_posts ADD post_created INT(11) DEFAULT '0' NOT NULL AFTER post_time; 
+UPDATE phpbb_posts SET post_created = post_time;
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy language/lang_english/lang_merge.php to language/lang_english/lang_merge.php
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$bbcode_uid = '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			$merge = false;
+			$time2merge = intval($board_config['time_to_merge']) * 3600;
+
+			if ( ($mode == 'reply') && ($userdata['user_id'] != ANONYMOUS) )
+			{
+				$sql = "SELECT post_id, poster_id, post_created FROM " . POSTS_TABLE . " WHERE topic_id = $topic_id ORDER  BY post_time DESC LIMIT 1";
+				$result = $db->sql_query($sql) or message_die(GENERAL_ERROR, 'Could not obtain last post information', '', __LINE__, __FILE__, $sql);
+		
+				$last_post_data = $db->sql_fetchrow($result);
+				$last_post_id = $last_post_data['post_id'];
+				$last_poster = $last_post_data['poster_id'];
+				$last_post_created = $last_post_data['post_created'];
+
+				if ( ($last_poster == $userdata['user_id']) && ((time() - $last_post_created) < $time2merge) )
+				{
+					$merge = true;
+				}
+
+				$db->sql_freeresult($result);
+			}
+
+			if (!$merge)
+			{
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				submit_post($mode, $post_data, $return_message, $return_meta, $forum_id, $topic_id, $post_id, $poll_id, $topic_type, $bbcode_on, $html_on, $smilies_on, $attach_sig, $bbcode_uid, str_replace("\'", "''", $username), str_replace("\'", "''", $subject), str_replace("\'", "''", $message), str_replace("\'", "''", $poll_title), $poll_options, $poll_length);
+			}
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			}
+			else
+			{
+				$error_msg = '';
+				submit_merged_post($last_post_id, $forum_id, $subject, $message, $return_message, $return_meta);
+			}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ( $mode != 'editpost' )
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'editpost'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ && (!$merge)
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ($error_msg == '' && $mode != 'poll_delete')
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'poll_delete'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ && (!$merge)
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewforum.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+//
+// Grab all the basic data (all topics except announcements)
+// for this forum
+//
+$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_username, p2.post_username AS post_username2, p2.post_time 
+	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TABLE . " p2, " . USERS_TABLE . " u2
+	WHERE t.forum_id = $forum_id
+		AND t.topic_poster = u.user_id
+		AND p.post_id = t.topic_first_post_id
+		AND p2.post_id = t.topic_last_post_id
+		AND u2.user_id = p2.poster_id 
+		AND t.topic_type <> " . POST_ANNOUNCE . " 
+		$limit_topics_time
+	ORDER BY t.topic_type DESC, t.topic_last_post_id DESC 
+	LIMIT $start, ".$board_config['topics_per_page'];
+if ( !($result = $db->sql_query($sql)) )
+{
+   message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+}
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+t.topic_last_post_id DESC
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+p2.post_time DESC 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewtopic.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$post_date = create_date($board_config['default_dateformat'], $postrow[$i]['post_time'], $board_config['board_timezone']);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+['post_time']
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+# 
+['post_created']
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	include($phpbb_root_path . 'includes/functions_selects.'.$phpEx);  
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_merge.' . $phpEx);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"SERVER_NAME" => $new['server_name'],  
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	"L_TIME_TO_MERGE" => $lang['Merge_time_limit'],
+	"L_TIME_TO_MERGE_EXPLAIN" => $lang['Merge_time_limit_explain'],
+	"L_MERGE_FLOOD_INTERVAL" => $lang['Merge_flood_interval'],
+	"L_MERGE_FLOOD_INTERVAL_EXPLAIN" => $lang['Merge_flood_interval_explain'],  
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+$template->pparse("body");
+
+include('./page_footer_admin.'.$phpEx);
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+ 
+$template->assign_vars(array(
+	"TIME_TO_MERGE" => $new['time_to_merge'],
+	"MERGE_FLOOD_INTERVAL" => $new['merge_flood_interval'])
+);
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions_post.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+$unhtml_specialchars_match = array('#&gt;#', '#&lt;#', '#&quot;#', '#&amp;#');
+$unhtml_specialchars_replace = array('>', '<', '"', '&');
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+//
+// Post an addon to the existing post
+//
+function submit_merged_post($post_id, $forum_id, $subject, $message, &$return_message, &$return_meta)
+{
+	global $board_config, $db, $lang, $phpEx, $phpbb_root_path;
+	
+	include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_merge.' . $phpEx);
+	include($phpbb_root_path . 'includes/functions_search.'.$phpEx);
+
+	$current_time = time();	
+
+	// Check message
+	if ( empty($message) )
+	{
+		message_die(GENERAL_MESSAGE, $lang['Empty_message']);
+	}
+
+	$sql = "SELECT p.post_created, p.post_time, p.enable_html, p.enable_bbcode, p.enable_smilies, pt.* 
+		FROM " . POSTS_TABLE . " p, " . POSTS_TEXT_TABLE ." pt
+		WHERE p.post_id = $post_id
+			AND pt.post_id = p.post_id";
+	$result = $db->sql_query($sql) or message_die(GENERAL_ERROR, 'Could not obtain last post information', '', __LINE__, __FILE__, $sql);
+		
+	$last_post_data = $db->sql_fetchrow($result);
+
+	// Flood control
+	if ( ($current_time - intval($last_post_data['post_time'])) < intval($board_config['merge_flood_interval']) )
+	{
+		message_die(GENERAL_MESSAGE, $lang['Flood_Error']);
+	}
+
+	$last_post_created = $last_post_data['post_created'];
+	$last_post_time = $last_post_data['post_time'];
+	$last_html = $last_post_data['enable_html'];
+	$last_bbcode = $last_post_data['enable_bbcode'];
+	$last_smilies = $last_post_data['enable_smilies'];
+	$last_bbcode_uid = $last_post_data['bbcode_uid'];
+	$last_subject = $last_post_data['post_subject'];
+	$last_message = $last_post_data['post_text'];
+
+	$db->sql_freeresult($result);
+
+	if ($last_bbcode_uid != '')
+	{
+		$last_message = preg_replace('/\:(([a-z0-9]:)?)' . $last_bbcode_uid . '/s', '', $last_message);
+	}
+
+	$last_message = unprepare_message($last_message);
+
+	// Adding slashes, we need this step for comparison
+	$last_subject = addslashes($last_subject);
+	$last_message = addslashes($last_message);
+
+	// Preparing separator
+	$merged_after = ($current_time - $last_post_time);
+	$merged_sec = $merged_after % 60;
+	$merged_min = ($merged_after/60) % 60;
+	$merged_hours = ($merged_after/3600) % 24 ;
+	$merged_days = ($merged_after/86400) % 31;
+
+	$s_st = ($merged_sec) ? seconds_st($merged_sec) : '';
+	$m_st = ($merged_min) ? minutes_st($merged_min) : '';
+	$h_st = ($merged_hours) ? hours_st($merged_hours) : '';
+	$d_st = ($merged_days) ? days_st($merged_days) : '';
+
+	$separator = sprintf($lang['Merge_separator'],$d_st,$h_st,$m_st,$s_st);
+	$separator .= ( !empty($subject) && ($subject != $last_subject) ) ? sprintf($lang['Merge_post_subject'], $subject) : '';
+	$separator = str_replace("'", "''", $separator);
+
+	$message = ($message != $last_message) ? $last_message . $separator . trim($message) : trim($message);
+	$message = prepare_message($message, $last_html, $last_bbcode, $last_smilies, $last_bbcode_uid);
+
+	// This replacement was borrowed from posting.php
+	$last_subject = str_replace("\'", "''", $last_subject);
+	$last_message = str_replace("\'", "''", $last_message);
+	
+	$sql = "UPDATE " . POSTS_TEXT_TABLE . " SET post_text = '$message' WHERE post_id = $post_id";
+	$result = $db->sql_query($sql) or message_die(GENERAL_ERROR, 'Could not update post text information', '', __LINE__, __FILE__, $sql);
+
+	$sql = "UPDATE " . POSTS_TABLE . " SET post_time = $current_time WHERE post_id = $post_id";
+	$result = $db->sql_query($sql) or message_die(GENERAL_ERROR, 'Could not update last post time', '', __LINE__, __FILE__, $sql);
+
+	$sql = "UPDATE " . FORUMS_TABLE . " SET forum_last_post_id = $post_id WHERE forum_id = $forum_id";
+	$result = $db->sql_query($sql) or message_die(GENERAL_ERROR, 'Could not update forum last post id', '', __LINE__, __FILE__, $sql);
+
+	// Search routines
+	remove_search_post($post_id);
+	add_search_words('single', $post_id, stripslashes($message), stripslashes($subject));
+
+	// Meta & return message
+	$return_meta = '<meta http-equiv="refresh" content="3;url=' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $post_id) . '#' . $post_id . '">';
+	$return_message = $lang['Stored'] . '<br /><br />' . sprintf($lang['Click_view_message'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $post_id) . '#' . $post_id . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_forum'], '<a href="' . append_sid("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id") . '">', '</a>');
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$sql = ($mode != "editpost") ? "INSERT INTO " . POSTS_TABLE . " (topic_id, forum_id, poster_id, post_username, post_time, poster_ip, enable_bbcode, enable_html, enable_smilies, enable_sig) VALUES ($topic_id, $forum_id, " . $userdata['user_id'] . ", '$post_username', $current_time, '$user_ip', $bbcode_on, $html_on, $smilies_on, $attach_sig)" : "UPDATE " . POSTS_TABLE . " SET post_username = '$post_username', enable_bbcode = $bbcode_on, enable_html = $html_on, enable_smilies = $smilies_on, enable_sig = $attach_sig" . $edited_sql . " WHERE post_id = $post_id"; 
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+, post_time
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+# 
+, post_created
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+, $current_time
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+# 
+, $current_time
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/topic_review.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$post_date = create_date($board_config['default_dateformat'], $row['post_time'], $board_config['board_timezone']);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+['post_time']
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+# 
+['post_created']
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<tr>
+		<th class="thHead" colspan="2">{L_COOKIE_SETTINGS}</th>
+	</tr>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	<tr>
+		<td class="row1">{L_TIME_TO_MERGE}<br /><span class="gensmall">{L_TIME_TO_MERGE_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="8" name="time_to_merge" value="{TIME_TO_MERGE}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_MERGE_FLOOD_INTERVAL}<br /><span class="gensmall">{L_MERGE_FLOOD_INTERVAL_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="8" name="merge_flood_interval" value="{MERGE_FLOOD_INTERVAL}" /></td>
+	</tr>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

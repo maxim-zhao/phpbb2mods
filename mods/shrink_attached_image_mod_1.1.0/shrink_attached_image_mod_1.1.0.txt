@@ -1,0 +1,219 @@
+############################################################## 
+## MOD Title:  Shrink Attached Image Mod
+## MOD Author: roc < flying_roc@hotmail.com > ( China ) http://roc.phpbbhost1.biz
+## MOD Description: This Mod adds the ability to automatic shrink the attached image. It should
+## works with the File Attachment Mod v2.3.9.
+##                                 
+## MOD Version: 1.0.0
+## 
+## Installation Level: easy
+## Installation Time: ~5 minutes
+## Files To Edit:  attach_mod/displaying.php
+##                 templates/subSilver/viewtopic_attach_body.tpl
+##                 language/lang_englsih/lang_admin_attach.php
+##                 language/lang_chinese_simplified/lang_admin_attach.php
+## Included Files: n/a
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+## Before you add this Mod, you should have add Attachment Mod v2.3.9.
+############################################################## 
+## MOD History: 
+##   2004-02-13 - Version 1.0.0
+##      - Initial final release
+################################################################ 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+#
+#-----[ OPEN ]------------------------------------------
+#
+attach_mod/displaying.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					if ( (intval($attach_config['img_link_width']) != 0) || (intval($attach_config['img_link_height']) != 0) )
+					{
+						list($width, $height) = image_getdimension($filename);
+
+						if ( ($width == 0) && ($height == 0) )
+						{
+							$image = TRUE;
+						}
+						else
+						{
+							if ( ($width <= intval($attach_config['img_link_width'])) && ($height <= intval($attach_config['img_link_height'])) )
+							{
+								$image = TRUE;
+							}
+						}
+					}
+					else
+					{
+						$image = TRUE;
+					}
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+					$image = TRUE;
+					$maxwidth = intval($attach_config['img_link_width']);
+					$maxheight = intval($attach_config['img_link_height']);
+					$img_display_size = '';
+					if ( ($maxwidth != 0) || $maxheight != 0 )
+					{
+						list($width, $height) = image_getdimension($filename);
+
+						if (( ($width != 0) && ($height != 0) ) && ( (($width > $maxwidth) && ($maxwidth > 0)) || (($height > $maxheight) && ($maxheight > 0)) ))
+						{
+							if ( ($maxheight <= 0) || ( ($maxwidth > 0) && ($maxwidth / $width) < ($maxheight / $height) ) )
+							{
+								$height = round($maxwidth * $height / $width);
+								$width = $maxwidth;
+							}
+							else
+							{
+								$width = round($maxheight * $width / $height);
+								$height = $maxheight;
+							}
+							$img_display_size = 'width="' . $width . '" height="' . $height . '"';
+						}
+					}
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+						'L_DOWNLOADED_VIEWED' => $lang['Viewed'])
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+						'IMG_SIZE' => $img_display_size,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				if ( (intval($attach_config['img_link_width']) != 0) || (intval($attach_config['img_link_height']) != 0) )
+				{
+					list($width, $height) = image_getdimension($filename);
+
+					if ( ($width == 0) && ($height == 0) )
+					{
+						$image = TRUE;
+					}
+					else
+					{
+						if ( ($width <= intval($attach_config['img_link_width'])) && ($height <= intval($attach_config['img_link_height'])) )
+						{
+							$image = TRUE;
+						}
+					}
+				}
+				else
+				{
+					$image = TRUE;
+				}
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+				$image = TRUE;
+				$maxwidth = intval($attach_config['img_link_width']);
+				$maxheight = intval($attach_config['img_link_height']);
+				$img_display_size = '';
+				if ( ($maxwidth != 0) || $maxheight != 0 )
+				{
+					list($width, $height) = image_getdimension($filename);
+
+					if (( ($width != 0) && ($height != 0) ) && ( (($width > $maxwidth) && ($maxwidth > 0)) || (($height > $maxheight) && ($maxheight > 0)) ))
+					{
+						if ( ($maxheight <= 0) || ( ($maxwidth > 0) && ($maxwidth / $width) < ($maxheight / $height) ) )
+						{
+							$height = round($maxwidth * $height / $width);
+							$width = $maxwidth;
+						}
+						else
+						{
+							$width = round($maxheight * $width / $height);
+							$height = $maxheight;
+						}
+						$img_display_size = 'width="' . $width . '" height="' . $height . '"';
+					}
+				}
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					'L_DOWNLOADED_VIEWED' => $lang['Viewed'],
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+					'IMG_SIZE' => $img_display_size,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewtopic_attach_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		<td colspan="2" align="center"><br /><img src="{postrow.attach.cat_images.IMG_SRC}" alt="{postrow.attach.cat_images.DOWNLOAD_NAME}" border="0" /><br /><br /></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+<img src=
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+#
+<a href="{postrow.attach.cat_images.IMG_SRC}" target="_blank">
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+IMG_SRC}" alt
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+IMG_SRC}" {postrow.attach.cat_images.IMG_SIZE} alt
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+border="0" />
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+</a>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin_attach.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Image_link_size'] = 'Image Link Dimensions';
+$lang['Image_link_size_explain'] = 'If this defined Dimension of an Image is reached, the Image will be displayed as a Link, rather than displaying it inlined,<br />if Inline View is enabled (Width x Height in pixels).<br />If it is set to 0x0, this feature is disabled. With some Images this Feature will not work due to limitations in PHP.';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+$lang['Image_link_size'] = 'Max Image Display Dimensions';
+$lang['Image_link_size_explain'] = 'If this defined Dimension of an Image is reached, the Image will be shrinked automatically with the original ratio, if Inline View is enabled (Width x Height in pixels).<br />Value of 0 means there is no restriction in the correspoding dimension. With some Images this Feature will not work due to limitations in PHP.';
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

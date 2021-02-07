@@ -1,0 +1,1229 @@
+##############################################################
+## MOD Title:		email posts or messages to combinations of groups (upgrade from 1.1.15 to 1.1.16a)
+## MOD Author:		asinshesq < N/A > (Alan) N/A
+## MOD Description:	This upgrades an installation of email posts or messages to combinations of groups
+##			from version 1.1.15 to 1.1.16a
+##
+## MOD Version:		1.1.16a
+##
+## Installation Level:	(Easy)
+## Installation Time:	5 Minutes
+##
+## Files To Edit: 	posting.php
+##			includes/auth.php
+##			includes/constants.php
+##			includes/functions_post.php
+##			language/lang_english/lang_main.php
+##			language/lang_english/lang_admin.php
+##			language/lang_english/email/admin_send_email.tpl
+##			admin/admin_mass_email.php
+##			admin/admin_forumauth.php
+##			admin/admin_forums.php
+##			admin/admin_ug_auth.php
+##
+## Included Files: 	designated_groups_cp_body.tpl
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 	Note: this is an upgrade mod that assumes you already have version 1.1.15 of the email posts or messages to combinations
+##			of groups mod installed
+##
+##			Also note that this mod now incorporates in some way each of the three 'mods to the mod' that I originally had.  So, if
+##			you have version 1.1.15 of this mod installed and you also have any of the old mods to the mods, you must unistall
+##			those mods to the mods step by step before installing this mod.  To remind you, here are the three mods to the mods
+##			that you must uninstall if you have them installed:
+##
+##			- "mod_to_the_mod_allowing_group_moderators_to_email_posts.txt"
+##			(which allowed each group moderator to email posts to the groups that he or she moderates)
+##
+##			- "mod_to_the_mod_allowing_groups_to_email_posts.txt"
+##			(which allowed the administrator, when he was editing a group in the ACP, to check off an option that would empower
+##			the users of that group	to mass email posts in the same way the basic mod allows the admin to do)
+##
+##			- "mod_to_the_mod_allowing_emails_to_be_signed_by_posters.txt"
+##			(which allowed each user emailing a post to decide whether the email should be signed by the poster 
+##			or should go out with the usual board signature and email address)
+##
+##		 	Please take the time to carefully read the additional notes I have included in the template below 
+##			(whereever there is a line beginning with ## that does not just have the regular template command in it, 
+##			that line is a note for you to read)
+##
+##			Finally, note that this upgrade changes the default behavior of the mod in a number of respects.
+##			In many places, I have inserted comments explaining how to change that default behavior back to the way things used
+##			to work in case you prefer it.  For example:
+##
+##			- the mod no longer gives a user the option to email posts to users who are not authorized to read the forum where the 
+##			post is located (but I have included comments in the mod to explain exactly how to restore that option if you want it on your board)
+##
+##			- the mod no longer automatically checks the groups you last emailed to when the designate groups to email to screen comes up,
+##			because I found that that option led to a lot of inadvertent mistakes on my board where users emailing posts would inadvertently
+##			forget to uncheck a group that had recieved a prior email and as a result received emails they shouldn't have received
+##			(but I have retained the original code and db field so that you can easily restore this feature by following the commented instructions
+##			that appear below after one of the $group_notify = FALSE; lines in posting.php and one of the $group_notify = FALSE lines in admin_massemail.php)
+##
+##			********************
+##			If you are using version 1.1.15 of the alternative version of this mod for people who have
+##			skinmaster's forum watch mod installed, you can apply this upgrade script but afterwards you need to do the following
+##			additional actions (NOTE: THIS IS ONLY IF YOU USE THE VERSION FOR SKINMASTER'S FORUM WATCH MOD):
+##
+##			OPEN
+##			poster.php
+##
+##			FIND every opccrrance of a line that begins with
+##			user_notification_forum($post_data, $subject, 
+##			and at the end of each of those lines, right after:
+##			$email_re
+##			ADD:
+##			, $board_signs
+##
+##			OPEN
+##			includes/functions_post.php
+##
+##			FIND the line that begins
+##			function user_notification_forum(&$post_data, 
+##			and at the end of that line, right after:
+##			&$email_re
+##			add:
+##			, &$board_signs
+##
+##			then, do this in includes/functions_post.php:
+##
+##			FIND
+##			AND u.user_active = 1
+##
+##			AFTER, ADD
+##			AND ug.user_pending = 0
+##
+##			FIND
+##			AND u.user_active = 1
+##
+##			AFTER, ADD
+##			AND ug.user_pending = 0
+##
+##			FIND
+##			WHERE u.user_id = ug.user_id AND u.user_active = 1 AND u.user_id NOT IN (" . ANONYMOUS . $user_id_sql . ")
+##
+##			IN-LINE FIND
+##			AND u.user_active = 1 
+##
+##			IN-LINE AFTER, ADD
+##			 AND ug.user_pending = 0 
+##
+##			FIND
+##			$emailer->from($board_config['board_email']);
+##			$emailer->replyto($board_config['board_email']);
+##
+##			REPLACE WITH
+##			// start mod email to designated groups
+##			// see whether this is supposed to be from the board or the poster and depending on the answer set the proper sig and address
+##			if ($board_signs)
+##			{
+##				$email_from = $board_config['board_email'];
+##				$email_sig = (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '';
+##			}
+##			else
+##			{					
+##				$email_from = $userdata['user_email'];
+##				$email_sig = (!empty($userdata['user_sig'])) ? str_replace('<br />', "\n", "-- \n" . $userdata['user_sig']) : '';
+##			}					
+##			$emailer->from($email_from);
+##			$emailer->replyto($email_from);
+##
+##			FIND
+##			'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
+##			
+##			REPLACE WITH
+##			'EMAIL_SIG' => $email_sig,
+##
+##			********************
+##			If you are using version 1.1.15 of the alternative version of this mod for people who have
+##			David Hermann's forum notification mod installed, you can apply this upgrade script and that
+##			should work fine:
+##
+##############################################################
+## MOD History:
+##
+##   2006-01-02 - Version 1.1.16a
+##		  no changes from version 1.1.16...this is just a repack so that the zip file will extract properly (if you have already
+##		  installed version 1.1.16 then you have 1.1.16a and you don't need to do anything else to upgrade to 1.1.16a)
+##
+##   2005-12-20 - Version 1.1.16
+##		  no changes in the upgrade script, but added notes to tell people who are using forum watch mod or
+##		  forum notification mod how to upgrade from version 1.1.15 to version 1.1.16
+##
+##   2005-11-29 - Version 1.1.16
+##		  initial version of upgrade to 1.1.16 (for changes made by this upgrade, see MOD History in the basic mod)
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_forums ADD auth_emailposts TINYINT(1) DEFAULT '0' NOT NULL;
+ALTER TABLE phpbb_auth_access ADD auth_emailposts TINYINT(1) DEFAULT '0' NOT NULL;
+
+UPDATE phpbb_forums SET auth_emailposts = 2;
+UPDATE phpbb_auth_access SET auth_emailposts = 0;
+## Note that in the UPDATE SQLS above, I have set things up so that access to the feature is private ('2', which is AUTH_ACL) for each forum,
+## which means that no user will be able to use the feature unless he is an administrator, is a moderator of the forum in question, is a group moderator
+## or is granted special access in the usual way via the ACP (since the power to email posts may not be something you want to spread around)... 
+##
+## You can change those UPDATE SQLS so that
+## anyone who has permission to do something in a forum (post, vote, delete, etc.) has permission
+## to use email posts by changing the SET part of those two UPDATE lines to read, for example, 
+## SET auth_new_feature = auth_post
+##
+## Or, you can change the first SET line equal to any of 
+## 0, 1, 2, 3 or 5 where those numbers mean the following:
+## 0 is auth_all (all users)
+## 1 is auth_reg (all registered users)
+## 2 is auth_acl (the 'private' setting where groups or individuals can only use the feature if granted specific access to the feature in a given forum)
+## 3 is auth_mod (moderators)
+## 5 is auth_admin (administrators)
+## and that will set all forums to that level of access for the feature...
+## presumably if you did that you would change the second SET line to equal 0 so that by default no group
+## or person is given special access to the feature, and once you do that, you would be able to grant special priveledges to users or groups in the usual way via the ACP
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy designated_groups_cp_body.tpl to templates/subSilver/designated_groups_cp_body.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+# # note this find is only part of a much longer line near the beginning of the file
+$params = array('submit' => 'post', 'preview' => 'preview',
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'include_unauthorized_users' => 'include_unauthorized_users',
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ 'board_signs' => 'board_signs',
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					$is_auth = auth(AUTH_ALL, $forum_id, $userdata, $post_info);
+					if ( !$is_auth['auth_mod'] )
+					{
+					   message_die(GENERAL_MESSAGE, $lang['Not_Authorised']);
+					}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+					// let's check to confirm the user is allowed to email posts...
+					// first, find out if the user is a moderator of any group
+					$sql = "SELECT COUNT(group_id) as cnt
+						FROM " . GROUPS_TABLE . "
+						WHERE group_moderator = " . $userdata['user_id'];
+					if ( !($result = $db->sql_query($sql)) )
+					{
+						message_die(GENERAL_ERROR, 'Could not collect group moderator status', '', __LINE__, __FILE__, $sql);
+					}
+					$group_moderator = $db->sql_fetchrow($result);
+					$db->sql_freeresult($result);
+
+					// now, look up authorizations...
+					$is_auth = auth(AUTH_ALL, $forum_id, $userdata, $post_info);
+					if ( !$is_auth['auth_mod'] && !$is_auth['auth_emailposts'] && $group_moderator['cnt'] == 0 )
+					{
+					   message_die(GENERAL_MESSAGE, $lang['Not_Authorised']);
+					}
+
+#
+#-----[ FIND ]------------------------------------------
+# # note this find is only part of a much longer line near the beginning of the file
+					user_notification($mode, $post_data,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$email_re
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $board_signs
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+// start mod email to designated groups
+$mail_to_enabled_groups = ( $userdata['user_level'] == ADMIN and ( $submit || $refresh ) and !empty($HTTP_POST_VARS['mail_to_enabled_groups'])) ? TRUE : 0;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// start mod email to designated groups...set a $mail_to_enabled_groups flag if the post is being submitted or refreshed and the user has checked the mail to designated groups option...
+// this is used later (after post is posted below) to send the user back up to top of posting.php where he will be given a chance 
+// to designate groups to receive the email (we'll perform the security check to see if he is the right kind of user who should be able
+// to email posts up there rather than here)
+$mail_to_enabled_groups = ( ( $submit || $refresh ) and !empty($HTTP_POST_VARS['mail_to_enabled_groups'])) ? TRUE : 0;
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+			'L_INCLUDE_UNAUTHORIZED_USERS' => $lang['Include_unauthorized_users'],
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+			'L_BOARD_SIGNS' => $lang['Board_signs'],
+			'L_NO_UNAUTHORIZED_USERS_INCLUDED' => $lang['No_unauthorized_users_included'],
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+			'S_INCLUDE_UNAUTHORIZED_USERS' => '')
+			);
+			// note that if you want to change the default so the email includes the text of the post by default, change relevant line above to 'S_INCLUDE_TEXT' => 'checked="checked"',
+			// and if you want to change the default so the email goes to all users in the selected groups regardless of whether they are authorized to read the relevant forum, change the relevant line above to 'S_INCLUDE_UNAUTHORIZED_USERS' => 'checked="checked"')
+
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+			'S_BOARD_SIGNS' => '')
+			);
+			// by default, the email (a) does not include the text of the post and 
+			// (b) gets signed with the poster's sig (and sent by the poster's email address)...
+			// if you want to change any of those three default behaviors, edit the relevant 'S_' line or lines
+			// in the preceding code so that the end of the line includes
+			// => 'checked="checked"'
+			// rather than => ''
+
+			// check to see if user is an admin and if so, give him the option to send the email out with the board sig
+			// and address rather than the user's sig and address
+			if( $userdata['user_level'] == ADMIN )
+			{
+				// turn on board_signs checkbox so that admin can decide whether email comes from him or the board
+				$template->assign_block_vars('switch_include_board_signs_checkbox', array());
+			}
+
+#
+#-----[ FIND ]------------------------------------------
+# 			
+			$template->assign_block_vars('switch_include_text_checkbox', array());
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+			// Note that the mod is set up by default to screen the users receiving any emailed post and omit any
+			// user who is not authorized to read the forum where the post is being made (even if 'All Users' is selected or
+			// the user is a member of group designated to receive the email).
+			// If you want to give anyone emailing a post the power to override that behavior and ensure that all users in the designated groups 
+			// receive a post being emialed even if they are not authorzized to view the forum
+			// in question, delete the line above that reads 'L_NO_UNAUTHORIZED_USERS_INCLUDED' => $lang['No_unauthorized_users_included'],
+			// and then uncomment the following block of text (starting with the line that begins $template and ending
+			// with the next line that begins with $template)
+			// $template->assign_vars(array(
+			// 	'L_INCLUDE_UNAUTHORIZED_USERS' => $lang['Include_unauthorized_users'],			
+			// 	'S_INCLUDE_UNAUTHORIZED_USERS' => '')
+			// );
+			// $template->assign_block_vars('switch_include_unauthorized_users_checkbox', array());			
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+			$sql = "SELECT group_id, group_name, group_notify
+			FROM " . GROUPS_TABLE . "
+			WHERE group_single_user = 0
+			ORDER BY group_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Cannot find group info', '', __LINE__, __FILE__, $sql);
+			}
+
+			// feed the template the information for the 'all users' row...
+			$group_id = -1;
+			$group_name = $lang['All_users'];
+			$group_notify = FALSE;
+
+			$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
+			$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+
+			$template->assign_block_vars('listrow', array(
+			'ROW_COLOR' => '#' . $row_color,
+			'ROW_CLASS' => $row_class,
+
+			'S_MARK_ID' => $group_id,
+			'S_DEFAULT_DESIGNATED_GROUPS' => ( $group_notify ) ? 'checked="checked"' : '',
+
+			'U_GROUP_NAME' => $group_name)
+			);
+
+			// now feed the template with info for the other groups (for the remaining rows)
+
+			while ( $row = $db->sql_fetchrow($result) )
+			{
+				$group_id = $row['group_id'];
+				$group_name = $row['group_name'];
+				$group_notify = ( $row['group_notify'] == 1 ) ? TRUE : FALSE;
+				$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
+				$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+
+				$template->assign_block_vars('listrow', array(
+				'ROW_COLOR' => '#' . $row_color,
+				'ROW_CLASS' => $row_class,
+
+				'S_MARK_ID' => $group_id,
+				'S_DEFAULT_DESIGNATED_GROUPS' => ( $group_notify ) ? 'checked="checked"' : '',
+
+				'U_GROUP_NAME' => $group_name)
+				);
+			}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+			// see if the user is a mod or admin or otherwise specifically authorized to email posts...
+			// if so, give him an 'All Users' option, and if not, limit the groups to which he can email to 
+			// those groups (if any) that he moderates
+			if( $is_auth['auth_mod'] || $is_auth['auth_emailposts'] )
+			{
+				// since this is a moderator or specifically authorized to email posts, do not limit the group lookup sql   
+				$sql_limit_groups = '';
+				
+				// now feed the template the information for the 'All users' row...
+				$group_id = -1;
+				$group_name = $lang['All_registered_users'];
+				$group_notify = FALSE;
+				// note that if you want 'all users' to be selected by default, change
+				// the preceding line to $group_notify = TRUE;
+
+				$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
+				$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+
+				$template->assign_block_vars('listrow', array(
+				'ROW_COLOR' => '#' . $row_color,
+				'ROW_CLASS' => $row_class,
+
+				'S_MARK_ID' => $group_id,
+				'S_DEFAULT_DESIGNATED_GROUPS' => ( $group_notify ) ? 'checked="checked"' : '',
+
+				'U_GROUP_NAME' => $group_name)
+				);
+			}
+			else
+			{
+				// since this is not a moderator or speicfically authorized to email posts, limit the group lookup
+				// sql to instances where the user is a moderator of a group 
+				$temp_user_id = $userdata['user_id'];
+				$sql_limit_groups = "AND group_moderator = $temp_user_id";
+			}
+			// now figure out what groups to show in the list...
+			$sql = "SELECT group_id, group_name, group_notify
+			FROM " . GROUPS_TABLE . "
+			WHERE group_single_user = 0
+			$sql_limit_groups
+			ORDER BY group_name";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Cannot find group info', '', __LINE__, __FILE__, $sql);
+			}
+
+			// now feed the template with info for the other groups (for the remaining rows)
+			$group_id = '';
+			while ( $row = $db->sql_fetchrow($result) )
+			{
+				$group_id = $row['group_id'];
+				$group_name = $row['group_name'];
+				$group_notify = FALSE;
+				// note that this is set up so that by default no groups are checked and the
+				// user needs to affirmatively check off any groups he wants the email to go to. 
+				// If you want the board to automatically 'remember' who the last emailed post or message went to
+				// and check those groups off by default, change the preceding line to read:
+				// $group_notify = ( $row['group_notify'] == 1 ) ? TRUE : FALSE;
+				// but remember that this can be a bit dangerous since it is easy to inadvertently forget
+				// to uncheck a group when you email a new post
+				
+				$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
+				$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+
+				$template->assign_block_vars('listrow', array(
+				'ROW_COLOR' => '#' . $row_color,
+				'ROW_CLASS' => $row_class,
+
+				'S_MARK_ID' => $group_id,
+				'S_DEFAULT_DESIGNATED_GROUPS' => ( $group_notify ) ? 'checked="checked"' : '',
+
+				'U_GROUP_NAME' => $group_name)
+				);
+			}
+			
+			// finally, check to see if this person has any business emailing posts...if he is not an admin or moderator
+			// of the forum in question, is not specifically authorized to email posts and is not a moderator of any group,
+			// tell him he is not authorized to do this
+			if ( !$is_auth['auth_mod'] && !$is_auth['auth_emailposts'] && !$group_id )
+			{
+			   message_die(GENERAL_MESSAGE, $lang['Not_Authorised']);
+			}
+
+#
+#-----[ FIND ]------------------------------------------
+# # note this find is only part of a much longer line 
+					user_notification('newtopic', $post_data,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$email_re
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $board_signs
+
+#
+#-----[ FIND ]------------------------------------------
+# # note this find is only part of a much longer line 
+				user_notification($mode, $post_data,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$email_re
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $board_signs
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// start mod email to designated groups
+//	the following code adds a checkbox option in new posts for the admin only
+
+if( $userdata['user_level'] == ADMIN )
+{
+	$template->assign_block_vars('switch_mail_to_enabled_groups_checkbox', array());
+}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// start mod email to designated groups
+// the following code adds a checkbox option in new posts for a moderator of the forum in question, an admin,
+// a user specially granted power to email posts in the ACP for this forum or a group moderator only
+// first, find out if the user is a moderator of any group
+$sql = "SELECT COUNT(group_id) as cnt
+	FROM " . GROUPS_TABLE . "
+	WHERE group_moderator = " . $userdata['user_id'];
+if ( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, 'Could not collect group moderator status', '', __LINE__, __FILE__, $sql);
+}
+$group_moderator = $db->sql_fetchrow($result);
+$db->sql_freeresult($result);
+
+// now, check to see if the user is the right kind of user who should have a checkbox option
+if( $is_auth['auth_mod'] || $is_auth['auth_emailposts'] || $group_moderator['cnt'] <> 0 )
+{
+	$template->assign_block_vars('switch_mail_to_enabled_groups_checkbox', array());
+}
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/auth.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+			$a_sql = 'a.auth_view, a.auth_read, a.auth_post
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+			// start mod email posts and messages to combinations of groups (and end mod too)...
+			// added references to 'auth_emailposts' in $a_sql and $auth_fields definitions below
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+, a.auth_delete
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, a.auth_emailposts
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+			$auth_fields = array('auth_view', 'auth_read', 'auth_post'
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+, 'auth_delete'
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, 'auth_emailposts'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$auth_fields = array('auth_delete');
+			break;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// start mod email posts and messages to combinations of groups (and end mod too)...added case for 'auth_emailposts' below
+		case AUTH_EMAILPOSTS:
+			$a_sql = 'a.auth_emailposts';
+			$auth_fields = array('auth_emailposts');
+			break;
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('AUTH_ATTACH', 11);
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+## note: make sure that no other AUTH_ constant uses the same number (31), and if it does pick a different number to define the constant
+// start mod email posts and messages to combinations of groups  (and end mod too)...added new definition below
+define('AUTH_EMAILPOSTS', 31);
+				
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------
+# # note that actual line is longer
+function user_notification($mode,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+&$email_re
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, &$board_signs
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					AND u.user_active = 1
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					AND ug.user_pending = 0
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					AND u.user_active = 1
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					AND ug.user_pending = 0
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				WHERE u.user_id = ug.user_id AND u.user_active = 1 AND u.user_id NOT IN (" . ANONYMOUS . $user_id_sql . ")
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+AND u.user_active = 1 
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ AND ug.user_pending = 0 
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					$emailer->from($board_config['board_email']);
+					$emailer->replyto($board_config['board_email']);
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+					// start mod email to designated groups
+					// see whether this is supposed to be from the board or the poster and depending on the answer set the proper sig and address
+					if ($board_signs)
+					{
+						$email_from = $board_config['board_email'];
+						$email_sig = (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '';
+					}
+					else
+					{					
+						$email_from = $userdata['user_email'];
+						$email_sig = (!empty($userdata['user_sig'])) ? str_replace('<br />', "\n", "-- \n" . $userdata['user_sig']) : '';
+					}					
+					$emailer->from($email_from);
+					$emailer->replyto($email_from);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+							'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+							'EMAIL_SIG' => $email_sig,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Designated_groups_CP_explain'] = 'Using the form below you can select which groups will receive the email. <br />If you don\'t change anything, the email will go to the groups already checked off below. <br />If you change your mind and don\'t want to email this post, click the \'cancel email\' button.';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+$lang['Designated_groups_CP_explain'] = 'Using the form below you can select which groups will receive the email. <br />If you change your mind and don\'t want to email this post, click the \'cancel email\' button.';
+$lang['No_unauthorized_users_included'] = '<br />Important note: the email will <u>not</u> be sent to any user unless he or she is authorized to read the post.';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Include_unauthorized_users'] = 'Include users even if they are not allowed to read this forum';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Board_signs'] = 'Sign email with board sig (if unchecked, email gets signed with your sig)';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['All_users'] = 'All Users';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+$lang['All_registered_users'] = 'All Registered Users';
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// That's all Folks!
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod email posts and messages to combinations of groups  (and end mod too)...added the next definition
+$lang['Emailposts'] = 'Email posts';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/email/admin_send_email.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+{MESSAGE}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+{EMAIL_SIG}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_mass_email.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_UNMARK_ALL_GROUPS' => $lang['Unmark_all_groups'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'L_BOARD_SIGNS' => $lang['Board_signs'],
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'S_DESIGNATED_GROUPS_CP_ACTION' => append_sid("admin_mass_email.$phpEx"))
+		);
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		'S_DESIGNATED_GROUPS_CP_ACTION' => append_sid("admin_mass_email.$phpEx"),
+		'S_BOARD_SIGNS' => '')
+		);
+		// by default, the email gets signed with the poster's sig (and sent by the poster's email address)...
+		// if you want to change that default behavior, edit the 'S_BOARD_SIGNS' line so that it reads
+		// 'S_BOARD_SIGNS' => 'checked="checked"')
+		
+		// turn on board_signs checkbox so that admin can decide whether email comes from him or the board
+		$template->assign_block_vars('switch_include_board_signs_checkbox', array());
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		ORDER BY group_id";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		ORDER BY group_name";
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+		$group_notify = FALSE;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+		// note that if you want 'all users' to be selected by default, change
+		// the preceding line to $group_notify = TRUE;
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+			$group_notify = ( $row['group_notify'] == 1 ) ? TRUE : FALSE;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+			$group_notify = FALSE;
+			// note that this is set up so that by default no groups are checked and the
+			// user needs to affirmatively check off any groups he wants the email to go to. 
+			// If you want the board to automatically 'remember' who the last emailed post or message went to
+			// and check those groups off by default, change the preceding line to read:
+			// $group_notify = ( $row['group_notify'] == 1 ) ? TRUE : FALSE;
+			// but remember that this can be a bit dangerous since it is easy to inadvertently forget
+			// to uncheck a group when you email a new post
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+	WHERE u.user_id = ug.user_id AND u.user_active = 1 AND u.user_id NOT IN (" . ANONYMOUS . $user_id_sql . ")
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+AND u.user_active = 1 
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+# 
+ AND ug.user_pending = 0 
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$emailer->from($board_config['board_email']);
+		$emailer->replyto($board_config['board_email']);
+
+	// start mod email to designated groups...start to chunk emails into batches ,..the following block of code
+	// chunks each email with more than 100 users into multiple identical emails, each with
+	// no more than 100 bccs...this is useful if the smtp server for the forum does not allow more than a
+	// certain number of addressees per email (a lot of smtp servers limit the number of email addressees to 100).
+	// This chunking takes a fair bit of time, so if you don't need this feature you should turn it off.
+	// If you want to turn this feature off, change $chunk = TRUE to $chunk = FALSE .
+	// If you want to change the maximum number of bccs, change '100' to any limit you want
+	$chunk = TRUE;
+	$max_per_batch = 100;
+	$number_bccs = count($bcc_list);
+	$number_batches = ( $chunk ) ? max( 1, ceil($number_bccs/$max_per_batch) ) : 1;
+	for ($j = 0; $j < $number_batches; $j++)
+	{
+		$start_bcc = $j * $max_per_batch;
+		// the next line sets final_bcc number for the batch at $start_bcc for the batch plus the number of bccs in the batch;
+		// the number in the batch is the lesser of the remaining bccs to be sent and the max_per_batch (see the min function below...)
+		// of course, if $chunk is turned off (set to FALSE) this will assure that the entire thing is done in one batch.
+		( $chunk ) ? $final_bcc = $start_bcc + min( $number_bccs - $start_bcc, $max_per_batch ) : $final_bcc = $number_bccs;
+		// end of chunking part (for now)
+		for ($i = $start_bcc; $i < $final_bcc; $i++)
+	// end mod email to designated groups
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		// start mod email to designated groups
+		// see whether this is supposed to be from the board or the poster and depending on the answer set the proper sig and address
+		if ( !empty($HTTP_POST_VARS['board_signs']) )
+		{
+			$email_from = $board_config['board_email'];
+			$email_sig = (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '';
+		}
+		else
+		{
+			$email_from = $userdata['user_email'];
+			$email_sig = (!empty($userdata['user_sig'])) ? str_replace('<br />', "\n", "-- \n" . $userdata['user_sig']) : '';
+		}					
+		$emailer->from($email_from);
+		$emailer->replyto($email_from);
+
+		// now start to chunk emails into batches ,..the following block of code
+		// chunks each email with more than 100 users into multiple identical emails, each with
+		// no more than 100 bccs...this is useful if the smtp server for the forum does not allow more than a
+		// certain number of addressees per email (a lot of smtp servers limit the number of email addressees to 100).
+		// This chunking takes a fair bit of time, so if you don't need this feature you should turn it off.
+		// If you want to turn this feature off, change $chunk = TRUE to $chunk = FALSE .
+		// If you want to change the maximum number of bccs, change '100' to any limit you want
+		$chunk = TRUE;
+		$max_per_batch = 100;
+		$number_bccs = count($bcc_list);
+		$number_batches = ( $chunk ) ? max( 1, ceil($number_bccs/$max_per_batch) ) : 1;
+		for ($j = 0; $j < $number_batches; $j++)
+		{
+			$start_bcc = $j * $max_per_batch;
+			// the next line sets final_bcc number for the batch at $start_bcc for the batch plus the number of bccs in the batch;
+			// the number in the batch is the lesser of the remaining bccs to be sent and the max_per_batch (see the min function below...)
+			// of course, if $chunk is turned off (set to FALSE) this will assure that the entire thing is done in one batch.
+			( $chunk ) ? $final_bcc = $start_bcc + min( $number_bccs - $start_bcc, $max_per_batch ) : $final_bcc = $number_bccs;
+			// end of chunking part (for now)
+			for ($i = $start_bcc; $i < $final_bcc; $i++)
+		// end mod email to designated groups
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'MESSAGE' => $message)
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			'MESSAGE' => $message,
+			'EMAIL_SIG' => $email_sig)
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	}
+// start mod email to designated groups (and end mod too)...added the bracket in the preceding line to close the new for statement
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		}
+// start mod email to designated groups (and end mod too)...added the bracket in the preceding line to close the new for statement
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_forumauth.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+//                View      Read      Post      Reply
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// start mod email posts and messages to combinations of groups (and end mod too)...below, 
+// I added ' EmailPosts ' in the commented out header and I added an authorization level 
+// for the power to email posts in each of the 7 definitions of arrays (0 through 6) below;
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+Delete
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ EmailPosts 
+
+##
+## note that the arrays appearing in the seven FIND statements below set permissions when
+## using simple mode in the ACP; there are 7 possible 'simple' settings in the ACP and the
+## following shows which array sets permissions for each of those 7 possible 'simple' settings:
+## the 0 array is for the setting 'public'
+## the 1 array is for the setting 'registered'
+## the 2 array is for the setting 'registered [hidden]'
+## the 3 array is for the setting 'private'
+## the 4 array is for the setting 'private [hidden]'
+## the 5 array is for the setting 'moderators'
+## the 6 array is for the setting 'moderators [hidden]'
+##
+## For each of those arrays, in the IN-LINE AFTER, ADD part, you can decide what level of access to give for the email posts feature...
+## Below I set things up so that there is 'private' (AUTH_ACL) access for each simple level except for the moderators and 
+## moderators [hidden] level (where I've set things to AUTH_MOD), 
+## but you can change that for any 'simple' level to any of the folliwing:
+## AUTH_ALL (all users)
+## AUTH_REG (all registered users)
+## AUTH_ACL (the 'private' setting where groups or individuals can only use the feature if granted specific access to the feature in a given forum)
+## AUTH_MOD (moderators)
+## AUTH_ADMIN (administrators)
+##
+
+#
+#-----[ FIND ]------------------------------------------------
+## this is a partial search : the full-line is longer
+	0  => array(AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+## note that the placement of the "ADD" to this line depends on exactly where 'Delete' is in the commented line
+## above...in a clean phpbb board Delete is the sixth entry in the row so we are adding permission for our new
+## feature right after the sixth entry below, for each of arrays 0 through 6 below...
+## if delete is the 'ith' rather than the sixth entry in the line, make sure for each of arrays 0 through 6 below
+## that you insert into the line just after the ith entry
+	0  => array(AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'public' in the simple settings...
+## change this to whatever permission setting you want to apply for the new feature when the admin selects 'public'
+, AUTH_ACL
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	1  => array(AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	1  => array(AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'registered' in the simple settings...
+## change this to whatever permission setting you want to apply for the new feature when the admin selects 'registered'
+, AUTH_ACL
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	2  => array(AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	2  => array(AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'registered [hidden]' in the simple settings...
+## change this to whatever permission setting you want to apply for the new feature when the admin selects 'registered [hidden]'
+, AUTH_ACL
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	3  => array(AUTH_ALL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	3  => array(AUTH_ALL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'private' in the simple settings...
+## change this to whatever permission setting you want to apply for the new feature when the admin selects 'private'
+, AUTH_ACL
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	4  => array(AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	4  => array(AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'private [hidden]' in the simple settings...
+## change this to whatever permission setting you want to apply for the new feature when the admin selects 'private [hidden]'
+, AUTH_ACL
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	5  => array(AUTH_ALL, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	5  => array(AUTH_ALL, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'moderators' in the simple settings...
+## change this to whatever permission setting you want to apply for the new feature when the admin selects 'moderators'
+, AUTH_MOD
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	6  => array(AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	6  => array(AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'moderators [hidden]' in the simple settings...
+## change this to whatever permission setting you want to apply for the new feature when the admin selects 'moderators [hidden]'
+, AUTH_MOD
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+$forum_auth_fields = array('auth_view', 'auth_read'
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// start mod email posts and messages to combinations of groups (and end mod too)...below (in $forum_auth_fields and in $field_names), added references to 'auth_emailposts'
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+, 'auth_delete'
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, 'auth_emailposts'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'auth_delete' => $lang['Delete'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'auth_emailposts' => $lang['Emailposts'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_forums.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$forum_auth_ary = array(
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod email posts or messages to combinations of groups (and end mod too)...below, added reference to 'auth_emailposts'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"auth_edit" => AUTH_REG,
+	"auth_delete" => AUTH_REG,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+## below you can determine the default forum permissions for emailing posts when a forum is created and the admin is
+## using advanced rather than simple permission settings...
+## I have set this to AUTH_ACL access (private only open to people granted special access via the ACP)
+## but you can change this to whatever default permission setting you want.
+## The possible settings include: AUTH_ALL, AUTH_REG, 
+## AUTH_ACL (which means private open only to people granted special access via the ACP),
+## AUTH_MOD and AUTH_ADMIN
+	"auth_emailposts" => AUTH_ACL,
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_ug_auth.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+$forum_auth_fields = array('auth_view', 'auth_read'
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// start mod email posts or messages to combinations of groups (and end mod too)...in $forum_auth_fields, $auth_field_match and $field_names below, added references to 'auth_emailposts'
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+, 'auth_delete'
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, 'auth_emailposts'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'auth_delete' => AUTH_DELETE,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'auth_emailposts' => AUTH_EMAILPOSTS,
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'auth_delete' => $lang['Delete'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'auth_emailposts' => $lang['Emailposts'],
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

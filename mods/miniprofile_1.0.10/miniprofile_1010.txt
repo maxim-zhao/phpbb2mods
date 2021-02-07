@@ -1,0 +1,172 @@
+############################################################## 
+## MOD Title: Mini Profile
+## MOD Author: Balint < phpbb@krizsan.de > (Balint Krizsan) http://www.krizsan.de 
+## MOD Description: Small popup window shows important parts of a user's profile in viewtopic. Just click on the poster's name!
+## MOD Version: 1.0.10
+## 
+## Installation Level: Easy 
+## Installation Time: 5 Minutes 
+## Files To Edit: profile.php,
+##		  viewtopic.php,
+##		  templates/subSilver/viewtopic_body.tpl 
+##
+## Included Files: usercp_miniprofile.php,
+##		   profile_view_mini.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################  
+## Author Notes: 
+## THIS SOFTWARE IS PROVIDED BY THE AUTHOR 'AS IS' AND ANY 
+## EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
+## TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+## FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL 
+## THE AUTHOR OR ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+## INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+## DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+## SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+## PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
+## ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+## LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+## ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+## ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+##
+## This MOD is not compatible with the Author Hyperlink MOD!
+## Please undo the changes before installing this one!
+##
+############################################################## 
+## MOD History:
+##
+##	 2006-04-04 - Version 1.0.10
+##		- Cosmetic change in Javascript popup code
+##		- Fixed link when user email via board is disabled
+##	 2006-02-27 - Version 1.0.9
+##		- Fixed small URL bug in usercp_miniprofile.php
+##	 2005-08-15 - Version 1.0.8
+##		- Reworked URL handling (Fix for Internet Explorer)
+##		- Fixed window target problem when mailing via form
+##	 2005-07-24 - Version 1.0.7
+##		- Fixed Javascript URL encoding error in Firefox
+##		- Updated usercp_miniprofile.php to reflect changes in new phpBB versions
+##	 2003-11-10 - Version 1.0.6
+##		- Fixed error with Admin Panel links
+##		- Checked for 2.0.6
+##	 2003-08-11 - Version 1.0.5
+##		- Fixed missing handling of guests
+##	 2003-07-08 - Version 1.0.4
+##		- Fixed JavaScript error in PM code
+##	 2003-06-19 - Version 1.0.3
+##		- Checked for 2.0.5
+##	 2003-06-15 - Version 1.0.2
+##		- Fixed hardcoded language issue
+##	 2003-06-14 - Version 1.0.1
+##		- Fixed parse errors
+##	 2003-06-14 - Version 1.0.0 
+##		- First release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy usercp_miniprofile.php to includes/usercp_miniprofile.php
+copy profile_view_mini.tpl to templates/subSilver/profile_view_mini.tpl
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+profile.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	else if ( $mode == 'confirm' )
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	// Begin Mini Profile
+	else if ( $mode == 'miniprofile' )
+	{
+		include($phpbb_root_path . 'includes/usercp_miniprofile.'.$phpEx);
+		exit;
+	}
+	// End Mini Profile
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewtopic.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$pm = '<a href="' . $temp_url . '">' . $lang['Send_private_message'] . '</a>';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		// Mini Profile Begin
+		$mini_profile_url = append_sid("profile.$phpEx?mode=miniprofile&amp;" . POST_USERS_URL . "=$poster_id");
+		$mini_profile = '<a href="' . $mini_profile_url . '" onclick="window.open(\'' . $mini_profile_url . '\', \'_miniprofile\', \'height=310,width=300,resizable=yes,scrollbars=yes\');return false;" target="_miniprofile">' . $poster . '</a></span>';
+		// Mini Profile End
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$yim = '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		$mini_profile = $poster;
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'PROFILE_IMG' => $profile_img,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		//Begin Mini Profile MOD
+		'MINIPROFILE' => $mini_profile,
+		//End Mini Profile MOD
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewtopic_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+# NOTE: this is a search by parts of code lines!
+# The original line to find is longer and must look like this (if no MOD has already modified it):
+#
+# <td width="150" align="left" valign="top" class="{postrow.ROW_CLASS}"><span class="name"><a name="{postrow.U_POST_ID}"></a><b>{postrow.POSTER_NAME}</b></span><br /><span class="postdetails">{postrow.POSTER_RANK}<br />{postrow.RANK_IMAGE}{postrow.POSTER_AVATAR}<br /><br />{postrow.POSTER_JOINED}<br />{postrow.POSTER_POSTS}<br />{postrow.POSTER_FROM}</span><br /></td>
+#
+<td width="150"		
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+{postrow.POSTER_NAME}
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+{postrow.MINIPROFILE}
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

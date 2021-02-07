@@ -1,0 +1,166 @@
+############################################################## 
+## MOD Title: email posts or messages to combinations of groups (upgrade from 1.1.9 to 1.1.10)
+## MOD Author: asinshesq < asinsh@speakeasy.net > (Alan Sinsheimer) N/A
+## MOD Description:	This upgardes an installation of email posts or messages to combinations of groups
+##			from version 1.1.9 to 1.1.10 
+##
+## MOD Version: 1.1.10
+## 
+## Installation Level: (Easy) 
+## Installation Time: 5 Minutes 
+## Files To Edit: 	posting.php
+##			includes/bbcode.php
+## Included Files: 	n/a
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 	Note: this is an upgrade mod that assumes you already have version 1.1.9 of email posts or messages
+##			to combinations	of groups installed
+##
+##			IMPORTANT NOTE:	If you have installed the mod to the mod that allows posters emailing posts to 
+##			sign the posts, you need to make the following change inaddition to the other ones specified in this mod:
+##	
+##			OPEN
+##			templates/subSilver/designated_groups_cp_body.tpl
+##
+##			FIND
+##			<input type="checkbox" name="poster_signs" {S_POSTER SIGNS} />
+##
+##			REPLACE WITH
+##			<input type="checkbox" name="poster_signs" {S_POSTER_SIGNS} />
+##			
+##
+############################################################## 
+## MOD History: 
+## 
+##   2005-3-19 - Version 1.1.10
+##		 initial version of upgrade to 1.1.10 mod
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+posting.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# note: actual line is much longer
+				$sql = "SELECT t.forum_id, t.topic_id, t.topic_title, 
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+p.post_username, 
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ p.enable_html, pt.bbcode_uid, 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+					$post_data['username'] = $post_info[username];
+					$post_data['message'] = $post_info[post_text];
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+					$post_data['username'] = $post_info['username'];
+					$bbcode_uid = $post_info['bbcode_uid'];
+					$text = $post_info['post_text'];
+
+					// the following code strips out any html if the post has html (copied from lines in search.php)
+					if ( $post_info['enable_html'] )
+					{
+						$text = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $text);
+					}
+					
+				//	now we process the bbcode in the message so that it will look ok in a plain text email
+					$post_data['message'] = bbcode_process_to_plain_text($text, $bbcode_uid);
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/bbcode.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+/**
+*	The next function does the following:
+*	-	turns any quote or code bbcode tag into a simple plain text lead-in to or
+*		exit from the quote or code block (if the post has a quote tag that specifies
+*		a particular person that is being quoted, the code adds at the beginning the plain text
+*		words "written by John Brown" or whoever the quote is from),
+*
+*	-	turns the [*] bbocode (marking a list item) into a simple plain text asterisk,
+*
+*	-	turns a url or img with an alias into a simple plain text url or img with brackets around it and
+*
+*	-	strips out all other bbcode.
+*
+*	Thanks to Merlin Sythove for helping me (asinshesq) come up with this code
+*/
+function bbcode_process_to_plain_text($text, $bbcode_uid = '')
+{
+	global $lang;
+	// First, add a colon before bbcode_uid since all bbcode_uid identifiers are always preceded by a colon
+	$bbcode_uid = ':' . $bbcode_uid;
+
+	// Next, remove slashes
+	$text = trim(stripslashes($text));
+
+	// Now, we define the plain text markers used for [ quote ] and [ code ] blocks, list items, and [ img ] open and close tags
+	$newline = "\r\n";
+	$q1 = $newline . '>>>>>>>>>>>>>>>>>>>>>>' . $newline; // quote or code opening marker
+	$q2 = $newline . '<<<<<<<<<<<<<<<<<<<<<<' . $newline; $newline; // quote or code closing marker
+	$l1 = $newline . '   (*) '; // list item marker
+	$img1 = '[image at: '; // img opening marker
+	$img2 = ' ]'; // img closing marker
+
+	// Next, replace open and close quote tags with plain text versions
+	$text = preg_replace('/\[quote' . $bbcode_uid . '=\"(.*?)\"\]/', $newline . '\\1 '. $lang['wrote'].':'.$q1, $text);
+	$text = preg_replace('/\[quote' . $bbcode_uid . '\]/', $newline . $lang['Quote'].':'.$q1, $text);
+	$text = preg_replace('/\[\/quote' . $bbcode_uid . '\]/', $q2, $text);
+
+	// And now, replace code tags with plain text versions
+	$text = preg_replace('/\[code:?1*' . $bbcode_uid . '\]/', $newline . $lang['Code'].':'.$q1, $text);
+	$text = preg_replace('/\[\/code:?1*' . $bbcode_uid . '\]/', $q2, $text);
+
+	// Now, replace any open or close brackets that have been converted by phpbb into [ or ] (e.g if nexted inside of code tags)
+	$text = preg_replace('/&#91;/', '[', $text);
+	$text = preg_replace('/&#93;/', ']', $text);
+
+	// Next, change list item bbcode ([*]) into simple asterisks (note: does not process list numbers or letters)
+	$text = preg_replace('/\[\*' . $bbcode_uid . '\]/', $l1, $text);
+
+	// Now, process image and url bbcode (get rid of aliases and insert the actual image or url address; put images inside of square prackets).
+	$text = preg_replace('/\[img' . $bbcode_uid . '\](.*?)\[\/img' . $bbcode_uid . '\]/', $img1 .'\\1' . $img2, $text);
+	$text = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/', '\\1', $text);
+	$text = preg_replace('/\[url\](.*?)\[\/url\]/', '\\1', $text);
+
+	// Now, remove all bracketed expressions with bbcode_uid identifier in them
+	$text = preg_replace('/\[([^[]*?)' . $bbcode_uid . '([^]]*?)\]/', '', $text);
+
+	// And finally, change multiple blank lines into one blank line
+	$text = preg_replace('/(\\r\\n){3,}/s', $newline.$newline, $text);
+
+	return $text;
+}
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

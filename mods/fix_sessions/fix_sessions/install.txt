@@ -1,0 +1,56 @@
+############################################################## 
+## MOD Title: Fix Session Error
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/phpbb
+## MOD Description: Makes "Error creating new session" errors that much harder to occur.
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 1 Minutes
+##
+## Files To Edit: 1
+##      includes/sessions.php
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+############################################################## 
+## MOD History: 
+##
+##     1.0.1: - fixed a bug whereby logged in users got logged out.
+##            - fixed a bug preventing hack from working on boards with prefixes
+##              other than phpbb_
+##     1.0.0: - initial release
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/sessions.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			message_die(CRITICAL_ERROR, 'Error creating new session', '', __LINE__, __FILE__, $sql);
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+			$sql2 = "DELETE FROM " . SESSIONS_TABLE . " WHERE session_logged_in = 0;";
+			if (!$db->sql_query($sql2))
+			{
+				message_die(CRITICAL_ERROR, 'Error clearing session table', '', __LINE__, __FILE__, $sql2);
+			}
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(CRITICAL_ERROR, 'Error creating new session', '', __LINE__, __FILE__, $sql);
+			}
+
+#
+#-----[	SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

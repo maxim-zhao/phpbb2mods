@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+  <header>
+    <license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+    <title lang="en-gb">Last Topic Title on Index</title>
+    <description lang="en-gb">Displays the title of and adds a link to the last topic replied to in a particular forum.</description>
+    <author-notes lang="en-gb">Dicky
+
+ This MOD has been verified to work with phpBB 2.0.21
+ This MOD can be installed by EasyMOD</author-notes>
+    <author-group>
+      <author>
+        <realname>Richard Foote</realname>
+        <email>rfoote@tellink.net</email>
+        <username>Dicky</username>
+        <homepage>http://dicky.askmaggymae.com</homepage>
+        <contributions />
+      </author>
+    </author-group>
+    <mod-version>
+      <major>1</major>
+      <minor>0</minor>
+      <revision>4</revision>
+    </mod-version>
+    <installation>
+      <level>easy</level>
+      <time>603</time>
+      <target-version>
+        <target-primary>2.0</target-primary>
+        <target-major allow="exact">2</target-major>
+        <target-minor allow="exact">0</target-minor>
+      </target-version>
+    </installation>
+    <history>
+      <entry>
+        <date>2006-11-27</date>
+        <rev-version>
+          <major>1</major>
+          <minor>0</minor>
+          <revision>4</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Improved on converting html characters to prevent XSS exploit</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2006-03-12</date>
+        <rev-version>
+          <major>1</major>
+          <minor>0</minor>
+          <revision>3</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Add function to decode html special characters</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2006-01-31</date>
+        <rev-version>
+          <major>1</major>
+          <minor>0</minor>
+          <revision>2</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Corrected problem with moved topics creating duplicate forum display on Index page</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2005-12-31</date>
+        <rev-version>
+          <major>1</major>
+          <minor>0</minor>
+          <revision>1</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Optimize the code - No functional changes</change>
+          <change> No longer need a separate MOD if you have Today/Yesterday installed</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2005-12-18</date>
+        <rev-version>
+          <major>1</major>
+          <minor>0</minor>
+          <revision>0</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Add filtering for html characters in title</change>
+          <change> Redo queries to reduce number of queries</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2005-08-21</date>
+        <rev-version>
+          <major>0</major>
+          <minor>0</minor>
+          <revision>3</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Add word censoring</change>
+          <change> Add Display topic title only if user allowed to read forum</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2005-05-17</date>
+        <rev-version>
+          <major>0</major>
+          <minor>0</minor>
+          <revision>2</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Replaced sql query for faster times - query by y.m</change>
+          <change> Added By: before poster name</change>
+          <change> Added In: before topic title</change>
+          <change> Added alternate text to topic title</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2004-05-31</date>
+        <rev-version>
+          <major>0</major>
+          <minor>0</minor>
+          <revision>1</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> initial version of the Last Topic Mod</change>
+        </changelog>
+      </entry>
+    </history>
+    <meta name="generator" content="Phpbb.ModTeam.Tools (c#)" />
+  </header>
+  <action-group>
+    <open src="index.php">
+      <edit>
+        <find><![CDATA[<?php]]></find>
+        <action type="after-add">//-- MOD : Last Topic Title on Index -------------------</action>
+      </edit>
+      <edit>
+        <find>include($phpbb_root_path . 'common.'.$phpEx);</find>
+        <action type="after-add"><![CDATA[
+//-- MOD BEGIN: Last Topic Title on Index -------------------
+$unhtml_specialchars_match = array('#&gt;#', '#&lt;#', '#&quot;#', '#&amp;#');
+$unhtml_specialchars_replace = array('>', '<', '"', '&');
+ 
+$html_entities_match = array('#&(?!(\#[0-9]+;))#', '#<#', '#>#', '#"#');
+$html_entities_replace = array('&amp;', '&lt;', '&gt;', '&quot;');
+//-- MOD END: Last Topic Title on Index -------------------
+]]></action>
+      </edit>
+      <edit>
+        <find>		default:</find>
+        <action type="after-add">//-- MOD BEGIN: Last Topic Title on Index -------------------</action>
+      </edit>
+      <edit>
+        <find>			$sql</find>
+        <inline-edit>
+          <inline-find>u.user_id</inline-find>
+          <inline-action type="after-add">, t.topic_id, t.topic_title, t.topic_last_post_id</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>FROM</find>
+        <inline-edit>
+          <inline-find>(</inline-find>
+          <inline-action type="after-add">(</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>				LEFT JOIN " . USERS_TABLE . " u ON u.user_id = p.poster_id )</find>
+        <action type="after-add">				LEFT JOIN " . TOPICS_TABLE . " t ON t.topic_last_post_id = p.post_id )
+				WHERE t.topic_moved_id = 0 OR t.topic_moved_id IS NULL</action>
+      </edit>
+      <edit>
+        <find>				ORDER BY f.cat_id, f.forum_order";</find>
+        <action type="after-add">//-- MOD END: Last Topic Title on Index -------------------</action>
+      </edit>
+      <edit>
+        <find>	//
+	// Obtain a list of topic ids which contain
+	// posts made since user last visited
+	//</find>
+        <action type="before-add">
+//-- MOD BEGIN: Last Topic Title on Index -------------------
+   //
+   // Define censored word matches
+   //
+   $orig_word = array();
+   $replacement_word = array();
+   obtain_word_list($orig_word, $replacement_word);
+//-- MOD END: Last Topic Title on Index -------------------
+   </action>
+      </edit>
+      <edit>
+        <find>	$is_auth_ary = auth(AUTH_VIEW, AUTH_LIST_ALL, $userdata, $forum_data);</find>
+        <action type="after-add">
+//-- MOD BEGIN: Last Topic Title on Index -------------------
+	//
+	// Find which forums are readable for this user
+	//
+	$auth_read_ary = array();
+	$auth_read_ary = auth(AUTH_READ, AUTH_LIST_ALL, $userdata, $forum_data);
+//-- MOD END: Last Topic Title on Index -------------------
+</action>
+      </edit>
+      <edit>
+        <find><![CDATA[								$last_post .= ( $forum_data[$j]['user_id'] == ANONYMOUS ) ? ( ($forum_data[$j]['post_username'] != '' ) ? $forum_data[$j]['post_username'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $forum_data[$j]['user_id']) . '">' . $forum_data[$j]['username'] . '</a> ';]]></find>
+        <action type="replace-with"><![CDATA[					//-- MOD BEGIN: Last Topic Title on Index -------------------
+								$ltid = $forum_data[$j]['topic_id'];
+								$lttitle = $forum_data[$j]['topic_title'];
+
+						//
+						// Censor topic title
+						//
+								if ( count($orig_word) )
+								{
+									$lttitle = preg_replace($orig_word, $replacement_word, $lttitle);
+								}
+								$altlttitle = $lttitle;
+								$lang_in = $lang['in'];
+
+						//
+						// Filter topic_title if not allowed to read
+						//
+								if (!$auth_read_ary[$forum_data[$j]['forum_id']]['auth_read'])
+								{
+									$lttitle = '';
+									$lang_in = '';
+						    	}
+
+						// undo_htmlspecialchars();
+								$lttitle = preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, $lttitle);
+
+						// do_htmlspecialchars();
+						// set length of topic title to 25 characters
+								$lttitle = preg_replace($html_entities_match, $html_entities_replace, (strlen($lttitle) > 25) ? substr($lttitle,0,25) . '...' : $lttitle);
+
+								$last_post .= $lang_in . '&nbsp;' . '<a title="' . $altlttitle . '" alt="' . $altlttitle . '" href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$ltid") . '">' . $lttitle . '</a><br />';
+
+								$last_post .= ( $forum_data[$j]['user_id'] == ANONYMOUS ) ? $lang['by'] . '&nbsp;' . ( ($forum_data[$j]['post_username'] != '' ) ? $forum_data[$j]['post_username'] . ' ' : $lang['Guest'] . ' ' ) : $lang['by'] . '&nbsp;' . '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $forum_data[$j]['user_id']) . '">' . $forum_data[$j]['username'] . '</a> ';
+
+					//-- MOD END: Last Topic Title on Index -------------------
+]]></action>
+      </edit>
+    </open>
+    <open src="language/lang_english/lang_main.php">
+      <edit>
+        <find>
+$lang['Forums_marked_read']
+</find>
+        <action type="after-add">// Last Topic on Index BEGIN
+$lang['by'] = 'By:';
+$lang['in'] = 'In:';
+// Last Topic on Index END</action>
+      </edit>
+    </open>
+    <open src="templates/subSilver/index_body.tpl">
+      <edit>
+        <find>catrow.forumrow.LAST_POST</find>
+        <inline-edit>
+          <inline-find>center</inline-find>
+          <inline-action type="replace-with">left</inline-action>
+        </inline-edit>
+      </edit>
+    </open>
+  </action-group>
+</mod>

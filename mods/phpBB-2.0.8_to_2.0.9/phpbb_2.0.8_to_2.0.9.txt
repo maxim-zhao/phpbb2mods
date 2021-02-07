@@ -1,0 +1,706 @@
+################################################################# 
+## MOD Title: phpBB 2.0.8 to phpBB 2.0.9 Code Changes
+## MOD Author: Acyd Burn < N/A > (Meik Sievertsen) N/A 
+## MOD Description: These are the Changes from phpBB 2.0.8 to phpBB 2.0.9 summed up into a little Mod.
+##		    This might be very helpful if you want to update your Board and have installed a 
+##		    bunch of Mods. Then it's normally easier to apply the Code Changes than to install
+##		    all Mods again.
+## MOD Version: 1.0.0 
+## 
+## Installation Level: Intermediate
+## Installation Time: 10-30 Minutes 
+## Files To Edit: 
+##		admin/admin_board.php
+##		admin/index.php
+##		common.php
+##		faq.php
+##		groupcp.php
+##		includes/bbcode.php
+##		includes/functions_post.php
+##		includes/page_header.php
+##		includes/sessions.php
+##		includes/usercp_avatar.php
+##		includes/usercp_viewprofile.php
+##		index.php
+##		memberlist.php
+##		modcp.php
+##		posting.php
+##		privmsg.php
+##		profile.php
+##		search.php
+##		viewonline.php
+##		viewtopic.php
+##
+## Included Files: 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##	When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.
+##	When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.
+##	When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in 	the 'REPLACE WITH'-Statement.
+##	When you find a 'DELETE'-Statement, the Code have to be deleted.
+##	
+##	After you have finished this tutorial, you have to upload the update_to_208.php file (found within every phpBB Package), execute it and then delete it from your webspace.
+##
+##	From phpBB 2.0.8 to 2.0.9 there were no database changes, except the version number increment.
+##	
+############################################################## 
+## MOD History: 
+## 
+##   2004-07-12 - Version 1.0.0 
+##      - first release 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+admin/admin_board.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 46
+		$default_config[$config_name] = $config_value;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		$default_config[$config_name] = str_replace("'", "\'", $config_value);
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+admin/index.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 335
+			AND u.user_session_time >= " . ( time() - 300 ) . " 
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+			AND s.session_time >= " . ( time() - 300 ) . " 
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+common.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 27
+	die("Hacking attempt");
+}
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+//
+function unset_vars(&$var)
+{
+	while (list($var_name, $null) = @each($var))
+	{
+		unset($GLOBALS[$var_name]);
+	}
+	return;
+}
+
+//
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 41
+error_reporting  (E_ERROR | E_WARNING | E_PARSE); // This will NOT report uninitialized variables
+set_magic_quotes_runtime(0); // Disable magic_quotes_runtime
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+$ini_val = (@phpversion() >= '4.0.0') ? 'ini_get' : 'get_cfg_var';
+
+// Unset globally registered vars - PHP5 ... hhmmm
+if (@$ini_val('register_globals') == '1' || strtolower(@$ini_val('register_globals')) == 'on')
+{
+	$var_prefix = 'HTTP';
+	$var_suffix = '_VARS';
+	
+	$test = array('_GET', '_POST', '_SERVER', '_COOKIE', '_ENV');
+
+	foreach ($test as $var)
+	{
+		if (is_array(${$var_prefix . $var . $var_suffix}))
+		{
+			unset_vars(${$var_prefix . $var . $var_suffix});
+		}
+
+		if (is_array(${$var}))
+		{
+			unset_vars(${$var});
+		}
+	}
+
+	if (is_array(${'_FILES'}))
+	{
+		unset_vars(${'_FILES'});
+	}
+
+	if (is_array(${'HTTP_POST_FILES'}))
+	{
+		unset_vars(${'HTTP_POST_FILES'});
+	}
+}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 153
+$theme = array();
+$images = array();
+$lang = array();
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+$nav_links = array();
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 174
+if( getenv('HTTP_X_FORWARDED_FOR') != '' )
+{
+	$client_ip = ( !empty($HTTP_SERVER_VARS['REMOTE_ADDR']) ) ? $HTTP_SERVER_VARS['REMOTE_ADDR'] : ( ( !empty($HTTP_ENV_VARS['REMOTE_ADDR']) ) ? $HTTP_ENV_VARS['REMOTE_ADDR'] : $REMOTE_ADDR );
+
+	$entries = explode(',', getenv('HTTP_X_FORWARDED_FOR'));
+	reset($entries);
+	while (list(, $entry) = each($entries)) 
+	{
+		$entry = trim($entry);
+		if ( preg_match("/^([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/", $entry, $ip_list) )
+		{
+			$private_ip = array('/^0\./', '/^127\.0\.0\.1/', '/^192\.168\..*/', '/^172\.((1[6-9])|(2[0-9])|(3[0-1]))\..*/', '/^10\..*/', '/^224\..*/', '/^240\..*/');
+			$found_ip = preg_replace($private_ip, $client_ip, $ip_list[1]);
+
+			if ($client_ip != $found_ip)
+			{
+				$client_ip = $found_ip;
+				break;
+			}
+		}
+	}
+}
+else
+{
+	$client_ip = ( !empty($HTTP_SERVER_VARS['REMOTE_ADDR']) ) ? $HTTP_SERVER_VARS['REMOTE_ADDR'] : ( ( !empty($HTTP_ENV_VARS['REMOTE_ADDR']) ) ? $HTTP_ENV_VARS['REMOTE_ADDR'] : $REMOTE_ADDR );
+}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+// I'm removing HTTP_X_FORWARDED_FOR ... this may well cause other problems such as
+// private range IP's appearing instead of the guilty routable IP, tough, don't
+// even bother complaining ... go scream and shout at the idiots out there who feel
+// "clever" is doing harm rather than good ... karma is a great thing ... :)
+//
+$client_ip = ( !empty($HTTP_SERVER_VARS['REMOTE_ADDR']) ) ? $HTTP_SERVER_VARS['REMOTE_ADDR'] : ( ( !empty($HTTP_ENV_VARS['REMOTE_ADDR']) ) ? $HTTP_ENV_VARS['REMOTE_ADDR'] : $REMOTE_ADDR );
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+faq.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 37
+// End session management
+//
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+// Set vars to prevent naughtiness
+$faq = array();
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 103
+make_jumpbox('viewforum.'.$phpEx, $forum_id);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+make_jumpbox('viewforum.'.$phpEx);
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+groupcp.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 428
+					AND aa.group_id = g.group_id(+)";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+					AND aa.group_id (+) = g.group_id";
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1152
+	// Select all group that the user is a member of or where the user has
+	// a pending membership.
+	//
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	$in_group = array();
+	
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1248
+		$s_hidden_fields = '';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		$s_hidden_fields = '<input type="hidden" name="sid" value="' . $userdata['session_id'] . '" />';
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/bbcode.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 284
+	$text = preg_replace("#\[img\]((ht|f)tp://)([^ \?&=\"\n\r\t<]*?(\.(jpg|jpeg|gif|png)))\[/img\]#sie", "'[img:$uid]\\1' . str_replace(' ', '%20', '\\3') . '[/img:$uid]'", $text);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	$text = preg_replace("#\[img\]((http|ftp|https|ftps)://)([^ \?&=\#\"\n\r\t<]*?(\.(jpg|jpeg|gif|png)))\[/img\]#sie", "'[img:$uid]\\1' . str_replace(' ', '%20', '\\3') . '[/img:$uid]'", $text);
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/functions_post.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 772
+		$page_title = $lang['Review_topic'] . " - $topic_title";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		$page_title = $lang['Emoticons'] . " - $topic_title";
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/page_header.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 94
+$logged_hidden_online = 0;
+$guests_online = 0;
+$online_userlist = '';
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+$l_online_users = '';
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 115
+	$prev_user_ip = '';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	$prev_user_ip = $prev_session_ip = '';
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/sessions.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 48
+		$sessiondata = array();
+		$session_id = ( isset($HTTP_GET_VARS['sid']) ) ? $HTTP_GET_VARS['sid'] : '';
+		$sessionmethod = SESSION_METHOD_GET;
+	}
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	//
+	if (!preg_match('/^[A-Za-z0-9]*$/', $session_id)) 
+	{
+		$session_id = '';
+	}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 224
+		$sessiondata = array();
+		$session_id = ( isset($HTTP_GET_VARS['sid']) ) ? $HTTP_GET_VARS['sid'] : '';
+		$sessionmethod = SESSION_METHOD_GET;
+	}
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	if (!preg_match('/^[A-Za-z0-9]*$/', $session_id))
+	{
+		$session_id = '';
+	}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 360
+		$sessionmethod = SESSION_METHOD_GET;
+	}
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	if (!preg_match('/^[A-Za-z0-9]*$/', $session_id))
+	{
+		return;
+	}
+	
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/usercp_avatar.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 86
+	if ( !preg_match('#^((http)|(ftp):\/\/[\w\-]+?\.([\w\-]+\.)+[\w]+(:[0-9]+)*\/.*?\.(gif|jpg|jpeg|png)$)#is', $avatar_filename) )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	if ( !preg_match("#^((ht|f)tp://)([^ \?&=\#\"\n\r\t<]*?(\.(jpg|jpeg|gif|png))$)#is", $avatar_filename) )
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 44
+	message_die(GENERAL_ERROR, 'Could not obtain ranks information', '', __LINE__, __FILE__, $sql);
+}
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+$ranksrow = array();
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+index.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 121
+	message_die(GENERAL_ERROR, 'Could not query categories list', '', __LINE__, __FILE__, $sql);
+}
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+$category_rows = array();
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+memberlist.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 238
+			'ROW_NUMBER' => $i + ( $HTTP_GET_VARS['start'] + 1 ),
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+			'ROW_NUMBER' => $i + ( $start + 1 ),
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+modcp.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 841
+					'S_FORUM_SELECT' => make_forum_select("new_forum_id", false, $forum_id))
+				);
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+				//
+				// Define censored word matches
+				//
+				$orig_word = array();
+				$replacement_word = array();
+				obtain_word_list($orig_word, $replacement_word);
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 847
+					$poster_id = $postrow[$i]['user_id'];
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+					$poster_id = $postrow[$i]['poster_id'];
+
+#
+#-----[ DELETE ]---------------------------------------------
+# Line 879
+
+					//
+					// Define censored word matches
+					//
+					$orig_word = array();
+					$replacement_word = array();
+					obtain_word_list($orig_word, $replacement_word);
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+posting.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 33
+$params = array('submit' => 'post', 'confirm' => 'confirm', 'preview' => 'preview', 'delete' => 'delete', 'poll_delete' => 'poll_delete', 'poll_add' => 'add_poll_option', 'poll_edit' => 'edit_poll_option', 'mode' => 'mode');
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+$params = array('submit' => 'post', 'preview' => 'preview', 'delete' => 'delete', 'poll_delete' => 'poll_delete', 'poll_add' => 'add_poll_option', 'poll_edit' => 'edit_poll_option', 'mode' => 'mode');
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 45
+		$$var = '';
+	}
+}
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+
+$confirm = isset($HTTP_POST_VARS['confirm']) ? true : false;
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+privmsg.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 215
+			$pm_sql_user .= "AND ( ( pm.privmsgs_to_userid = " . $userdata['user_id'] . "
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+			$pm_sql_user = "AND ( ( pm.privmsgs_to_userid = " . $userdata['user_id'] . "
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 496
+	$temp_url = append_sid("privmsg.$phpEx?mode=post&amp;" . POST_USERS_URL . "=$poster_id");
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	$temp_url = append_sid("privmsg.$phpEx?mode=post&amp;" . POST_USERS_URL . "=$user_id_from");
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1045
+							OR privmsgs_type = " . PRIVMSGS_UNERAD_MAIL . " ) ";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+							OR privmsgs_type = " . PRIVMSGS_UNREAD_MAIL . " ) ";
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1855
+$post_new_mesg_url = '<a href="' . append_sid("privmsg.$phpEx?mode=post") . '"><img src="' . $images['post_new'] . '" alt="' . $lang['Post_new_message'] . '" border="0" /></a>';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+$post_new_mesg_url = '<a href="' . append_sid("privmsg.$phpEx?mode=post") . '"><img src="' . $images['post_new'] . '" alt="' . $lang['Send_a_new_message'] . '" border="0" /></a>';
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1935
+	$limit_msg_time = '';
+	$post_days = 0;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	$limit_msg_time = $limit_msg_time_total = '';
+	$msg_days = 0;
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 2066
+	'U_POST_NEW_TOPIC' => $post_new_topic_url)
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	'U_POST_NEW_TOPIC' => append_sid("privmsg.$phpEx?mode=post"))
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+profile.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 86
+if ( isset($HTTP_GET_VARS['mode']) || isset($HTTP_POST_VARS['mode']) )
+{
+	$mode = ( isset($HTTP_GET_VARS['mode']) ) ? $HTTP_GET_VARS['mode'] : $HTTP_POST_VARS['mode'];
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	$mode = htmlspecialchars($mode);
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+search.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 113
+	$search_time = time() - ( ( ( !empty($HTTP_POST_VARS['search_time']) ) ? intval($HTTP_POST_VARS['search_time']) : intval($HTTP_GET_VARS['search_time']) ) * 86400 );
+}
+else
+{
+	$search_time = 0;
+}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	$search_time = time() - ( ( ( !empty($HTTP_POST_VARS['search_time']) ) ? intval($HTTP_POST_VARS['search_time']) : intval($HTTP_GET_VARS['search_time']) ) * 86400 );
+	$topic_days = (!empty($HTTP_POST_VARS['search_time'])) ? intval($HTTP_POST_VARS['search_time']) : intval($HTTP_GET_VARS['search_time']);
+}
+else
+{
+	$search_time = 0;
+	$topic_days = 0;
+}
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+viewonline.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 49
+	'L_WHOSONLINE' => $lang['Who_is_online'],
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	'L_WHOSONLINE' => $lang['Who_is_Online'],
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+viewtopic.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 66
+		if ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid']) || isset($HTTP_GET_VARS['sid']) )
+		{
+			$session_id = isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid']) ? $HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid'] : $HTTP_GET_VARS['sid'];
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+
+			if (!preg_match('/^[A-Za-z0-9]*$/', $session_id)) 
+			{
+				$session_id = '';
+			}
+
+
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+
+# EoM

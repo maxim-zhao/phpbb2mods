@@ -1,0 +1,551 @@
+##############################################################
+## MOD Title: HTML BBcode MOD
+## MOD Author: markus_petrux < phpbb.mods@phpmix.com > (Markus) http://www.phpmix.com
+## MOD Description: This MOD adds an HTML BBcode to your forum, which allows you to enter HTML tags yourself
+##     when posting a message. It is also possible to post JavaScript, Flash or Java objects, Forms, etc.
+##     You can even use other BBCode tags within an HTML block! Syntax is pretty simple: [html]text[/html].
+##     While this BBCode is powerful, it is also somehow dangerous! By default, it is only allowed for the
+##     main board administrator. It can also be allowed for other Admins or members of a usergroup via ACP.
+##
+## MOD Version: 1.1.4
+##
+## Installation Level: Intermediate
+## Installation Time: ~30 Minutes
+## Files To Edit: 10
+##   includes/constants.php
+##   includes/functions.php
+##   includes/bbcode.php
+##   templates/subSilver/bbcode.tpl
+##   language/lang_english/lang_main.php
+##   language/lang_english/lang_bbcode.php
+##   templates/subSilver/posting_body.tpl
+##   language/lang_english/lang_admin.php
+##   admin/admin_board.php
+##   templates/subSilver/admin/board_config_body.tpl
+## Included Files: 0
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## *** ABOUT HTML BBCODE MOD ***
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##
+## * BEFORE installing this MOD:
+##
+##   This MOD adds the following line into your includes/constants.php file:
+##
+##   define('FOUNDER', 2);
+##
+##   ...where number 2 is the main board administrator. It is the user_id used to install phpBB.
+##   If for whatever reason you have removed or disabled this user, please adjust the value
+##   of the FOUNDER constant accordingly. It must match the user_id of your CURRENT main board admin.
+##   For instance, if the user_id of your main board admin is 100, then change that line to look
+##   like:
+##
+##   define('FOUNDER', 100);
+##
+##
+## * Allowing HTML is a somehow dangerous !!!
+##
+##   By default, the HTML BBCode is disabled. The main board administrator is allowed to:
+##
+##   a) bypass this restriction.
+##   b) allow others admins or members of a usergroup to use it (ACP->Configuration).
+##
+##
+## * Syntax for the HTML BBCode is pretty simple:
+##
+##   Usage: [html]text[/html]
+##
+##
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##  *** IMPORTANT NOTES ***
+##  *** PLEASE, READ BEFORE INSTALLING THIS MOD. THANKS ***
+## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+##
+##  NOTE --- Make backups of all files and DB tables altered by this MOD
+##
+##  ****
+##  **** Please, do it now. Make backups BEFORE installing MODs.
+##  ****
+##
+##
+##  NOTE --- Please, consider using EasyMOD to install this MOD.
+##
+##  ****
+##  **** EasyMOD can automatically install this MOD for you. It works!
+##  **** EasyMOD version 0.1.13 also supports SQL processing !!!
+##  ****
+##  **** Get it here:
+##  **** http://www.phpbb.com/phpBB/viewtopic.php?t=217673
+##  ****
+##
+##
+##  NOTE --- you MUST first have already installed the Multi BBCode MOD v1.4.0 !!!
+##
+##  Allows you to install BBCode MODs that add quick BBCode buttons in post edits.
+##  Without this MOD, there is no standard way of installing BBCode MODs.
+##
+##  **** Get it here:
+##  **** http://www.phpbb.com/phpBB/viewtopic.php?t=145513
+##
+##
+##  NOTE --- It is also recommended the BBCode Buttons Organizer MOD !!!
+##
+##  Allows for a neat display of unlimited quick BBCode buttons.
+##
+##  **** Get it here:
+##  **** http://www.phpbb.com/phpBB/viewtopic.php?t=145516
+##
+##############################################################
+## MOD History:
+##
+## 2004-10-20 - Version 1.1.4
+## - Added a new constant (FOUNDER) in place of the hardcoded user_id for the main board admin (2).
+##
+## 2004-10-05 - Version 1.1.3
+## - Fixed for PHP3 compatibility (now using intval instead of is_numeric).
+## - Fixed for compatibility with the new Multiple BBCode MOD v1.4.0 !!!
+## - Fixed posting_body.tpl to avoid errors when posting HTML Forms.
+##
+## 2004-09-18 - Version 1.1.2
+## - Fixed SQL error in admin_board when the board has no usergroups defined.
+##
+## 2004-09-17 - Version 1.1.1
+## - Fixed a small bug in admin_board.
+## - Fixed a bug in posting related to Multiple BBCode.
+##
+## 2004-09-17 - Version 1.1.0
+## - Added BBCode button (Alt+H) in posting page.
+## - Added Support for Usergroup permissions.
+##
+## 2004-09-14 - Version 1.0.0
+## - First Beta released
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]-------------------------------------------------
+#
+#  REMINDER --- Make backups BEFORE installing MODs
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('bbcode_html_group', '-1');
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('MOD', 2);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//+MOD: HTML BBCode MOD
+define('FOUNDER', 2);	// If needed, you can change 2 to the user_id of your main board admin.
+//-MOD: HTML BBCode MOD
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//+MOD: HTML BBCode MOD
+function bbcode_html_allowed()
+{
+	global $db, $userdata, $board_config;
+	static $first_execution = true, $is_allowed = false;
+
+	// This is a must: HTML BBCode is NOT allowed for guests!
+	if( !$userdata['session_logged_in'] )
+	{
+		return false;
+	}
+
+	// Is HTML BBCode disabled?
+	if( intval($board_config['bbcode_html_group']) < 0 && $userdata['user_id'] != FOUNDER )
+	{
+		// The HTML BBCode is still allowed for the main board administrator!
+		return false;
+	}
+
+	// Being done above check, HTML BBCode IS now allowed for ALL Admins!
+	if( $userdata['user_level'] == ADMIN )
+	{
+		return true;
+	}
+
+	// If a usergroup has been allowed to use the HTML BBCode,
+	// $board_config['bbcode_html_group'] must be greater than 0.
+	// Otherwise, deny it! :-P
+	if( intval($board_config['bbcode_html_group']) <= 0 )
+	{
+		return false;
+	}
+
+	// Is group information about current user cached on local static storage?
+	// Useful to optimize DB usage when several instances of the HTML BBCode
+	// are used in viewtopic, etc. :-)
+	if( $first_execution )
+	{
+		// Prevent from doing the same job more than once in a single page execution.
+		$first_execution = false;
+
+		// Let's see if the user is connected to the group with permissions to use the HTML BBCode.
+		$sql = "SELECT COUNT(*) AS total
+			FROM " . USER_GROUP_TABLE . "
+			WHERE user_pending = 0
+			AND group_id = ".$board_config['bbcode_html_group']."
+			AND user_id = ".$userdata['user_id'];
+		if( !($result = $db->sql_query($sql)) || !($row = $db->sql_fetchrow($result)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain access control list', '', __LINE__, __FILE__, $sql);
+		}
+		// Yet another funny way to check it. Got it? :-)
+//		$is_allowed = ( ( is_numeric($row['total']) && $row['total'] > 0 ) ? true : false );
+		$is_allowed = ( intval($row['total']) > 0 ? true : false );		// PHP 3 compatible!
+	}
+
+	return $is_allowed;
+}
+
+function bbcode_html_get_select($select_name, $selected_id = -1)
+{
+	global $db, $lang;
+
+	switch($select_name)
+	{
+	case 'bbcode_html_group':
+		$sql = "SELECT group_id, group_name
+			FROM " . GROUPS_TABLE . "
+			WHERE group_single_user <> " . TRUE . "
+			ORDER BY group_name";
+		if( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain group list', '', __LINE__, __FILE__, $sql);
+		}
+		$groups_count = (!($rowset = $db->sql_fetchrowset($result)) ? 0 : count($rowset));
+
+		$select_list = '<select name="'.$select_name.'">';
+		$selected = ( $selected_id < 0 ? 'selected="selected"' : '' );
+		$select_list .= '<option value="-1" '.$selected.'>'.$lang['HTML_BBCode_disabled'].'</option>';
+		$selected = ( $selected_id == 0 ? 'selected="selected"' : '' );
+		$select_list .= '<option value="0" '.$selected.'>'.$lang['HTML_BBCode_admins'].'</option>';
+		for( $i = 0; $i < $groups_count; $i++ )
+		{
+			$selected = ( $selected_id == $rowset[$i]['group_id'] ? 'selected="selected"' : '' );
+			$select_list .= '<option value="'.$rowset[$i]['group_id'].'" '.$selected.'>'.$rowset[$i]['group_name'].'</option>';
+		}
+		$select_list .= '</select>';
+		break;
+	default:
+		$select_list = '';
+		break;
+	}
+	return $select_list;
+}
+//-MOD: HTML BBCode MOD
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/bbcode.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+#  NOTE --- The lines to look for are like the following, much longer if you have other BBCode MODs installed:
+#	$EMBB_widths = array('') ;
+#	$EMBB_values = array('') ;
+#
+$EMBB_widths = array(''
+$EMBB_values = array(''
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: HTML BBCode MOD
+	if( bbcode_html_allowed() )
+	{
+		$EMBB_widths[] = '40';
+		$EMBB_values[] = 'HTML';
+	}
+//-MOD: HTML BBCode MOD
+#
+#-----[ FIND ]------------------------------------------------
+#
+// colours
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//+MOD: HTML BBCode MOD
+	// [html]HTML goes here[/html]
+	$text = bbencode_second_pass_html($text, $uid, $bbcode_tpl);
+//-MOD: HTML BBCode MOD
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// [color] and [/color] for setting text color
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//+MOD: HTML BBCode MOD
+	// [html] and [/html] for inserting HTML code
+	$text = bbencode_first_pass_html($text, $uid);
+//-MOD: HTML BBCode MOD
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+} // bbencode_second_pass_code()
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//+MOD: HTML BBCode MOD
+function bbencode_second_pass_html($text, $uid, $bbcode_tpl)
+{
+	global $lang;
+
+	$unhtml_specialchars_match = array('#&gt;#', '#&lt;#', '#&quot;#', '#&amp;#');
+	$unhtml_specialchars_replace = array('>', '<', '"', '&');
+
+	$code_start_html = $bbcode_tpl['html_open'];
+	$code_end_html =  $bbcode_tpl['html_close'];
+
+	// First, do all the 1st-level matches. These need an htmlspecialchars() run,
+	// so they have to be handled differently.
+	$match_count = preg_match_all("#\[html:$uid\](.*?)\[/html:$uid\]#si", $text, $matches);
+
+	for ($i = 0; $i < $match_count; $i++)
+	{
+		$before_replace = $matches[1][$i];
+		$after_replace = $matches[1][$i];
+
+		$after_replace = preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, $after_replace);
+		$after_replace = str_replace("\n", "", $after_replace);
+
+		$str_to_match = "[html:$uid]" . $before_replace . "[/html:$uid]";
+
+		$replacement = $code_start_html;
+		$replacement .= $after_replace;
+		$replacement .= $code_end_html;
+
+		$text = str_replace($str_to_match, $replacement, $text);
+	}
+
+	// Now, do all the non-first-level matches. These are simple.
+	$text = str_replace("[html:$uid]", $code_start_html, $text);
+	$text = str_replace("[/html:$uid]", $code_end_html, $text);
+
+	return $text;
+
+} // bbencode_second_pass_html()
+
+function bbencode_first_pass_html($text, $uid)
+{
+	if( bbcode_html_allowed() )
+	{
+		$text = preg_replace("#\[html\](.*?)\[/html\]#si", "[html:$uid]\\1[/html:$uid]", $text);
+	}
+	return $text;
+
+} // bbencode_first_pass_html()
+//-MOD: HTML BBCode MOD
+#
+#-----[ OPEN ]------------------------------------------------
+#
+#  NOTE --- You need to do this for all of your installed template styles
+#
+templates/subSilver/bbcode.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+#  NOTE --- The whole line to look for should be similar to this:
+# <!-- BEGIN b_open --><span style="font-weight: bold"><!-- END b_open -->
+#
+<!-- BEGIN b_open -->
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- BEGIN html_open --><!-- END html_open -->
+<!-- BEGIN html_close --><!-- END html_close -->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+#  NOTE --- You need to do this for all your installed languages
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+#  NOTE --- The whole line to look for should be similar to this:
+# $lang['bbcode_f_help'] = 'Font size: [size=x-small]small text[/size]';
+#
+$lang['bbcode_f_help'] =
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['bbcode_help']['html'] = 'HTML: [html]text[/html] (alt+%s)';
+#
+#-----[ OPEN ]------------------------------------------------
+#
+#  NOTE --- You need to do this for all your installed languages
+#
+language/lang_english/lang_bbcode.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+#
+//+MOD: HTML BBCode MOD
+if( bbcode_html_allowed() )
+{
+	$faq[] = array("Using the HTML BBCode", "The HTML BBCode allows you to enter HTML tags yourself when posting a message. It is also possible to post JavaScript, Flash or Java objects, Forms, etc. etc. etc. You can even use other BBCode tags within an HTML block!<br /><br />Syntax for the HTML BBCode is pretty simple. All you have to do is delimit your HTML text between <span style=\"color:darkblue\">[html]</span> and <span style=\"color:darkblue\">[/html]</span>.<br />");
+}
+//-MOD: HTML BBCode MOD
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+#  NOTE --- You need to do this for all of your installed template styles
+#
+templates/subSilver/posting_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+#  NOTE --- the actual line to find is MUCH longer, containing all the bbcode tags
+#
+bbtags = new Array(
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: HTML BBCode MOD
+bbtags[bbtags.length] = '[html]';
+bbtags[bbtags.length] = '[/html]';
+//-MOD: HTML BBCode MOD
+#
+#-----[ FIND ]------------------------------------------------
+#
+<form action="{S_POST_ACTION}" method="post" name="post" onsubmit="return checkForm(this)">
+
+{POST_PREVIEW_BOX}
+{ERROR_BOX}
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+{POST_PREVIEW_BOX}
+{ERROR_BOX}
+
+<form action="{S_POST_ACTION}" method="post" name="post" onsubmit="return checkForm(this)">
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['Allow_HTML']
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: HTML BBCode MOD
+$lang['Allow_HTML_BBCode'] = "Allow HTML BBCode";
+$lang['Allow_HTML_BBCode_explain'] = "You can set the HTML BBCode as <b>disabled</b> to ALL (recommended). Only the main board Administrator is allowed to change this setting.<br />Select 'Administrators' to allow other administrators to use the HTML BBCode.<br />Select a user group to allow its members (and other administrators) to use the HTML BBCode.<br /><b>IMPORTANT:</b> Allow usage of this BBCode with care, ONLY if you trust them 100% !!!";
+$lang['HTML_BBCode_disabled'] = "Disabled";
+$lang['HTML_BBCode_admins'] = "Administrators";
+//-MOD: HTML BBCode MOD
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+$html_no = ( !$new['allow_html'] ) ? "checked=\"checked\"" : "";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: HTML BBCode MOD
+$html_bbcode_select = bbcode_html_get_select('bbcode_html_group', $new['bbcode_html_group']);
+//-MOD: HTML BBCode MOD
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"L_ALLOWED_TAGS_EXPLAIN" => $lang['Allowed_tags_explain'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: HTML BBCode MOD
+	"L_ALLOW_HTML_BBCODE" => $lang['Allow_HTML_BBCode'],
+	"L_ALLOW_HTML_BBCODE_EXPLAIN" => $lang['Allow_HTML_BBCode_explain'],
+//-MOD: HTML BBCode MOD
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"HTML_NO" => $html_no,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: HTML BBCode MOD
+	"HTML_BBCODE_SELECT" => $html_bbcode_select,
+//-MOD: HTML BBCode MOD
+#
+#-----[ FIND ]------------------------------------------------
+#
+$template->pparse("body");
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//+MOD: HTML BBCode MOD
+if( $userdata['user_id'] == FOUNDER )
+{
+	$template->assign_block_vars('bbcode_html_allowed', array());
+}
+//-MOD: HTML BBCode MOD
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+#  NOTE --- You need to do this for all of your installed template styles
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+#  NOTE --- The block of lines to look for should be similar to this:
+#		<td class="row1">{L_ALLOWED_TAGS}<br /><span class="gensmall">{L_ALLOWED_TAGS_EXPLAIN}</span></td>
+#		<td class="row2"><input class="post" type="text" size="30" maxlength="255" name="allow_html_tags" value="{HTML_TAGS}" /></td>
+#	</tr>
+#
+{L_ALLOWED_TAGS}
+{HTML_TAGS}
+</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+<!-- BEGIN bbcode_html_allowed -->
+	<tr>
+		<td class="row1">{L_ALLOW_HTML_BBCODE}<br /><span class="gensmall">{L_ALLOW_HTML_BBCODE_EXPLAIN}</span></td>
+		<td class="row2">{HTML_BBCODE_SELECT}</td>
+	</tr>
+<!-- END bbcode_html_allowed -->
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

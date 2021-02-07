@@ -1,0 +1,646 @@
+##############################################################
+## MOD Title: Forum Auth by Post Count
+## MOD Author: drathbun < N/A > (Dave Rathbun) http://www.phpBBDoctor.com
+## MOD Description: Control access to view / post in forums based on a user's post count.
+## MOD Version: 1.0.0
+##
+##
+## Installation Level: Easy
+## Installation Time: ~ 10 Minutes
+## Files To Edit: (10) index.php
+##			posting.php
+##			search.php
+##			viewforum.php
+##			viewtopic.php
+##			admin/admin_forums.php
+##			includes/constants.php
+##			includes/functions.php
+##			language/lang_english/lang_admin.php
+##			templates/subSilver/admin/forum_edit_body.tpl
+## Included Files: None
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## This MOD allows board owners to set minimum (maximum) post counts required
+## (allowed) to view or post in a forum. Until the user has obtained the minimum
+## posts required to view a forum, the forum is invisible. If the user exceeds the
+## maximum allowed then the forum is also hidden. There are similar controls for
+## posting, allowing the board administrator the option of setting a minimum post
+## count required to post in a specific forum.
+## 
+## The minimum post requirement could be used to prevent users from viewing any
+## special forums until they have participated at some level in the other forums on
+## the board.
+## 
+## The maximum post allowance can be used to hide "beginner" forums from more
+## experienced forum members. For example, you might want to have a forum with lots
+## of "welcome" and rules posts that eventually gets hidden as a board member gains
+## more experience with the board.
+## 
+## This MOD affects the index, view forum, view topic, and search php code. It also
+## impacts the forum jumpbox creation script.
+## 
+## The post count is set to mediumint(8) which allows for values from -8,388,608 to
+## 8,388,607. We set a value of -1 for maximum posts to view to effectively turn
+## the limit off. A value of -1 means the forum will always be visible, no matter
+## what post count a user attains.
+## 
+## Guests have zero posts. Any forum with a maximum post count of zero will be
+## visible to guests but invisible once the first post has been made. Note that if
+## you end up with negative post counts for any reason you will be likely to
+## encounter strange results with this MOD. For that reason the function
+## phpbbdoctor_post_count_auth() sets the user post count to a minimum value of
+## zero if a negative value is encountered.
+## 
+## We suggest that if you implement the "max posts to view" setting on a forum that
+## you set the "max posts to post" for the same forum to the max view level minus
+## one. Otherwise it is possible for a user to post in the forum and then lock
+## themselves out of seeing the results of the post. This logic is not enforced by
+## the code, it's up to the board administrator to set the permissions correctly.
+##
+## Please install and test only ONE new MOD at a time. That may seem like common
+## sense, but you would be amazed at how often this is done done. :-)
+##
+## Install Time Estimate
+## The MOD install time is assumed to be for a manual install and is based on the
+## number of files to edit. If you use an automatic installer the time estimate
+## is essentially meaningless. We do not test with EasyMOD but our MODs should
+## work based on our usage of the proper template. Note that EasyMOD seems to
+## have issues with certain SQL structures that work fine in MySQL directly.
+##
+## FIND Line Number Hints
+## Some of the FIND operations may have line numbers associated with the
+## operation. These line numbers are derived from a set of baseline phpBB code
+## and are generally approximations only. Use them as a guideline if you find
+## more than one line in a similar location. Note that as you add new lines to
+## the file as you are editing that the line numbers for the remaining portion
+## of that file are nearly always going to be wrong. We do not guarantee that
+## there will be line numbers on each FIND.
+##
+## Some actions have additional comments. Please review them as they are
+## intended to help you understand the exact steps required to complete that
+## specific action.
+##
+## This MOD has 61 install instructions.
+## This MOD is in RC status as of version 1.0.0.
+##############################################################
+## MOD History:
+##
+##	2006-11-13 - Version 1.0.0
+##		Updated to Release Candidate/Final Status
+##
+##	2006-10-17 - Version 0.7.1
+##		Fixed posting logic
+##
+##	2006-10-12 - Version 0.7.0
+##		Added post count controls for posting
+##
+##	2006-09-19 - Version 0.6.0
+##		Fixed bad search.php logic
+##
+##	2006-09-13 - Version 0.5.0
+##		Initial BETA Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]-------------------------------------
+# Special Instructions: Be sure to change the prefix phpbb_ to
+# whatever is required for your installation
+#
+alter table phpbb_forums add min_posts_to_view mediumint(8) default 0;
+alter table phpbb_forums add max_posts_to_view mediumint(8) default -1;
+alter table phpbb_forums add min_posts_to_post mediumint(8) default 0;
+alter table phpbb_forums add max_posts_to_post mediumint(8) default -1;
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+index.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 176; find text might not be a complete line
+#
+		$forum_data[] = $row;
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+# Special Instructions: Here we comment out an existing line
+# and wrap our code around it, you may remove the line
+# starting with // if you prefer
+#
+		// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+		// $forum_data[] = $row;
+		if (phpbbdoctor_post_count_auth($row['min_posts_to_view'], $row['max_posts_to_view']))
+		{
+			$forum_data[] = $row;
+		}
+		// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 367 to 368; find text might not be a complete line
+#
+//
+// Set toggles for various options
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+// Includes extra code for "replypost" for compatibility with
+// "reply to post" MOD
+if ( in_array($mode, array('quote','reply','newtopic','replypost')) )
+{
+	if (!phpbbdoctor_post_count_auth($post_info['min_posts_to_post'], $post_info['max_posts_to_post']))
+	{
+		message_die(GENERAL_MESSAGE, $lang['Not_Authorised']);
+	}
+}
+// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 395 to 396; find text might not be a complete line
+#
+		//
+		// If user is logged
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+		// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+		// Turned off for all ADMIN users, they get
+		// to see everything no matter what the
+		// post levels are set to. This initial
+		// block of code is just to get the array
+		// filled, we'll check it again later.
+		$prohibited_forums = array();
+		if ($userdata['user_level'] <> ADMIN)
+		{
+			// No need to query the entire database, check to
+			// see if the user has selected a single forum or
+			// a single category to search, limit forums checked
+			// to just the ones needed...
+			if ( $search_forum != -1 )
+			{
+				$extra_sql = " AND f.forum_id = $search_forum ";
+			}
+
+			if ( $search_cat != -1 )
+			{
+				$extra_sql = " AND f.cat_id = $search_cat ";
+			}
+
+			$sql = 'SELECT  forum_id
+				,       min_posts_to_view
+				,       max_posts_to_view
+				FROM    ' . FORUMS_TABLE . ' f
+				WHERE   1 = 1 ' .
+					$extra_sql;
+
+			if ( !( $result = $db->sql_query($sql) ) )
+			{
+				message_die(GENERAL_ERROR, 'DEBUG: Unable to query forum view post limits');
+			}
+
+			// Build an array of TRUE / FALSE values to check later
+			while ($row = $db->sql_fetchrow($result))
+			{
+				// Reverse the return code as we're looking for PROHIBITED
+				// forums, rather than allowed in this case.
+				$prohibited_forums[$row['forum_id']] = !(phpbbdoctor_post_count_auth($row['min_posts_to_view'], $row['max_posts_to_view']));
+			}
+			$db->sql_freeresult($result);
+		}
+		// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 406; find text might not be a complete line
+#
+			if ( !$is_auth['auth_read'] )
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+			// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+			// if ( !$is_auth['auth_read'] )
+			if ( !$is_auth['auth_read'] || ( $prohibited_forums[$search_forum] == TRUE ) )
+			// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 425; find text might not be a complete line
+#
+				if ( !$value['auth_read'] )
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+				// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+				// if ( !$value['auth_read'] )
+				if ( !$value['auth_read'] || ( $prohibited_forums[$key] == TRUE ) )
+				// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 1307; find text might not be a complete line
+#
+forum_name, f.forum_id
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+forum_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------
+#
+, f.min_posts_to_view, f.max_posts_to_view 
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 1324; find text might not be a complete line
+#
+		$s_forums .= '<option value="' . $row['forum_id'] . '">' . $row['forum_name'] . '</option>';
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+		// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+		// $s_forums .= '<option value="' . $row['forum_id'] . '">' . $row['forum_name'] . '</option>';
+		if (phpbbdoctor_post_count_auth($row['min_posts_to_view'], $row['max_posts_to_view']))
+		{
+			$s_forums .= '<option value="' . $row['forum_id'] . '">' . $row['forum_name'] . '</option>';
+		}
+		// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 115 to 116; find text might not be a complete line
+#
+// End of auth check
+//
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+if ( !(phpbbdoctor_post_count_auth($forum_row['min_posts_to_view'], $forum_row['max_posts_to_view'])) )
+{
+	message_die(GENERAL_MESSAGE, $lang['Not_Authorised']);
+}
+// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 147; find text might not be a complete line
+#
+ORDER BY p.post_id
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+ORDER BY p.post_id
+
+#
+#-----[ IN-LINE BEFORE, ADD ]-------------------------------------
+# Special Instructions: There is a space at the end of this
+# line that needs to be included
+#
+, f.min_posts_to_view, f.max_posts_to_view 
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 149; find text might not be a complete line
+#
+" . $count_sql
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+" . $count_sql
+
+#
+#-----[ IN-LINE BEFORE, ADD ]-------------------------------------
+# Special Instructions: There is no space at the end of this
+# line, although it would not hurt to have one
+#
+, f.min_posts_to_view, f.max_posts_to_view
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 194 to 195; find text might not be a complete line
+#
+// End auth check
+//
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+if ( !(phpbbdoctor_post_count_auth($forum_topic_data['min_posts_to_view'], $forum_topic_data['max_posts_to_view'])) )
+{
+	message_die(GENERAL_MESSAGE, $lang['Not_Authorised']);
+}
+// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+admin/admin_forums.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 268; find text might not be a complete line
+#
+				$forumstatus = $row['forum_status'];
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+				// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+				$min_posts_to_view = $row['min_posts_to_view'];
+				$max_posts_to_view = $row['max_posts_to_view'];
+				$min_posts_to_post = $row['min_posts_to_post'];
+				$max_posts_to_post = $row['max_posts_to_post'];
+				// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 297; find text might not be a complete line
+#
+$forumdesc = '';
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+				// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+				$min_posts_to_view = DEFAULT_MIN_POSTS_TO_VIEW;
+				$max_posts_to_view = DEFAULT_MAX_POSTS_TO_VIEW;
+				$min_posts_to_post = DEFAULT_MIN_POSTS_TO_POST;
+				$max_posts_to_post = DEFAULT_MAX_POSTS_TO_POST;
+				// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 327; find text might not be a complete line
+#
+'S_PRUNE_ENABLED' =>
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+				// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+				'MIN_POSTS_TO_VIEW' => $min_posts_to_view,
+				'MAX_POSTS_TO_VIEW' => $max_posts_to_view,
+				'L_POSTS_TO_VIEW' => $lang['Posts_to_view'],
+				'MIN_POSTS_TO_POST' => $min_posts_to_post,
+				'MAX_POSTS_TO_POST' => $max_posts_to_post,
+				'L_POSTS_TO_POST' => $lang['Posts_to_post'],
+				'L_MIN' => $lang['Min_post_limit'],
+				'L_MAX' => $lang['Max_post_limit'],
+				// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 395; find text might not be a complete line
+#
+forum_desc, forum_order, forum_status,
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+forum_status,
+
+#
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------
+#
+ min_posts_to_view, max_posts_to_view, min_posts_to_post, max_posts_to_post, 
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 396; find text might not be a complete line
+#
+intval($HTTP_POST_VARS['forumstatus']) . ", "
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+intval($HTTP_POST_VARS['forumstatus']) . ", "
+
+#
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------
+#
+. intval($HTTP_POST_VARS['min_posts_to_view']) . ", " . intval($HTTP_POST_VARS['max_posts_to_view']) . ", " . intval($HTTP_POST_VARS['min_posts_to_post']) . ", " . intval($HTTP_POST_VARS['max_posts_to_post']) . ", "
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 435; find text might not be a complete line
+#
+"', forum_status = " . intval($HTTP_POST_VARS['forumstatus']) .
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+intval($HTTP_POST_VARS['forumstatus']) .
+
+#
+#-----[ IN-LINE AFTER, ADD ]-------------------------------------
+#
+", min_posts_to_view = " . intval($HTTP_POST_VARS['min_posts_to_view']) . ", max_posts_to_view = " . intval($HTTP_POST_VARS['max_posts_to_view']) . ", min_posts_to_post = " . intval($HTTP_POST_VARS['min_posts_to_post']) . ", max_posts_to_post = " . intval($HTTP_POST_VARS['max_posts_to_post']) . 
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 183; find text might not be a complete line
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+define('DEFAULT_MIN_POSTS_TO_VIEW', 0);
+define('DEFAULT_MAX_POSTS_TO_VIEW', -1);
+define('DEFAULT_MIN_POSTS_TO_POST', 0);
+define('DEFAULT_MAX_POSTS_TO_POST', -1);
+define('NOLIMIT_POST_COUNT_AUTH', -1);
+// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 238; find text might not be a complete line
+#
+			$forum_rows[] = $row;
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+# Special Instructions: Here we comment out an existing line
+# and wrap our code around it, you may remove the line
+# starting with // if you prefer
+#
+			// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+			// forum_rows[] = $row;
+			if (phpbbdoctor_post_count_auth($row['min_posts_to_view'], $row['max_posts_to_view']))
+			{
+				$forum_rows[] = $row;
+			}
+			// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 945; find text might not be a complete line
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+// This function is used to check the min / max posts to view
+// on a forum basis. This is a forum "auth" check but based
+// on the user post count rather than standard forum permissions.
+// The $userdata array is referenced as global.
+// Input parameters are min / max posts, which depending on
+// the calling location could be min / max limit to view
+// or min / max limit to post. Output is a simple boolean
+// T/F value.
+function phpbbdoctor_post_count_auth($min_posts, $max_posts)
+{
+	global $userdata;
+
+	// Let's add some special handling for negative
+	// user post counts, just to keep them from screwing
+	// everything up....
+	$user_posts = ($userdata['user_posts'] >= 0 ? $userdata['user_posts'] : 0);
+
+	if ($userdata['user_level'] == ADMIN)
+	{
+		return TRUE;
+	}
+
+	if ($max_posts == NOLIMIT_POST_COUNT_AUTH)
+	{
+		$max_posts = $user_posts;
+	}
+
+	if ($min_posts == NOLIMIT_POST_COUNT_AUTH)
+	{
+		$min_posts = $user_posts;
+	}
+
+	if ( ($user_posts >= $min_posts) && ($user_posts <= $max_posts) )
+	{
+		return TRUE;
+	}
+
+	return FALSE;
+}
+// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 766; find text might not be a complete line
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+$lang['Posts_to_view'] = 'Posts required to view this forum';
+$lang['Posts_to_post'] = 'Posts required to post in this forum';
+$lang['Min_post_limit'] = 'Minimum';
+$lang['Max_post_limit'] = 'Maximum, use -1 for no limit';
+// END Forum Auth by Post Count 1.0.0 (www.phpBBDoctor.com)
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+templates/subSilver/admin/forum_edit_body.tpl
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 25 to 26; find text might not be a complete line
+#
+	  <td class="row2"><select name="forumstatus">{S_STATUS_LIST}</select></td>
+	</tr>
+
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+	<tr>
+	  <td class="row1">{L_POSTS_TO_VIEW}</td>
+	  <td class="row2">{L_MIN}: <input type="text" name="min_posts_to_view" size="10" value="{MIN_POSTS_TO_VIEW}" />&nbsp;{L_MAX}: <input type="text" name="max_posts_to_view" size="10" value="{MAX_POSTS_TO_VIEW}" /></td>
+	</tr>
+	<tr>
+	  <td class="row1">{L_POSTS_TO_POST}</td>
+	  <td class="row2">{L_MIN}: <input type="text" name="min_posts_to_post" size="10" value="{MIN_POSTS_TO_POST}" />&nbsp;{L_MAX}: <input type="text" name="max_posts_to_post" size="10" value="{MAX_POSTS_TO_POST}" /></td>
+	</tr>
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+  <header>
+    <license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+    <title lang="en-gb">Signature in Profile</title>
+    <description lang="en-gb">Adds the member's signature to their view profile page.</description>
+    <author-notes lang="en-gb">
+ This MOD has been verified to work with phpBB 2.0.22
+ This MOD can be installed by EasyMOD</author-notes>
+    <author-group>
+      <author>
+        <realname>Richard Foote</realname>
+        <email>rfoote@tellink.net</email>
+        <username>Dicky</username>
+        <homepage>http://dicky.askmaggymae.com</homepage>
+        <contributions />
+      </author>
+    </author-group>
+    <mod-version>
+      <major>1</major>
+      <minor>0</minor>
+      <revision>0</revision>
+      <release>b</release>
+    </mod-version>
+    <installation>
+      <level>easy</level>
+      <time>384</time>
+      <target-version>
+        <target-primary>2.0</target-primary>
+        <target-major allow="exact">2</target-major>
+        <target-minor allow="exact">0</target-minor>
+      </target-version>
+    </installation>
+    <history>
+      <entry>
+        <date>2006-11-25</date>
+        <rev-version>
+          <major>1</major>
+          <minor>0</minor>
+          <revision>0</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Fix smilies not working and bbcode configurations</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2006-01-03</date>
+        <rev-version>
+          <major>0</major>
+          <minor>0</minor>
+          <revision>3</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Move signature block so that header goes all the way across</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2006-01-07</date>
+        <rev-version>
+          <major>0</major>
+          <minor>0</minor>
+          <revision>2</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Add switch by Kiwietje</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2006-01-05</date>
+        <rev-version>
+          <major>0</major>
+          <minor>0</minor>
+          <revision>1</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Initial version</change>
+        </changelog>
+      </entry>
+    </history>
+    <meta name="generator" content="Phpbb.ModTeam.Tools (c#)" />
+  </header>
+  <action-group>
+    <open src="includes/usercp_viewprofile.php">
+      <edit>
+        <find>$sql = "SELECT *</find>
+        <action type="before-add">
+// BEGIN ADD Signature in Profile
+include($phpbb_root_path . 'includes/bbcode.'.$phpEx);
+
+//
+// Define censored word matches
+//
+$orig_word = array();
+$replacement_word = array();
+obtain_word_list($orig_word, $replacement_word);
+// END ADD Signature in Profile
+</action>
+      </edit>
+      <edit>
+        <find><![CDATA[$search = '<a href="' . $temp_url . '">' . sprintf($lang['Search_user_posts'], $profiledata['username']) . '</a>';]]></find>
+        <action type="after-add"><![CDATA[
+// BEGIN Signature in Profile
+$user_sig = '';
+if ( $profiledata['user_attachsig'] && $board_config['allow_sig'] )
+{
+    $user_sig = $profiledata['user_sig'];
+    $user_sig_bbcode_uid = $profiledata['user_sig_bbcode_uid'];
+	if ( $user_sig != '' )
+    {
+    	$template -> assign_block_vars('switch_signature', array());
+        if ( !$board_config['allow_html'] || !$profiledata['user_allowhtml'])
+       	{
+       		$user_sig = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $user_sig);
+       	}
+    	if ( $user_sig_bbcode_uid != '' && $profiledata['user_allowbbcode'] )
+   		{
+   			$user_sig = ( $board_config['allow_bbcode'] ) ? bbencode_second_pass($user_sig, $user_sig_bbcode_uid) : preg_replace("/\:$user_sig_bbcode_uid/si", '', $user_sig);
+   		}
+
+   		$user_sig = make_clickable($user_sig);
+
+        if ( $profiledata['user_allowsmile'] && $board_config['allow_smilies'] )
+        {
+            $user_sig = smilies_pass($user_sig);
+        }
+
+   		if (count($orig_word))
+		{
+   			$user_sig = str_replace('\"', '"', substr(@preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "@preg_replace(\$orig_word, \$replacement_word, '\\0')", '>' . $user_sig . '<'), 1, -1));
+   		}
+
+		$user_sig = str_replace("\n", "\n<br />\n", $user_sig);
+    }
+}
+// END Signature in Profile]]></action>
+      </edit>
+      <edit>
+        <find><![CDATA[	'AVATAR_IMG' => $avatar_img,]]></find>
+        <action type="after-add"><![CDATA[    'USER_SIG' => $user_sig,]]></action>
+      </edit>
+      <edit>
+        <find><![CDATA[	'L_INTERESTS' => $lang['Interests'],]]></find>
+        <action type="after-add"><![CDATA[	'L_SIGNATURE' => $lang['Signature'],]]></action>
+      </edit>
+    </open>
+    <open src="templates/subSilver/profile_view_body.tpl">
+      <edit>
+        <find><![CDATA[{L_CONTACT} {USERNAME} </span></b></td>
+  </tr>
+  <tr>]]></find>
+        <find><![CDATA[<td class="row1"]]></find>
+        <inline-edit>
+          <inline-find>"row1"</inline-find>
+          <inline-action type="after-add"> rowspan="3"</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find><![CDATA[		  //--></script><noscript>{ICQ_IMG}</noscript></td>
+		</tr>
+	  </table>
+	</td>
+  </tr>]]></find>
+        <action type="after-add"><![CDATA[		<!-- BEGIN switch_signature -->
+	<tr> 
+		<td class="catRight" width="60%"><b><span class="gen">{L_SIGNATURE}</span></b></td>
+	</tr>
+	<tr>
+		<td class="row1"> <span class="postbody">{USER_SIG}</span></td>
+	</tr>
+		<!-- END switch_signature -->]]></action>
+      </edit>
+    </open>
+  </action-group>
+</mod>

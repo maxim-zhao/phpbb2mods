@@ -1,0 +1,182 @@
+######################################################## 
+## MOD Title: Hashcalc MOD Add-on: Display Hash for all files in the chosen folder
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This add-on will allow the display of MD5, SFV and SHA-1 information of all files in the chosen folder (no subdir support)
+## MOD Version:	1.0.0
+## 
+## Installation Level: Easy 
+## Installation Time: 5 Minutes 
+##
+## Files To Edit: 5
+##	language/lang_english/lang_main.php
+##	includes/page_header.php
+##	hashcalc.php
+##	templates/subSilver/hashcalc_body.tpl
+##	templates/subSilver/hashcalc_results_body.tpl
+##
+## Included Files: 0
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 
+## 	Tested on 2.0.18. Can be installed using EasyMOD 0.3.0
+## 
+############################################################## 
+## MOD History: 
+##
+##   2005-12-11 - Version 1.0.0
+##      - Initial Release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['No_hash_match'] =
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$lang['Display_file_hash'] = 'Display File Hash List';
+$lang['Empty_directory'] = 'Empty directory';
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+includes/page_header.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'U_HASHCALC' => append_sid('hashcalc.'.$phpEx),
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	'U_HASHCALC' => append_sid("hashcalc.$phpEx?mode=display_hash"),
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+hashcalc.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		message_die(GENERAL_MESSAGE, $lang['No_hash_match']);
+	}
+}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+else if ( $mode == "display_hash" )
+{
+	include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+
+	$template->set_filenames(array(
+		'hashcalc' => 'hashcalc_results_body.tpl')
+	);
+
+	make_jumpbox('viewforum.'.$phpEx);
+
+	$template->assign_vars(array(
+		"L_FILE" => $lang['File'],
+		"L_FILE_HASH" => $lang['File_hash'],
+		"L_HASH_MD5" => $lang['Hash_MD5'],
+		"L_HASH_SHA1" => $lang['Hash_SHA1'],
+		"L_HASH_SFV" => $lang['Hash_SFV'])
+	);
+
+	// Get directory and filename
+	$dir = @opendir($phpbb_root_path . $board_config['hashculc_file_path']);
+	
+	$files = array();
+	while (false !== ($filename = readdir($dir)))
+	{
+		if ($filename != "." && $filename != "..")
+		{
+			$files[] = $filename;
+		}
+	}
+	@closedir($dir);
+
+	if (count($files) == 0)
+	{
+		message_die(GENERAL_MESSAGE, $lang['Empty_directory']);
+	}
+
+	foreach ($files as $filename)
+	{
+		$filepath = $phpbb_root_path . $board_config['hashculc_file_path'].'/'.$filename;
+
+		$md5sum = md5_file($filepath);
+		$sha1_file = sha1_file($filepath);
+		$sfv_checksum = strtoupper(dechex(crc32(file_get_contents($filepath))));
+
+		$template->assign_block_vars('file_hashes', array(
+			"FILENAME" => $filename,
+			"MD5" => $md5sum,
+			"SHA1" => $sha1_file,
+			"SFV" => $sfv_checksum)
+		);
+	}
+
+	$template->pparse('hashcalc');
+
+	include($phpbb_root_path . 'includes/page_tail.'.$phpEx);
+}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'L_SEARCH_FILE_HASH_EXPLAINED' => $lang['Search_file_hash_explained'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	'L_DISPLAY_FILE_HASH' => $lang['Display_file_hash'],
+
+	'U_DISPLAY_FILE_HASH' => append_sid("hashcalc.$phpEx?mode=display_hash"),
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/hashcalc_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<td align="left"><span class="nav"><a href="{U_INDEX}" class="nav">{L_INDEX}</a></span></td>
+	</tr>
+</table>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+<p align="center"><span class="gen"><a href="{U_DISPLAY_FILE_HASH}" class="gen">{L_DISPLAY_FILE_HASH}</a></span></p>
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/hashcalc_results_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	</tr>
+	<!-- END file_hash -->
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<!-- BEGIN file_hashes -->
+	<tr>
+		<td class="row1" align="center"><span class="gen">{file_hashes.FILENAME}</span></td>
+		<td class="row2" align="left"><span class="gen">{L_HASH_MD5}: {file_hashes.MD5}<br />{L_HASH_SHA1}: {file_hashes.SHA1}<br />{L_HASH_SFV}: {file_hashes.SFV}</span></td>
+	</tr>
+	<!-- END file_hashes -->
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+#
+# EoM

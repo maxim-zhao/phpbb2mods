@@ -1,0 +1,132 @@
+##############################################################
+## MOD Title: View PM while replying
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com 
+## MOD Description: Lets you see the PM you're replying to just below the input box, very like the topic review when replying to topics.
+## MOD Version: 1.0.0
+## 
+## Installation Level: Easy
+## Installation Time: ~ 1 Minute 
+## Files To Edit: 
+##		privmsg.php
+##
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##	Made by request from this topic: http://www.phpbb.com/phpBB/viewtopic.php?t=254795
+##	
+############################################################## 
+## MOD History: 
+##
+##
+##   2005-09-20 - Version 1.0.0
+##      - First version, seems to work fine.
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+				$mode = 'reply';
+			}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// View PM while replying MOD, By Manipe
+			if ( $mode == 'reply' )
+			{
+				// Get individual PM settings re html, smilies
+				$sql = "SELECT privmsgs_enable_html, privmsgs_enable_smilies
+					FROM " . PRIVMSGS_TABLE . "
+					WHERE privmsgs_id = $privmsg_id";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain private message for editing', '', __LINE__, __FILE__, $sql);
+				}
+
+				if ( !($privmsg_config = $db->sql_fetchrow($result)) )
+				{
+					redirect(append_sid("privmsg.$phpEx?folder=$folder", true));
+				}
+
+				$privmsg_bbcode_uid = $privmsg['privmsgs_bbcode_uid'];
+
+				$reply_message = $privmsg['privmsgs_text'];
+				$reply_subject = $privmsg['privmsgs_subject'];
+
+				if ( !$board_config['allow_html'] || !$userdata['user_allowhtml'])
+				{
+					if ( $privmsg_config['privmsgs_enable_html'] )
+					{
+						$reply_message = preg_replace('#(<)([\/]?.*?)(>)#is', "&lt;\\2&gt;", $reply_message);
+					}
+				}
+
+				if ( $privmsg_bbcode_uid != '' )
+				{
+					$reply_message = ( $board_config['allow_bbcode'] ) ? bbencode_second_pass($reply_message, $privmsg_bbcode_uid) : preg_replace('/\:[0-9a-z\:]+\]/si', ']', $reply_message);
+				}
+
+				$reply_message = make_clickable($reply_message);
+
+				$orig_word = array();
+				$replacement_word = array();
+				obtain_word_list($orig_word, $replacement_word);
+
+				if ( count($orig_word) )
+				{
+					$reply_subject = preg_replace($orig_word, $replacement_word, $reply_subject);
+					$reply_message = preg_replace($orig_word, $replacement_word, $reply_message);
+				}
+
+				if ( $board_config['allow_smilies'] && $privmsg_config['privmsgs_enable_smilies'] )
+				{
+					$reply_message = smilies_pass($reply_message);
+				}
+
+				$reply_message = str_replace("\n", '<br />', $reply_message);
+
+				$template->set_filenames(array(
+					'pm_review' => 'posting_topic_review.tpl')
+				);
+				$template->assign_vars(array(
+					'L_AUTHOR' => $lang['From'],
+					'L_MESSAGE' => $lang['Private_Message'],
+					'L_POSTED' => $lang['Sent'],
+					'L_POST_SUBJECT' => $lang['Subject'])
+				);
+				$template->assign_block_vars('postrow', array(
+					'ROW_COLOR' => '#' . $theme['td_color1'], 
+					'ROW_CLASS' => $theme['td_class1'], 
+
+					'MINI_POST_IMG' => $images['icon_minipost'], 
+					'POSTER_NAME' => $to_username, 
+					'POST_DATE' => create_date($board_config['default_dateformat'], $privmsg['privmsgs_date'], $board_config['board_timezone']), 
+					'POST_SUBJECT' => $reply_subject, 
+					'MESSAGE' => $reply_message,
+
+					'L_MINI_POST_ALT' => $lang['Message'])
+				);
+				$template->assign_var_from_handle('TOPIC_REVIEW_BOX', 'pm_review');
+			}
+// View PM while replying MOD, By Manipe
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

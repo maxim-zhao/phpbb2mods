@@ -1,0 +1,549 @@
+##############################################################
+## MOD Title: Last Visited
+## MOD Author: imrich < forward_imrich@comcast.net > (Rich) N/A
+## MOD Description: This mod will change the memberlist, topicview (posts), usergroups, and user profile to display the date of a members last visit. 
+## It also allows the memberlist to be sorted based on the lastvisit date. 
+## Instructions for modifying only the SubSilver template and English language has been included.
+##
+## MOD Version: 1.1.1
+## 
+## Installation Level: Easy
+## Installation Time: 25 minutes
+## Files To Edit:  groupcp.php,
+##                memberlist.php,
+##                viewtopic.php,
+##                includes/usercp_viewprofile.php,
+##                includes/page_header.php,
+##                language/lang_english/lang_main.php,
+##                templates/subSilver/groupcp_info_body.tpl,
+##                templates/subSilver/memberlist_body.tpl,
+##                templates/subSilver/profile_view_body.tpl,
+##                templates/subSilver/viewtopic_body.tpl
+##
+## Included Files: N/A
+## 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+##
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: I wanted the ability to see when a user last visited my forum. 
+## To me this is more important than knowing the date when a user first joined. 
+## This mod will work correctly to show when a user visits the board even when the user has 'Log me on automatically each visit' is checked,
+##  however the date/time of such a visit is controlled by the session length of phpbb (default is 1 hour), so take that into account if you don't see the time updated as expected.
+## Only the SubSilver template and English language files have been modified.
+##############################################################
+## MOD History:
+## 
+##
+##   2005-08.29 - Version 1.1.1 
+##
+##  Fixed cosmetic things such as using the INCREMENT function instead of using IN-LINE REPLACE which kept mod from being validated by the Mod-Team. No functional differences from 1.1.0.
+##
+##   2005-08.08 - Version 1.1.0
+##
+##  Changes to show last visit in usergroups. Inspired by the posting made by mechagrover, used his code as a base and added a bit more to make it work.
+##
+##   2005-04.03 - Version 1.0.8
+##
+## Changed to use session data, prelim testing work by by danko (thanks!). This will be a more accurate time of last visit as it takes session_time into account instead of last_visited as last_visted can be old if user checks 'alway stay logged in'.
+##
+##   2004-11.25 - Version 1.0.7
+##
+## Had error in FIND, misplaced comment delimiter
+##
+##   2004-11.25 - Version 1.0.6
+##
+## Had error in INLINE ADD, fixed syntax
+##
+##   2004-11-25 - Version 1.0.5
+## 
+## Changed to also display last visit date when viewing posts.
+##   Updated changes to lang_main.php, additional changes to viewtopic.php and viewtopic_body.tpl
+##
+##   2004-11-23 - Version 1.0.4
+## 
+## Removed single quotes around sql field.
+##
+##   2004-11-22 - Version 1.0.3
+## 
+## Fixed catBottom length (cosmetic issue).
+##
+##   2004-11-20 - Version 1.0.2
+## 
+## Fixed a couple of out of place comment delimiters.
+##
+##   2004-11-17 - Version 1.0.1
+## 
+## Changed REPLACE to INLINE directives.
+## 
+##   2004-11-09 - Version 1.0.0
+## 
+##      - First Stable release. Version 1.0.0 of a MOD is always it's first stable release.
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ OPEN ]------------------------------------- 
+# 
+groupcp.php 
+
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+# Here is the complete find, the followin find should be this one:
+#function generate_user_info(&$row, $date_format, $group_mod, &$from, &$posts, &$joined, &$poster_avatar, &$profile_img, &$profile, &$search_img, &$search, &$pm_img, &$pm, &$email_img, &$email, &$www_img, &$www, &$icq_status_img, &$icq_img, &$icq, &$aim_img, &$aim, &$msn_img, &$msn, &$yim_img, &$yim)
+#
+function generate_user_info(&$row, $date_format, $group_mod, &$from, &$posts, &$joined, &$poster_avatar,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------- 
+# 
+ &$joined, 
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------- 
+# 
+ &$lastvisit, 
+
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+	$joined = create_date($date_format, $row['user_regdate'], $board_config['board_timezone']); 
+# 
+#-----[ AFTER, ADD ]------------------------------------- 
+# 
+	// If user_session_time is zero, then user has never visited.
+	if($row['user_session_time']==0)
+	{
+		$lastvisit = '---------';
+	}
+	else
+	{
+		$lastvisit = create_date($lang['DATE_FORMAT'], $row['user_session_time'], $board_config['board_timezone']);
+	}
+
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+	$sql = "SELECT username, user_id, user_viewemail, user_posts, user_regdate, user_from, user_website, user_email, user_icq, user_aim, user_yim, user_msnm  
+# 
+#-----[ IN-LINE FIND ]------------------------------------- 
+# 
+user_regdate, 
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------- 
+# 
+user_session_time,
+
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+	$sql = "SELECT u.username, u.user_id, u.user_viewemail, u.user_posts, u.user_regdate, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_msnm, ug.user_pending 
+# 
+#-----[ IN-LINE FIND ]------------------------------------- 
+# 
+u.user_regdate, 
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------- 
+# 
+u.user_session_time,
+
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+	$sql = "SELECT u.username, u.user_id, u.user_viewemail, u.user_posts, u.user_regdate, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_msnm
+# 
+#-----[ IN-LINE FIND ]------------------------------------- 
+# 
+u.user_regdate, 
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------- 
+# 
+u.user_session_time,
+
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+generate_user_info($group_moderator, $board_config['default_dateformat'], $is_moderator, $from, $posts, $joined, $poster_avatar, $profile_img, $profile, $search_img, $search, $pm_img, $pm, $email_img, $email, $www_img, $www, $icq_status_img, $icq_img, $icq, $aim_img, $aim, $msn_img, $msn, $yim_img, $yim); 
+# 
+#-----[ IN-LINE FIND ]------------------------------------- 
+# 
+ $joined, 
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------- 
+# 
+ $lastvisit, 
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+		'MOD_JOINED' => $joined, 
+# 
+#-----[ AFTER, ADD ]------------------------------------- 
+# 
+		'MOD_LASTVISIT' => $lastvisit, 
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+generate_user_info($group_members[$i], $board_config['default_dateformat'], $is_moderator, $from, $posts, $joined, $poster_avatar, $profile_img, $profile, $search_img, $search, $pm_img, $pm, $email_img, $email, $www_img, $www, $icq_status_img, $icq_img, $icq, $aim_img, $aim, $msn_img, $msn, $yim_img, $yim); 
+# 
+#-----[ IN-LINE FIND ]------------------------------------- 
+# 
+ $joined, 
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------- 
+# 
+ $lastvisit, 
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+				'JOINED' => $joined, 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------- 
+# 
+				'LASTVISIT' => $lastvisit, 
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+generate_user_info($modgroup_pending_list[$i], $board_config['default_dateformat'], $is_moderator, $from, $posts, $joined, $poster_avatar, $profile_img, $profile, $search_img, $search, $pm_img, $pm, $email_img, $email, $www_img, $www, $icq_status_img, $icq_img, $icq, $aim_img, $aim, $msn_img, $msn, $yim_img, $yim); 
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------- 
+# 
+ $joined, 
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------- 
+# 
+ $lastvisit, 
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+					'JOINED' => $joined, 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------- 
+# 
+					'LASTVISIT' => $lastvisit, 
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+memberlist.php
+#
+#
+#-----[ FIND ]------------------------------------------
+#
+$mode_types_text = array($lang['Sort_Joined'], $lang['Sort_Username'], $lang['Sort_Location'], $lang['Sort_Posts'], $lang['Sort_Email'],  $lang['Sort_Website'], $lang['Sort_Top_Ten']);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$mode_types_text = array($lang['Sort_Joined'],
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ $lang['Sort_Visited'],
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$mode_types = array('joindate', 'username', 'location', 'posts', 'email', 'website', 'topten');
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$mode_types = array('joindate',
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ 'visitdate',
+#
+#-----[ FIND ]------------------------------------------
+#
+	case 'joined':
+		$order_by = "user_regdate $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	case 'visitdate':
+		$order_by = "user_session_time $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT username, user_id, user_viewemail, user_posts, user_regdate, user_from, user_website, user_email, user_icq, user_aim, user_yim, user_msnm, user_avatar, user_avatar_type, user_allowavatar 
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$sql = "SELECT username, user_id, user_viewemail, user_posts, user_regdate,
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ user_session_time,
+#
+#-----[ FIND ]------------------------------------------
+#
+		$from = ( !empty($row['user_from']) ) ? $row['user_from'] : '&nbsp;';
+		$joined = create_date($lang['DATE_FORMAT'], $row['user_regdate'], $board_config['board_timezone']);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		// If user_session_time is zero, then user has never visited.
+		if($row['user_session_time']==0)
+		{
+			$lastvisit = '---------';
+		}
+		else
+		{
+			$lastvisit = create_date($lang['DATE_FORMAT'], $row['user_session_time'], $board_config['board_timezone']);
+		}
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'USERNAME' => $username,
+			'FROM' => $from,
+			'JOINED' => $joined,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'VISITED' => $lastvisit,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+viewtopic.php
+#
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT u.username, u.user_id, u.user_posts, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_regdate, u.user_msnm, u.user_viewemail, u.user_rank, u.user_sig, u.user_sig_bbcode_uid, u.user_avatar, u.user_avatar_type, u.user_allowavatar, u.user_allowsmile, p.*,  pt.post_text, pt.post_subject, pt.bbcode_uid
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ u.user_regdate,
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ u.user_session_time,
+#
+#-----[ FIND ]------------------------------------------
+#
+	$poster_joined = ( $postrow[$i]['user_id'] != ANONYMOUS ) ? $lang['Joined'] . ': ' . create_date($lang['DATE_FORMAT'], $postrow[$i]['user_regdate'], $board_config['board_timezone']) : '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	$poster_visited =  ( $postrow[$i]['user_id'] != ANONYMOUS ) ? $lang['Visited'] . ': ' . create_date($lang['DATE_FORMAT'], $postrow[$i]['user_session_time'], $board_config['board_timezone']) : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'POSTER_JOINED' => $poster_joined,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'POSTER_VISITED' => $poster_visited,
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	'USERNAME' => $profiledata['username'],
+	'JOINED' => create_date($lang['DATE_FORMAT'], $profiledata['user_regdate'], $board_config['board_timezone']),
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'VISITED' => $profiledata['user_session_time'] ? ( create_date($lang['DATE_FORMAT'], $profiledata['user_session_time'], $board_config['board_timezone'])) : '--------',
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_INDEX' => sprintf($lang['Forum_Index'], $board_config['sitename']),
+	'L_REGISTER' => $lang['Register'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'L_VISITED' => $lang['Visited'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Sort_Descending'] = 'Descending';
+$lang['Order'] = 'Order';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Visited'] = 'Last Visit';
+$lang['Sort_Visited'] = 'Last Visit Date';
+
+# 
+#-----[ OPEN ]------------------------------------- 
+# 
+templates/subSilver/groupcp_info_body.tpl 
+
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+	  <th class="thTop">{L_POSTS}</th> 
+# 
+#-----[ AFTER, ADD ]------------------------------------- 
+# 
+	  <th class="thTop">{L_VISITED}</th> 
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+	  <td class="catSides" colspan="{%:1}" height="28"><span class="cattitle">{L_GROUP_MODERATOR}</span></td>
+
+# 
+#-----[ INCREMENT ]------------------------------------- 
+# 
+%:1 
+
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+	  <td class="row1" align="center" valign="middle"><span class="gen">{MOD_POSTS}</span></td> 
+# 
+#-----[ AFTER, ADD ]------------------------------------- 
+# 
+	  <td class="row1" align="center" valign="middle"><span class="gen">{MOD_LASTVISIT}</span></td> 
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+	  <td class="catSides" colspan="{%:1}" height="28"><span class="cattitle">{L_GROUP_MEMBERS}</span></td>
+# 
+#-----[ INCREMENT ]------------------------------------- 
+# 
+%:1
+
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+	  <td class="{member_row.ROW_CLASS}" align="center"><span class="gen">{member_row.POSTS}</span></td> 
+# 
+#-----[ AFTER, ADD ]------------------------------------- 
+# 
+	  <td class="{member_row.ROW_CLASS}" align="center"><span class="gen">{member_row.LASTVISIT}</span></td> 
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+	  <td class="row1" colspan="{%:1}" align="center"><span class="gen">{L_NO_MEMBERS}</span></td>
+# 
+#-----[ INCREMENT ]------------------------------------- 
+# 
+%:1
+
+# 
+#-----[ FIND ]------------------------------------- 
+# 
+	  <td class="row1" colspan="{%:1}" align="center"><span class="gen">{L_HIDDEN_MEMBERS}</span></td>
+# 
+#-----[ INCREMENT ]------------------------------------- 
+# 
+%:1
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/memberlist_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <th class="thTop" nowrap="nowrap">{L_FROM}</th>
+	  <th class="thTop" nowrap="nowrap">{L_JOINED}</th>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	  <th class="thTop" nowrap="nowrap">{L_VISITED}</th>
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="{memberrow.ROW_CLASS}" align="center" valign="middle"><span class="gen">{memberrow.FROM}</span></td>
+	  <td class="{memberrow.ROW_CLASS}" align="center" valign="middle"><span class="gensmall">{memberrow.JOINED}</span></td>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	  <td class="{memberrow.ROW_CLASS}" align="center" valign="middle"><span class="gensmall">{memberrow.VISITED}</span></td>
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="catBottom" colspan="{%:1}" height="28">&nbsp;</td>
+
+#
+#-----[ INCREMENT ]----------------------------------
+#
+%:1
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/profile_view_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<tr> 
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_JOINED}:&nbsp;</span></td>
+		  <td width="100%"><b><span class="gen">{JOINED}</span></b></td>
+		</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<tr>
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_VISITED}:&nbsp;</span></td>
+		  <td width="100%"><b><span class="gen">{VISITED}</span></b></td>
+		</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/viewtopic_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<td width="150" align="left" valign="top" class="{postrow.ROW_CLASS}"><span class="name"><a name="{postrow.U_POST_ID}"></a><b>{postrow.POSTER_NAME}</b></span><br /><span class="postdetails">{postrow.POSTER_RANK}<br />{postrow.RANK_IMAGE}{postrow.POSTER_AVATAR}<br /><br />{postrow.POSTER_JOINED}<br />{postrow.POSTER_POSTS}<br />{postrow.POSTER_FROM}</span><br /></td>
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+{postrow.POSTER_JOINED}<br />
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+{postrow.POSTER_VISITED}<br />
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

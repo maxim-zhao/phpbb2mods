@@ -1,0 +1,485 @@
+##############################################################
+## MOD Title:		mod to allow admin to set cloning permissions in ACP 
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Description:	This mod integrates the right to clone posts into the regular 
+##			phpbb permission scheme so the admin can go into the ACP and fine tune 
+##			exactly which users or groups will be allowed to clone posts
+##
+## MOD Version:		1.0.0
+##
+## Installation Level:	(Easy)
+## Installation Time:	20 Minutes
+##
+## Files To Edit: 	viewtopic.php
+##			admin/admin_forumauth.php
+##			admin/admin_forums.php
+##			admin/admin_ug_auth.php
+##			includes/auth.php
+##			includes/constants.php
+##			language/lang_english/lang_admin.php
+##
+## Included Files: 	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 	Note: in adapting this mod for your board, you need to carefully read
+##			the notes I have included in the template below (wherever there is a line
+##			beginning with ## that line is a note for you to read)
+##
+##############################################################
+## MOD History:
+##
+##   2005-12-11	- Version 1.0.0
+##		  initial version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_forums ADD auth_cloneposts TINYINT(1) DEFAULT '0' NOT NULL;
+ALTER TABLE phpbb_auth_access ADD auth_cloneposts TINYINT(1) DEFAULT '0' NOT NULL;
+
+UPDATE phpbb_forums SET auth_cloneposts = auth_pollcreate;
+UPDATE phpbb_auth_access SET auth_cloneposts = auth_pollcreate;
+## Note that in the UPDATE SQLS above, I have set things up so that anyone who can create a poll
+## in a given place will be able to clone posts in that place
+##
+## You can change those UPDATE SQLS so that
+## anyone who has permission to do some other thing in a forum (post, vote, delete, etc.) has permission
+## to clone posts in that forum by changing the SET part of those two UPDATE lines to read, for example, 
+## SET auth_cloneposts = auth_post
+##
+## Or, you can change the first SET line equal to any of 
+## 0, 1, 2, 3 or 5 where those numbers mean the following:
+## 0 is auth_all (all users)
+## 1 is auth_reg (all registered users)
+## 2 is auth_acl ('private': users or groups can use new feature only if granted specific access in ACP)
+## 3 is auth_mod (moderators)
+## 5 is auth_admin (administrators)
+## and that will set all forums to that level of access for the feature...
+## Presumably if you did that you would change the second SET line to equal 0 
+## so that by default no group or person is given special access to the feature, 
+## and once you do that, you would be able to grant special priveledges to users or groups 
+## in the usual way via the ACP
+##
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$sql = "SELECT t.topic_id,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+f.auth_delete, 
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+f.auth_cloneposts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( $is_auth['auth_pollcreate'] )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+	if ( $is_auth['auth_cloneposts'] )
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_forumauth.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+//                View      Read      Post      Reply
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// start mod cloneposts (and end mod too)...below, I added 'Cloneposts'
+// in the commented out header and I added an authorization level for the power to 
+// clone posts in each of the 7 definitions of arrays (0 through 6) below;
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+Delete
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ Cloneposts 
+
+##
+## note that the arrays appearing in the seven FIND statements below set permissions when
+## using simple mode in the ACP; there are 7 possible 'simple' settings in the ACP and the
+## following shows which array sets permissions for each of those 7 possible 'simple' settings:
+## the 0 array is for the setting 'public'
+## the 1 array is for the setting 'registered'
+## the 2 array is for the setting 'registered [hidden]'
+## the 3 array is for the setting 'private'
+## the 4 array is for the setting 'private [hidden]'
+## the 5 array is for the setting 'moderators'
+## the 6 array is for the setting 'moderators [hidden]'
+##
+## For each of those arrays, in the IN-LINE AFTER, ADD part, you can decide what 
+## level of access to give for the new feature...
+##
+## Below I set things up so that each simple level gives the same access for the new feature 
+## that is given for the right to create a poll, but you can change that for any 'simple' level 
+## to any of the folliwing:
+## AUTH_ALL (all users)
+## AUTH_REG (all registered users)
+## AUTH_ACL ('private': users or groups can use new feature only if granted specific access in ACP)
+## AUTH_MOD (moderators)
+## AUTH_ADMIN (administrators)
+##
+
+#
+#-----[ FIND ]------------------------------------------------
+## this is a partial search : the full-line is longer
+	0  => array(AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG
+	
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+## note that the placement of the "ADD" to this line depends on exactly where 'Delete' 
+## is in the commented line above...in a clean phpbb board Delete is the sixth entry 
+## in the row so, for each of arrays 0 through 6, we add permission for our new feature
+## right after the sixth entry...
+## But if delete is the 'ith' rather than the sixth entry in the line, make sure for 
+## each of arrays 0 through 6 below that you insert into the line just after the ith entry
+	0  => array(AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'public' in the simple settings...
+## change this to whatever permission setting you want to apply for the new feature when 
+## the admin selects 'public'
+, AUTH_REG
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	1  => array(AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	1  => array(AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'registered' in the simple settings...
+## change this to whatever permission setting you want to apply for the new feature when 
+## the admin selects 'registered'
+, AUTH_REG
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	2  => array(AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG
+	
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	2  => array(AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG
+	
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'registered [hidden]' in 
+## the simple settings...change this to whatever permission setting you want to apply
+## for the new feature when the admin selects 'registered [hidden]'
+, AUTH_REG
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	3  => array(AUTH_ALL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+	
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	3  => array(AUTH_ALL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+	
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'private' in
+## the simple settings...change this to whatever permission setting you want to apply 
+## for the new feature when the admin selects 'private'
+, AUTH_ACL
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	4  => array(AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+	
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	4  => array(AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL
+	
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'private [hidden]' in
+## the simple settings...change this to whatever permission setting you want to apply 
+## for the new feature when the admin selects 'private [hidden]'
+, AUTH_ACL
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	5  => array(AUTH_ALL, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+	
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	5  => array(AUTH_ALL, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+	
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'moderators' in 
+## the simple settings...change this to whatever permission setting you want to apply 
+## for the new feature when the admin selects 'moderators'
+, AUTH_MOD
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+	6  => array(AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+	
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+	6  => array(AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+## this is the permissions setting for when the admin selects 'moderators [hidden]' in 
+## the simple settings...change this to whatever permission setting you want to apply 
+## for the new feature when the admin selects 'moderators [hidden]'
+, AUTH_MOD
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+$forum_auth_fields = array('auth_view', 'auth_read'
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// start mod clone posts (and end mod too)...added references to 'auth_cloneposts'
+// below in the definitions of $forum_auth_fields and in $field_names
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+, 'auth_delete'
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, 'auth_cloneposts'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'auth_delete' => $lang['Delete'],
+	
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'auth_cloneposts' => $lang['Cloneposts'],
+	
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_forums.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$forum_auth_ary = array(
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod clone posts (and end mod too)...below, added reference to 'auth_cloneposts'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"auth_edit" => AUTH_REG,
+	"auth_delete" => AUTH_REG,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+## below you can determine the default forum permissions for the new feature when a forum 
+## is created and the admin is using advanced rather than simple permission settings...
+## I have set this to AUTH_REG (registered user) access but you can change this to 
+## whatever default permission setting you want. The possible settings include: 
+## AUTH_ALL, AUTH_REG, AUTH_ACL (which means private open only 
+## to users or groups granted special access via the ACP), AUTH_MOD and AUTH_ADMIN
+	'auth_cloneposts' => AUTH_REG,
+	
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_ug_auth.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+$forum_auth_fields = array('auth_view', 'auth_read'
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// start mod clone posts (and end mod too)...added references to 'auth_cloneposts'
+// in definitions of $forum_auth_fields, $auth_field_match and $field_names below
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+, 'auth_delete'
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, 'auth_cloneposts'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'auth_delete' => AUTH_DELETE,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'auth_cloneposts' => AUTH_CLONEPOSTS,
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'auth_delete' => $lang['Delete'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'auth_cloneposts' => $lang['Cloneposts'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/auth.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+			$a_sql = 'a.auth_view, a.auth_read, a.auth_post
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+			// start mod clone posts (and end mod too)...added 
+			// references to 'auth_cloneposts' in $a_sql and $auth_fields definitions below
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+, a.auth_delete
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, a.auth_cloneposts
+
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+			$auth_fields = array('auth_view', 'auth_read', 'auth_post'
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+, 'auth_delete'
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, 'auth_cloneposts'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$auth_fields = array('auth_delete');
+			break;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// start mod clone posts (and end mod too)...added case 
+		// for 'auth_cloneposts' below
+		case AUTH_CLONEPOSTS:
+			$a_sql = 'a.auth_cloneposts';
+			$auth_fields = array('auth_cloneposts');
+			break;
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('AUTH_ATTACH', 11);
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+## note: make sure that no other AUTH_ constant uses the same number (33), and 
+## if it does then you need to pick a different number to define the constant
+// start clone posts  (and end mod too)...added new definition below
+define('AUTH_CLONEPOSTS', 33);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// That's all Folks!
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod clone posts (and end mod too)...added new definition below
+$lang['Cloneposts'] = 'Clone posts';
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

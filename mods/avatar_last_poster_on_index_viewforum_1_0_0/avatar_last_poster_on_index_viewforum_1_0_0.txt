@@ -1,0 +1,254 @@
+##############################################################
+## MOD Title: Avatar last poster on Index and Viewforum
+## MOD Author: lefty74 < lefty@lefty74.com > (Heiko Carstens) http://www.lefty74.com
+## MOD Description: Shows the last poster's avatar in on the Index as well as the author's avatar and
+## last poster's avatar on Viewforum
+## MOD Version: 1.0.0
+##
+## Installation Level: (Easy)
+## Installation Time: 5 Minutes
+## Files To Edit: index.php,viewforum.php,
+##      templates/subSilver/index_body.tpl,
+##      templates/subSilver/viewforum_body.tpl,
+##
+## Included Files: (N/A)
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: To change the display size, change any of the code below that has the width="40"
+## and either delete that line to get the original avatar size or adjust it to your needs 
+##
+##############################################################
+## MOD History:
+##
+##   2006-10-08 - Version 0.0.1
+##      - First release
+##
+##   2006-10-12 - Version 1.0.0
+##      - upgraded to version 1.0.0 no changes to the code
+##
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_id
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_avatar, u.user_avatar_type, u.user_allowavatar
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_id
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_avatar, u.user_avatar_type, u.user_allowavatar
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_id
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_avatar, u.user_avatar_type, u.user_allowavatar
+
+#
+#-----[ FIND ]------------------------------------------
+#
+							if ( count($forum_moderators[$forum_id]) > 0 )
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+$last_post_avatar = '';
+
+if ( $forum_data[$j]['user_avatar_type'] && $forum_data[$j]['user_allowavatar'] )
+{
+	switch( $forum_data[$j]['user_avatar_type'] )
+	{
+		case USER_AVATAR_UPLOAD:
+			$last_post_avatar = ( $board_config['allow_avatar_upload'] ) ? '<img src="' . $board_config['avatar_path'] . '/' . $forum_data[$j]['user_avatar'] . '" alt="" width="40" border="0" />' : '';
+			break;
+		case USER_AVATAR_REMOTE:
+			$last_post_avatar = ( $board_config['allow_avatar_remote'] ) ? '<img src="' . $forum_data[$j]['user_avatar'] . '" alt="" alt="" width="40" border="0" />' : '';
+			break;
+		case USER_AVATAR_GALLERY:
+			$last_post_avatar = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $forum_data[$j]['user_avatar'] . '" alt="" alt="" width="40" border="0" />' : '';
+			break;
+	}
+}
+#
+#-----[ FIND ]------------------------------------------
+#
+								'LAST_POST' => $last_post,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+								'LAST_POST_AVATAR' => $last_post_avatar,
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT t.*, u.username, u.user_id
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_id
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_avatar, u.user_avatar_type, u.user_allowavatar
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u2.user_id as id2
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u2.user_avatar as avatar2, u2.user_avatar_type as avatartype2, u2.user_allowavatar as allowavatar2
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT t.*, u.username, u.user_id
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_id
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_avatar, u.user_avatar_type, u.user_allowavatar
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u2.user_id as id2
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u2.user_avatar as avatar2, u2.user_avatar_type as avatartype2, u2.user_allowavatar as allowavatar2
+#
+#-----[ FIND ]------------------------------------------
+#
+		$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$topic_author_avatar = '';
+		if ( $topic_rowset[$i]['user_avatar_type'] && $topic_rowset[$i]['user_allowavatar'] )
+		{
+			switch( $topic_rowset[$i]['user_avatar_type'] )
+			{
+				case USER_AVATAR_UPLOAD:
+					$topic_author_avatar = ( $board_config['allow_avatar_upload'] ) ? '<img src="' . $board_config['avatar_path'] . '/' . $topic_rowset[$i]['user_avatar'] . '" width="40" alt="" border="0" />' : '';
+					break;
+				case USER_AVATAR_REMOTE:
+					$topic_author_avatar = ( $board_config['allow_avatar_remote'] ) ? '<img src="' . $topic_rowset[$i]['user_avatar'] . '" width="40" alt="" border="0" />' : '';
+					break;
+				case USER_AVATAR_GALLERY:
+					$topic_author_avatar = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $topic_rowset[$i]['user_avatar'] . '" width="40" alt="" border="0" />' : '';
+					break;
+			}
+		}
+
+		
+		$last_post_author_avatar = '';
+		if ( $topic_rowset[$i]['avatartype2'] && $topic_rowset[$i]['allowavatar2'] )
+		{
+			switch( $topic_rowset[$i]['avatartype2'] )
+			{
+				case USER_AVATAR_UPLOAD:
+					$last_post_author_avatar = ( $board_config['allow_avatar_upload'] ) ? '<img src="' . $board_config['avatar_path'] . '/' . $topic_rowset[$i]['avatar2'] . '" width="40" alt="" border="0" />' : '';
+					break;
+				case USER_AVATAR_REMOTE:
+					$last_post_author_avatar = ( $board_config['allow_avatar_remote'] ) ? '<img src="' . $topic_rowset[$i]['avatar2'] . '" width="40" alt="" border="0" />' : '';
+					break;
+				case USER_AVATAR_GALLERY:
+					$last_post_author_avatar = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $topic_rowset[$i]['avatar2'] . '" width="40" alt="" border="0" />' : '';
+					break;
+			}
+		}
+#
+#-----[ FIND ]------------------------------------------
+#
+			'LAST_POST_IMG' => $last_post_url, 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'TOPIC_AUTHOR_AVATAR' => $topic_author_avatar,
+			'LAST_POST_AUTHOR_AVATAR' => $last_post_author_avatar,
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/index_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<td class="row2" align="center" valign="middle" height="50" nowrap="nowrap"> <span class="gensmall">{catrow.forumrow.LAST_POST}</span></td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	<td class="row2" align="center" valign="middle" height="50"><table width="100%" cellpadding="2" cellspacing="0" border="0">
+	<tr><td width="40">{catrow.forumrow.LAST_POST_AVATAR}</td><td class="row2" align="center" valign="middle" height="50" nowrap="nowrap"> <span class="gensmall">{catrow.forumrow.LAST_POST}</span></td>
+	</tr></table></td>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row3" align="center" valign="middle"><span class="name">{topicrow.TOPIC_AUTHOR}</span></td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	  <td class="row3" align="center" valign="middle"><table width="100%" cellpadding="1" cellspacing="0" border="0">
+	  <tr><td width="40">{topicrow.TOPIC_AUTHOR_AVATAR}</td>
+	  <td width="100%" class="row3" align="center" valign="middle"><span class="name">{topicrow.TOPIC_AUTHOR}</span></td>
+	  </tr></table></td>	  
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row3Right" align="center" valign="middle" nowrap="nowrap"><span class="postdetails">{topicrow.LAST_POST_TIME}<br />{topicrow.LAST_POST_AUTHOR} {topicrow.LAST_POST_IMG}</span></td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	  <td class="row3Right" align="center" valign="middle"><table width="100%" cellpadding="2" cellspacing="0" border="0">
+	  <tr><td width="40">{topicrow.LAST_POST_AUTHOR_AVATAR}</td>
+	  <td width="100%" class="row3" align="center" valign="middle" nowrap="nowrap"><span class="postdetails">{topicrow.LAST_POST_TIME}<br />{topicrow.LAST_POST_AUTHOR} {topicrow.LAST_POST_IMG}</span></td>
+	  </tr></table></td>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

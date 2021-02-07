@@ -1,0 +1,209 @@
+############################################################## 
+## 外掛名稱: Extended Private Message Notification
+##		a.k.a. Disply Sender Username and Private Message Content in E-mail Notification
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 這個外掛可以讓啟用 '新私人訊息郵件通知' 的會員在郵件中看到寄件者的 ID 和私人訊息內容
+## 外掛版本: 1.2.0
+## 
+## 安裝難度: 簡單
+## 安裝時間: 5 分鐘 
+##
+## 需要編輯的檔案: 4
+##			privmsg.php
+##			includes/bbcode.php
+##			language/lang_chinese_traditional_taiwan/lang_main.php
+##			language/lang_chinese_traditional_taiwan/email/privmsg_notify.tpl
+## 附加的檔案: 	n/a 
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+############################################################## 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言: 
+##
+##	此外掛在 2.0.18 上測試過. 可以用 EasyMOD 0.2.1a 來安裝此外掛
+##
+############################################################## 
+## 外掛歷史: 
+## 
+##   2004-01-14 - 版本 1.0.0 
+##      - 首次發佈 
+##
+##   2004-03-12 - 版本 1.1.0 
+##      - 寄出的訊息內容除去 BBCode ID 和代碼
+##
+##   2004-04-20 - 版本 1.1.1
+##      - 一個由 phpBB 檢驗小組指出的安裝說明小修正
+##
+##   2004-05-21 - 版本 1.1.2
+##      - 兩個由 phpBB 檢驗小組指出的外掛說明小修正
+##
+##   2004-05-30 - 版本 1.1.3
+##      - 程式修改, 加入 'htmlspecialchars'
+##	- 外掛名稱正式改為 Extended Private Message Notification
+##
+##   2004-07-01 - 版本 1.1.4
+##      - $userdata['username'] 加入 'htmlspecialchars'
+##	- 感謝 phpBB.com 的 KhaledB 告知了一個 $bbcode_match array 中的小蟲
+##	- 加入中文簡體 GB 安裝指示
+##
+##   2004-07-20 - 版本 1.1.5
+##      - 修正了在繁體以及簡體中文安裝指示內的錯誤
+##		英文版本不受影響
+##
+##   2005-11-08 - 版本 1.2.0
+##	- 加入 $privmsg_subject 的使用，讓 PM 主題可以在 E-mail 中顯示 (由 TMB 所提供)
+##	- 改變了 BBcode 的清理方式，並且把它寫成 PHP function，非常感謝 asinshesq 的幫助
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+############################################################## 
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+privmsg.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+				$privmsg_message = prepare_message($HTTP_POST_VARS['message'], $html_on, $bbcode_on, $smilies_on, $bbcode_uid);
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+				// Extended_PM_Notification MOD
+				$message_text = htmlspecialchars(trim(stripslashes($HTTP_POST_VARS['message'])));
+				$message_text = pm_message_to_plain_text($message_text);
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+				$emailer->assign_vars(array(
+					'USERNAME' => $to_username,
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+					// Extended_PM_Notification MOD
+					'SENDER_USERNAME' => htmlspecialchars($userdata['username']),
+					'PM_SUBJECT' => $privmsg_subject,
+					'PM_MESSAGE' => $message_text,
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/bbcode.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+?>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+// Extended_PM_Notification MOD
+// This function is an altered version of asinshesq's bbcode_process_to_plain_text()
+function pm_message_to_plain_text($text)
+{
+	global $lang;
+
+	$newline = "\r\n";
+	$q1 = $newline . '>>>>>>>>>>>>>>>>>>>>>>' . $newline;
+	$q2 = $newline . '<<<<<<<<<<<<<<<<<<<<<<' . $newline; $newline;
+	$l1 = $newline . '   (*) '; 
+	$img1 = '[image at: ';
+	$img2 = ' ]';
+
+	$text = preg_replace('/\[quote=\"(.*?)\"\]/', $newline . '\\1 '. $lang['wrote'].':'.$q1, $text);
+	$text = preg_replace('/\[quote\]/', $newline . $lang['Quote'].':'.$q1, $text);
+	$text = preg_replace('/\[\/quote\]/', $q2, $text);
+
+	$text = preg_replace('/\[code\]/', $newline . $lang['Code'].':'.$q1, $text);
+	$text = preg_replace('/\[\/code:?1*\]/', $q2, $text);
+
+	$text = preg_replace('/&#91;/', '[', $text);
+	$text = preg_replace('/&#93;/', ']', $text);
+
+	$text = preg_replace('/\[list\]/', $newline . '\\1 '. $lang['List'].':'.$q1, $text);
+	$text = preg_replace('/\[list=[a-z]+\]/', $newline . '\\1 '. $lang['Ordered_list'].':'.$q1, $text);
+	$text = preg_replace('/\[list=[1-2]?[0-9]+\]/', $newline . '\\1 '. $lang['Ordered_list'].':'.$q1, $text);
+	$text = preg_replace('/\[\/list\]/', $q2, $text);
+	$text = preg_replace('/\[\*\]/', $l1, $text);
+
+	$text = preg_replace('/\[img\](.*?)\[\/img\]/', $img1 .'\\1' . $img2, $text);
+	$text = preg_replace('/\[url=(.*?)\](.*?)\[\/url\]/', '\\1', $text);
+	$text = preg_replace('/\[url\](.*?)\[\/url\]/', '\\1', $text);
+	
+	$text = preg_replace('/\[b\](.*?)\[\/b\]/', '\\1', $text);
+	$text = preg_replace('/\[u\](.*?)\[\/u\]/', '\\1', $text);
+	$text = preg_replace('/\[i\](.*?)\[\/i\]/', '\\1', $text);
+	$text = preg_replace('/\[color=\#[0-9A-F]{6}\](.*?)\[\/color\]/', '\\1', $text);
+	$text = preg_replace('/\[color=[a-z]+\](.*?)\[\/color\]/', '\\1', $text);
+	$text = preg_replace('/\[size=[1-2]?[0-9]\](.*?)\[\/size\]/', '\\1', $text);
+	$text = preg_replace('/\[email\](.*?)\[\/email\]/', '\\1', $text);
+
+	$text = preg_replace('/(\\r\\n){3,}/s', $newline.$newline, $text);
+
+	return $text;
+}
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_main.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+$lang['Code']
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+// Extended_PM_Notification MOD
+$lang['List'] = '列表';
+$lang['Ordered_list'] = '排序列表';
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/email/privmsg_notify.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+Subject: 新的私人訊息通知
+
+# 
+#-----[ 取代為 ]------------------------------------------ 
+# 
+Subject: {SENDER_USERNAME} 在 {SITENAME} 給您的新私人訊息通知
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+您在"{SITENAME}"有新的私人訊息, 而且您要求系統以電子郵件通知. 您可以利用以下的連結檢視您剛收到的私人訊息:
+
+# 
+#-----[ 取代為 ]------------------------------------------ 
+# 
+會員 {SENDER_USERNAME} 剛在 "{SITENAME}" 給您送出一封私人訊息, 而且您要求系統以電子郵件通知你. 訊息的內容是: 
+
+--------------------------------------------------
+主題: {PM_SUBJECT}
+--------------------------------------------------
+內容: 
+{PM_MESSAGE}
+-------------------------------------------------- 
+
+您也可以利用以下的連結檢視您剛收到的私人訊息:
+
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

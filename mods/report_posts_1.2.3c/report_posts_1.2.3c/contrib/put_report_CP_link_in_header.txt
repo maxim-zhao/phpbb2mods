@@ -1,0 +1,112 @@
+##############################################################
+## MOD Title: Report Posts (mod to put the Report CP link in the header)
+## MOD Author: chatasos < chatasos@psclub.gr > (Tassos Chatzithomaoglou) http://www.psclub.gr
+## MOD Description: This mod allows you to put the Report CP link in the header instead of the footer. This mod assumes you have already installed the current version of Report Posts.
+## MOD Version: 1.2.3b
+## 
+## Installation Level: Easy
+## Installation Time: 5 minutes
+## Files To Edit: includes/page_header.php
+##                templates/subSilver/overall_header.tpl
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: You must already have installed the current version of the basic "Report Posts" mod before you install this mod
+##
+##############################################################
+## MOD History:
+##
+##   2005-08-30 - Version 1.2.3b
+##	- Fixed a missing path
+##
+##   2005-08-17 - Version 1.2.3
+##	- Initial Version
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/page_header.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+//
+// Generate HTML required for Mozilla Navigation bar
+//
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+/*******************
+** MOD: Report Posts
+*******************/
+// BEGIN : BEFORE, ADD
+include_once($phpbb_root_path . 'includes/functions_report.'.$phpEx);
+
+if ( $userdata['user_level'] >= ADMIN )
+{
+	$open_reports = reports_count();
+	if ( $open_reports == 0 )
+	{
+		$open_reports = sprintf($lang['Post_reports_none_cp'],$open_reports);
+	}
+	else 
+	{
+		$open_reports = sprintf(( ($open_reports == 1) ? $lang['Post_reports_one_cp'] : $lang['Post_reports_many_cp']), $open_reports);
+		$open_reports = '<b style="color:#' . $theme['fontcolor2'] . '">' . $open_reports . '</b>';
+
+	}
+
+	$report_link = '&nbsp; <a href="' . append_sid($phpbb_root_path . 'viewpost_reports.'.$phpEx) . '">' . $open_reports . '</a> &nbsp;';
+}
+else
+{
+	$report_link = '';
+}
+// END :  BEFORE, ADD
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'PRIVMSG_IMG' => $icon_pm,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+/*******************
+** MOD: Report Posts
+*******************/
+// BEGIN : BEFORE, ADD
+	'REPORT_LINK' => $report_link,
+// END : BEFORE, ADD
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/overall_header.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+					</tr>
+				</table></td>
+			</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+<!-- MOD: Report Posts -->
+			<tr>
+				<td align="center" valign="bottom" nowrap="nowrap" colspan="2"><span class="copyright"><br />{REPORT_LINK}</span></td>
+			</tr>
+<!-- MOD: Report Posts -->
+
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

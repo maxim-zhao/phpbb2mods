@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en-gb">Ban reasons</title>
+		<description lang="en-gb">This MOD will allow you to add a Reson for banning a Person. HTML is also allowed. When the banned person tries to login, he/she will see the custom ban reason instead of the standard message.</description>
+		<author-notes lang="en-gb">This was kinda "requested" by helpmeplez on phpbb.com. If you don't know how to run sql queries, put db_update.php into your root dir and run it. Hope you enjoy this MOD!</author-notes>
+		<author-group>
+			<author>
+				<email>evil@phpbbmodders.net</email>
+				<username>eviL3</username>
+				<homepage>http://phpbbmodders.net/</homepage>
+				<contributions />
+			</author>
+		</author-group>
+		<mod-version>
+			<major>1</major>
+			<minor>0</minor>
+			<revision>5</revision>
+		</mod-version>
+		<installation>
+			<level>easy</level>
+			<time>560</time>
+			<target-version>
+				<target-primary>2.0.0</target-primary>
+				<target-major allow="exact">2</target-major>
+				<target-minor allow="exact">0</target-minor>
+			</target-version>
+		</installation>
+		<history>
+			<entry>
+				<date>2006-06-28</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>1</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>First validated version :)</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-07-19</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>2</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Updated unneeded template part</change>
+					<change>Updated banlist in contrib folder</change>
+					<change>Added a new Addon to the contrib</change>
+					<change>Thanks a lot to Whip-lash ;)</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-07-20</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>2</revision>
+					<release>a</release>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Fixed a little error</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-08-06</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>3</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Fixed various little things the mod team mentioned</change>
+					<change>Also fixed little stuff in the contrib MODs...</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-09-20</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>4</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Updated the ban reasons extended add-on.</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2007-05-17</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>5</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>MODX</change>
+					<change>New db_update script</change>
+					<change>Cleanup and added comments :P</change>
+				</changelog>
+			</entry>
+		</history>
+		<meta name="generator" content="Phpbb.ModTeam.Tools (c#)" />
+	</header>
+	<action-group>
+		<sql>ALTER TABLE phpbb_banlist ADD ban_reason VARCHAR( 255 ) NOT NULL ;</sql>
+		<open src="language/lang_english/lang_admin.php">
+			<edit>
+				<find><![CDATA[?>]]></find>
+				<action type="before-add">//-- mod : Ban reasons ------------------------------------------------------------
+//-- add
+$lang['Ban_reason'] = 'Ban reason';
+//-- fin mod : Ban reasons --------------------------------------------------------</action>
+			</edit>
+		</open>
+		<open src="includes/sessions.php">
+			<edit>
+				<find>	$sql = "SELECT ban_ip, ban_userid, ban_email</find>
+				<inline-edit>
+					<inline-find>ban_email</inline-find>
+					<inline-action type="after-add">, ban_reason</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>			message_die(CRITICAL_MESSAGE, 'You_been_banned');</find>
+				<action type="replace-with"><![CDATA[//-- mod : Ban reasons ------------------------------------------------------------
+//-- add
+			if (isset($ban_info['ban_reason']) && $ban_info['ban_reason'] != '' && $ban_info['ban_userid'])
+			{
+				message_die(CRITICAL_MESSAGE, $ban_info['ban_reason']);
+			}
+			else
+			{
+				message_die(CRITICAL_MESSAGE, 'You_been_banned');
+			}
+//-- fin mod : Ban reasons --------------------------------------------------------]]></action>
+			</edit>
+		</open>
+		<open src="admin/admin_user_ban.php">
+			<edit>
+				<find>		$user_list[] = $this_userdata['user_id'];</find>
+				<action type="after-add">//-- mod : Ban reasons ------------------------------------------------------------
+//-- add
+		if (!empty($HTTP_POST_VARS['ban_reason']))
+		{
+			$ban_reason = (string) $HTTP_POST_VARS['ban_reason'];
+		}
+//-- fin mod : Ban reasons --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find>				 	$sql = "INSERT INTO " . BANLIST_TABLE . " (ban_userid</find>
+				<inline-edit>
+					<inline-find>ban_userid</inline-find>
+					<inline-action type="after-add">, ban_reason</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>VALUES (" . $user_list[$i]</find>
+				<inline-edit>
+					<inline-find>" . $user_list[$i] . "</inline-find>
+					<inline-action type="after-add">, '" . str_replace("\'", "''", $ban_reason) . "'</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[		'L_USERNAME' => $lang['Username'], ]]></find>
+				<action type="after-add"><![CDATA[//-- mod : Ban reasons ------------------------------------------------------------
+//-- add
+		'L_BAN_REASON' => $lang['Ban_reason'],
+//-- fin mod : Ban reasons --------------------------------------------------------]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/admin/user_ban_body.tpl">
+			<edit>
+				<find><![CDATA[		<td class="row2"><input class="post" type="text" class="post" name="username" maxlength="50" size="20" /> <input type="hidden" name="mode" value="edit" />{S_HIDDEN_FIELDS} <input type="submit" name="usersubmit" value="{L_FIND_USERNAME}" class="liteoption" onClick="window.open('{U_SEARCH_USER}', '_phpbbsearch', 'HEIGHT=250,resizable=yes,WIDTH=400');return false;" /></td>
+	</tr>]]></find>
+				<action type="after-add"><![CDATA[	<tr>
+		<td class="row1">{L_BAN_REASON}:</td>
+		<td class="row2"><textarea class="post" type="text" name="ban_reason" size="20" style="width:100%; height:60px;"></textarea></td>
+	</tr>]]></action>
+			</edit>
+		</open>
+	</action-group>
+</mod>

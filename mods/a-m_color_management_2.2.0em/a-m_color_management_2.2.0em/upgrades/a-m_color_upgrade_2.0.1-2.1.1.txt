@@ -1,0 +1,185 @@
+############################################################## 
+## MOD Title:          Upgrade to A/M color management 2.1.1
+## MOD Author:         -=ET=- < N/A > (N/A) http://www.golfexpert.net/phpbb
+## MOD Description:    This MOD will allow you to upgrade your
+##                     Admins/mods color management MOD
+##                     from 2.0.1 to 2.1.1
+## MOD Version:        1.0.0
+##
+## Installation Level: Easy
+## Installation Time:  1 minutes (1mn by EasyMOD)
+## Files To Edit:
+##      search.php
+##      index.php (optional)
+##      includes/functions.php (optional)
+## Included Files:     N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+## 
+## Admins/mods color management MOD 2.0.1 needs
+## to be already installed!!!
+##
+## For the other author notes, please read the ones on the
+## full install MOD in the root dir of this MOD archive.
+##
+############################################################## 
+## MOD History: 
+## 
+##   2004-08-14 - Version 1.0.0
+##      - Initial release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+search.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// Start add - Admins/mods color management MOD
+switch ( $searchset[$i]['level2'] ) {
+	case ADMIN:
+		$last_post_author = 'class="admincolor"';
+		break; 
+	case MOD:
+		$last_post_author = 'class="modcolor"';
+		break; 
+	default:
+		$last_post_author = '';
+		break; 
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+// Start add - Admins/mods color management MOD
+switch ( $searchset[$i]['level2'] ) {
+	case ADMIN:
+		$last_post_author_color = 'class="admincolor"';
+		break; 
+	case MOD:
+		$last_post_author_color = 'class="modcolor"';
+		break; 
+	default:
+		$last_post_author_color = '';
+		break; 
+}
+// End add - Admins/mods color management MOD
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $last_post_author = ( $searchset[$i]['id2'] == ANONYMOUS ) ? ( ($searchset[$i]['post_username2'] != '' ) ? $searchset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a ' . $last_post_author . ' href="' ...
+#
+$last_post_author =
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a ' . $last_post_author . '
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<a ' . $last_post_author_color . '
+
+############################################################## 
+# Start - Changes for the Newest registered user on the index page
+#============================================================= 
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+index.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Start output of page
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $newest_userdata['user_level'] ) {
+case ADMIN:
+	$newest_user_color = 'class="admincolor"';
+	break;
+case MOD:
+	$newest_user_color = 'class="modcolor"';
+	break;
+default:
+	$newest_user_color = '';
+	break;
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'NEWEST_USER' => sprintf($lang['Newest_user'], '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$newest_uid") . '">', $newest_user, '</a>'), 
+#
+'NEWEST_USER' =>
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<a ' . $newest_user_color . '
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+includes/functions.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# case 'newestuser':
+# 	$sql = "SELECT user_id, username
+#
+case 'newestuser':
+$sql =
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+username
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, user_level
+
+#============================================================= 
+# End - Changes for the Newest registered user on the index page
+############################################################## 
+# 
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------- 
+# 
+# EoM

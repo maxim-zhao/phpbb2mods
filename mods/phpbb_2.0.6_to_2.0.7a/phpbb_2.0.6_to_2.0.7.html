@@ -1,0 +1,1172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html dir="ltr"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="Content-Style-Type" content="text/css"><title>phpBB 2.0.6 to phpBB 2.0.7 Code Changes</title>
+
+
+
+<style type="text/css">
+<!--
+/* General page style. The scroll bar colours only visible in IE5.5+ */
+body {
+	background-color: #E5E5E5;
+	scrollbar-face-color: #DEE3E7;
+	scrollbar-highlight-color: #FFFFFF;
+	scrollbar-shadow-color: #DEE3E7;
+	scrollbar-3dlight-color: #D1D7DC;
+	scrollbar-arrow-color:  #006699;
+	scrollbar-track-color: #EFEFEF;
+	scrollbar-darkshadow-color: #98AAB1;
+}
+
+/* General font families for common tags */
+font,th,td,p { font-family: Verdana, Arial, Helvetica, sans-serif }
+a:link,a:active,a:visited { color : #006699; }
+a:hover		{ text-decoration: underline; color : #DD6900; }
+hr	{ height: 0px; border: solid #D1D7DC 0px; border-top-width: 1px;}
+
+/* This is the border line & background colour round the entire page */
+.bodyline	{ background-color: #FFFFFF; border: 1px #98AAB1 solid; }
+
+/* This is the outline round the main forum tables */
+.forumline	{ background-color: #FFFFFF; border: 2px #006699 solid; }
+
+/* Main table cell colours and backgrounds */
+td.row1	{ background-color: #EFEFEF; }
+td.row2	{ background-color: #DEE3E7; }
+td.row3	{ background-color: #D1D7DC; }
+
+/*
+  This is for the table cell above the Topics, Post & Last posts on the index.php page
+  By default this is the fading out gradiated silver background.
+  However, you could replace this with a bitmap specific for each forum
+*/
+td.rowpic {
+		background-color: #FFFFFF;
+		background-image: url(templates/subSilver/images/cellpic2.jpg);
+		background-repeat: repeat-y;
+}
+
+/* Header cells - the blue and silver gradient backgrounds */
+th	{
+	color: #FFA34F; font-size: 11px; font-weight : bold;
+	background-color: #006699; height: 25px;
+	background-image: url(templates/subSilver/images/cellpic3.gif);
+}
+
+td.cat,td.catHead,td.catSides,td.catLeft,td.catRight,td.catBottom {
+			background-image: url(templates/subSilver/images/cellpic1.gif);
+			background-color:#D1D7DC; border: #FFFFFF; border-style: solid; height: 28px;
+}
+
+/*
+  Setting additional nice inner borders for the main table cells.
+  The names indicate which sides the border will be on.
+  Don't worry if you don't understand this, just ignore it :-)
+*/
+td.cat,td.catHead,td.catBottom {
+	height: 29px;
+	border-width: 0px 0px 0px 0px;
+}
+th.thHead,th.thSides,th.thTop,th.thLeft,th.thRight,th.thBottom,th.thCornerL,th.thCornerR {
+	font-weight: bold; border: #FFFFFF; border-style: solid; height: 28px;
+}
+td.row3Right,td.spaceRow {
+	background-color: #D1D7DC; border: #FFFFFF; border-style: solid;
+}
+
+th.thHead,td.catHead { font-size: 12px; border-width: 1px 1px 0px 1px; }
+th.thSides,td.catSides,td.spaceRow	 { border-width: 0px 1px 0px 1px; }
+th.thRight,td.catRight,td.row3Right	 { border-width: 0px 1px 0px 0px; }
+th.thLeft,td.catLeft	  { border-width: 0px 0px 0px 1px; }
+th.thBottom,td.catBottom  { border-width: 0px 1px 1px 1px; }
+th.thTop	 { border-width: 1px 0px 0px 0px; }
+th.thCornerL { border-width: 1px 0px 0px 1px; }
+th.thCornerR { border-width: 1px 1px 0px 0px; }
+
+/* The largest text used in the index page title and toptic title etc. */
+.maintitle	{
+	font-weight: bold; font-size: 22px; font-family: "Trebuchet MS",Verdana, Arial, Helvetica, sans-serif;
+	text-decoration: none; line-height : 120%; color : #000000;
+}
+
+/* General text */
+.gen { font-size : 12px; }
+.genmed { font-size : 11px; }
+.gensmall { font-size : 10px; }
+.gen,.genmed,.gensmall { color : #000000; }
+a.gen,a.genmed,a.gensmall { color: #006699; text-decoration: none; }
+a.gen:hover,a.genmed:hover,a.gensmall:hover	{ color: #DD6900; text-decoration: underline; }
+
+/* The register, login, search etc links at the top of the page */
+.mainmenu		{ font-size : 11px; color : #000000 }
+a.mainmenu		{ text-decoration: none; color : #006699;  }
+a.mainmenu:hover{ text-decoration: underline; color : #DD6900; }
+
+/* Forum category titles */
+.cattitle		{ font-weight: bold; font-size: 12px ; letter-spacing: 1px; color : #006699}
+a.cattitle		{ text-decoration: none; color : #006699; }
+a.cattitle:hover{ text-decoration: underline; }
+
+/* Forum title: Text and link to the forums used in: index.php */
+.forumlink		{ font-weight: bold; font-size: 12px; color : #006699; }
+a.forumlink 	{ text-decoration: none; color : #006699; }
+a.forumlink:hover{ text-decoration: underline; color : #DD6900; }
+
+/* Used for the navigation text, (Page 1,2,3 etc) and the navigation bar when in a forum */
+.nav			{ font-weight: bold; font-size: 11px; color : #000000;}
+a.nav			{ text-decoration: none; color : #006699; }
+a.nav:hover		{ text-decoration: underline; }
+
+/* titles for the topics: could specify viewed link colour too */
+.topictitle,h1,h2	{ font-weight: bold; font-size: 11px; color : #000000; }
+a.topictitle:link   { text-decoration: none; color : #006699; }
+a.topictitle:visited { text-decoration: none; color : #5493B4; }
+a.topictitle:hover	{ text-decoration: underline; color : #DD6900; }
+
+/* Name of poster in viewmsg.php and viewtopic.php and other places */
+.name			{ font-size : 11px; color : #000000;}
+
+/* Location, number of posts, post date etc */
+.postdetails		{ font-size : 10px; color : #000000; }
+
+/* The content of the posts (body of text) */
+.postbody { font-size : 12px; line-height: 18px}
+a.postlink:link	{ text-decoration: none; color : #006699 }
+a.postlink:visited { text-decoration: none; color : #5493B4; }
+a.postlink:hover { text-decoration: underline; color : #DD6900}
+
+/* Quote & Code blocks */
+.code {
+	font-family: Courier, 'Courier New', sans-serif; font-size: 11px; color: #006600;
+	background-color: #FAFAFA; border: #D1D7DC; border-style: solid;
+	border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px
+}
+
+.quote {
+	font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; color: #444444; line-height: 125%;
+	background-color: #FAFAFA; border: #D1D7DC; border-style: solid;
+	border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px
+}
+
+/* Copyright and bottom info */
+.copyright		{ font-size: 10px; font-family: Verdana, Arial, Helvetica, sans-serif; color: #444444; letter-spacing: -1px;}
+a.copyright		{ color: #444444; text-decoration: none;}
+a.copyright:hover { color: #000000; text-decoration: underline;}
+
+/* Form elements */
+input,textarea, select {
+	color : #000000;
+	font: normal 11px Verdana, Arial, Helvetica, sans-serif;
+	border-color : #000000;
+}
+
+/* The text input fields background colour */
+input.post, textarea.post, select {
+	background-color : #FFFFFF;
+}
+
+input { text-indent : 2px; }
+
+/* The buttons used for bbCode styling in message post */
+input.button {
+	background-color : #EFEFEF;
+	color : #000000;
+	font-size: 11px; font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
+/* The main submit button option */
+input.mainoption {
+	background-color : #FAFAFA;
+	font-weight : bold;
+}
+
+/* None-bold submit button */
+input.liteoption {
+	background-color : #FAFAFA;
+	font-weight : normal;
+}
+
+/* This is the line in the posting page which shows the rollover
+  help line. This is actually a text box, but if set to be the same
+  colour as the background no one will know ;)
+*/
+.helpline { background-color: #DEE3E7; border-style: none; }
+
+-->
+</style></head>
+
+<body bgcolor="#e5e5e5" text="#000000" link="#006699" vlink="#5493b4">
+
+<table class="forumline" width="100%" cellspacing="1" cellpadding="4" border="0">
+	<tbody><tr>
+		<td class="row1"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tbody><tr>
+				<td>
+<span class="postbody"><span style="font-size: 18px; line-height: normal;">phpBB 2.0.6 to phpBB 2.0.7 Code Changes</span>
+<br><br><br>
+<br>
+These are the Changes from phpBB 2.0.6 to phpBB 2.0.7 summed up into a
+little Mod. This might be very helpful if you want to update your Board
+and have installed a bunch of Mods. Then it's normally easier to apply
+the Code Changes than to install all Mods again.<br>
+<br>
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.<br>
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.<br>
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the
+'FIND'-Statement have to be replaced completely with the quoted Code in
+the 'REPLACE WITH'-Statement.<br>
+When you find a 'DELETE'-Statement, the Code have to be deleted.<br>
+<br>
+After you have finished this tutorial, you have to upload the
+update_to_207.php file, execute it and then delete it from your
+webspace.<br>
+<br>
+Ok, lets start:<br>
+<br>
+<br>
+<span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>groupcp.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 140</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+if ( isset($HTTP_POST_VARS['mode']) || isset($HTTP_GET_VARS['mode']) )<br>
+{<br>
+&nbsp; &nbsp;$mode = ( isset($HTTP_POST_VARS['mode']) ) ? $HTTP_POST_VARS['mode'] : $HTTP_GET_VARS['mode'];<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$mode = htmlspecialchars($mode);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 594</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+&nbsp;$sql_in .= ( ( $sql_in != '' ) ? ', ' : '' ) . $members[$i];<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+&nbsp;$sql_in .= ( ( $sql_in != '' ) ? ', ' : '' ) .
+intval($members[$i]);<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>includes/auth.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 174</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;while( $row = $db-&gt;sql_fetchrow($result) );<br>
+&nbsp; &nbsp;&nbsp; &nbsp;}<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>includes/bbcode.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 108</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$bbcode_tpl['url4'] = str_replace('{DESCRIPTION}', '\\5', $bbcode_tpl['url4']);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$bbcode_tpl['url4'] = str_replace('{DESCRIPTION}', '\\3', $bbcode_tpl['url4']);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 201</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$patterns[] = "#\[url\]([\w]+?://.*?[^ \"\n\r\t&lt;]*?)\[/url\]#is";<br>
+&nbsp; &nbsp;$replacements[] = $bbcode_tpl['url1'];<br>
+<br>
+&nbsp; &nbsp;// [url]www.phpbb.com[/url] code.. (no xxxx:// prefix).<br>
+&nbsp; &nbsp;$patterns[] = "#\[url\]((www|ftp)\.([\w\-]+\.)*?[\w\-]+\.[a-z]{2,4}(:?[0-9]*?/[^ \"\n\r\t&lt;]*)?)\[/url\]#is";<br>
+&nbsp; &nbsp;$replacements[] = $bbcode_tpl['url2'];<br>
+<br>
+&nbsp; &nbsp;// [url=xxxx://www.phpbb.com]phpBB[/url] code..<br>
+&nbsp; &nbsp;$patterns[] = "#\[url=([\w]+?://.*?[^ \"\n\r\t&lt;]*?)\](.*?)\[/url\]#is";<br>
+&nbsp; &nbsp;$replacements[] = $bbcode_tpl['url3'];<br>
+<br>
+&nbsp; &nbsp;// [url=www.phpbb.com]phpBB[/url] code.. (no xxxx:// prefix).<br>
+&nbsp; &nbsp;$patterns[] =
+"#\[url=((www|ftp)\.([\w\-]+\.)*?[\w\-]+\.[a-z]{2,4}(:?[0-9]*?/[^
+\"\n\r\t&lt;]*)?)\](.*?)\[/url\]#is";<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$patterns[] = "#\[url\]([\w]+?://[^ \"\n\r\t&lt;]*?)\[/url\]#is";<br>
+&nbsp; &nbsp;$replacements[] = $bbcode_tpl['url1'];<br>
+<br>
+&nbsp; &nbsp;// [url]www.phpbb.com[/url] code.. (no xxxx:// prefix).<br>
+&nbsp; &nbsp;$patterns[] = "#\[url\]((www|ftp)\.[^ \"\n\r\t&lt;]*?)\[/url\]#is";<br>
+&nbsp; &nbsp;$replacements[] = $bbcode_tpl['url2'];<br>
+<br>
+&nbsp; &nbsp;// [url=xxxx://www.phpbb.com]phpBB[/url] code..<br>
+&nbsp; &nbsp;$patterns[] = "#\[url=([\w]+?://[^ \"\n\r\t&lt;]*?)\](.*?)\[/url\]#is";<br>
+&nbsp; &nbsp;$replacements[] = $bbcode_tpl['url3'];<br>
+<br>
+&nbsp; &nbsp;// [url=www.phpbb.com]phpBB[/url] code.. (no xxxx:// prefix).<br>
+&nbsp; &nbsp;$patterns[] = "#\[url=((www|ftp)\.[^ \"\n\r\t&lt;]*?)\](.*?)\[/url\]#is";<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 624</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$ret = preg_replace("#(^|[\n ])([\w]+?://.*?[^
+\"\n\r\t&lt;]*)#is", "\\1&lt;a href=\"\\2\"
+target=\"_blank\"&gt;\\2&lt;/a&gt;", $ret);<br>
+<br>
+&nbsp; &nbsp;// matches a "www|ftp.xxxx.yyyy[/zzzz]" kinda lazy URL thing<br>
+&nbsp; &nbsp;// Must contain at least 2 dots. xxxx contains either alphanum, or "-"<br>
+&nbsp; &nbsp;// zzzz is optional.. will contain everything up to the first space, newline, <br>
+&nbsp; &nbsp;// comma, double quote or &lt;.<br>
+&nbsp; &nbsp;$ret = preg_replace("#(^|[\n
+])((www|ftp)\.[\w\-]+\.[\w\-.\~]+(?:/[^ \"\t\n\r&lt;]*)?)#is",
+"\\1&lt;a href=\"http://\\2\" target=\"_blank\"&gt;\\2&lt;/a&gt;",
+$ret);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$ret = preg_replace("#(^|[\n ])([\w]+?://[^
+\"\n\r\t&lt;]*)#is", "\\1&lt;a href=\"\\2\"
+target=\"_blank\"&gt;\\2&lt;/a&gt;", $ret);<br>
+<br>
+&nbsp; &nbsp;// matches a "www|ftp.xxxx.yyyy[/zzzz]" kinda lazy URL thing<br>
+&nbsp; &nbsp;// Must contain at least 2 dots. xxxx contains either alphanum, or "-"<br>
+&nbsp; &nbsp;// zzzz is optional.. will contain everything up to the first space, newline, <br>
+&nbsp; &nbsp;// comma, double quote or &lt;.<br>
+&nbsp; &nbsp;$ret = preg_replace("#(^|[\n ])((www|ftp)\.[^
+\"\t\n\r&lt;]*)#is", "\\1&lt;a href=\"http://\\2\"
+target=\"_blank\"&gt;\\2&lt;/a&gt;", $ret);<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>includes/functions_search.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 243</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$sql = "INSERT IGNORE INTO " . SEARCH_MATCH_TABLE . " (post_id, word_id, title_match) <br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$sql = "INSERT INTO " . SEARCH_MATCH_TABLE . " (post_id, word_id, title_match) <br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>includes/topic_review.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 54</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die(GENERAL_MESSAGE, 'Topic_post_not_exist');<br>
+&nbsp; &nbsp;&nbsp; &nbsp;}<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 211</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;message_die(GENERAL_MESSAGE, 'Topic_post_not_exist', '', __LINE__, __FILE__, $sql);<br>
+&nbsp; &nbsp;}<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>includes/usercp_register.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 748</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$avatar_category = ( !empty($HTTP_POST_VARS['avatarcategory']) ) ? $HTTP_POST_VARS['avatarcategory'] : '';<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$avatar_category = (
+!empty($HTTP_POST_VARS['avatarcategory']) ) ?
+htmlspecialchars($HTTP_POST_VARS['avatarcategory']) : '';<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>index.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 122</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+}<br>
+<br>
+while( $category_rows[] = $db-&gt;sql_fetchrow($result) );<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 174</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;$forum_data[] = $row;<br>
+&nbsp; &nbsp;}<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 202</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+&nbsp;$new_topic_data[$topic_data['forum_id']][$topic_data['topic_id']]
+= $topic_data['post_time'];<br>
+&nbsp; &nbsp;&nbsp; &nbsp;}<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 228</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;$forum_moderators[$row['forum_id']][] =
+'&lt;a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" .
+POST_USERS_URL . "=" . $row['user_id']) . '"&gt;' . $row['username'] .
+'&lt;/a&gt;';<br>
+&nbsp; &nbsp;}<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 248</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;$forum_moderators[$row['forum_id']][] =
+'&lt;a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=" .
+$row['group_id']) . '"&gt;' . $row['group_name'] . '&lt;/a&gt;';<br>
+&nbsp; &nbsp;}<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>login.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 86</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+&nbsp;$url = ( !empty($HTTP_POST_VARS['redirect']) ) ?
+$HTTP_POST_VARS['redirect'] : "index.$phpEx";<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+&nbsp;$url = ( !empty($HTTP_POST_VARS['redirect']) ) ?
+htmlspecialchars($HTTP_POST_VARS['redirect']) : "index.$phpEx";<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 96</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+&nbsp;$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ?
+$HTTP_POST_VARS['redirect'] : '';<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+&nbsp;$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ?
+htmlspecialchars($HTTP_POST_VARS['redirect']) : '';<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 111</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? $HTTP_POST_VARS['redirect'] : "";<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$redirect = (
+!empty($HTTP_POST_VARS['redirect']) ) ?
+htmlspecialchars($HTTP_POST_VARS['redirect']) : "";<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 132</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$url =
+(!empty($HTTP_POST_VARS['redirect'])) ? $HTTP_POST_VARS['redirect'] :
+$HTTP_GET_VARS['redirect'];<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$url =
+(!empty($HTTP_POST_VARS['redirect'])) ?
+htmlspecialchars($HTTP_POST_VARS['redirect']) :
+htmlspecialchars($HTTP_GET_VARS['redirect']);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 142</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;$url = ( !empty($HTTP_POST_VARS['redirect']) ) ? $HTTP_POST_VARS['redirect'] : "index.$phpEx";<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;$url = ( !empty($HTTP_POST_VARS['redirect'])
+) ? htmlspecialchars($HTTP_POST_VARS['redirect']) : "index.$phpEx";<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>memberlist.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 272</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;$i++;<br>
+&nbsp; &nbsp;}<br>
+&nbsp; &nbsp;while ( $row = $db-&gt;sql_fetchrow($result) );<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 292</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;$pagination =
+generate_pagination("memberlist.$phpEx?mode=$mode&amp;order=$sort_order",
+$total_members, $board_config['topics_per_page'], $start). '&nbsp;';<br>
+&nbsp; &nbsp;}<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>modcp.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 83</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+if ( isset($HTTP_POST_VARS['mode']) || isset($HTTP_GET_VARS['mode']) )<br>
+{<br>
+&nbsp; &nbsp;$mode = ( isset($HTTP_POST_VARS['mode']) ) ? $HTTP_POST_VARS['mode'] : $HTTP_GET_VARS['mode'];<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$mode = htmlspecialchars($mode);<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>posting.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 38</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;$$var = ( !empty($HTTP_POST_VARS[$param]) ) ? $HTTP_POST_VARS[$param] : $HTTP_GET_VARS[$param];<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;$$var = ( !empty($HTTP_POST_VARS[$param]) ) ?
+htmlspecialchars($HTTP_POST_VARS[$param]) :
+htmlspecialchars($HTTP_GET_VARS[$param]);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 224</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+if ( $result = $db-&gt;sql_query($sql) )<br>
+{<br>
+&nbsp; &nbsp;$post_info = $db-&gt;sql_fetchrow($result);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 279</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;}<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;while ( $row = $db-&gt;sql_fetchrow($result) );<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;}<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 402</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;}<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;$notify_user = ( $db-&gt;sql_fetchrow($result) ) ? TRUE : $userdata['user_notify'];<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 477</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if ( !($result = $db-&gt;sql_query($sql)) )<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+&nbsp;message_die(GENERAL_ERROR, 'Could not obtain user vote data for
+this topic', '', __LINE__, __FILE__, $sql);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;}<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if ( !($row = $db-&gt;sql_fetchrow($result)) )<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if ( !($result2 = $db-&gt;sql_query($sql)) )<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
+&nbsp;message_die(GENERAL_ERROR, 'Could not obtain user vote data for
+this topic', '', __LINE__, __FILE__, $sql);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;}<br>
+<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if ( !($row = $db-&gt;sql_fetchrow($result2)) )<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 506</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$message = $lang['Already_voted'];<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;}<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$db-&gt;sql_freeresult($result2);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 508</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;else<br>
+&nbsp; &nbsp;&nbsp; &nbsp;{<br>
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$message = $lang['No_vote_option'];<br>
+&nbsp; &nbsp;&nbsp; &nbsp;}<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;$db-&gt;sql_freeresult($result);<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>privmsg.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 61</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+if ( isset($HTTP_POST_VARS['folder']) || isset($HTTP_GET_VARS['folder']) )<br>
+{<br>
+&nbsp; &nbsp;$folder = ( isset($HTTP_POST_VARS['folder']) ) ? $HTTP_POST_VARS['folder'] : $HTTP_GET_VARS['folder'];<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$folder = htmlspecialchars($folder);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">DELETE - Line 73</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+// session id check<br>
+if (!empty($HTTP_POST_VARS['sid']) || !empty($HTTP_GET_VARS['sid']))<br>
+{<br>
+&nbsp; &nbsp;$sid = (!empty($HTTP_POST_VARS['sid'])) ? $HTTP_POST_VARS['sid'] : $HTTP_GET_VARS['sid'];<br>
+}<br>
+else<br>
+{<br>
+&nbsp; &nbsp;$sid = '';<br>
+}<br>
+<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 96</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+if ( !empty($HTTP_POST_VARS['mode']) || !empty($HTTP_GET_VARS['mode']) )<br>
+{<br>
+&nbsp; &nbsp;$mode = ( !empty($HTTP_POST_VARS['mode']) ) ? $HTTP_POST_VARS['mode'] : $HTTP_GET_VARS['mode'];<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">AFTER, ADD</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$mode = htmlspecialchars($mode);<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>search.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 685</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;if ( intval($search_id) )<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&nbsp; &nbsp;$search_id = intval($search_id);<br>
+&nbsp; &nbsp;&nbsp; &nbsp;if ( $search_id )<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>templates/subSilver/index_body.tpl</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 94</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&lt;td width="20" align="center"&gt;&lt;img
+src="templates/subSilver/images/folder_new.gif"
+alt="{L_NEW_POSTS}"/&gt;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td&gt;&lt;span class="gensmall"&gt;{L_NEW_POSTS}&lt;/span&gt;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td&gt;&nbsp;&nbsp;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td width="20" align="center"&gt;&lt;img
+src="templates/subSilver/images/folder.gif" alt="{L_NO_NEW_POSTS}"
+/&gt;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td&gt;&lt;span class="gensmall"&gt;{L_NO_NEW_POSTS}&lt;/span&gt;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td&gt;&nbsp;&nbsp;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td width="20" align="center"&gt;&lt;img
+src="templates/subSilver/images/folder_lock.gif" alt="{L_FORUM_LOCKED}"
+/&gt;&lt;/td&gt;<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;&lt;td width="20" align="center"&gt;&lt;img
+src="templates/subSilver/images/folder_new_big.gif"
+alt="{L_NEW_POSTS}"/&gt;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td&gt;&lt;span class="gensmall"&gt;{L_NEW_POSTS}&lt;/span&gt;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td&gt;&nbsp;&nbsp;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td width="20" align="center"&gt;&lt;img
+src="templates/subSilver/images/folder_big.gif" alt="{L_NO_NEW_POSTS}"
+/&gt;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td&gt;&lt;span class="gensmall"&gt;{L_NO_NEW_POSTS}&lt;/span&gt;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td&gt;&nbsp;&nbsp;&lt;/td&gt;<br>
+&nbsp; &nbsp;&lt;td width="20" align="center"&gt;&lt;img
+src="templates/subSilver/images/folder_locked_big.gif"
+alt="{L_FORUM_LOCKED}" /&gt;&lt;/td&gt;<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>viewforum.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 243</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$topic_days = ( !empty($HTTP_POST_VARS['topicdays']) ) ?
+$HTTP_POST_VARS['topicdays'] : $HTTP_GET_VARS['topicdays'];<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$topic_days = ( !empty($HTTP_POST_VARS['topicdays']) ) ?
+intval($HTTP_POST_VARS['topicdays']) :
+intval($HTTP_GET_VARS['topicdays']);<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol><span style="font-size: 18px; line-height: normal;"><span style="color: blue;"><ul><li>viewtopic.php</li></ul><br><br><ol type="1">
+<span class="postbody">
+<br><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 317</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$post_days = ( !empty($HTTP_POST_VARS['postdays']) ) ? $HTTP_POST_VARS['postdays'] : $HTTP_GET_VARS['postdays'];<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$post_days = ( !empty($HTTP_POST_VARS['postdays']) ) ?
+intval($HTTP_POST_VARS['postdays']) :
+intval($HTTP_GET_VARS['postdays']);<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody">
+<br></span></li><li>
+<span class="postbody"><br><span style="color: blue;">FIND - Line 360</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.6 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$post_order = (!empty($HTTP_POST_VARS['postorder'])) ? $HTTP_POST_VARS['postorder'] : $HTTP_GET_VARS['postorder'];<br>
+
+<br></td>  	</tr></tbody></table><br><span class="postbody"><br><span style="color: blue;">REPLACE WITH</span>
+<br></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tbody><tr> 
+     <td><span class="genmed"><b>2.0.7 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br><br>
+&nbsp; &nbsp;$post_order = (!empty($HTTP_POST_VARS['postorder'])) ?
+htmlspecialchars($HTTP_POST_VARS['postorder']) :
+htmlspecialchars($HTTP_GET_VARS['postorder']);<br>
+
+<br></td>  	</tr></tbody></table><br><br></li></span></ol>					</span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></span></td>
+			</tr>
+		</tbody></table></td>
+	</tr>
+</tbody></table></body></html>

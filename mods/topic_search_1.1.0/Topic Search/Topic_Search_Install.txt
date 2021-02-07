@@ -1,0 +1,266 @@
+#####################################################################################
+## MOD Title: Topic Search
+## MOD Author: Darkmonkey <info@darkmonkeydesigns.com> (Brendan kettle) http://www.darkmonkeydesigns.com
+## MOD Description: Lets a user search within a specified topic
+## MOD Version: 1.1.0
+##
+## Installation Level: Easy
+## Installation Time: 15 Minutes (2 Minutes with EasyMOD)
+## Files To Edit:
+##		language/lang_english/lang_main.php
+##		templates/subSilver/viewtopic_body.tpl
+##		search.php
+##		viewtopic.php
+##
+## Included Files: 
+##		templates/subSilver/topic_search_results.tpl
+##
+#####################################################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+###################################################################################
+## Author Notes:
+## You should change all your languages and themes if you use others
+## then English and subSilver. This mod was made for version 2.0.10
+## of phpBB.
+##
+## Installation:
+##
+## 1) Upload the template file to its respective location
+## 2) Read below to make the rest of the changes.
+## 
+####################################################################################
+## MOD History: 
+## 
+##   2004-08-18 - Version 1.0.0 beta is finished 
+##		- Simple input box on topic view, to search within topic
+##
+##   2004-09-5 - Version 1.1.0 released
+##		- Updated to handle multiple result pages
+##
+#########################################################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##########################################################################################
+
+#
+#-----[ COPY ]------------------------------------------ 
+#
+copy templates/subSilver/topic_search_results.tpl to templates/subSilver/topic_search_results.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+//
+// That's all, Folks!
+// -------------------------------------------------
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+// TOPIC SEARCH MOD
+$lang['Click_return_topic'] = 'Click %sHere%s to return to the Topic';
+$lang['No_search_words'] = 'Sorry, no search words specified';
+$lang['Search_topic'] = 'Search Topic';
+$lang['Jump_to_post'] = 'Jump to post';
+// END TOPIC SEARCH MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+<td align="right" valign="top" nowrap="nowrap">{JUMPBOX}<span class="gensmall">{S_AUTH_LIST}</span></td>
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+{JUMPBOX}
+
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+#
+
+	<form action="{U_TOPIC_SEARCH}" name="post" method="POST" target="_top"><input type="hidden" name="search_terms" value="any" /><input type="hidden" name="return_chars" value="100" /><input type="hidden" name="show_results" value="posts" /><input type="hidden" name="sort_dir" value="ASC" /><input type="hidden" name="mode" value="topic_search" /><input type="hidden" name="topic_id" value="{TOPIC_ID}" /><input type="text" name="search_keywords" size="20" maxlength="250" value="" /> <input type="submit" name="search_submit" value="{L_SEARCH_TOPIC}" class="liteoption" /></form>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	$search_results = '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	// Topic search MOD
+	$tid = (isset($HTTP_POST_VARS['topic_id'])) ? (intval($HTTP_POST_VARS['topic_id'])) : (intval($HTTP_GET_VARS['topic_id']));
+	// Topic search MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+					$search_ids[] = $post_id;
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+					// Topic Search MOD
+					if(!empty($tid))
+					{
+						$sql = "SELECT post_id
+							FROM " . POSTS_TABLE . "
+							WHERE topic_id = '$tid'";
+						if ( !($result = $db->sql_query($sql)) )
+						{
+							message_die(GENERAL_ERROR, 'Coudld not find user data', '', __LINE__, __FILE__, $sql);
+						}
+						while( $test = $db->sql_fetchrow($result) )
+						{		
+							if($test['post_id'] == $post_id)
+							{
+								$search_ids[] = $post_id;
+							}
+						}
+						$show_results = 'posts';
+					}
+					else
+					{ // End Topic Search MOD
+					
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+					// Topic Search MOD
+					}
+					// End Topic search MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+			$template->set_filenames(array(
+				'body' => 'search_results_posts.tpl')
+			);
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+			// Topic search MOD
+			if(empty($tid))
+			{
+			// End Topic search MOD
+			
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			// Topic search MOD
+			}
+			else
+			{
+				$template->set_filenames(array(
+					'body' => 'topic_search_results.tpl')
+				);
+			}
+			// End Topic search MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+		$base_url = "search.$phpEx?search_id=$search_id";
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+		// Topic search MOD
+		if(empty($tid))
+		{
+		// End Topic search MOD
+		
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		// Topic search MOD
+		}
+		else
+		{
+		$base_url = "search.$phpEx?search_id=$search_id&amp;topic_id=$tid";
+		}
+		// End Topic search MOD
+		
+#
+#-----[ FIND ]------------------------------------------
+#
+
+			'L_SUBJECT' => $lang['Subject'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			// Topic search MOD
+			'L_JUMP_TO_POST' => $lang['Jump_to_post'],
+			// End Topic search MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	'L_GOTO_PAGE' => $lang['Goto_page'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	// Topic Search MOD
+	'L_SEARCH_TOPIC' => $lang['Search_topic'],
+	// End Topic Search MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	'U_POST_NEW_TOPIC' => $new_topic_url,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	// Topic Search MOD
+	'U_TOPIC_SEARCH' => append_sid('search.' . $phpEx . '?mode=results'),
+	// End Topic Search MOD
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

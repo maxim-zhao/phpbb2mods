@@ -1,0 +1,119 @@
+############################################################## 
+## MOD Title:		Announces Suite - Part 2 (without Split topic v 2.0.0 or greater)
+## MOD Author:		Ptirhiik < admin@rpgnet-fr.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description:
+##			Part 2 of the Announces Suite mod. 
+##			Use it only if you haven't Split Topic v 2.0.0 or greater installed
+##
+## MOD Version:		3.0.2
+## 
+## Installation Level:	Easy
+## Installation Time:	1 Minutes
+## Files To Edit:
+##			viewforum.php
+## Included Files:	(n/a)
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##	o Part 1 is common to all versions
+##	o Part 2 is required if you haven't Split topic type v2 installed
+##	o Part 3 is required if you haven't Categories hierarchy v 2.0.4 or greater
+##	o Part 4 is required if you have Categories hierarchy v 2.0.4 or greater
+##
+##	o users can choose their prefered setup (required full mods settings mod to be installed).
+##		Admin can also choose to override the users choice for each setup parameter.
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2003-11-11 - Version 3.0.2
+##	- no changes to the mod itself, only a slight adaptation of the mod install description
+## 
+##   2003-10-28 - Version 3.0.1
+##      - upgrade the mods_settings tool,
+##	- add the lang_settings tool
+## 
+##   2003-09-10 - Version 3.0.0
+##      - review the code to use functions_topics_list.php
+##	- add the mods_settings mod usage for user prefs
+##	- add the global announcement
+## 
+##   2003-07-14 - Version 2.0.0
+##      - add annnounces duration on topic
+##	- add prune announces process
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+# phpBB specific
+#
+	'FOLDER_ANNOUNCE_NEW_IMG' => $images['folder_announce_new'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+	'FOLDER_GLOBAL_ANNOUNCE_IMG'		=> $images['folder_global_announce'],
+	'FOLDER_GLOBAL_ANNOUNCE_NEW_IMG'	=> $images['folder_global_announce_new'],
+	'L_GLOBAL_ANNOUNCEMENT'				=> $lang['Post_Global_Announcement'],
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$topic_type = $lang['Topic_Announcement'] . ' ';
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+		else if( $topic_type == POST_GLOBAL_ANNOUNCE )
+		{
+			$topic_type = $lang['Topic_Global_Announcement'] . ' ';
+		}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			else if( $topic_rowset[$i]['topic_type'] == POST_STICKY )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+			else if( $topic_rowset[$i]['topic_type'] == POST_GLOBAL_ANNOUNCE )
+			{
+				$folder			= $images['folder_global_announce'];
+				$folder_new		= $images['folder_global_announce_new'];
+			}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+		if (function_exists(get_announces_title) && !empty($topic_rowset[$i]['topic_announce_duration']))
+		{
+			$topic_title .= '</a></span>&nbsp;&nbsp;<span class="gensmall"><a name="ann_' . $topic_id . '">' . get_announces_title( $topic_rowset[$i]['topic_time'], $topic_rowset[$i]['topic_announce_duration'] ) . '</span><span class="topictitle">';
+		}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

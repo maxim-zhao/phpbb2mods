@@ -1,0 +1,267 @@
+######################################################## 
+## MOD Title: Forum Logo Selector MOD
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This mod allow admin to select a logo use in overall_header in the admin control panel from a list of images
+## MOD Version:	1.0.4
+## 
+## Installation Level: Easy 
+## Installation Time: 5 Minutes 
+##
+## Files To Edit: 5
+##	admin/admin_board.php
+##	language/lang_english/lang_admin.php
+##	includes/page_header.php
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/overall_header.tpl
+##
+## Included Files: 2
+##	images/logo/subBlack.gif
+##	images/logo/subSilver.gif
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.18. Can be installed using EasyMOD 0.2.1a
+############################################################## 
+## MOD History: 
+##
+##   2004-01-20 - Version 1.0.0
+##      - Initial Release
+##
+##   2004-06-28 - Version 1.0.1
+##      - Added COPY command, for phpBB DB validation purpose
+##
+##   2004-07-09 - Version 1.0.2
+##      - Edit the COPY command, for phpBB DB validation purpose
+##
+##   2004-08-22 - Version 1.0.3
+##      - Edit the COPY command, for phpBB DB validation purpose
+##
+##   2005-11-12 - Version 1.0.4
+##      - Updated the MOD template and making sure it works under 2.0.18
+##	- Update the code so that image can be displayed in its original size
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# NOTE: basically this means copy the logos folder to your phpBB root images folder
+copy images/logo/subSilver.gif to images/logo/subSilver.gif 
+copy images/logo/subBlack.gif to images/logo/subBlack.gif
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+INSERT INTO `phpbb_config` VALUES ('logo_image_path', 'images/logo');
+INSERT INTO `phpbb_config` VALUES ('logo_image', 'subSilver.gif');
+INSERT INTO `phpbb_config` VALUES ('logo_image_w', '200');
+INSERT INTO `phpbb_config` VALUES ('logo_image_h', '91');
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Logo Selector MOD
+$lang['Logo_settings'] = 'Logo Setting';
+$lang['Logo_explain'] = 'Here you can set the folder path to your forum logos, the logo to be used and it\'s display height and width.';
+$lang['Logo_path'] = 'Logo Storage Path';
+$lang['Logo_path_explain'] = 'Path under your phpBB root dir, e.g. images/logo';
+$lang['Logo'] = 'Choose a Logo';
+$lang['Logo_dimensions'] = 'Logo Dimensions';
+$lang['Logo_dimensions_explain'] = '(Height x Width in pixels). Setting these values to 0 means to display the image in its original height and width.';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+admin/admin_board.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$style_select = style_select($new['default_style'], 'default_style', "../templates");
+
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// Logo Selector MOD
+// Get all images in the logo directory
+$dir = @opendir($phpbb_root_path . $new['logo_image_path']);
+$count = 0;
+while( $file = @readdir($dir) )
+{
+	if( !@is_dir(phpbb_realpath($phpbb_root_path . $new['logo_image_path'] . '/' . $file)) )
+	{
+		if( preg_match('/(\.gif$|\.png$|\.jpg|\.jpeg)$/is', $file) )
+		{
+			$logo[$count] = $file; 
+			$count++;
+		}
+	}
+}
+@closedir($dir);
+// Logo ListBox
+$logo_list = "";
+for( $i = 0; $i < count($logo); $i++ )
+{
+	if ($logo[$i] == $new['logo_image'])
+		$logo_list .= '<option value="' . $logo[$i] . '" selected="selected">' . $logo[$i] . '</option>'; 
+	else 
+		$logo_list .= '<option value="' . $logo[$i] . '">' . $logo[$i] . '</option>';
+}
+
+$logo_image = $new['logo_image'];
+$logo_width = $new['logo_image_w'];
+$logo_height = $new['logo_image_h'];
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"L_ADMIN" => $lang['Acc_Admin'], 
+
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// Logo Selector MOD
+	"L_LOGO_SETTINGS" => $lang['Logo_settings'],
+	"L_LOGO_EXPLAIN" => $lang['Logo_explain'],
+	"L_LOGO_PATH" => $lang['Logo_path'], 
+	"L_LOGO_PATH_EXPLAIN" => $lang['Logo_path_explain'],
+	"L_LOGO" => $lang['Logo'],
+	"L_LOGO_DIMENSIONS" => $lang['Logo_dimensions'],
+	"L_LOGO_DIMENSIONS_EXPLAIN" => $lang['Logo_dimensions_explain'],
+	// Logo Selector MOD
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"TIMEZONE_SELECT" => $timezone_select,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// Logo Selector MOD
+	"LOGO_PATH" => $new['logo_image_path'],
+	"LOGO_IMAGE_DIR" => $phpbb_root_path . $new['logo_image_path'], 
+	"LOGO_LIST" => $logo_list,
+	"LOGO_IMAGE" => ($logo_image) ? $phpbb_root_path . $board_config['logo_image_path'] .'/' . $logo_image : '',
+	"LOGO_WIDTH" => $new['logo_image_w'],
+	"LOGO_HEIGHT" => $new['logo_image_h'],
+	// Logo Selector MOD
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+includes/page_header.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'SITE_DESCRIPTION' => $board_config['site_desc'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// Logo Selector MOD
+	'LOGO' => ($board_config['logo_image']) ? $phpbb_root_path . $board_config['logo_image_path'] .'/' . $board_config['logo_image'] : '',
+	'LOGO_WIDTH' => ($board_config['logo_image_w'] == 0) ? "" : 'width="' . $board_config['logo_image_w'] . '" ',
+	'LOGO_HEIGHT' => ($board_config['logo_image_h'] == 0) ? "" : 'height="' . $board_config['logo_image_h'] . '" ',
+	// Logo Selector MOD
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<p>{L_CONFIGURATION_EXPLAIN}</p>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+<script language="javascript" type="text/javascript">
+<!--
+function update_logo(newlogo)
+{
+	document.logo_image.src = "{LOGO_IMAGE_DIR}/" + newlogo;
+}
+//-->
+</script>
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_ENABLE_PRUNE}</td>
+		<td class="row2"><input type="radio" name="prune_enable" value="1" {PRUNE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="prune_enable" value="0" {PRUNE_NO} /> {L_NO}</td>
+	</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<tr>
+		<th class="thHead" colspan="2">{L_LOGO_SETTINGS}</th>
+	</tr>
+	<tr>
+		<td class="row2" colspan="2"><span class="gensmall">{L_LOGO_EXPLAIN}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row1">{L_LOGO_PATH}<br /><span class="gensmall">{L_LOGO_PATH_EXPLAIN}</span></td>
+	  <td class="row2"><input class="post" type="text" size="20" maxlength="255" name="logo_image_path" value="{LOGO_PATH}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LOGO_DIMENSIONS}<br /><span class="gensmall">{L_LOGO_DIMENSIONS_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="logo_image_h" value="{LOGO_HEIGHT}" /> x <input class="post" type="text" size="3" maxlength="4" name="logo_image_w" value="{LOGO_WIDTH}"></td>
+	</tr>
+	<tr> 
+	  <td class="row1">{L_LOGO}</td>
+	  <td class="row2"><select name="logo_image" onchange="update_logo(this.options[selectedIndex].value);">{LOGO_LIST}</select> &nbsp; <img name="logo_image" src="{LOGO_IMAGE}" border="0" width="{LOGO_WIDTH}" height="{LOGO_HEIGHT}"/> &nbsp;</td>
+	</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				<td><a href="{U_INDEX}"><img src="templates/subSilver/images/logo_phpBB.gif" border="0" alt="{L_INDEX}" vspace="1" /></a></td>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+"templates/subSilver/images/logo_phpBB.gif"
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+"{LOGO}" {LOGO_WIDTH}{LOGO_HEIGHT}
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+#
+# EoM 

@@ -1,0 +1,166 @@
+##############################################################
+## MOD Title: Your posts since last visit
+## MOD Author: klarinetking < klarinetking@users.sourceforge.net > (Nick Ross) N/A
+## MOD Description: This MOD adds a link that shows topics that you have posted in that have recieved a reply since your last visit
+## MOD Version: 1.0.0
+##
+## Installation Level: (Easy)
+## Installation Time: ~ 10 Minutes
+## Files To Edit: templates/subSilver/index_body.tpl,
+##      language/lang_english/lang_main.php,
+##      includes/page_header.php,
+##	search.php
+##     
+## Included Files: (N/A)
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2006-07-31 - Version 1.0.0
+##      - Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/index_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+<a href="{U_SEARCH_NEW}" class="gensmall">{L_SEARCH_NEW}</a><br /><a href="{U_SEARCH_SELF}" class="gensmall">{L_SEARCH_SELF}</a><br />
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+<a href="{U_SEARCH_NEW}" class="gensmall">{L_SEARCH_NEW}</a><br /><a href="{U_SEARCH_SELF}" class="gensmall">{L_SEARCH_SELF}</a><br /><a href="{U_SEARCH_LASTVISIT}" class="gensmall">{L_SEARCH_LASTVISIT}</a><br/> 
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+$lang['Search_unanswered'] = 'View unanswered posts';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Search_lastvisit'] = 'View your posts since last visit';
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+'L_SEARCH_SELF' => $lang['Search_your_posts'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+'L_SEARCH_LASTVISIT' => $lang['Search_lastvisit'],
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+'U_SEARCH_NEW' => append_sid('search.'.$phpEx.'?search_id=newposts'),
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+'U_SEARCH_LASTVISIT' => append_sid('search.'.$phpEx.'?search_id=lastvisit'),
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+search.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if ( $search_id == 'newposts' || $search_id == 'egosearch' || $search_id == 'unanswered' || $search_keywords != '' || $search_author != '' )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+if ( $search_id == 'newposts' || $search_id == 'egosearch' || $search_id == 'unanswered' || $search_id == 'lastvisit' || $search_keywords != '' || $search_author != '' )
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+if ( $search_id == 'newposts' || $search_id == 'egosearch' || ( $search_author != '' && $search_keywords == '' )  )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+if ( $search_id == 'newposts' || $search_id == 'egosearch' || $search_id == 'lastvisit' || ( $search_author != '' && $search_keywords == '' )  )
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+else
+{
+	$search_author = str_replace('*', '%', trim($search_author));
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+else if ( $search_id == 'lastvisit' )
+{
+	if ( $userdata['session_logged_in'] )
+	{
+		$sql = "SELECT post_id
+			FROM " . POSTS_TABLE . "
+			WHERE poster_id = " . $userdata['user_id'] . "
+				AND post_time > " . $userdata['user_lastvisit'];
+	}
+	else
+	{
+		redirect(append_sid("login.$phpEx?redirect=search.$phpEx&search_id=lastvisit", true));
+	}
+				
+	$show_result = 'topics';
+	$sort_by = 0;
+	$sort_dir = 'DESC';
+}
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

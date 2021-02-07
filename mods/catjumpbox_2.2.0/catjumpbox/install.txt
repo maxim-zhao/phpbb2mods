@@ -1,0 +1,215 @@
+##############################################################
+## MOD Title: CatJumpBox
+## MOD Author: damnian < damnian at phpbb dot cc > (Dmitry Shechtman) http://www.phpbb.cc
+## MOD Description: Jump to categories and forum index
+## MOD Version: 2.2.0
+##
+## Installation Level: Easy
+## Installation Time: 8 Minutes
+## Files To Edit: 6
+##  admin/index.php
+##  includes/constants.php
+##  includes/functions.php
+##  modcp.php
+##  viewforum.php
+##  viewonline.php
+## 
+## Included Files: N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/  
+##############################################################
+## Author Notes:
+##
+##   N/A
+############################################################## 
+## MOD History: 
+##
+##   2006-11-04 - Version 2.2.0
+##      - Fixed who-is-online display bug
+##      - Tested with phpBB 2.0.21
+##      - Package update
+##      - Template update
+##
+##   2006-03-26 - Version 2.0.0
+##      - Fixed session id bug (thanks LeGrolandais)
+##      - Cleaned up code
+##
+##   2005-12-09 - Version 1.0.1
+##      - Fixed according to MODDB feedback
+##
+##   2005-12-01 - Version 1.0.0
+##      - Fixed modcp bug
+##
+##   2005-11-25 - Version 0.2.0
+##      - More redirection robustness
+##      - Minor text fixes
+##
+##   2005-11-20 - Version 0.1.0
+##      - Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/index.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+if( $onlinerow_reg[$i]['user_session_page'] < 1
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$onlinerow_reg[$i]['user_session_page'] < 1
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ || $onlinerow_reg[$i]['user_session_page'] >= CATEGORY_BASE
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+// SQL codes
+define('BEGIN_TRANSACTION', 1);
+define('END_TRANSACTION', 2);
+#
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Jump box
+define('CATEGORY_BASE', 10000);
+
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+function make_jumpbox
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$match_forum_id = 0
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, $extend = TRUE
+#
+#-----[ FIND ]------------------------------------------ 
+#
+$forum_rows = 
+#
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+		if ( $extend )
+		{
+			$boxstring .= '<option value="-1">&nbsp;</option>';
+			$boxstring .= '<option value="' . CATEGORY_BASE . '">' . $lang['Forum_index'] . '</option>';
+			$boxstring .= '<option value="-1">================</option>';
+		}
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+$boxstring .= '<option value="-1">'
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+'<option value="-1">'
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+'<option value="' . ($extend ? ($category_rows[$i]['cat_id'] + CATEGORY_BASE) : '-1') . '">'
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+modcp.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+make_jumpbox('modcp.'.$phpEx);
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+)
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+#
+, $forum_id, FALSE
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+if ( !empty($forum_id)
+{
+#
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+//
+// Start session management
+//
+$userdata = session_pagestart($user_ip, $forum_id);
+init_userprefs($userdata);
+//
+// End session management
+//
+
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	if ($forum_id >= CATEGORY_BASE)
+	{
+		redirect(append_sid('index.'.$phpEx. ($forum_id > CATEGORY_BASE ? '?' . POST_CAT_URL . '=' . ($forum_id - CATEGORY_BASE) : ''), true));
+	}
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+//
+// Start session management
+//
+$userdata = session_pagestart($user_ip, $forum_id);
+init_userprefs($userdata);
+//
+// End session management
+//
+#
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+// Removed by CatJumpBox MOD
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+viewonline.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+if ( $row['session_page'] < 1
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$row['session_page'] < 1
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ || $row['session_page'] >= CATEGORY_BASE
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+#
+# EoM

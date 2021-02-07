@@ -1,0 +1,385 @@
+##############################################################
+## MOD Title: Page Permissions
+## MOD Author: drathbun < N/A > (Dave Rathbun) http://www.phpBBDoctor.com
+## MOD Description: Set permissions by page (guest, reg, private, mod, admin)
+## MOD Version: 1.2.2
+##
+##
+## Installation Level: Easy
+## Installation Time: ~ 5 Minutes
+## Files To Edit: (5)	common.php
+##			admin/admin_db_utilities.php
+##			includes/constants.php
+##			includes/functions.php
+##			language/lang_english/lang_main.php
+## Included Files: (8)	root/admin/admin_page_permissions.php
+##			root/includes/functions_phpbbdoctor_cache.php
+##			root/language/lang_english/lang_admin_page_permissions.php
+##			root/language/lang_english/lang_phpbbdoctor_cache.php
+##			root/includes/page_permissions.php
+##			root/templates/subSilver/admin/page_permissions_list_body.tpl
+##			root/templates/subSilver/admin/page_permissions_edit_body.tpl
+##			root/cache/cache_page_permissions.php
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## This MOD is designed to allow board administrators to control access at the page
+## level rather than at the forum level. It is not intended to replace the existing
+## phpBB permission system but to supplement it.
+## 
+## For example, a common request is to "protect" the member list by preventing
+## guests from viewing that page. Or perhaps even only allowing board moderators to
+## view that information. This MOD will do that. It can also handle pages with
+## different functions such as profile.php (which handles editing profiles, viewing
+## profiles, and even new user registrations).
+## 
+## This MOD also sets up a page view counter for each page that you specify. Page
+## counts are incremented based on MEMBER or GUEST viewing, and can be reset at any
+## time.
+## 
+## Finally, you can disable individual pages. If a page is disabled users with
+## ADMIN permissions can still view the pages, which will allow you to work on the
+## page without other board members seeing what is going on. Want to shut down new
+## user registrations? Simply set the profile page with mode of "register" to ADMIN
+## and nobody will be able to register. Want to keep guests from viewing member
+## profiles? Want to restrict access to a custom php page to members of a specific
+## group? This MOD can do all of that. You can even set up a custom message (one
+## language only) for each page that you disable.
+## 
+## Access levels include:
+## Guest
+## Registered
+## Private
+## Moderator
+## Administrator
+## 
+## Note that there is a loophole with "moderator" permissions. Users that have ever
+## been a moderator of something may still have a user_level value of "2", which
+## means that they can still appear as a Moderator. This is not a problem with this
+## MOD, and to the best of my knowledge has been fixed in the latest versions of
+## phpBB. One quick fix that is very easy to do: Go into your admin panel and make
+## the user an Administrator and then set them back to User right away. That will
+## reset the phpbb_users.user_level field to 0 (user) rather than 2 (moderator).
+## 
+## What about non-phpBB Pages?
+## This MOD can be used to set permissions for *any* page in your board, even
+## something that is not a part of the standard phpBB distribution. You must,
+## however, include the phpBB session handler in order for this to work. At the
+## current time all pages must be in the same directory as the forum. There is a
+## file (newpage.zip) in the contrib folder of this MOD that will show you how to
+## do that.
+## 
+## Permissions Hierarchy
+## A page may have different permissions based on different URL parameters. One
+## valid parameter is "no" parameter. In older versions this MOD would first find
+## the match for a page with no parameter and use the permission settings at that
+## level for all accesses to that page, even if there was a potential match for the
+## URL parameters. You can now have different permissions for a page both with and
+## without URL parameters and it should work correctly.
+## 
+## Default Page Permissions and $phpEx
+## There are some default page permissions supplied as SQL "insert" statements in
+## the MOD install instructions. The page type is hard-coded to "php" and does NOT
+## use the $phpEx variable used within phpBB. If you do not use ".php" as your file
+## type (for example if you use .php4 or .php3) then you will need to update the
+## data using the admin page provided before any of your pages will actually be
+## protected by this MOD. Nothing bad will happen to your files, they just won't be
+## protected until you update the data for the permissions table to match your
+## actual server configuration. The SQL insert statements are provided to create
+## some initial data value, not code, and therefore $phpEx is not used.
+## 
+## eXtreme Styles MOD
+## If you have this MOD installed you need to make a small change to one of the
+## files to keep it from removing the Page Permissions cache file when a "clear
+## all" process is run. Open admin/xs_cache.php and find the following code:
+## $skip_files = array(
+## 	'.',
+## 	'..',
+## 	'.htaccess',
+## 	'index.htm',
+## 	'index.html',
+## 	'index.php',
+## 	'attach_config.php',
+## 	);
+## 
+## Inline find );
+## Before, add
+## 	'cache_page_permissions.php'
+## 
+## Note that in my version this line 
+## 	'attach_config.php',
+## has an extra comma at the end, which should not be there. If your version does
+## not have this extra comma then you will need to add one in order to avoid a
+## syntax error, then add in the extra line as noted above. The final block of code
+## should look something like this:
+## $skip_files = array(
+## 	'.',
+## 	'..',
+## 	'.htaccess',
+## 	'index.htm',
+## 	'index.html',
+## 	'index.php',
+## 	'attach_config.php',
+## 	'cache_page_permissions.php'
+## 	);
+##
+## Please install and test only ONE new MOD at a time. That may seem like common
+## sense, but you would be amazed at how often this is not done. :-)
+##
+## Install Time Estimate
+## The MOD install time is assumed to be for a manual install and is based on the
+## number of files to edit. If you use an automatic installer the time estimate
+## is essentially meaningless. We do not test with EasyMOD but our MODs should
+## work based on our usage of the proper template. Note that EasyMOD seems to
+## have issues with certain SQL structures that work fine in MySQL directly.
+##
+## FIND Line Number Hints
+## Some of the FIND operations may have line numbers associated with the
+## operation. These line numbers are derived from a set of baseline phpBB code
+## and are generally approximations only. Use them as a guideline if you find
+## more than one line in a similar location. Note that as you add new lines to
+## the file as you are editing that the line numbers for the remaining portion
+## of that file are nearly always going to be wrong. We do not guarantee that
+## there will be line numbers on each FIND.
+##
+## Some actions have additional comments. Please review them as they are
+## intended to help you understand the exact steps required to complete that
+## specific action.
+##
+## This MOD has 27 install instructions.
+## This MOD is in FINAL status as of version 1.2.2.
+##############################################################
+## MOD History:
+##
+##	2007-01-20 - Version 1.2.2
+##		Check for odd characters in query string before redirect
+##		Relabeled non-admin language strings to avoid potential conflicts
+##
+##	2007-01-07 - Version 1.2.1
+##		Admin menu items now language strings
+##		Fixed security hole in permissions processing
+##		Added "not null" to page_id table create statement
+##
+##	2006-12-01 - Version 1.2.0
+##		Added pages table to standard backup process
+##
+##	2006-10-30 - Version 1.1.0
+##		Fixed cache reference (wrong filename)
+##		Added custom disable message per page
+##
+##	2006-09-25 - Version 1.0.2
+##		Fixed bug introduced in 1.0.1 for group permissions
+##		Fixed security hole in group query (not checking user_pending)
+##		Moved language strings to stand-alone file
+##		Update notes from 1.0.x to 1.0.2 are found in /contrib
+##
+##	2006-09-16 - Version 1.0.1
+##		Resubmitted to phpBB.com after minor fixes
+##
+##	2006-03-31 - Version 1.0.0
+##		Release candidate
+##
+##	History prior to 1.0.0 not shown for Released MODs
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]-------------------------------------
+# Special Instructions: Change phpbb_ to whatever your table
+# prefix is.
+#
+CREATE TABLE phpbb_pages
+(page_id		mediumint(5) unsigned not null auto_increment
+,page_name		varchar(32) not null
+,page_parm_name		varchar(32) default ''
+,page_parm_value	varchar(32) default ''
+,page_key		varchar(255) default ''
+,member_views		int(11) unsigned default 0
+,guest_views		int(11) unsigned default 0
+,disable_page		tinyint(1) unsigned default 0
+,auth_level		tinyint(2) unsigned default 0
+,min_post_count		mediumint(8) unsigned default 0
+,max_post_count		mediumint(8) unsigned default 0
+,group_list		varchar(255) default ''
+,disabled_message	varchar(255) default ''
+,primary key (page_id)
+,unique key (page_key)
+);
+
+
+
+#
+#-----[ SQL ]-------------------------------------
+# Special Instructions: Page extentions are set to php; if you
+# use php3 (or other) change these statements or update the
+# rows via the ACP module. Check the table prefix as well.
+#
+insert into phpbb_pages (page_name, page_key) values ('index.php', 'index.php');
+insert into phpbb_pages (page_name, page_key) values ('viewforum.php', 'viewforum.php');
+insert into phpbb_pages (page_name, page_key) values ('viewtopic.php', 'viewtopic.php');
+insert into phpbb_pages (page_name, page_key) values ('faq.php', 'faq.php');
+insert into phpbb_pages (page_name, page_key) values ('search.php', 'search.php');
+insert into phpbb_pages (page_name, page_key) values ('login.php', 'login.php');
+insert into phpbb_pages (page_name, page_key, auth_level) values ('memberlist.php', 'memberlist.php', 1);
+insert into phpbb_pages (page_name, page_key, page_parm_name, page_parm_value, auth_level) values ('profile.php', 'profile.php?mode=viewprofile', 'mode', 'viewprofile', 1);
+insert into phpbb_pages (page_name, page_key, page_parm_name, page_parm_value) values ('profile.php', 'profile.php?mode=register', 'mode', 'register');
+
+#
+#-----[ COPY ]-------------------------------------
+#
+copy root/admin/admin_page_permissions.php to admin/admin_page_permissions.php
+copy root/includes/functions_phpbbdoctor_cache.php to includes/functions_phpbbdoctor_cache.php
+copy root/language/lang_english/lang_admin_page_permissions.php to language/lang_english/lang_admin_page_permissions.php
+copy root/language/lang_english/lang_phpbbdoctor_cache.php to language/lang_english/lang_phpbbdoctor_cache.php
+copy root/includes/page_permissions.php to includes/page_permissions.php
+copy root/templates/subSilver/admin/page_permissions_list_body.tpl to templates/subSilver/admin/page_permissions_list_body.tpl
+copy root/templates/subSilver/admin/page_permissions_edit_body.tpl to templates/subSilver/admin/page_permissions_edit_body.tpl
+copy root/cache/cache_page_permissions.php to cache/cache_page_permissions.php
+
+#
+#-----[ DIY INSTRUCTIONS ]-------------------------------------
+# Special Instructions: chmod 666 sets rw-rw-rw- permissions
+# on this file, also check permissions on the /cache folder
+# itself
+#
+CHMOD cache/cache_page_permissions.php to 666
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+common.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 190; find text might not be a complete line
+#
+include($phpbb_root_path . 'includes/db.'.$phpEx);
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+# Special Instructions: See code comments for details about
+# this AFTER, ADD operation...
+#
+// BEGIN phpBBDoctor Cache Library (www.phpBBDoctor.com)
+// If you download and install more than one MOD from the
+// phpBB Doctor you may have these lines already. There is
+// no harm in adding them more than once, but there is no
+// need to have them more than once either.
+if (!(function_exists('phpbbdoctor_populate_cache')))
+{
+        include($phpbb_root_path . 'includes/functions_phpbbdoctor_cache.'.$phpEx);
+}
+// END phpBBDoctor Cache Library (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+# Special Instructions: Here we're going to add our new "page
+# permissions" table to the standard backup process
+#
+admin/admin_db_utilities.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 696; find text might not be a complete line
+#
+'posts'
+
+#
+#-----[ IN-LINE FIND ]-------------------------------------
+#
+'posts'
+
+#
+#-----[ IN-LINE BEFORE, ADD ]-------------------------------------
+#
+'pages', 
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 183; find text might not be a complete line
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Page Permissions 1.2.2 (www.phpBBDoctor.com)
+define('PAGES_TABLE', $table_prefix.'pages');
+define('PAGE_AUTH_GUEST', 0);
+define('PAGE_AUTH_REG', 1);
+define('PAGE_AUTH_PRIVATE', 2);
+define('PAGE_AUTH_MOD', 3);
+define('PAGE_AUTH_ADMIN', 4);
+// END Page Permissions 1.2.2 (www.phpBBDoctor.com)
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 399 to 400; find text might not be a complete line
+#
+	//
+	// Set up style
+
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+	// BEGIN Page Permissions 1.2.2 (www.phpBBDoctor.com)
+	if ( defined('IN_ADMIN') )
+	{
+		if( !file_exists(@phpbb_realpath($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_admin_page_permissions.'.$phpEx)) )
+		{
+			$board_config['default_lang'] = 'english';
+		}
+
+		include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_admin_page_permissions.' . $phpEx);
+	}
+	// Next, the main permissions module
+	include_once($phpbb_root_path . 'includes/page_permissions.php');
+	// END Page Permissions 1.2.2 (www.phpBBDoctor.com)
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]-------------------------------------
+# On or about line 1027; find text might not be a complete line
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Page Permissions 1.2.2 (www.phpBBDoctor.com)
+$lang['Page_permissions_page_disabled'] = 'This page is temporarily offline for maintenance';
+$lang['Page_permissions_insufficient_privileges'] = 'You do not have authorization to view this page';
+$lang['Page_permissions_post_count_too_low'] = 'You do not have enough posts to view this page yet.';
+$lang['Page_permissions_post_count_too_high'] = 'You have too many posts to view this page.';
+$lang['Page_permissions_insecure_url'] = 'Attempt to redirect to a potentially insecure URL; access denied';
+// END Page Permissions 1.2.2 (www.phpBBDoctor.com)
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

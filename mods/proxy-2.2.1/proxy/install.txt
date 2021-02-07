@@ -1,0 +1,328 @@
+############################################################## 
+## MOD Title: Block Open Proxy Registrants
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/terra/wordpress/
+## MOD Description: Prevents those using open proxies from registering by scanning
+##                  for open proxies on those who attempt registration.
+## MOD Version: 2.2.1
+##
+## Installation Level: Intermediate
+## Installation Time: 5 Minutes
+##
+## Files To Edit: 4
+##      includes/constants.php
+##      language/lang_english/lang_main.php
+##      language/lang_english/lang_admin.php
+##      includes/usercp_register.php
+##
+## Included Files: 8
+##      proxy/connect.php
+##      proxy/serve.php
+##      proxy/index.htm
+##      admin/admin_proxy.php
+##      templates/subSilver/admin/proxy_main_body.tpl
+##      templates/subSilver/admin/proxy_test_body.tpl
+##      templates/subSilver/admin/proxy_list_body.tpl
+##      includes/functions_proxy.php
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##   Before I dive into the FAQ, I should mention that this MOD is disabled by default.  To 
+##   enable it, you will first have to successfully scan an IP address for proxies, via the
+##   ACP.  Once this is done, you can enable the MOD by selecting the appropriate checkbox.
+##
+##   Now on to the FAQ.  The questions posed are questions that people have actually asked.
+##   Some questions have, however, been slightly edited from the original, to make them
+##   stand better on their own, to make them convey the same intent without the use of
+##   bbcode, etc.
+##
+##   Q: onigumo asks "How likely is it that someone *might* happen to have open proxy
+##      enabled by default if he or she is using DSL?"
+##
+##   A: Not likely at all.  The problem with open proxies is that they allow anyone to
+##      use your network resources.  ISPs don't want this because they only want paying
+##      custmers to have access to their resources and because they don't want to be held
+##      liable for that which non-paying customers do.
+##
+##      Of course, despite the desires of ISPs, some legitimate users do have open proxy
+##      servers running on their machines.  In this case, viruses are most likely to blame.
+##      I say that because the chief goal of today's viruses are to create so-called
+##      "zombie computers" - computers through which spam can be sent and IP-based filters
+##      can be evaded.
+##
+##      However, even if that isn't the reason why they have an open proxy server running on
+##      their machine, it should be sufficient reason for you to deny their registration
+##      attempts for reasons already mentioned.
+##
+##   Q: tomcavboy3 asks "This mod will not work if you use them free proxy surf websites,
+##      such as http://proxy.guardster.com/ ?"
+##
+##   A: No - this MOD can only detect open HTTP proxies.  In fact, whether or not these
+##      "proxy surf" websites even qualify as proxies is up for debate.  Do a Google search
+##      for "proxy list".  The hits that Google returns aren't "proxy surf" websites - they're
+##      lists of open HTTP proxies.  Do a Google search for "proxy".  The hits that are returned
+##      are again for HTTP proxies - be they for the software used to operate one or lists of
+##      them.  Basically, when most people refer to a proxy, they aren't refering to a "proxy
+##      surf" website - they're refering to HTTP proxies.  So no - this MOD won't detect "open
+##      proxy" websites.
+##
+##      Besides, just because someone labels something as an open proxy doesn't mean it actually
+##      is.
+##
+##   Q: Lots of people ask "Why doesn't this MOD work?"
+##
+##   A: Did you enable the MOD in the ACP?  It's disabled by default and cannot be enabled until
+##      you have successfully scanned atleast one IP address.  If it still doesn't work,
+##      suggestions are provided in the Debug Information panel.  If none of these work, you can
+##      ask *me* for help.
+##
+##      I stress the *me* part because if there's a genuine problem with this MOD, it's going to
+##      be *me* who has to fix it.
+##
+##   Q: class101 asks "Do you really think it's decent to lose new members due to a hack bug ?"
+##
+##   A: Consider what happens when you install Ptirhiik's Categories Hierarchy MOD.  If there's
+##      a critical bug, the ENTIRE BOARD will be disabled.  In this MOD, ONLY registration will
+##      be disabled.
+##
+##      I used to think the latter would be preferable to the former.  I was wrong.  Board
+##      Administrators notice a board being disabled almost immediatly.  It may be weeks or
+##      months, however, before they notice that registration has been disabled.  By the time
+##      they do, they're pissed.  They don't care whether the fault was their own or not, and
+##      they don't care whether or not the problem can be fixed.  All they want is vengance -
+##      all they want is someone or something to blame.  So they blame me and this MOD.
+##
+##      So to answer the original question - no.  I don't, any longer, think its "decent".
+##      That's why the MOD is now disabled by default.
+##
+##      As for these supposed "hack bugs" - take a look at the additions to lang_admin.php.
+##      Take a look at the suggestions.  Most of these supposed "bugs" are things that I
+##      can do nothing about, save for what I've already done.
+##
+##      Besides, how do you think that list of suggestions was compiled, anyway?  From "bug"
+##      reports - reports on things that aren't really "bugs" in my MOD to begin with.
+##
+##   Anyway, that's the FAQ.  Additional information on what all can be done with this MOD can
+##   be found here:
+##   http://www.frostjedi.com/terra/wordpress/?p=3
+##
+##   A working stand-alone demo of the techniques used in this mod can be found here:
+##   http://www.frostjedi.com/terra/scripts/proxy.php
+##
+##   The latest version of this mod can be found here:
+##   http://www.frostjedi.com/terra/scripts/phpbb/proxy.zip
+##
+##   For support / comments / whatever, visit the following URL:
+##   http://www.frostjedi.com/phpbb/viewforum.php?f=33
+##
+############################################################## 
+## MOD History:
+##
+##   2005-10-21 - Version 2.2.1
+##      - fixed a bug preventing the MOD from being disabled (thanks, players_filter!)
+##      - $start_conditions no longer needs to be defined.
+##      - proxy/contrib/install.txt asked users to copy a non-existant file (thanks,
+##        players_filter!)
+##      - list($this->status, $this->port) has been replaced by something a little less
+##        ambigious (thanks, players_filter!)
+##      - connect.php now reports SQL errors.
+##      - The Debug Panel in the ACP is now open, by default, if a Connection Timeout
+##        error occured.
+##      - IP addresses whose tests weren't conclusive are now deleted every time a test
+##        is conducted.
+##      - The MOD is now disabled by default.  To enable it, you will first need to conduct
+##        a successful test of an IP address via the ACP.
+##      - replaced stream_set_timeout and stream_set_blocking calls in connect.php with calls to
+##        socket_set_timeout and socket_set_blocking (the latter work on PHP < 4.3.0, whereas the
+##        former don't)
+##      - added some more conditions to connect.php under which proxies are not scanned for.
+##      - renamed the status column of the phpbb_proxies table to behavior (status is a reserved word).
+##        those wishing to upgrade will need to do the following:
+##        ALTER TABLE phpbb_proxies CHANGE status behavior tinyint(2);
+##   2005-09-06 - Version 2.2.0
+##      - created a proxy class for easier maintenance / usage / etc.
+##      - replaced .2F% with .2f% (the former didn't work on PHP versions < 4.3.10 and < 5.0.3)
+##      - used gethostbynamel instead of gethostbyname in connect.php.  this is kinda
+##        necessary for round robin dns's (thanks, gEEk!)
+##      - cached data is reset when the ports are changed.  for a more detailed explanation
+##        as to why this is done, see the comments in admin_proxy.php
+##      - the "Click Here to return to the previous page" now uses the javascript history
+##        function instead of HTTP_GET_REFERER.
+##      - added $lang['proxy_sort'] to lang_admin.php
+##      - the Debug screen in the ACP can now be "closed" or "expanded".
+##      - when connection timeout errors occur, suggestions are now given in the afore mentioned
+##        Debug screen (these suggestions are based on problems I've helped others fix; if I get
+##        too many complaints about people not being able to register when the solution to their
+##        was presented in the ACP, I'll make it so the MOD can only be enabled *after* you've
+##        tested it via the ACP atleast once)
+##      - if using this MOD to block something other than registration attempts (be it login
+##        attempts or whatever), the "Registration attempt blocked" message can now be changed
+##        via the function call.  This also allows for multiple "blocked" messages.
+##      - added an Extended Configurator add-on.  With it, you can add DNSBL checks to the proxy
+##        checker in the ACP and you can change, via the ACP, the link that IP addresses point to
+##        in the proxy lists.
+##   2005-07-09 - Version 2.0.0
+##      - complete rewrite
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy admin/admin_proxy.php to admin/admin_proxy.php
+copy templates/subSilver/admin/proxy_main_body.tpl to templates/subSilver/admin/proxy_main_body.tpl
+copy templates/subSilver/admin/proxy_test_body.tpl to templates/subSilver/admin/proxy_test_body.tpl
+copy templates/subSilver/admin/proxy_list_body.tpl to templates/subSilver/admin/proxy_list_body.tpl
+copy includes/functions_proxy.php to includes/functions_proxy.php
+copy proxy/connect.php to proxy/connect.php
+copy proxy/serve.php to proxy/serve.php
+copy proxy/index.htm to proxy/index.htm
+#
+#-----[ SQL ]-------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('proxy_enable',2);
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('proxy_ban',0);
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('proxy_delay',1);
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('proxy_ports','005008fd0c3819bc1f401f90');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('proxy_cache_time',0);
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('proxy_block',1);
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('proxy_sort','last_checked,DESC');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('proxy_user_agent','phpBB Open Proxy Detector');
+CREATE TABLE phpbb_proxies (
+   ip_address char(8) DEFAULT '0' NOT NULL,
+   behavior tinyint(2) DEFAULT '0' NOT NULL,
+   port char(4) DEFAULT '0' NULL,
+   last_checked int(11) DEFAULT '0' NOT NULL,
+   PRIMARY KEY (ip_address)
+);
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+define('PROXY_TABLE', $table_prefix.'proxies');
+
+define('PROXY_ERROR',99);
+define('PROXY_TRANSPARE',65);
+define('PROXY_ANONYMOUS',66);
+define('PROXY_HIGH_ANON',67);
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['A_critical_error'] = 'A Critical Error Occurred';
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+$lang['proxy_detected'] = 'Open %s HTTP Proxy Server Detected on Port %d.';
+$lang['proxy_reg_block'] = 'Registration attempt blocked.';
+$lang['proxy_t0'] = 'Transparent';
+$lang['proxy_t1'] = 'Anonymous';
+$lang['proxy_t2'] = 'High Anonymity';
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+$lang['Install_No_PCRE']
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+$lang['proxy_title'] = 'Block Open Proxy Registrants';
+$lang['proxy_desc'] = 'This page will allow you to customize Block Open Proxy Registrants, to check individual IP addresses, and to view recently used proxies.';
+$lang['proxy_desc_list'] = 'Lists recently tested IP addresses.  Entries that specify a port number but not a proxy type represent IP addresses that were, during a prior test, open proxies.';
+$lang['proxy_desc_test'] = 'Scans for proxies on the specified ports.  Debug information can be found by clicking on the "Debug Information" text.';
+$lang['proxy_test'] = 'Check IP Address';
+$lang['proxy_test_desc'] = 'Checks whether or not an IP address of your chosing is a proxy using the current settings.  Can conduct checks even when Block Open Proxy Registrants has been disabled.';
+$lang['proxy_ip'] = 'IP Address';
+$lang['proxy_enable'] = 'Block Open Proxy Registrants';
+$lang['proxy_enable_desc'] = 'This MOD can only be enabled once a proxy has been successfully tested via the ACP.';
+$lang['proxy_ban'] = 'Ban Open Proxies';
+$lang['proxy_ban_explain'] = 'Bans IP addresses revealed to be open proxies.';
+$lang['proxy_timeout'] = 'Connection Timeout';
+$lang['proxy_timeout_explain'] = 'The larger the value, the more accurate proxy detection will be, but the longer the users attempting to register will have to wait.';
+$lang['proxy_seconds'] = 'seconds';
+$lang['proxy_minutes'] = 'minutes';
+$lang['proxy_hours'] = 'hours';
+$lang['proxy_days'] = 'days';
+$lang['proxy_weeks'] = 'weeks';
+$lang['proxy_months'] = 'months';
+$lang['proxy_years'] = 'years';
+$lang['proxy_type'] = 'Type';
+$lang['proxy_last_checked'] = 'Last Checked';
+$lang['proxy_port'] = 'Port';
+$lang['proxy_ports'] = 'Ports to scan';
+$lang['proxy_ports_explain'] = 'In theory, up to 64 ports can be simultaneously scanned, but in practice, the total number should be kept to a bare minimum.  Also, changing the ports that are to be scanned will reset the cached data.';
+$lang['proxy_cache_time'] = 'Cache Time';
+$lang['proxy_cache_time_explain'] = 'Determines how frequently the same IP address will be checked. Entering 0 will result in IP addresses never being checked twice.';
+$lang['proxy_user_agent'] = 'User Agent String';
+$lang['proxy_user_agent_explain'] = 'Determines how HTTP requests ought to identify themselves when attempting to connect to a proxy.';
+$lang['proxy_debug'] = 'Debug Information';
+$lang['proxy_settings'] = 'MOD Configuration';
+$lang['proxy_list_desc'] = 'Lists the three most recently confirmed proxies.';
+$lang['proxy_sample_http_1'] = 'Sample HTTP Request 1';
+$lang['proxy_sample_http_2'] = 'Sample HTTP Request 2';
+$lang['proxy_sample_sql'] = 'Sample SQL Query';
+$lang['proxy_exec_time'] = 'Execution Time';
+$lang['proxy_none'] = 'No Proxy Severs Detected.';
+$lang['proxy_connect_error'] = 'Unable to connect to %s to spawn processes<br /><b>Error %d</b>: %s';
+$lang['proxy_testing'] = 'Checking <b>%s</b>...';
+$lang['proxy_hostname'] = 'Hostname: <b>%s</b>';
+$lang['proxy_check'] = 'Check';
+$lang['proxy_view_list'] = 'View Complete List';
+$lang['proxy_deleted'] = '%s has been deleted.';
+$lang['proxy_download'] = 'Download As Text';
+$lang['proxy_return'] = 'Click %sHere%s to return to the previous page.';
+$lang['proxy_name'] = 'Block Open Proxies';
+$lang['proxy_show'] = 'Show';
+$lang['proxy_suggestions'] = 'Suggestions';
+$lang['proxy_error99'] = 'Just remove lines 26-32 in connect.php to bypass this problem.  The reason they\'re not removed by default is because they work on <i>most</i> servers and because without them, people could, in theory, use your servers resources to build their own proxy lists';
+$lang['proxy_error302'] = 'This error can occur when the domain name used by the board (domain.tld, as an example) redirects all requests to another domain (say www.domain.tld).  If this is the case, you will need to use the latter domain with phpBB - not the former.';
+$lang['proxy_error403'] = 'If you have configured the server (via .htaccess, or whatever) to restrict access to this directory, you\'ll need unrestrict access for this MOD to work.';
+$lang['proxy_error404'] = 'There are two possible solutions for this problem<blockquote>1. Create a proxy subdirectory and upload the appropriate files in it.<br />2. Replace all occurances of <i>trim($board_config[\'server_name\']))</i> with <i>127.0.0.1</i>.  The reason this isn\'t done by default is that it doesn\'t work on virtual hosts</blockquote>';
+$lang['proxy_error500'] = 'Your server is misconfigured.  Due to the multitude of ways in which it could be misconfigured, I can\'t really say much more than that...';
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+#
+if ( $mode == 'register' && !isset($HTTP_POST_VARS['agreed']) && !isset($HTTP_GET_VARS['agreed']) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+$start_conditions = $mode == 'register' && !$userdata['session_logged_in'];
+$check_conditions = isset($HTTP_POST_VARS['submit']);
+include_once($phpbb_root_path.'includes/functions_proxy.'.$phpEx);
+scan4proxies($user_ip, $lang['proxy_reg_block']);
+
+# 
+#-----[ DIY INSTRUCTIONS ]------------------------------  
+#
+This MOD is disabled by default.  To enable it, you will first have to conduct a successful test of an IP address, via the ACP.  Once this is done, you can enable the MOD by selecting the appropriate checkbox.
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

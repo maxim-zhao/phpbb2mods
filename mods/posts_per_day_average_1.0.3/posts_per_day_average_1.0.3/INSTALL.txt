@@ -1,0 +1,113 @@
+############################################################## 
+## MOD Title: Posts Per Day Average on Topic 
+## MOD Author: FuNEnD3R < admin@funender.com > ( Thomas Jonas ) http://www.funender.com 
+## MOD Description: This will display the total posts per day average underneath the user's avatar 
+## MOD Version: 1.0.3 
+## 
+## Installation Level: Easy 
+## Installation Time: 5 Minutes 
+## Files To Edit: viewtopic.php, viewtopic_body.tpl 
+## Included Files: N/A 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: You can visit the forums of www.funender.com for a demonstration
+## 
+############################################################## 
+## MOD History: 
+##
+##   2004-11-30 - 1.0.1 
+##      - First Release
+## 
+##   2004-12-22 - 1.0.2 
+##      - Slightly modified install file for easier installation
+##  
+##   2005-03-23 - 1.0.1 
+##      - Compatiable with phpBB 2.0.13
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+language/lang_english/lang_main.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+$lang['A_critical_error'] = 'A Critical Error Occurred'; 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+$lang['Post_per_day'] = 'Posts per day: '; 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+viewtopic.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+	$poster_joined = ( $postrow[$i]['user_id'] != ANONYMOUS ) ? $lang['Joined'] . ': ' . create_date($lang['DATE_FORMAT'], $postrow[$i]['user_regdate'], $board_config['board_timezone']) : '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+   $ppd_regdate = $postrow[$i]['user_regdate']; 
+   $ppd_memberdays = max(1, round( ( time() - $ppd_regdate ) / 86400 )); 
+   $posts_per_day = $lang['Post_per_day'] . round(($postrow[$i]['user_posts'] / $ppd_memberdays), 2) ;
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+      'RANK_IMAGE' => $rank_image, 
+      'POSTER_JOINED' => $poster_joined, 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+'POST_DAY_STATS' => $posts_per_day, 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+templates/subSilver/viewtopic_body.tpl
+ 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+<td width="150" align="left" valign="top" class="{postrow.ROW_CLASS}"><span class="name"><a name="{postrow.U_POST_ID}"></a><b>{postrow.POSTER_NAME}</b></span><br /><span class="postdetails">{postrow.POSTER_RANK}<br />{postrow.RANK_IMAGE}{postrow.POSTER_AVATAR}<br /><br />{postrow.POSTER_JOINED}<br />{postrow.POSTER_POSTS}<br />{postrow.POSTER_FROM}</span><br /></td> 
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+
+{postrow.POSTER_POSTS} 
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+
+<br />{postrow.POST_DAY_STATS}
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

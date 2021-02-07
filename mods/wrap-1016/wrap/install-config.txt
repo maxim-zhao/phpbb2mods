@@ -1,0 +1,499 @@
+##############################################################
+## MOD Title: Force Word Wrapping - Configurator
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/phpbb
+## MOD Description: Allows word wrap settings to be customized.  Installation
+##                  requires the basic Force Word Wrapping MOD already be installed.
+## MOD Version: 1.0.16
+##
+## Installation Level: Intermediate
+## Installation Time: 20 Minutes
+##
+## Files To Edit: 10
+##      language/lang_english/lang_main.php
+##      includes/usercp_register.php
+##      includes/usercp_avatar.php
+##      templates/subSilver/profile_add_body.tpl
+##      includes/bbcode.php
+##	admin/admin_users.php
+##	templates/subSilver/admin/user_edit_body.tpl
+##      language/lang_english/lang_admin.php
+##      admin/admin_board.php
+##      templates/subSilver/admin/board_config_body.tpl
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##     See Author Notes in install.txt.
+##
+############################################################## 
+## MOD History: 
+##
+##    See MOD History in install.txt.
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# STEP NUMBER I: Prepare phpBB
+#
+#-----[ SQL ]-------------------------------------------
+#
+ALTER TABLE phpbb_users ADD user_wordwrap SMALLINT(3) DEFAULT '70' NOT NULL;
+INSERT INTO `phpbb_config` (`config_name`, `config_value`) VALUES ('wrap_enable',1),
+	('wrap_min',50),('wrap_max',99),('wrap_def',70);
+
+#
+# STEP NUMBER II: Copy Files
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+# this is only a partial match
+#
+$lang['Board_style']
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+$lang['Word_Wrap'] = 'Screen Width';
+$lang['Word_Wrap_Explain'] = "This is the maximum line length of user's posts.";
+$lang['Word_Wrap_Extra'] = 'characters (range: %min% - %max% chars.)';
+$lang['Word_Wrap_Error'] = 'The post display width is out of range.';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$user_style = ( isset($HTTP_POST_VARS['style']) ) ? intval($HTTP_POST_VARS['style']) : $board_config['default_style'];
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	$user_wordwrap = ( isset($HTTP_POST_VARS['user_wordwrap']) ) ? intval($HTTP_POST_VARS['user_wordwrap']) : $board_config['wrap_def'];
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ( $website != '' )
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	if ( $user_wordwrap < $board_config['wrap_min'] || $user_wordwrap > $board_config['wrap_max'] )
+	{
+		$error = TRUE;
+		$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Word_Wrap_Error'];
+	}
+
+#
+#-----[ FIND ]------------------------------------------
+# this is only a partial match
+#
+SET " . $username_sql . $passwd_sql . 
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+user_lang = '" . str_replace("\'", "''", $user_lang) . 
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------
+#
+user_wordwrap = '" . str_replace("\'", "''", $user_wordwrap) . "', 
+
+#
+#-----[ FIND ]------------------------------------------
+# this is only a partial match
+#
+$sql = "INSERT INTO " . USERS_TABLE . "
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+user_lang,
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------
+#
+user_wordwrap, 
+
+#
+#-----[ FIND ]------------------------------------------
+# this is only a partial match.
+#
+VALUES ($user_id, '" . str_replace("\'", "''", $username)
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+ . "', '" . str_replace("\'", "''", $user_lang)
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------
+#
+ . "', '" . str_replace("\'", "''", $user_wordwrap)
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$user_lang = stripslashes($user_lang);
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	$user_wordwrap = stripslashes($user_wordwrap);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$user_lang = $userdata['user_lang'];
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	$user_wordwrap = $userdata['user_wordwrap'];
+
+#
+#-----[ FIND ]------------------------------------------
+# this is only a partial match
+#
+display_avatar_gallery($mode,
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+$user_lang,
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------
+#
+$user_wordwrap, 
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	//
+	// Let's do an overall check for settings/versions which would prevent
+	// us from doing file uploads....
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	if ( $board_config['wrap_enable'] )
+	{
+		$template->assign_block_vars('force_word_wrapping',array());
+	}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'LANGUAGE_SELECT' => language_select($user_lang, 'language'),
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+		'WRAP_ROW' => ( $mode == 'register' ) ? $board_config['wrap_def'] : $user_wordwrap,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_BOARD_LANGUAGE' => $lang['Board_lang'],
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+		'L_WORD_WRAP' => $lang['Word_Wrap'],
+		'L_WORD_WRAP_EXPLAIN' => $lang['Word_Wrap_Explain'],
+		'L_WORD_WRAP_EXTRA' => strtr($lang['Word_Wrap_Extra'],array('%min%' => $board_config['wrap_min'], '%max%' => $board_config['wrap_max'])),
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_avatar.php
+
+#
+#-----[ FIND ]------------------------------------------
+# this is only a partial match
+#
+function display_avatar_gallery($mode
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+ &$language,
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------
+#
+ &$wrap,
+
+#
+#-----[ FIND ]------------------------------------------
+# this is only a partial match
+#
+$params = array(
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+ 'language'
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------
+#
+ 'wrap',
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BOARD_LANGUAGE}:</span></td>
+	  <td class="row2"><span class="gensmall">{LANGUAGE_SELECT}</span></td>
+	</tr>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	<!-- BEGIN force_word_wrapping -->
+	<tr> 
+	  <td class="row1"><span class="gen">{L_WORD_WRAP}:</span><br /><span class="gensmall">{L_WORD_WRAP_EXPLAIN}</span></td>
+	  <td class="row2"><span class="gensmall"><input type="text" name="user_wordwrap" value="{WRAP_ROW}" size="2" maxlength="2" class="post" /> {L_WORD_WRAP_EXTRA}</span></td>
+	</tr>
+	<!-- END force_word_wrapping -->
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$userdata['user_wordwrap'] = 70;
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	global $userdata, $board_config;
+
+	if ( !$board_config['wrap_enable'] )
+	{
+		return $message;
+	}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$user_lang = ( $HTTP_POST_VARS['language'] ) ? $HTTP_POST_VARS['language'] : $board_config['default_lang'];
+
+#
+#-----[	BEFORE, ADD ]-----------------------------------
+#
+		$user_wordwrap = ( $HTTP_POST_VARS['user_wordwrap'] ) ? intval( $HTTP_POST_VARS['user_wordwrap'] ) : $board_config['wrap_def'];
+
+#
+#-----[ FIND ]------------------------------------------
+# this is only a partial match
+#
+SET " . $username_sql . $passwd_sql . 
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+user_lang = '" . str_replace("\'", "''", $user_lang) . 
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------
+#
+user_wordwrap = $user_wordwrap, 
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$user_lang = $this_userdata['user_lang'];
+
+#
+#-----[	BEFORE, ADD ]-----------------------------------
+#
+		$user_wordwrap = $this_userdata['user_wordwrap'];
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="language" value="' . $user_lang . '" />';
+
+#
+#-----[	BEFORE, ADD ]-----------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="wrap" value="' . $user_wordwrap .'" />';
+
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+			'LANGUAGE_SELECT' =>
+
+#
+#-----[	BEFORE, ADD ]-----------------------------------
+#
+			'WRAP_ROW' => $user_wordwrap,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'L_BOARD_LANGUAGE' => $lang['Board_lang'],
+
+#
+#-----[	BEFORE, ADD ]-----------------------------------
+#
+			'L_WORD_WRAP' => $lang['Word_Wrap'],
+			'L_WORD_WRAP_EXPLAIN' => $lang['Word_Wrap_Explain'],
+			'L_WORD_WRAP_EXTRA' => strtr($lang['Word_Wrap_Extra'],array('%min%' => $board_config['wrap_min'], '%max%' => $board_config['wrap_max'])),
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_BOARD_LANGUAGE}</span></td>
+	  <td class="row2">{LANGUAGE_SELECT}</td>
+	</tr>
+
+#
+#-----[	BEFORE, ADD ]-----------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_WORD_WRAP}:</span><br /><span class="gensmall">{L_WORD_WRAP_EXPLAIN}</span></td>
+	  <td class="row2"><span class="gensmall"><input type="text" name="user_wordwrap" value="{WRAP_ROW}" size="2" maxlength="2" class="post" /> {L_WORD_WRAP_EXTRA}</span></td>
+	</tr>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+$lang['Install_No_PCRE']
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+$lang['wrap_title'] = 'Force Word Wrapping';
+$lang['wrap_enable'] = 'Force Word Wrapping';
+$lang['wrap_min'] = 'Minimum Screen Width';
+$lang['wrap_max'] = 'Maximum Screen Width';
+$lang['wrap_def'] = 'Default Screen Width';
+$lang['wrap_units'] = 'characters';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$cookie_secure_yes = ( $new['cookie_secure'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[	BEFORE, ADD ]-----------------------------------
+#
+$wrap_enable_yes = ( $new['wrap_enable'] ) ? "checked=\"checked\"" : "";
+$wrap_enable_no = ( !$new['wrap_enable'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_COOKIE_SETTINGS" => $lang['Cookie_settings'], 
+
+#
+#-----[	BEFORE, ADD ]-----------------------------------
+#
+	"L_WRAP_TITLE" => $lang['wrap_title'],
+	"L_ENABLE_WRAP" => $lang['wrap_enable'],
+	"L_WRAP_MIN" => $lang['wrap_min'],
+	"L_WRAP_MAX" => $lang['wrap_max'],
+	"L_WRAP_DEF" => $lang['wrap_def'],
+	"L_WRAP_UNITS" => $lang['wrap_units'],
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"COOKIE_DOMAIN" => $new['cookie_domain'],
+
+#
+#-----[	BEFORE, ADD ]-----------------------------------
+#
+	"WRAP_ENABLE" => $wrap_enable_yes,
+	"WRAP_DISABLE" => $wrap_enable_no,
+	"WRAP_MIN" => $new['wrap_min'],
+	"WRAP_DEF" => $new['wrap_def'],
+	"WRAP_MAX" => $new['wrap_max'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_COOKIE_SETTINGS}</th>
+	</tr>
+
+#
+#-----[	BEFORE, ADD ]-----------------------------------
+#
+<!-- Start Force Word Wrapping -->
+	<tr>
+		<th class="thHead" colspan="2">{L_WRAP_TITLE}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_ENABLE_WRAP}</td>
+		<td class="row2"><input type="radio" name="wrap_enable" value="1" {WRAP_ENABLE} /> {L_ENABLED}&nbsp;&nbsp;<input type="radio" name="wrap_enable" value="0" {WRAP_DISABLE} /> {L_DISABLED}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_WRAP_MIN}</td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="3" name="wrap_min" value="{WRAP_MIN}" /> {L_WRAP_UNITS}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_WRAP_DEF}</td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="3" name="wrap_def" value="{WRAP_DEF}" /> {L_WRAP_UNITS}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_WRAP_MAX}</td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="3" name="wrap_max" value="{WRAP_MAX}" /> {L_WRAP_UNITS}</td>
+	</tr>
+<!-- End Force Word Wrapping -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

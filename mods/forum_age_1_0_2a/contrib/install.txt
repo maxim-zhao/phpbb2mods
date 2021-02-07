@@ -1,0 +1,405 @@
+##############################################################
+## MOD Title: Forum Age addon for Birthdays MOD
+## MOD Author: eviL3 < evil@phpbbmodders.net > (Igor Wiedler) http://phpbbmodders.net
+## MOD Description: Allows you to define what age is required to
+##                  view a certain forum. Requires the birthdays
+##                  MOD.
+##
+## MOD Version:      1.0.2
+##
+## Installation Level: Intermediate
+## Installation Time: 10 Minutes
+##
+## Files To Edit: index.php,
+##                posting.php,
+##                viewtopic.php,
+##                viewforum.php,
+##                admin/admin_forums.php,
+##                language/lang_english/lang_admin.php,
+##                language/lang_english/lang_main.php,
+##                templates/subSilver/index_body.tpl,
+##                templates/subSilver/admin/forum_edit_body.tpl
+##
+## Included Files:   n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## Credits of this MOD go to following people
+## Ramon Fincken - He gave me the Links as tipps for what to use
+## Doe Ray Me - He made the "View Forum Postcount Threshold" MOD, that i used as a Base for my own.
+## Thanks a lot for this MOD! But you didn't secure posting.php
+## Cyberalien - eXtreme Styles MOD is so awesome!
+## Terrafrost - Birthdays MOD rocks! Thanks so much!
+## RMcGirr83 - His "Profile Age Add-on" add-on for the birthday MOD was very usefull.
+## I borrowed a little piece of code.
+## filmn requested this MOD. ;)
+##
+## Following MODs are required for this to work
+## eXtreme Styles: http://phpbbstyles.com/viewtopic.php?t=356
+## Birthdays MOD: http://www.phpbb.com/phpBB/viewtopic.php?t=342028
+## XS-Birthdays compatibility: http://www.phpbb.com/phpBB/viewtopic.php?p=2107785#2107785
+##
+## You can get support either at phpbb.com or at phpbbmodders.net
+##
+##############################################################
+## MOD History:
+##
+##   2006-06-13 - Version 0.1.0
+##      - First release
+##
+##   2006-06-19 - Version 0.1.1
+##      - Fix for no birthdate entered (thanks to Sam England, the admin of ivirtua)
+##
+##   2006-09-24 - Version 1.0.0
+##      - Submitted to MODDB
+##
+##   2006-11-23 - Version 1.0.1
+##      - Cleaned up
+##      - Small bug fixed (thanks tariqkhan)
+##
+##   2006-11-23 - Version 1.0.2
+##      - How about MODx?
+##
+##   2007-02-07 - Version 1.0.3a
+##      - Changed SQL to SMALLINT(4)
+##      - Enhanced permissions (as suggested by MOD team)
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+
+ALTER TABLE phpbb_forums ADD forum_view_age SMALLINT(4) NOT NULL default '0';
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+							$posts = $forum_data[$j]['forum_posts'];
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+							if ( $forum_data[$j]['forum_view_age'] && (!$is_auth_ary[$forum_data[$i]['forum_id']]['auth_mod']) )
+							{
+								$bday_month_day = floor($userdata['user_birthday'] / 10000);
+								$bday_year_age = $userdata['user_birthday'] - 10000*$bday_month_day;
+								$fudge = ( gmdate('md') < $bday_month_day ) ? 1 : 0;
+								$age = ( $bday_year_age ) ? (gmdate('Y')-$bday_year_age-$fudge) : '0';
+
+								if ($age < $forum_data[$j]['forum_view_age'] || !$age)
+								{
+									$age_hidden = 1;
+								}
+							}
+							else
+							{
+								$age_hidden = 0;
+							}
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+								'L_FORUM_FOLDER_ALT' => $folder_alt,
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+								'AGE_HIDDEN' => $age_hidden,
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// The user is not authed, if they're not logged in then redirect
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+$forum_view_age = $post_info['forum_view_age'];
+
+$bday_month_day = floor($userdata['user_birthday'] / 10000);
+$bday_year_age = $userdata['user_birthday'] - 10000*$bday_month_day;
+$fudge = ( gmdate('md') < $bday_month_day ) ? 1 : 0;
+$age = ( $bday_year_age ) ? (gmdate('Y')-$bday_year_age-$fudge) : '0';
+
+if ( (($age < $forum_view_age || !$age) && $userdata['user_level'] != ADMIN) && $forum_view_age )
+{
+        message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view_age));
+
+        // Added because of registered user and guest conflict
+        if (!$userdata['session_logged_in'])
+        {
+                 message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view_age));
+        }
+}
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+$sql = "SELECT t.topic_id,
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, f.forum_id
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, f.forum_view_age
+#
+#-----[ FIND ]------------------------------------------------
+#
+$topic_time = $forum_topic_data['topic_time'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+$forum_view_age = $forum_topic_data['forum_view_age'];
+
+$bday_month_day = floor($userdata['user_birthday'] / 10000);
+$bday_year_age = $userdata['user_birthday'] - 10000*$bday_month_day;
+$fudge = ( gmdate('md') < $bday_month_day ) ? 1 : 0;
+$age = ( $bday_year_age ) ? (gmdate('Y')-$bday_year_age-$fudge) : '0';
+
+if ( $forum_view_age && ($age < $forum_view_age || !$age) && $userdata['user_level'] != ADMIN )
+{
+        message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view_age));
+
+        // Added because of registered user and guest conflict
+        if (!$userdata['session_logged_in'])
+        {
+                 message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view_age));
+        }
+}
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+// End session management
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+$sql = "SELECT forum_view_age 
+        FROM " . FORUMS_TABLE . "
+        WHERE forum_id = $forum_id";
+if(!$result = $db->sql_query($sql))
+{
+        message_die(GENERAL_ERROR, 'Could not query forum information.', '', __LINE__, __FILE__, $sql);
+}
+$forum_information = $db->sql_fetchrow($result);
+$forum_view = $forum_information['forum_view_age'];
+
+$bday_month_day = floor($userdata['user_birthday'] / 10000);
+$bday_year_age = $userdata['user_birthday'] - 10000*$bday_month_day;
+$fudge = ( gmdate('md') < $bday_month_day ) ? 1 : 0;
+$age = ( $bday_year_age ) ? (gmdate('Y')-$bday_year_age-$fudge) : '0';
+
+if ( $forum_view && ($age < $forum_view || !$age) && $userdata['user_level'] != ADMIN )
+{
+        message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view));
+
+        // Added because of registered user and guest conflict
+        if (!$userdata['session_logged_in'])
+        {
+                 message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view));
+        }
+}
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_forums.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$forumstatus = $row['forum_status'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+				$forumviewage = $row['forum_view_age'];
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$forumstatus = FORUM_UNLOCKED;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+				$forumviewage = '';
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				'L_FORUM_STATUS' => $lang['Forum_status'],
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+				'L_FORUM_VIEW_AGE' => $lang['Forum_view_age'],
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				'FORUM_NAME' => $forumname,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+				'FORUM_VIEW_AGE' => $forumviewage,
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "INSERT INTO " . FORUMS_TABLE
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+forum_status
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, forum_view_age
+#
+#-----[ FIND ]------------------------------------------
+#
+VALUES ('" . $next_id .
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+" . intval($HTTP_POST_VARS['forumstatus']) . "
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, " . intval($HTTP_POST_VARS['forumviewage']) . "
+#
+#-----[ FIND ]------------------------------------------
+#
+SET forum_name
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+, forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . "
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, forum_view_age = " . intval($HTTP_POST_VARS['forumviewage']) . "
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['Forum_status'] = 'Forum status';
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+$lang['Forum_view_age'] = 'Required Age';
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+$lang['Forum_view_age_sorry'] = 'Sorry, you need to be <b>%d Years old</b> to view this forum';
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/index_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+<!-- BEGIN forumrow -->
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+<!-- IF ! forumrow.AGE_HIDDEN -->
+#
+#-----[ FIND ]------------------------------------------------
+#
+<!-- END forumrow -->
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- ENDIF -->
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/forum_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr> 
+		<td class="row1">{L_FORUM_STATUS}</td>
+		<td class="row2"><select name="forumstatus">{S_STATUS_LIST}</select></td>
+	</tr>
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+	<tr> 
+		<td class="row1">{L_FORUM_VIEW_AGE}</td>
+		<td class="row2"><input type="text" size="25" name="forumviewage" value="{FORUM_VIEW_AGE}" class="post" /></td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

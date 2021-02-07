@@ -1,0 +1,345 @@
+##############################################################
+## MOD Title: Quick Administrator User Options and Information
+## MOD Author: pentapenguin < pentapenguin@bluebottle.com > (Jeremy Conley) http://www.pentapenguin.com
+## MOD Description: This MOD will add "Edit User's Profile" and "Edit User's Permissions" links in the view profile page  
+## along with if the user is active (activated), if the user has been banned, or if the user's email has been banned.
+## MOD Version: 1.0.0
+## Installation Level: Easy
+## Installation Time:  10 Minutes
+## Files To Edit: 6
+## admin/admin_users.php
+## admin/admin_ug_auth.php
+## includes/usercp_viewprofile.php
+## language/lang_english/lang_admin.php
+## language/lang_english/lang_main.php
+## templates/subSilver/profile_add_body.tpl
+##
+## Included Files: n/a
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## Instructions for use: if you are an admin, just go to a user's profile and you will see the new information at the bottom.
+##
+## This MOD is EasyMOD friendly! (http://area51.phpbb.com/phpBB/viewforum.php?sid=&f=17)
+##
+## For additional language and style downloads, please visit http://www.pentapenguin.com/forum/viewtopic.php?t=1441
+##
+## Optional step: if you have CyberAlien's eXtreme Styles MOD (http://www.phpbb.com/phpBB/viewtopic.php?t=125251),
+## you can copy the file in contrib/admin/xs_quick_admin_options.cfg to admin/xs_quick_admin_options.cfg and you will
+## be automatically notified if there's an update available when you use the "check for updates" function. 
+##############################################################
+## MOD History:
+##   2005-11-07 - Version 1.0.0
+##      - Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+else
+{
+	$mode = '';
+}
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Start Quick Administrator User Options and Information MOD
+if ( isset( $HTTP_POST_VARS['returntoprofile'] ) || isset( $HTTP_GET_VARS['returntoprofile'] ) )
+{
+	$return_to_profile = ( isset( $HTTP_POST_VARS['returntoprofile'] ) ) ? $HTTP_POST_VARS['returntoprofile'] : $HTTP_GET_VARS['returntoprofile'];
+	$return_to_profile = intval($return_to_profile);
+}
+
+else
+{
+	$return_to_profile = 0;
+}
+// End Quick Administrator User Options and Information MOD
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$message .= '<br /><br />' . sprintf($lang['Click_return_useradmin'], '<a href="' . append_sid("admin_users.$phpEx") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_admin_index'], '<a href="' . append_sid("index.$phpEx?pane=right") . '">', '</a>');
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			// Start Quick Administrator User Options and Information MOD
+			if ( $return_to_profile )
+			{
+				$message = $lang['Admin_user_updated'] . '<br /><br />' . sprintf($lang['Click_return_userprofile'], '<a href="' . append_sid("../profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$user_id") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_admin_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+			}
+			// End Quick Administrator User Options and Information MOD
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$s_hidden_fields .= '<input type="hidden" name="id" value="' . $this_userdata['user_id'] . '" />';
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		// Start Quick Administrator User Options and Information MOD
+		$s_hidden_fields .= '<input type="hidden" name="returntoprofile" value="' . $return_to_profile .'" />';
+		// End Quick Administrator User Options and Information MOD
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_ug_auth.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$mode = htmlspecialchars($mode);
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Start Quick Administrator User Options and Information MOD
+if( isset( $HTTP_POST_VARS['returntoprofile'] ) || isset( $HTTP_GET_VARS['returntoprofile'] ) )
+{
+	$return_to_profile = ( isset( $HTTP_POST_VARS['returntoprofile'] ) ) ? $HTTP_POST_VARS['returntoprofile'] : $HTTP_GET_VARS['returntoprofile'];
+	$return_to_profile = intval($return_to_profile);
+}
+
+else
+{
+	$return_to_profile = 0;
+}
+// End Quick Administrator User Options and Information MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		message_die(GENERAL_MESSAGE, $message);
+	}
+}
+else if ( ( $mode == 'user' && ( isset($HTTP_POST_VARS['username']) || $user_id ) ) || ( $mode == 'group' && $group_id ) )
+
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+		// Start Quick Administrator User Options and Information MOD
+		if( $return_to_profile )
+		{
+			$message = $lang['Auth_updated'] . '<br /><br />' . sprintf($lang['Click_return_userprofile'], '<a href="' . append_sid("../profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$user_id") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_admin_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+		}
+		// End Quick Administrator User Options and Information MOD
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$s_hidden_fields .= ( $mode == 'user' ) ? '<input type="hidden" name="' . POST_USERS_URL . '" value="' . $user_id . '" />' : '<input type="hidden" name="' . POST_GROUPS_URL . '" value="' . $group_id . '" />';
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	// Start Quick Administrator User Options and Information MOD
+	$s_hidden_fields .= '<input type="hidden" name="returntoprofile" value="' . $return_to_profile .'" />';
+	// End Quick Administrator User Options and Information MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->pparse('body');
+
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+// Start Quick Administrator User Options and Information MOD
+if ( $userdata['user_level'] == ADMIN )
+{
+	$template->assign_block_vars('switch_user_admin', array());
+
+	$sql = 'SELECT ban_userid   
+		FROM ' . BANLIST_TABLE . ' 
+		WHERE ban_userid = ' . $profiledata['user_id'];
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not look up banned status', '', __LINE__, __FILE__, $sql);
+	}
+	
+	if ( $row = $db->sql_fetchrow($result) )
+	{
+		$banned_username = $row['ban_userid'];
+	}
+	
+	$db->sql_freeresult($result);
+	
+	$sql = 'SELECT ban_email  
+		FROM ' . BANLIST_TABLE . ' 
+		WHERE ban_email = "' . $profiledata['user_email'] . '"';
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not look up banned status', '', __LINE__, __FILE__, $sql);
+	}
+	
+	if ( $row = $db->sql_fetchrow($result) )
+	{
+		$banned_email = $row['ban_email'];
+	}
+
+	$db->sql_freeresult($result);
+	
+	if ( $userdata['session_admin'] )
+	{
+		$u_edit_profile = "admin/admin_users.$phpEx?" . POST_USERS_URL . '=' . $profiledata['user_id'] . '&amp;mode=edit&amp;returntoprofile=1&amp;sid=' . $userdata['session_id'];
+		$u_edit_permissions = "admin/admin_ug_auth.$phpEx?" . POST_USERS_URL . '=' . $profiledata['user_id'] . '&amp;mode=user&amp;returntoprofile=1&amp;sid=' . $userdata['session_id'];
+	}
+	
+	else
+	{
+		$u_edit_profile = append_sid("login.$phpEx?redirect=admin/admin_users.$phpEx&amp;" . POST_USERS_URL . '=' . $profiledata['user_id'] . '&amp;mode=edit&amp;returntoprofile=1&amp;admin=1');
+		$u_edit_permissions = append_sid("login.$phpEx?redirect=admin/admin_ug_auth.$phpEx&amp;" . POST_USERS_URL . '=' . $profiledata['user_id'] . '&amp;mode=user&amp;returntoprofile=1&amp;admin=1');
+	}
+	
+	$template->assign_vars(array(
+		'L_QUICK_ADMIN_OPTIONS' => $lang['Quick_admin_options'],
+		'L_ADMIN_EDIT_PROFILE' => $lang['Admin_edit_profile'],
+		'L_ADMIN_EDIT_PERMISSIONS' => $lang['Admin_edit_permissions'],
+		'L_USER_ACTIVE_INACTIVE' => ( $profiledata['user_active'] ) ? $lang['User_active'] : $lang['User_not_active'],
+		'L_BANNED_USERNAME' => ( $banned_username ) ? $lang['Username_banned'] : $lang['Username_not_banned'],
+		'L_BANNED_EMAIL' => ( $banned_email ) ? sprintf($lang['User_email_banned'], $profiledata['user_email']) : $lang['User_email_not_banned'],
+	
+		'U_ADMIN_EDIT_PROFILE' => $u_edit_profile,
+		'U_ADMIN_EDIT_PERMISSIONS' => $u_edit_permissions,
+	));
+}
+// End Quick Administrator User Options and Information MOD
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Note: the full line to find on a fresh phpBB installation is: $lang['Click_return_useradmin'] = 'Click %sHere%s to return to User Administration';
+#
+$lang['Click_return_useradmin'] 
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Start Quick Administrator User Options and Information MOD
+$lang['Click_return_userprofile'] = 'Click %sHere%s to return to the user\'s profile';
+// End Quick Administrator User Options and Information MOD
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Note: the full line to find on a fresh phpBB installation is: $lang['About_user'] = 'All about %s'; // %s is username
+#
+$lang['About_user']
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Start Quick Administrator User Options and Information MOD
+$lang['Quick_admin_options'] = 'Quick Administrator User Options and Information';
+$lang['Admin_edit_profile'] = 'Edit User\'s Profile';
+$lang['Admin_edit_permissions'] = 'Edit User\'s Permissions';
+$lang['User_active'] = 'User <b>is</b> active';
+$lang['User_not_active'] = 'User <b>is not</b> active';
+$lang['Username_banned'] = 'Username <b>is</b> banned';
+$lang['Username_not_banned'] = 'Username <b>is not</b> banned';
+$lang['User_email_banned'] = 'User\'s email [ %s ] <b>is</b> banned'; // %s is email
+$lang['User_email_not_banned'] = 'User\'s email <b>is not</b> banned';
+// End Quick Administrator User Options and Information MOD
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		  //--></script><noscript>{ICQ_IMG}</noscript></td>
+		</tr>
+	  </table>
+	</td>
+  </tr>
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	<!-- BEGIN switch_user_admin -->
+	<tr> 
+		<th class="thHead" colspan="2" height="25" nowrap="nowrap">{L_QUICK_ADMIN_OPTIONS}</th>
+	</tr>
+	<tr>
+		<td class="row1" colspan="2" align="center"><span class="gen"><a href="{U_ADMIN_EDIT_PROFILE}">{L_ADMIN_EDIT_PROFILE}</a> || <a href="{U_ADMIN_EDIT_PERMISSIONS}">{L_ADMIN_EDIT_PERMISSIONS}</a> || {L_USER_ACTIVE_INACTIVE} || {L_BANNED_USERNAME} || {L_BANNED_EMAIL}</span></td>
+	</tr>
+	<!-- END switch_user_admin -->
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

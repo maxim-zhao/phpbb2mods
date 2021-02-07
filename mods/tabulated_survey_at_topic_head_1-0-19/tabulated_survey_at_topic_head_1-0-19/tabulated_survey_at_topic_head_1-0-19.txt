@@ -1,0 +1,1986 @@
+##############################################################
+## MOD Title:		Tabulated survey at topic head
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Description:	Allow users who are entitled to post polls to design surveys that will appear at the top of a topic.  Users will be able to
+##			respond to the survey by clicking a button...each user response will appear at the topic head
+##
+## MOD Version:		1.0.19
+##
+## Installation Level:	Easy
+## Installation Time:	20 Minutes ( 1 minute with easymod)
+##
+## Files To Edit:	posting.php
+##			viewforum.php
+##			viewtopic.php
+##			includes/constants.php
+##			includes/functions_post.php
+##			language/lang_english/lang_main.php
+##			templates/subSilver/posting_body.tpl
+##			templates/subSilver/viewtopic_body.tpl
+##
+## Included Files:	survey.php
+##			survey_posting_body.tpl
+##			survey_result_viewtopic.tpl
+##			survey_answer.tpl
+##			fill_out_survey.gif
+##			change_survey_answers.gif
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:	1. If you use my save posts as drafts mod, you need to make the following
+##			additional changes in order to make this mod work on drafts:
+##
+##			OPEN
+##			includes/functions_post.php
+##
+##			FIND
+##						if ( $topic_vote == 1 )
+##						{
+##							$sql = "UPDATE " . VOTE_DESC_TABLE . "
+##								SET topic_id = $topic_id
+##								WHERE topic_id = $relevant_topic_id";
+##							if (!$db->sql_query($sql))
+##							{
+##								message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+##							}
+##						}
+##
+##			AFTER, ADD
+##			// start mod survey at topic head...if the new topic has a survey we change the survey table so that it points to the new post
+##						$sql = "UPDATE " . SURVEY_TABLE . "
+##							SET topic_id = $topic_id
+##							WHERE survey_id = $relevant_topic_id";
+##						if (!$db->sql_query($sql))
+##						{
+##							message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+##						}
+##			// end mod survey at topic head
+##
+##
+##			In addition, you need to change the FIND below that reads:
+##			$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE . "
+##
+##			so that it instead reads
+##			$sql  = ( ($mode != "editpost") || ($was_a_draft && !$save_as_draft && $post_data['first_post']) ) ?
+##
+##			#######################################################
+##
+##			2. If you have installed my clone posts mod and want to use it to clone posts with surveys, you will need
+##			to upgrade to version 1.0.3a or higher of that mod and then make
+##			the additional changes described in the author's notes to that mod
+##
+##			#######################################################
+##
+##			3. This mod will allow anyone who is authorized to post polls to post surveys.
+##			If you want to change things so that the only users who can create surveys in a forum are ADMINS and moderators of the foruma, make this change:
+##
+##			OPEN
+##			posting.php
+##
+##			FIND
+##			if( ( $mode == 'newtopic' || $post_data['first_post'] ) && $is_auth['auth_pollcreate'] )
+##
+##			REPLACE WITH
+##			if( ( $mode == 'newtopic' || $post_data['first_post'] ) && $is_auth['auth_mod'] )
+##
+##
+##			But if you instead want to empower the admin to set survey creation permissions in the ACP
+##			in the same way the admin can fine tune permissions for other phpbb actions, install the
+##			mod in the contrib folder called "mod to allow admin to set survey creation permissions in ACP.txt"
+##
+##			#######################################################
+##
+##			4. If you don't want fill out survey buttons at the bottom of viewtopic for any topic that has a survey in it,
+##			leave out the second FIND/REPLACE for viewtopic_body.tpl (the one that adds a switch called switch_include_fill_in_button)
+##
+##			#######################################################
+##
+##			5. If you don't want ADMINs to have the power to fill out the survey for other users, leave out the 5 lines in
+##			survey_results_viewtopic.tpl that add switch_include_fill_out_for_other_user_button.
+##
+##			#######################################################
+##
+##			6. For a general description of how users should use this mod, see the file called readme.html that appears in the contrib folder.
+##
+##############################################################
+## MOD History:
+##
+##   2006-11-19	- Version 1.0.19
+##		  no change in functionality; small changes required for validation
+##
+##   2006-07-21	- Version 1.0.18
+##		  added an option for survey designers to specify "multiple choice checkboxes" questions
+##		  that allow users to select more than one of the choices
+##
+##		  added code that automatically changes to '/' any '|' that a survey designer includes in a 
+##		  question or selection choice or that a user answering a survey inputs in a text answer
+##		  so that the mod won't mistakenly think the '|' signals the end of the question or answer 
+##		  and the beginning of another question or answer (since this mod uses '|' to separate 
+##		  questions from each other and answers from each other)
+##
+##		  added code that prevents script from thinking htmlspecialchars (<, >, &, '. ") appearing 
+##		  in checkbox, radio button or drop down menu selections indicate a new selection 
+##		  (those htmlspecialchars are translated as things like &amp; and the semicolon at the end 
+##		  was, before this fix, incorrectly taken to mean a new selection was starting
+##
+##		  updated the readme to refer to multiple choice checkboxes
+##
+##   2006-05-20	- Version 1.0.17 (a minor upgrade)
+##		  small bug fix to fix the way response caps work when you are totalling a question by
+##		  total responses matching a specified text
+##
+##   2005-12-10	- Version 1.0.16 (a minor upgrade)
+##		  changed 'all users' selection to 'all registered users' (allowing unregistered users to take surveys makes
+##		  no sense since any unregistered user could vote multiple times in a single survey)
+##
+##		  added a mod to the mod in the contrib folder that will allow admin to set survey creation permissions in ACP
+##		  in the same way the admin can fine tune permissions for other phpbb actions
+##
+##		  updated the readme that appears in the contrib folder
+##
+##   2005-11-20	- Version 1.0.15
+##		  fixed another error that prevented second fill-in survey button (the one next to the reply button) from working
+##
+##		  fixed error to ensure that only users who are active in a group taking a survey will be able to take the survey
+##		  (previously, anyone whose membership in a group was pending would be able to take a survey open to that group)
+##
+##		  added option survey designer can select to specify whether users are allowed to change their answers in a given survey
+##
+##		  added code to assure that even if a board has a cache mod of some sort installed, the text that reads 'nonresponder' and 'total'
+##		  will only appear if the survey specifies that nonresponders or totals should be shown.
+##
+##   2005-10-31	- Version 1.0.14a
+##		  no changes...same exact mod, but changed the mod install script to dovetail with changes made to phpbb 2.0.18;
+##		  if you already have version 1.0.14 of this mod working on your board and you upgrade your board to phpbb 2.0.18
+##		  then you are already running version 1.0.14a of this mod and there are no changes you need to make
+##
+##   2005-10-08	- Version 1.0.14
+##		  fixed errors that (a) prevented second fill-in survey button (the one next to the reply button)
+##		  from working and (b) prevented the option to omit responder names from working properly
+##
+##   2005-08-28	- Version 1.0.13
+##		  added option to have survey close after ___ days (just like the option to have a poll close)
+##
+##   2005-07-30	- Version 1.0.12
+##		  added ability of admin to retrieve another user's answers (rather than starting from scratch) when
+##		  answering for another user;
+##
+##		  changed response cap lookup so that only users currently in one of the
+##		  groups taking the survey are counted against the caps (so if a user responds to a survey and then gets
+##		  moved out of the groups allowed to take that survey his responses no longer count against the cap);
+##
+##		  added test to make sure that if someone opens a survey answer form before a response cap for a question
+##		  has been hit and then another user answers a question so that the response cap for that question has
+##		  now been hit and the first user then tries to answer that question (a fairly rare occurance!), he will
+##		  be told that the cap has been hit and he should try again;
+##
+##		  made various other miscellaneous changes that did not change functionality (including changing
+##		  templates to assure xhtml compliance, changing sort by first answer code so that it uses code
+##		  that works with mssql (the previous version worked right with mysql but not mssql),
+##		  modifiying code to ensure consistent use of constants throughout and a re-write of survey.php
+##		  to improve efficiency of code)
+##
+##   2005-07-15	- Version 1.0.11a
+##		  fixed typo that caused the first nonresponder to be omitted when the survey lists nonresponders.
+##
+##   2005-07-10	- Version 1.0.11
+##		  added option to average responses rather than totalling them (including ability to specify number of
+##		  digits to round to when averaging);
+##
+##		  fixed error that would skip zero entries rather than adding them in totals
+##
+##		  changed lists of responders and nonresponders so that each
+##		  appears as a link to his or her profile (so that it is easy to pm anyone on those lists);
+##
+##		  added option to have more than 8 questions (but note that having more than 8 questions will
+##		  result in a page width for the topic that is beyond the width of the user's monitor; as a
+##		  result the topic page will have a horizontal scroll bar);
+##
+##		  alphabetized the lines this mod adds to lang_main.php so that it is easier to find them;
+##
+##		  conformed survey explanation (in lang_main.php) and the readme.html file (i.e. the user's manual
+##		  for the survey mod) to pick up changes made in this version
+##
+##   2005-06-13	- Version 1.0.10
+##		  changed posting.php so that if a survey designer leaves out the survey caption but completes one or more questions,
+##		  the survey will get stored
+##
+##		  added flexibility to include a subsilver fill-in survey or change survey answer button next to the reply button
+##		  at the bottom of viewtopic so that it is less likely that users will try to answer the survey question by hitting 'reply'
+##		  (leave out the changes to viewtopic_body.tpl that add switch_include_fill_in_button if you don't want these buttons)
+##
+##		  added a new button in the survey results block that appears on the top of viewtopic for any ADMIN that allows the ADMIN
+##		  to fill in the survey for any other user who can't figure it out; if you don't want this change, leave out the
+##		  lines in survey_result_viewtopic.tpl that read:
+##
+##		  <!-- BEGIN switch_include_fill_out_for_other_user_button -->
+##		    <tr>
+##			<td align="center">{S_HIDDEN_FIELDS}<input type="submit" name="fill_out_for_other_user" value="{L_FILL_OUT_FOR_OTHER_USER}" class="mainoption" /></td>
+##		    </tr>
+##		  <!-- END switch_include_fill_out_for_other_user_button -->
+##
+##		  Changed text of $lang['If_selections'] in language/lang_english/lang_main.php to clarify that survey designer can start a drop down menu list of
+##		  selections with a semicolon in order for the users to have the option not to answer anything to a drop down menu question; made small
+##		  changer in $lang['Cap_response'].
+##
+##   2005-05-07	- Version 1.0.9
+##		  added options to show nonresponders in a centered or left justified column or a centered or left justified comma separated list
+##
+##		  added option to specify (in pixels) a maximum height for the survey display box in viewtopic; if the survey is taller than that, it will
+##		  automatically insert scroll bars.  Note that IE does not currently support the 'max-height' style element and for that reason if you specify
+##		  a height that in fact is taller than the survey box needs, a survey box with some blank space will be seen (for example,
+##		  if you specify the survey box cannot be more than 1000 pixels and the survey in fact is only 500 pixels, the box will take up 500
+##		  pixels in firefox or mozilla but will show the enire 100 pixels with empty lines at the bottom when seen in IE.  For this reason, it's
+##		  best to specify max heights that are smaller than the size the survey box takes up so that there never is any skipped lines.
+##
+##   2005-04-26	- Version 1.0.8
+##		  Fixed problem that reulted in design survey form not being fully displayed in preview if there is not survey caption filled in.
+##
+##		  Changed language text describing sort options to be more self-explanatory
+##
+##   2005-04-25	- Version 1.0.7
+##		  added option for survey designer to choose for answers to get single, double or triple spaced;
+##
+##		  added code so that topics with surveys in them get marked as '[ Survey ]' in viewforum (just like Polls get marked
+##		  '[ Polls ]');
+##
+##		  Moved some text that appeared in a template to lang_eng so that people who run their board with languages other than
+##		  English will be able to translate the text without going into that template;
+##
+##		  Changed the survey explanation text so that it correctly says you can ask up to eight questions;
+##
+##		  Added test in survey.php that checks to see if user has already got a response in a given survey
+##		  (in order to assure that a user doesn't inadvertently submit his survey answers twice).
+##
+##   2005-04-04	- Version 1.0.6
+##		  Preserves skipped lines in questions, answers and survey captions
+##
+##   2005-03-24	- Version 1.0.5
+##		  Minor changes, mostly to protect against sql injection risk.  No changes in functionality
+##
+##   2005-03-19	- Version 1.0.4
+##		  Added option to leave out the username column; changed max number of questions from 7 to 8;
+##		  fixed behavior when survey is designed to be taken by 'all users'; changed the text that the person
+##		  designing a survey sees when he is desinging the survey
+##
+##   2005-03-08	- Version 1.0.3
+##		  Added protection against double submission of survey answers when user quickly clicks submit twice; fixed sort by first answer so that it
+##		  looks only at the first answer and then alphabetizes; added reverse sort by first answer
+##
+##   2005-02-28	- Version 1.0.2
+##		  In the design survey form, added option to sort the tabulated results by first answer with secondary sort by username.
+##		  Also changed things so that anyone who is authorized to post a poll will be authorized to post a survey (but it's easy to change this
+##		  back so that only admins are authorized to post surveys if you want).
+##
+##   2005-02-26	- Version 1.0.1
+##		  initial version...still need to build in that previeiwng a post does not kill a new survey in that post, and
+##		  still need to add code so that you can use the delete survey function and, if you delete a post with a survey in it,
+##		  it will delete the survey and survey answer info tied to that post.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_topics
+ADD topic_survey TINYINT(1) UNSIGNED DEFAULT '0' NOT NULL;
+
+CREATE TABLE phpbb_survey (
+survey_id MEDIUMINT(8) UNSIGNED NOT NULL AUTO_INCREMENT,
+survey_caption TEXT NOT NULL,
+group_ids TEXT NOT NULL,
+topic_id MEDIUMINT(8) UNSIGNED NOT NULL,
+show_order TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+show_nonresponders TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
+max_number_of_questions TINYINT(1) UNSIGNED NOT NULL DEFAULT '8',
+survey_start INT(11) UNSIGNED NOT NULL DEFAULT '0',
+survey_length INT(11) UNSIGNED NOT NULL DEFAULT '0',
+lines_to_skip TINYINT(1) UNSIGNED NOT NULL DEFAULT '1',
+allow_change_answers TINYINT(1) UNSIGNED NOT NULL DEFAULT '1',
+survey_height SMALLINT(1) UNSIGNED NOT NULL DEFAULT '0',
+widths TEXT NOT NULL,
+questions TEXT NOT NULL,
+question_types TEXT NOT NULL,
+question_selections TEXT NOT NULL,
+question_sums TEXT NOT NULL,
+question_selected_text TEXT NOT NULL,
+question_average_round TEXT NOT NULL,
+question_response_caps TEXT NOT NULL,
+PRIMARY KEY (`survey_id`)
+);
+
+CREATE TABLE phpbb_survey_answers (
+survey_id MEDIUMINT(8) UNSIGNED NOT NULL,
+user_id MEDIUMINT(8) UNSIGNED NOT NULL,
+response_order MEDIUMINT(8) UNSIGNED NOT NULL,
+answers TEXT NOT NULL,
+first_answer TEXT NOT NULL
+);
+
+UPDATE phpbb_survey s, phpbb_topics t
+SET s.survey_start = t.topic_time
+WHERE s.topic_id = t.topic_id;
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy root/survey.php to survey.php
+copy root/templates/subSilver/survey_result_viewtopic.tpl to templates/subSilver/survey_result_viewtopic.tpl
+copy root/templates/subSilver/survey_posting_body.tpl to templates/subSilver/survey_posting_body.tpl
+copy root/templates/subSilver/survey_answer.tpl to templates/subSilver/survey_answer.tpl
+copy root/templates/subSilver/images/lang_english/fill_out_survey.gif to templates/subSilver/images/lang_english/fill_out_survey.gif
+copy root/templates/subSilver/images/lang_english/change_survey_answers.gif to templates/subSilver/images/lang_english/change_survey_answers.gif
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# note the actual line is longer
+		$sql = "SELECT f.*, t.topic_id, t.topic_status,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+t.topic_vote,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+t.topic_survey,
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+		// start mod tabulated survey at topic head (and end too)...added reference to t.topic_survey in the next line
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$post_data['has_poll'] = ( $post_info['topic_vote'] ) ? true : false;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod tabulated survey at topic head (and end mod too)...added the nest line
+		$post_data['has_survey'] = ( $post_info['topic_survey'] ) ? true : false;
+
+#
+#-----[ FIND ]------------------------------------------------
+# note the actual line is longer
+$topic_type = ( $topic_type != $post_data['topic_type'] &&
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+				// start mod tabulated survey at topic head
+				// check to see if a survey is attached to the post being submitted...if so, either delete
+				// if user has clicked to delete survey or else get all survey info
+				if ( !empty($HTTP_POST_VARS['survey_delete']) )
+				{
+					$survey_id = intval( $HTTP_POST_VARS['survey_id'] );
+					$sql = "DELETE FROM " . SURVEY_TABLE . "
+						WHERE survey_id = $survey_id";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Could not delete entry from survey table', '', __LINE__, __FILE__, $sql);
+					}
+
+					$sql = "DELETE FROM " . SURVEY_ANSWERS_TABLE . "
+						WHERE survey_id = $survey_id";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Could not delete entry from survey answers table', '', __LINE__, __FILE__, $sql);
+					}
+
+					$sql = "UPDATE " . TOPICS_TABLE . "
+					SET topic_survey = 0
+					WHERE topic_id = $topic_id";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Could not get rid of reference to survey in topics table', '', __LINE__, __FILE__, $sql);
+					}
+				}
+
+				if ( ( !empty($HTTP_POST_VARS['survey_caption']) || !empty($HTTP_POST_VARS['survey_question']) ) && $HTTP_POST_VARS['survey_delete'] <> 1 )
+				{
+					// get the input from the form...first the single variable inputs and then the arrays...and pack them into a survey_info array using the same names as the fields in the survey table
+					$survey_info['survey_caption'] = htmlspecialchars( $HTTP_POST_VARS['survey_caption'] );
+					$survey_info['survey_caption'] = str_replace("\'", "''", $survey_info['survey_caption']);
+					$survey_info['show_order'] = ( !empty($HTTP_POST_VARS['survey_show_order']) ) ? intval( $HTTP_POST_VARS['survey_show_order'] ) : '';
+					$survey_info['show_nonresponders'] = ( !empty($HTTP_POST_VARS['survey_show_nonresponders']) ) ? intval( $HTTP_POST_VARS['survey_show_nonresponders'] ) : '';
+					$survey_info['max_number_of_questions'] = ( !empty($HTTP_POST_VARS['max_number_of_questions']) ) ? intval( $HTTP_POST_VARS['max_number_of_questions'] ) : '';
+					$survey_info['lines_to_skip'] = ( !empty($HTTP_POST_VARS['survey_lines_to_skip']) ) ? intval( $HTTP_POST_VARS['survey_lines_to_skip'] ) : '';
+					$survey_info['allow_change_answers'] = ( !empty($HTTP_POST_VARS['survey_allow_change_answers']) ) ? intval( $HTTP_POST_VARS['survey_allow_change_answers'] ) : '';
+					$survey_info['survey_length'] = ( !empty($HTTP_POST_VARS['survey_length']) ) ? intval( $HTTP_POST_VARS['survey_length'] ) : '';
+					$survey_info['survey_height'] = ( !empty($HTTP_POST_VARS['survey_height']) ) ? intval( $HTTP_POST_VARS['survey_height'] ) : '';
+					$width_username = ( !empty($HTTP_POST_VARS['survey_width_username']) ) ? intval( $HTTP_POST_VARS['survey_width_username'] ) : '';
+					$survey_info['survey_delete'] = ( !empty($HTTP_POST_VARS['survey_delete']) ) ? intval( $HTTP_POST_VARS['survey_delete'] ) : '';
+
+					$survey_question = ( !empty($HTTP_POST_VARS['survey_question']) ) ? $HTTP_POST_VARS['survey_question'] : '';
+					$survey_question_selection = ( !empty($HTTP_POST_VARS['survey_question_selection']) ) ? $HTTP_POST_VARS['survey_question_selection'] : '';
+					$survey_question_selected_text = ( !empty($HTTP_POST_VARS['survey_question_selected_text']) ) ? $HTTP_POST_VARS['survey_question_selected_text'] : '';
+					$survey_group_ids = ( !empty($HTTP_POST_VARS['survey_group_ids']) ) ? $HTTP_POST_VARS['survey_group_ids'] : '';
+					$survey_question_type = ( !empty($HTTP_POST_VARS['survey_question_type']) ) ? $HTTP_POST_VARS['survey_question_type'] : '';
+					$survey_question_sum = ( !empty($HTTP_POST_VARS['survey_question_sum']) ) ? $HTTP_POST_VARS['survey_question_sum'] : '';
+					$survey_question_response_cap = ( !empty($HTTP_POST_VARS['survey_question_response_cap']) ) ? $HTTP_POST_VARS['survey_question_response_cap'] : '';
+					$survey_question_average_round = ( !empty($HTTP_POST_VARS['survey_question_average_round']) ) ? $HTTP_POST_VARS['survey_question_average_round'] : '';
+					$survey_width_question = ( !empty($HTTP_POST_VARS['survey_width_question']) ) ? $HTTP_POST_VARS['survey_width_question'] : '';
+
+					// go through the groups, apply intval and assemble into survey_info array
+
+					for( $i=0; $i < count($survey_group_ids); $i++ )
+					{
+					$survey_info['group_ids'] = ($survey_info['group_ids']) ? $survey_info['group_ids'] . ',' . intval( $survey_group_ids[$i] ) : intval( $survey_group_ids[$i] );
+					}
+
+					// next, go through the multiple values in arrays, apply intval or htmlstecial chars and assemble into survey_info array..
+					// but first we find out how many questions there are,,,
+					$question_count=0;
+					while( $survey_question[$question_count] )
+					{
+					$question_count++;
+					}
+
+					for( $i=0; $i < $question_count; $i++ )
+					{
+						$next_width_question = ( $survey_width_question[$i] ) ? intval( $survey_width_question[$i] ) : '';
+						// for the next three variables, since questions get separated in the db by '|', we change '|' to '/' so that 
+						// if the user inserts a '|' in the text the code won't mistakenly think what follows is another question 
+						$next_question = ( $survey_question[$i] ) ? htmlspecialchars( $survey_question[$i] ) : '';
+						$next_question = str_replace("\'", "''", $next_question);
+						$next_question = str_replace("|", "/", $next_question);
+						$next_selection = ( $survey_question_selection[$i] ) ? htmlspecialchars( $survey_question_selection[$i] ) : '';
+						$next_selection = str_replace("\'", "''", $next_selection);
+						$next_selection = str_replace("|", "/", $next_selection);
+						$next_selected_text = ( $survey_question_selected_text[$i] ) ? htmlspecialchars( $survey_question_selected_text[$i] ) : '';
+						$next_selected_text = str_replace("\'", "''", $next_selected_text);
+						$next_selected_text = str_replace("|", "/", $next_selected_text);
+						$next_question_type = ( $survey_question_type[$i] ) ? intval( $survey_question_type[$i] ) : '';
+						$next_question_sum = ( $survey_question_sum[$i] ) ? intval( $survey_question_sum[$i] ) : '';
+						$next_question_response_cap = ( $survey_question_response_cap[$i] ) ? intval( $survey_question_response_cap[$i] ) : '';
+						$next_question_average_round = ( $survey_question_average_round[$i] ) ? intval( $survey_question_average_round[$i] ) : '';
+						$width_questions = ( !isset($width_questions) ) ? $next_width_question : $width_questions . '|' . $next_width_question;
+						$survey_info['questions'] = ( !isset($survey_info['questions']) ) ? $next_question : $survey_info['questions'] . '|' . $next_question;
+						$survey_info['question_selections'] = ( !isset($survey_info['question_selections']) ) ? $next_selection : $survey_info['question_selections'] . '|' . $next_selection;
+						$survey_info['question_selected_text'] = ( !isset($survey_info['question_selected_text']) ) ? $next_selected_text : $survey_info['question_selected_text'] . '|' . $next_selected_text;
+						$survey_info['question_types'] = ( !isset($survey_info['question_types']) ) ? $next_question_type : $survey_info['question_types'] . '|' . $next_question_type;
+						$survey_info['question_sums'] = ( !isset($survey_info['question_sums']) ) ? $next_question_sum : $survey_info['question_sums'] . '|' . $next_question_sum;
+						$survey_info['question_response_caps'] = ( !isset($survey_info['question_response_caps']) ) ? $next_question_response_cap : $survey_info['question_response_caps'] . '|' . $next_question_response_cap;
+						$survey_info['question_average_round'] = ( !isset($survey_info['question_average_round']) ) ? $next_question_average_round : $survey_info['question_average_round'] . '|' . $next_question_average_round;
+					}
+
+					$survey_info['widths'] = $width_username . '|' . $width_questions;
+					$survey_info['survey_id'] = ( !empty($HTTP_POST_VARS['survey_id']) ) ? intval( $HTTP_POST_VARS['survey_id'] ) : '';
+				}
+				// in the submit_post line below, added $survey_info,
+				// end mod tabulated survey at topic head
+
+#
+#-----[ FIND ]------------------------------------------------
+# note the actual line is longer
+				submit_post($mode, $post_data,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+str_replace("\'", "''", $message),
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ $survey_info,
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+ 		$page_title = $lang['Edit_Post'];
+ 		$hidden_form_fields .= '<input type="hidden" name="' . POST_POST_URL . '" value="' . $post_id . '" />';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		// start mod tabulated survey at topic head
+		// if this is an existing topic with a survey in it, pass the survey_id to the template so it can be retrieved when the edited post is resubmitted
+		if($post_info['topic_survey'])
+		{
+			// ok, this is in fact an existing topic with a survey in it, so retrieve the question data from the survey table
+			// and store that data in $survey_info.  $survey_info gets used later on in this file (where the survey template in built) but meanwhile
+			// we'll stick survey survey_id into the hidden fields to get passed on to the template (so that
+			// it can be retrieved when the edited post gets resubmitted).
+			$sql = "SELECT survey_id, survey_caption, group_ids, show_order, show_nonresponders, max_number_of_questions, lines_to_skip, allow_change_answers, survey_length, survey_height, widths, questions, question_types, question_selections, question_sums, question_selected_text, question_response_caps, question_average_round
+				FROM " . SURVEY_TABLE . "
+				WHERE topic_id = $topic_id";
+
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Could not get survey info the survey table", '', __LINE__, __FILE__, $sql);
+			}
+			$survey_info = $db->sql_fetchrow($result);
+			$db->sql_freeresult($result);
+			$hidden_form_fields .= '<input type="hidden" name="survey_id" value=' . $survey_info['survey_id'] . ' />';
+		}
+		// end mod tabulated survey at topic head
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'pollbody' => 'posting_poll_body.tpl',
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	'surveybody' => 'survey_posting_body.tpl',
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+make_jumpbox('viewforum.'.$phpEx);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod tabulated survey at topic head (and end mod too): added the surveybody line in the template assignment above
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$template->assign_var_from_handle('POLLBOX', 'pollbody');
+}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod tabulated survey at topic head...fill in survey template...
+//
+// Survey entry switch/output
+//
+
+if( ( $mode == 'newtopic' || $post_data['first_post'] ) && $is_auth['auth_pollcreate'] )
+{
+	// turn on the switch that allows the user to see the design survey link in the post he he is about to post or edit
+	$template->assign_block_vars('switch_show_design_survey_link', array());
+
+	// check to see if this is an existing post being edited; if so, check to see if there is an existing survey in it...if so, retrieve the info for that existing survey
+	if( $mode == 'editpost' && $post_info['topic_survey'] == 1)
+	{
+		// set variables so that old survey info shows up in the design survey part of the post...
+		$survey_caption = $survey_info['survey_caption'];
+		$designated_groups = explode(",", $survey_info['group_ids']);
+		$widths = explode("|", $survey_info['widths']);
+		$select_alphabetical = ( $survey_info['show_order'] == SURVEY_ALPHABETICAL ) ? 'selected="selected"' : '';
+		$select_order_of_response = ( $survey_info['show_order'] == SURVEY_ORDER_OF_RESPONSE ) ? 'selected="selected"' : '';
+		$select_sort_by_first_answer = ( $survey_info['show_order'] == SURVEY_SORT_BY_FIRST_ANSWER ) ? 'selected="selected"' : '';
+		$select_sort_by_first_answer_descending_order = ( $survey_info['show_order'] == SURVEY_SORT_BY_FIRST_ANSWER_DESCENDING_ORDER ) ? 'selected="selected"' : '';
+		$select_nonresponders_no = ( $survey_info['show_nonresponders'] == SURVEY_SHOW_NONRESPONDERS_NO ) ? 'selected="selected"' : '';
+		$select_nonresponders_center_column = ( $survey_info['show_nonresponders'] == SURVEY_SHOW_NONRESPONDERS_CENTER_COLUMN ) ? 'selected="selected"' : '';
+		$select_nonresponders_left_column = ( $survey_info['show_nonresponders'] == SURVEY_SHOW_NONRESPONDERS_LEFT_COLUMN ) ? 'selected="selected"' : '';
+		$select_nonresponders_center_comma_separated = ( $survey_info['show_nonresponders'] == SURVEY_SHOW_NONRESPONDERS_CENTER_COMMA_SEPARATED ) ? 'selected="selected"' : '';
+		$select_nonresponders_left_comma_separated = ( $survey_info['show_nonresponders'] == SURVEY_SHOW_NONRESPONDERS_LEFT_COMMA_SEPARATED ) ? 'selected="selected"' : '';
+		$max_number_of_questions = $survey_info['max_number_of_questions'];
+		$select_skip_one = ( $survey_info['lines_to_skip'] == 1 ) ? 'selected="selected"' : '';
+		$select_skip_two = ( $survey_info['lines_to_skip'] == 2 ) ? 'selected="selected"' : '';
+		$select_skip_three = ( $survey_info['lines_to_skip'] == 3 ) ? 'selected="selected"' : '';
+		$select_allow_change_answers_yes = ( $survey_info['allow_change_answers'] ) ? 'selected="selected"' : '';
+		$select_allow_change_answers_no = ( !$survey_info['allow_change_answers'] ) ? 'selected="selected"' : '';
+		$survey_length = ( $survey_info['survey_length'] <> 0 ) ? $survey_info['survey_length']/86400 : '';
+		$survey_height = ( $survey_info['survey_height'] <> 0 ) ? $survey_info['survey_height'] : '';
+		$width_username = $widths[0];
+
+		// since this is an existing survey in an exisitng topic, give the user the option to delete the survey...
+		$template->assign_block_vars('switch_survey_delete_toggle', array());
+	}
+
+	// now set drop downs in the top part of the design template to their defaults if there is not already a designed survey in this topic...
+	if( $mode == 'newtopic' || $post_info['topic_survey'] == 0 )
+	{
+		$designated_groups = array();
+		$select_alphabetical = '';
+		$select_order_of_response = 'selected="selected"';
+		$select_sort_by_first_answer = '';
+		$select_sort_by_first_answer_descending_order = '';
+		$select_nonresponders_no = '';
+		$select_nonresponders_center_column = 'selected="selected"';
+		$select_nonresponders_left_column = '';
+		$select_nonresponders_center_comma_separated = '';
+		$select_nonresponders_left_comma_separated = '';
+		$max_number_of_questions = 8;
+		$select_skip_one = 'selected="selected"';
+		$select_skip_two = '';
+		$select_skip_three = '';
+		$select_allow_change_answers_yes = 'selected="selected"';
+		$select_allow_change_answers_no = '';
+		$survey_length = '';
+		$survey_height = '';
+	}
+
+	// dump stuff into the template
+
+	$template->assign_vars(array(
+	'L_MAX_NUMBER_OF_QUESTIONS' => $lang['Max_number_of_questions'],
+	'L_LINES_TO_SKIP' => $lang['Lines_to_skip'],
+	'L_ALLOW_CHANGE_ANSWERS' => $lang['Allow_change_answers'],
+	'L_YES' => $lang['yes'],
+	'L_SURVEY_LENGTH' => $lang['Survey_length'],
+	'L_SURVEY_HEIGHT' => $lang['Survey_height'],
+	'L_CLICK_DESIGN_SURVEY' => $lang['Click_design_survey'],
+	'L_DESIGN_A_SURVEY' => $lang['Design_a_survey'],
+	'L_ADD_SURVEY_EXPLAIN' => $lang['Add_survey_explain'],
+	'L_SURVEY_CAPTION' => $lang['Survey_caption'],
+	'L_SELECT_GROUP' => $lang['Select_group'],
+	'L_ORDER_TO_SHOW' => $lang['Order_to_show'],
+	'L_ALPHABETICAL' => $lang['Alphabetical'],
+	'L_BY_ORDER_OF_RESPONSE' => $lang['By_order_of_response'],
+	'L_SORT_BY_FIRST_ANSWER' => $lang['Sort_by_first_answer'],
+	'L_SORT_BY_FIRST_ANSWER_DESCENDING_ORDER' => $lang['Sort_by_first_answer_descending_order'],
+	'L_LIST_NONRESPONDERS' => $lang['List_nonresponders'],
+	'L_SHOW_NONRESPONDERS_CENTER_COLUMN' => $lang['show_nonresponders_center_column'],
+	'L_SHOW_NONRESPONDERS_LEFT_COLUMN' => $lang['show_nonresponders_left_column'],
+	'L_SHOW_NONRESPONDERS_CENTER_COMMA_SEPARATED' => $lang['show_nonresponders_center_comma_separated'],
+	'L_SHOW_NONRESPONDERS_LEFT_COMMA_SEPARATED' => $lang['show_nonresponders_left_comma_separated'],
+	'L_NO' => $lang['no'],
+	'L_QUESTION' => $lang['Question'],
+	'L_QUESTION_TYPE' => $lang['Question_type'],
+	'L_SMALL_TEXT_BLANK' => $lang['Small_text_blank'],
+	'L_LARGE_TEXT_BLANK' => $lang['Large_text_blank'],
+	'L_TEXT_BOX' => $lang['Text_box'],
+	'L_CHECKBOX_OR_RADIO_BUTTONS' => $lang['Checkbox_or_radio_buttons'],
+	'L_MULTIPLE_CHOICE_CHECKBOXES' => $lang['Multiple_choice_checkboxes'],
+	'L_DROP_DOWN_MENU' => $lang['Drop_down_menu'],
+	'L_IF_SELECTIONS' => $lang['If_selections'],
+	'L_SHOULD_RESPONSES_BE_TOTALLED' => $lang['Should_responses_be_totalled'],
+	'L_YES_BY_NUMBER_OF_RESPONSES' => $lang['Yes_by_number_of_responses'],
+	'L_YES_BY_NUMBERS_IN_RESPONSES' => $lang['Yes_by_numbers_in_responses'],
+	'L_YES_BY_AVERAGE_OF_NUMBERS_IN_RESPONSES' => $lang['Yes_by_average_of_numbers_in_responses'],
+	'L_YES_BY_MATCHING_TEXT' => $lang['Yes_by_matching_text'],
+	'L_IF_AVERAGE' => $lang['If_average'],
+	'L_IF_BY_MATCHING_TEXT' => $lang['If_by_matching_text'],
+	'L_CAP_RESPONSE' => $lang['Cap_response'],
+	'L_WIDTH_USERNAME' => $lang['Width_username'],
+	'L_WIDTH_QUESTION' => $lang['Width_question'],
+	'L_DELETE_SURVEY' => $lang['Delete_survey'],
+
+	'ALPHABETICAL' => SURVEY_ALPHABETICAL,
+	'ORDER_OF_RESPONSE' => SURVEY_ORDER_OF_RESPONSE,
+	'SORT_BY_FIRST_ANSWER' => SURVEY_SORT_BY_FIRST_ANSWER,
+	'SORT_BY_FIRST_ANSWER_DESCENDING_ORDER' => SURVEY_SORT_BY_FIRST_ANSWER_DESCENDING_ORDER,
+
+	'NONRESPONDERS_NO' => SURVEY_SHOW_NONRESPONDERS_NO,
+	'NONRESPONDERS_CENTER_COLUMN' => SURVEY_SHOW_NONRESPONDERS_CENTER_COLUMN,
+	'NONRESPONDERS_LEFT_COLUMN' => SURVEY_SHOW_NONRESPONDERS_LEFT_COLUMN,
+	'NONRESPONDERS_CENTER_COMMA_SEPARATED' => SURVEY_SHOW_NONRESPONDERS_CENTER_COMMA_SEPARATED,
+	'NONRESPONDERS_LEFT_COMMA_SEPARATED' => SURVEY_SHOW_NONRESPONDERS_LEFT_COMMA_SEPARATED,
+
+	'SMALL_TEXT_BLANK' => SURVEY_SMALL_TEXT_BLANK,
+	'LARGE_TEXT_BLANK' => SURVEY_LARGE_TEXT_BLANK,
+	'TEXT_BOX' => SURVEY_TEXT_BOX,
+	'CHECKBOX_OR_RADIO_BUTTONS' => SURVEY_CHECKBOX_OR_RADIO_BUTTONS,
+	'MULTIPLE_CHOICE_CHECKBOXES' => SURVEY_MULTIPLE_CHOICE_CHECKBOXES,
+	'DROP_DOWN_MENU' => SURVEY_DROP_DOWN_MENU,
+
+	'NO_TOTAL' => SURVEY_NO_TOTAL,
+	'TOTAL_BY_RESPONSES' => SURVEY_TOTAL_BY_RESPONSES,
+	'TOTAL_BY_NUMBERS_IN_RESPONSES' => SURVEY_TOTAL_BY_NUMBERS_IN_RESPONSES,
+	'TOTAL_BY_MATCHING_TEXT' => SURVEY_TOTAL_BY_MATCHING_TEXT,
+	'TOTAL_BY_AVERAGE_OF_NUMBERS_IN_RESPONSES' => SURVEY_TOTAL_BY_AVERAGE_OF_NUMBERS_IN_REPSONSES,
+
+	'S_SURVEY_CAPTION' => $survey_caption,
+	'S_SELECT_ALPHABETICAL' => $select_alphabetical,
+	'S_SELECT_ORDER_OF_RESPONSE' => $select_order_of_response,
+	'S_SELECT_SORT_BY_FIRST_ANSWER' => $select_sort_by_first_answer,
+	'S_SELECT_SORT_BY_FIRST_ANSWER_DESCENDING_ORDER' => $select_sort_by_first_answer_descending_order,
+	'S_SELECT_NONRESPONDERS_CENTER_COLUMN' => $select_nonresponders_center_column,
+	'S_SELECT_NONRESPONDERS_LEFT_COLUMN' => $select_nonresponders_left_column,
+	'S_SELECT_NONRESPONDERS_CENTER_COMMA_SEPARATED' => $select_nonresponders_center_comma_separated,
+	'S_SELECT_NONRESPONDERS_LEFT_COMMA_SEPARATED' => $select_nonresponders_left_comma_separated,
+	'S_SELECT_NONRESPONDERS_NO' => $select_nonresponders_no,
+	'S_MAX_NUMBER_OF_QUESTIONS' => $max_number_of_questions,
+	'S_SELECT_SKIP_ONE' => $select_skip_one,
+	'S_SELECT_SKIP_TWO' => $select_skip_two,
+	'S_SELECT_SKIP_THREE' => $select_skip_three,
+	'S_SELECT_ALLOW_CHANGE_ANSWERS_YES' => $select_allow_change_answers_yes,
+	'S_SELECT_ALLOW_CHANGE_ANSWERS_NO' => $select_allow_change_answers_no,
+	'S_SURVEY_LENGTH' => $survey_length,
+	'S_SURVEY_HEIGHT' => $survey_height,
+	'S_WIDTH_USERNAME' => $width_username )
+	);
+
+	// gather and feed survey info to template unless this is a preview
+	if(!$preview)
+	{
+		// feed the template the information for the 'all users' row...
+		$group_id = SURVEY_ALL_REGISTERED_USERS;
+		$group_name = $lang['All_registered_users'];
+		$group_checked = ( in_array($group_id, $designated_groups) ) ? 'checked="checked"' : '';
+
+		$template->assign_block_vars('listrow', array(
+		'S_MARK_ID' => $group_id,
+		'S_DESIGNATED_GROUP' => $group_checked,
+
+		'U_GROUP_NAME' => $group_name)
+		);
+
+		// now feed the template with info for the other groups (for the remaining rows)
+		// look up groups
+		$sql = "SELECT group_id, group_name
+				FROM " . GROUPS_TABLE . "
+				WHERE group_single_user = 0
+				ORDER BY group_name";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain group data for this survey', '', __LINE__, __FILE__, $sql);
+		}
+		while ( $row = $db->sql_fetchrow($result) )
+		{
+			$group_id = $row['group_id'];
+			$group_name = $row['group_name'];
+			$group_checked = ( in_array($group_id, $designated_groups) ) ? 'checked="checked"' : '';
+
+			$template->assign_block_vars('listrow', array(
+			'S_MARK_ID' => $group_id,
+			'S_DESIGNATED_GROUP' => $group_checked,
+
+			'U_GROUP_NAME' => $group_name)
+			);
+		}
+		$db->sql_freeresult($result);
+
+		// get variables that will be needed in the lower part of the template (different for each question)
+		$questions = explode("|", $survey_info['questions']);
+		$question_types = explode("|", $survey_info['question_types']);
+		$question_selections = explode("|", $survey_info['question_selections']);
+		$question_sums = explode("|", $survey_info['question_sums']);
+		$question_selected_text = explode("|", $survey_info['question_selected_text']);
+		$question_response_caps = explode("|", $survey_info['question_response_caps']);
+		$question_average_round = explode("|", $survey_info['question_average_round']);
+
+		// now, dump the questions one by one into the template
+		// if this is an existing survey, get the info from the old survey; else just create blank questions for the form
+		$i = 0;
+		if( $mode == 'editpost' && $post_info['topic_survey'] == 1)
+		{
+			for($i = 0; $i < $max_number_of_questions; $i++)
+			{
+				// this is an existing survey, so get the info about how the various drop downs and fill ins were filled in in the existing survey
+				// but first see if we have run out of questions in the old survey since the old survey may have had fewer than the max number of questions
+				if($questions[$i])
+				{
+					$selected_small_text_blank = '';
+					$selected_large_text_blank = '';
+					$selected_text_box = '';
+					$selected_checkbox_or_radio_buttons = '';
+					$selected_multiple_choice_checkboxes = '';
+					$selected_drop_down_menu = '';
+					$selected_no_total = '';
+					$selected_total_by_responses = '';
+					$selected_total_by_numbers_in_responses = '';
+					$selected_total_by_average_of_numbers_in_responses = '';
+					$selected_total_by_matching_text = '';
+
+					switch( $question_types[$i] )
+					{
+						case SURVEY_SMALL_TEXT_BLANK:
+							$selected_small_text_blank = 'selected="selected"';
+							break;
+
+						case SURVEY_LARGE_TEXT_BLANK:
+							$selected_large_text_blank = 'selected="selected"';
+							break;
+
+						case SURVEY_TEXT_BOX:
+							$selected_text_box = 'selected="selected"';
+							break;
+
+						case SURVEY_CHECKBOX_OR_RADIO_BUTTONS:
+							$selected_checkbox_or_radio_buttons = 'selected="selected"';
+							break;
+
+						case SURVEY_DROP_DOWN_MENU:
+							$selected_drop_down_menu = 'selected="selected"';
+							break;
+
+						case SURVEY_MULTIPLE_CHOICE_CHECKBOXES:
+							$selected_multiple_choice_checkboxes = 'selected="selected"';
+							break;
+					}
+
+					switch( $question_sums[$i] )
+					{
+						case SURVEY_NO_TOTAL:
+							$selected_no_total = 'selected="selected"';
+							break;
+
+						case SURVEY_TOTAL_BY_RESPONSES:
+							$selected_total_by_responses = 'selected="selected"';
+							break;
+
+						case SURVEY_TOTAL_BY_NUMBERS_IN_RESPONSES:
+							$selected_total_by_numbers_in_responses = 'selected="selected"';
+							break;
+
+						case SURVEY_TOTAL_BY_MATCHING_TEXT:
+							$selected_total_by_matching_text = 'selected="selected"';
+							break;
+
+						case SURVEY_TOTAL_BY_AVERAGE_OF_NUMBERS_IN_REPSONSES:
+							$selected_total_by_average_of_numbers_in_responses = 'selected="selected"';
+							break;
+
+					}
+				}
+
+				else
+				{
+					// ok, we ran out of questions in the old survey so we'll break and use defaults for the remaining questions (whichi we do later setting $j to pick up where $i left off)
+					break;
+				}
+
+				$template->assign_block_vars('questions', array(
+				'S_WIDTH_QUESTION' => $widths[$i + 1],
+				'S_QUESTION' => $questions[$i],
+				'S_SELECTED_SMALL_TEXT_BLANK' => $selected_small_text_blank,
+				'S_SELECTED_LARGE_TEXT_BLANK' => $selected_large_text_blank,
+				'S_SELECTED_TEXT_BOX' => $selected_text_box,
+				'S_SELECTED_CHECKBOX_OR_RADIO_BUTTONS' => $selected_checkbox_or_radio_buttons,
+				'S_SELECTED_MULTIPLE_CHOICE_CHECKBOXES' => $selected_multiple_choice_checkboxes,
+				'S_SELECTED_DROP_DOWN_MENU' => $selected_drop_down_menu,
+				'S_SELECTIONS' => ( $selected_checkbox_or_radio_buttons || $selected_multiple_choice_checkboxes || $selected_drop_down_menu ) ? $question_selections[$i] : '',
+				'S_NO_TOTAL' => $selected_no_total,
+				'S_TOTAL_BY_RESPONSES' => $selected_total_by_responses,
+				'S_TOTAL_BY_NUMBERS_IN_RESPONSES' => $selected_total_by_numbers_in_responses,
+				'S_TOTAL_BY_AVERAGE_OF_NUMBERS_IN_RESPONSES' => $selected_total_by_average_of_numbers_in_responses,
+				'S_TOTAL_BY_MATCHING_TEXT' => $selected_total_by_matching_text,
+				'S_SPECIFIED_TEXT' => ( $selected_total_by_matching_text ) ? $question_selected_text[$i] : '',
+				'S_CAP_RESPONSE' => ( !$selected_no_total ) ? $question_response_caps[$i] : '',
+				'S_AVERAGE_ROUND' => ( !$selected_no_total ) ? $question_average_round[$i] : '' )
+				);
+			}
+		}
+
+		// not an existing survey (or ran out of questions in an exisitng survey), so dump out the reamainder of the questions with blanks and dropdowns at basic defaults
+		for($j = $i; $j < $max_number_of_questions; $j++)
+		{
+			$template->assign_block_vars('questions', array(
+			'S_SELECTED_SMALL_TEXT_BLANK' => 'selected="selected"',
+			'S_SELECTED_LARGE_TEXT_BLANK' => '',
+			'S_SELECTED_TEXT_BOX' => '',
+			'S_SELECTED_CHECKBOX_OR_RADIO_BUTTONS' => '',
+			'S_SELECTED_MULTIPLE_CHOICE_CHECKBOXES' => '',
+			'S_SELECTED_DROP_DOWN_MENU' => '',
+			'S_SELECTIONS' => '',
+			'S_NO_TOTAL' => '',
+			'S_TOTAL_BY_RESPONSES' => '',
+			'S_TOTAL_BY_NUMBERS_IN_RESPONSES' => 'selected="selected"',
+			'S_TOTAL_BY_AVERAGE_OF_NUMBERS_IN_RESPONSES' => '',
+			'S_TOTAL_BY_MATCHING_TEXT' => '',
+			'S_SPECIFIED_TEXT' => '',
+			'S_CAP_RESPONSE' => '',
+			'S_AVERAGE_ROUND' => '' )
+			);
+		}
+	}
+
+	// this part does nothing other than deal with previews...if this is a preview of a new post or an editpost relating to a first post and the poster is authorized to post surveys,
+	// we will collect the existing stuff from the form and dump it right back in
+	if ( $preview )
+	{
+		// get the input from the form...first the single variable inputs and then the arrays...and pack them into a survey_info array using the same names as the fields in the survey table
+		$survey_caption = htmlspecialchars(trim(stripslashes( $HTTP_POST_VARS['survey_caption'] )));
+		$show_order = ( !empty($HTTP_POST_VARS['survey_show_order']) ) ? intval( $HTTP_POST_VARS['survey_show_order'] ) : '';
+		$show_nonresponders = ( !empty($HTTP_POST_VARS['survey_show_nonresponders']) ) ? intval( $HTTP_POST_VARS['survey_show_nonresponders'] ) : '';
+		$max_number_of_questions = ( !empty($HTTP_POST_VARS['max_number_of_questions']) ) ? intval( $HTTP_POST_VARS['max_number_of_questions'] ) : '';
+		$lines_to_skip = ( !empty($HTTP_POST_VARS['survey_lines_to_skip']) ) ? intval( $HTTP_POST_VARS['survey_lines_to_skip'] ) : '';
+		$allow_change_answers = ( !empty($HTTP_POST_VARS['survey_allow_change_answers']) ) ? intval( $HTTP_POST_VARS['survey_allow_change_answers'] ) : '';
+		$survey_length = ( !empty($HTTP_POST_VARS['survey_length']) ) ? intval( $HTTP_POST_VARS['survey_length'] ) : '';
+		$survey_height = ( !empty($HTTP_POST_VARS['survey_height']) ) ? intval( $HTTP_POST_VARS['survey_height'] ) : '';
+		$width_username = ( !empty($HTTP_POST_VARS['survey_width_username']) ) ? intval( $HTTP_POST_VARS['survey_width_username'] ) : '';
+		$survey_delete = ( !empty($HTTP_POST_VARS['survey_delete']) ) ? intval( $HTTP_POST_VARS['survey_delete'] ) : '';
+
+		// now figure out what should be checked off on the top
+		$select_alphabetical = ( $show_order == SURVEY_ALPHABETICAL ) ? 'selected="selected"' : '';
+		$select_order_of_response = ( $show_order == SURVEY_ORDER_OF_RESPONSE ) ? 'selected="selected"' : '';
+		$select_sort_by_first_answer = ( $show_order == SURVEY_SORT_BY_FIRST_ANSWER ) ? 'selected="selected"' : '';
+		$select_sort_by_first_answer_descending_order = ( $show_order == SURVEY_SORT_BY_FIRST_ANSWER_DESCENDING_ORDER ) ? 'selected="selected"' : '';
+		$select_nonresponders_no = ( $show_nonresponders == SURVEY_SHOW_NONRESPONDERS_NO ) ? 'selected="selected"' : '';
+		$select_nonresponders_center_column = ( $show_nonresponders == SURVEY_SHOW_NONRESPONDERS_CENTER_COLUMN ) ? 'selected="selected"' : '';
+		$select_nonresponders_left_column = ( $show_nonresponders == SURVEY_SHOW_NONRESPONDERS_LEFT_COLUMN ) ? 'selected="selected"' : '';
+		$select_nonresponders_center_comma_separated = ( $show_nonresponders == SURVEY_SHOW_NONRESPONDERS_CENTER_COMMA_SEPARATED ) ? 'selected="selected"' : '';
+		$select_nonresponders_left_comma_separated = ( $show_nonresponders == SURVEY_SHOW_NONRESPONDERS_LEFT_COMMA_SEPARATED ) ? 'selected="selected"' : '';
+		$select_skip_one = ( $lines_to_skip == 1 ) ? 'selected="selected"' : '';
+		$select_skip_two = ( $lines_to_skip == 2 ) ? 'selected="selected"' : '';
+		$select_skip_three = ( $lines_to_skip == 3 ) ? 'selected="selected"' : '';
+		$select_allow_change_answers_yes = ( $allow_change_answers ) ? 'selected="selected"' : '';
+		$select_allow_change_answers_no = ( !$allow_change_answers ) ? 'selected="selected"' : '';
+
+		$survey_question = ( !empty($HTTP_POST_VARS['survey_question']) ) ? $HTTP_POST_VARS['survey_question'] : '';
+		$survey_question_selection = ( !empty($HTTP_POST_VARS['survey_question_selection']) ) ? $HTTP_POST_VARS['survey_question_selection'] : '';
+		$survey_question_selected_text = ( !empty($HTTP_POST_VARS['survey_question_selected_text']) ) ? $HTTP_POST_VARS['survey_question_selected_text'] : '';
+		$survey_group_ids = ( !empty($HTTP_POST_VARS['survey_group_ids']) ) ? $HTTP_POST_VARS['survey_group_ids'] : '';
+		$survey_question_type = ( !empty($HTTP_POST_VARS['survey_question_type']) ) ? $HTTP_POST_VARS['survey_question_type'] : '';
+		$survey_question_sum = ( !empty($HTTP_POST_VARS['survey_question_sum']) ) ? $HTTP_POST_VARS['survey_question_sum'] : '';
+		$survey_question_response_cap = ( !empty($HTTP_POST_VARS['survey_question_response_cap']) ) ? $HTTP_POST_VARS['survey_question_response_cap'] : '';
+		$survey_question_average_round = ( !empty($HTTP_POST_VARS['survey_question_average_round']) ) ? $HTTP_POST_VARS['survey_question_average_round'] : '';
+		$survey_width_question = ( !empty($HTTP_POST_VARS['survey_width_question']) ) ? $HTTP_POST_VARS['survey_width_question'] : '';
+
+		// go through the groups, apply intval and assemble into survey_info array
+
+		// feed in the user info from the upper part of the template
+		$template->assign_vars(array(
+			'S_SURVEY_CAPTION' => $survey_caption,
+			'S_SELECT_ALPHABETICAL' => $select_alphabetical,
+			'S_SELECT_ORDER_OF_RESPONSE' => $select_order_of_response,
+			'S_SELECT_SORT_BY_FIRST_ANSWER' => $select_sort_by_first_answer,
+			'S_SELECT_SORT_BY_FIRST_ANSWER_DESCENDING_ORDER' => $select_sort_by_first_answer_descending_order,
+			'S_SELECT_NONRESPONDERS_CENTER_COLUMN' => $select_nonresponders_center_column,
+			'S_SELECT_NONRESPONDERS_LEFT_COLUMN' => $select_nonresponders_left_column,
+			'S_SELECT_NONRESPONDERS_CENTER_COMMA_SEPARATED' => $select_nonresponders_center_comma_separated,
+			'S_SELECT_NONRESPONDERS_LEFT_COMMA_SEPARATED' => $select_nonresponders_left_comma_separated,
+			'S_SELECT_NONRESPONDERS_NO' => $select_nonresponders_no,
+			'S_MAX_NUMBER_OF_QUESTIONS' => $max_number_of_questions,
+			'S_SELECT_SKIP_ONE' => $select_skip_one,
+			'S_SELECT_SKIP_TWO' => $select_skip_two,
+			'S_SELECT_SKIP_THREE' => $select_skip_three,
+			'S_SELECT_ALLOW_CHANGE_ANSWERS_YES' => $select_allow_change_answers_yes,
+			'S_SELECT_ALLOW_CHANGE_ANSWERS_NO' => $select_allow_change_answers_no,
+			'S_SURVEY_LENGTH' => $survey_length,
+			'S_SURVEY_HEIGHT' => $survey_height,
+			'S_WIDTH_USERNAME' => $width_username )
+		);
+
+		for( $i=0; $i < count($survey_group_ids); $i++ )
+		{
+			$survey_group_ids[$i] = ($survey_group_ids[$i]) ? intval( $survey_group_ids[$i] ) : '';
+		}
+
+		// next, go through the multiple values in arrays and apply intval or htmlstecial chars...
+		for( $i=0; $i < $max_number_of_questions; $i++ )
+		{
+			$questions[$i] = ( $survey_question[$i] ) ? htmlspecialchars(trim(stripslashes( $survey_question[$i] ))) : '';
+			$question_types[$i] = ( $survey_question_type[$i] ) ? intval( $survey_question_type[$i] ) : '';
+			$question_selections[$i] = ( $survey_question_selection[$i] ) ? htmlspecialchars(trim(stripslashes( $survey_question_selection[$i] ))) : '';
+			$question_sums[$i] = ( $survey_question_sum[$i] ) ? intval( $survey_question_sum[$i] ) : '';
+			$question_selected_text[$i] = ( $survey_question_selected_text[$i] ) ? htmlspecialchars(trim(stripslashes( $survey_question_selected_text[$i] ))) : '';
+			$question_response_caps[$i] = ( $survey_question_response_cap[$i] ) ? intval( $survey_question_response_cap[$i] ) : '';
+			$question_average_round[$i] = ( $survey_question_average_round[$i] ) ? intval( $survey_question_average_round[$i] ) : '';
+			$width_questions[$i] = ( $survey_width_question[$i] ) ? intval( $survey_width_question[$i] ) : '';
+		}
+
+		// feed the template the information for the 'all users' row...
+		$group_id = SURVEY_ALL_REGISTERED_USERS;
+		$group_name = $lang['All_registered_users'];
+		$group_checked = ( in_array($group_id, $survey_group_ids) ) ? 'checked="checked"' : '';
+
+		$template->assign_block_vars('listrow', array(
+		'S_MARK_ID' => $group_id,
+		'S_DESIGNATED_GROUP' => $group_checked,
+
+		'U_GROUP_NAME' => $group_name)
+		);
+
+		// now feed the template with info for the other groups (for the remaining rows)
+		// look up groups
+		$sql = "SELECT group_id, group_name
+				FROM " . GROUPS_TABLE . "
+				WHERE group_single_user = 0
+				ORDER BY group_name";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain group data for this survey', '', __LINE__, __FILE__, $sql);
+		}
+		while ( $row = $db->sql_fetchrow($result) )
+		{
+			$group_id = $row['group_id'];
+			$group_name = $row['group_name'];
+			$group_checked = ( in_array($group_id, $survey_group_ids) ) ? 'checked="checked"' : '';
+
+			$template->assign_block_vars('listrow', array(
+			'S_MARK_ID' => $group_id,
+			'S_DESIGNATED_GROUP' => $group_checked,
+
+			'U_GROUP_NAME' => $group_name)
+			);
+		}
+		$db->sql_freeresult($result);
+
+		// now, dump the questions one by one into the template
+		for($i = 0; $i < $max_number_of_questions; $i++)
+		{
+			// this is an existing survey, so get the info about how the various drop downs and fill ins were filled in in the existing survey
+			// but first see if we have run out of questions in the old survey since the old survey may have had fewer than the max number of questions
+			if($questions[$i])
+			{
+				$selected_small_text_blank = '';
+				$selected_large_text_blank = '';
+				$selected_text_box = '';
+				$selected_checkbox_or_radio_buttons = '';
+				$selected_multiple_choice_checkboxes = '';
+				$selected_drop_down_menu = '';
+				$selected_no_total = '';
+				$selected_total_by_responses = '';
+				$selected_total_by_numbers_in_responses = '';
+				$selected_total_by_average_of_numbers_in_responses = '';
+				$selected_total_by_matching_text = '';
+
+				switch( $question_types[$i] )
+				{
+					case SURVEY_SMALL_TEXT_BLANK:
+						$selected_small_text_blank = 'selected="selected"';
+						break;
+
+					case SURVEY_LARGE_TEXT_BLANK:
+						$selected_large_text_blank = 'selected="selected"';
+						break;
+
+					case SURVEY_TEXT_BOX:
+						$selected_text_box = 'selected="selected"';
+						break;
+
+					case SURVEY_CHECKBOX_OR_RADIO_BUTTONS:
+						$selected_checkbox_or_radio_buttons = 'selected="selected"';
+						break;
+
+					case SURVEY_DROP_DOWN_MENU:
+						$selected_drop_down_menu = 'selected="selected"';
+						break;
+						
+					case SURVEY_MULTIPLE_CHOICE_CHECKBOXES:
+						$selected_multiple_choice_checkboxes = 'selected="selected"';
+						break;
+				}
+
+				switch( $question_sums[$i] )
+				{
+					case SURVEY_NO_TOTAL:
+						$selected_no_total = 'selected="selected"';
+						break;
+
+					case SURVEY_TOTAL_BY_RESPONSES:
+						$selected_total_by_responses = 'selected="selected"';
+						break;
+
+					case SURVEY_TOTAL_BY_NUMBERS_IN_RESPONSES:
+						$selected_total_by_numbers_in_responses = 'selected="selected"';
+						break;
+
+					case SURVEY_TOTAL_BY_MATCHING_TEXT:
+						$selected_total_by_matching_text = 'selected="selected"';
+						break;
+
+					case SURVEY_TOTAL_BY_AVERAGE_OF_NUMBERS_IN_REPSONSES:
+						$selected_total_by_average_of_numbers_in_responses = 'selected="selected"';
+						break;
+				}
+			}
+
+			else
+			{
+				// ok, we ran out of questions in the old survey so we'll break and use defaults for the remaining questions (whichi we do later setting $j to pick up where $i left off)
+				break;
+			}
+
+			$template->assign_block_vars('questions', array(
+			'S_WIDTH_QUESTION' => $width_questions[$i],
+			'S_QUESTION' => $questions[$i],
+			'S_SELECTED_SMALL_TEXT_BLANK' => $selected_small_text_blank,
+			'S_SELECTED_LARGE_TEXT_BLANK' => $selected_large_text_blank,
+			'S_SELECTED_TEXT_BOX' => $selected_text_box,
+			'S_SELECTED_CHECKBOX_OR_RADIO_BUTTONS' => $selected_checkbox_or_radio_buttons,
+			'S_SELECTED_MULTIPLE_CHOICE_CHECKBOXES' => $selected_multiple_choice_checkboxes,
+			'S_SELECTED_DROP_DOWN_MENU' => $selected_drop_down_menu,
+			'S_SELECTIONS' => ( $selected_checkbox_or_radio_buttons || $selected_multiple_choice_checkboxes || $selected_drop_down_menu ) ? $question_selections[$i] : '',
+			'S_NO_TOTAL' => $selected_no_total,
+			'S_TOTAL_BY_RESPONSES' => $selected_total_by_responses,
+			'S_TOTAL_BY_NUMBERS_IN_RESPONSES' => $selected_total_by_numbers_in_responses,
+			'S_TOTAL_BY_AVERAGE_OF_NUMBERS_IN_RESPONSES' => $selected_total_by_average_of_numbers_in_responses,
+			'S_TOTAL_BY_MATCHING_TEXT' => $selected_total_by_matching_text,
+			'S_SPECIFIED_TEXT' => ( $selected_total_by_matching_text ) ? $question_selected_text[$i] : '',
+			'S_CAP_RESPONSE' => ( !$selected_no_total ) ? $question_response_caps[$i] : '',
+			'S_AVERAGE_ROUND' => ( !$selected_no_total ) ? $question_average_round[$i] : '' )
+			);
+		}
+
+		// not an existing survey (or ran out of questions in an exisitng survey), so dump out the reamainder of the questions with blanks and dropdowns at basic defaults
+		for($j = $i; $j < $max_number_of_questions; $j++)
+		{
+			$template->assign_block_vars('questions', array(
+			'S_SELECTED_SMALL_TEXT_BLANK' => 'selected="selected"',
+			'S_SELECTED_LARGE_TEXT_BLANK' => '',
+			'S_SELECTED_TEXT_BOX' => '',
+			'S_SELECTED_CHECKBOX_OR_RADIO_BUTTONS' => '',
+			'S_SELECTED_MULTIPLE_CHOICE_CHECKBOXES' => '',
+			'S_SELECTED_DROP_DOWN_MENU' => '',
+			'S_SELECTIONS' => '',
+			'S_NO_TOTAL' => '',
+			'S_TOTAL_BY_RESPONSES' => '',
+			'S_TOTAL_BY_NUMBERS_IN_RESPONSES' => 'selected="selected"',
+			'S_TOTAL_BY_AVERAGE_OF_NUMBERS_IN_RESPONSES' => '',
+			'S_TOTAL_BY_MATCHING_TEXT' => '',
+			'S_SPECIFIED_TEXT' => '',
+			'S_CAP_RESPONSE' => '',
+			'S_AVERAGE_ROUND' => '' )
+			);
+		}
+	}
+	// finally, paint the template...
+	$template->assign_var_from_handle('SURVEYBOX', 'surveybody');
+}
+// end mod tabulated survey at topic head
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if( $topic_rowset[$i]['topic_vote'] )
+		{
+			$topic_type .= $lang['Topic_Poll'] . ' ';
+		}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		if( $topic_rowset[$i]['topic_survey'] )
+		{
+			$topic_type .= $lang['Topic_Survey'] . ' ';
+		}
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# note the actual line is much longer
+$sql = "SELECT t.topic_id, t.topic_title,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+t.topic_vote,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+t.topic_survey,
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod tabulated survey at topic head (and end too)...added reference to t.topic_survey in next line
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$template->assign_var_from_handle('POLL_DISPLAY', 'pollbox');
+
+	}
+}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod survey at topic head
+//
+// Does this topic contain a survey?
+//
+if ( !empty($forum_topic_data['topic_survey']) )
+{
+	// first, get question data
+	$sql = "SELECT survey_id, survey_caption, group_ids, show_order, show_nonresponders, lines_to_skip, allow_change_answers, survey_start, survey_length, survey_height, widths, questions, question_sums, question_selected_text, question_average_round
+		FROM " . SURVEY_TABLE . "
+		WHERE topic_id = $topic_id";
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, "Could not obtain survey data for this topic", '', __LINE__, __FILE__, $sql);
+	}
+
+	$survey_info = $db->sql_fetchrow($result);
+	$db->sql_freeresult($result);
+
+	// place questions and other question related data into arrays
+	$questions = explode("|", $survey_info['questions']);
+	$question_sums = explode("|", $survey_info['question_sums']);
+	$question_selected_text = explode("|", $survey_info['question_selected_text']);
+	$question_average_round = explode("|", $survey_info['question_average_round']);
+	$widths = explode("|", $survey_info['widths']);
+	$group_ids = $survey_info['group_ids'];
+	$number_of_questions = count($questions);
+
+	//now, get the answers plus the names and ids of users in any of the designated groups filling out the survey
+	// first, figure out the order we need to show the responders in (show order is 0 for alphabetical, 1 for order of response and 2 for sort by the first answer and then by username)
+	if($survey_info['show_order'] == SURVEY_ALPHABETICAL)
+	{
+		$order_sql = 'u.username';
+	}
+
+	if($survey_info['show_order'] == SURVEY_ORDER_OF_RESPONSE)
+	{
+		$order_sql = 'sa.response_order';
+	}
+
+	if($survey_info['show_order'] == SURVEY_SORT_BY_FIRST_ANSWER)
+	{
+		$order_sql = 'sa.first_answer, u.username';
+	}
+
+	if($survey_info['show_order'] == SURVEY_SORT_BY_FIRST_ANSWER_DESCENDING_ORDER)
+	{
+		$order_sql = 'sa.first_answer DESC, u.username';
+	}
+
+	// now do the query for the actual responses...
+	$sql = "SELECT DISTINCT u.username, u.user_id, sa.response_order, sa.answers
+			FROM " . USERS_TABLE . " u
+			INNER JOIN " . USER_GROUP_TABLE . " ug ON ug.user_id = u.user_id
+			INNER JOIN " . SURVEY_ANSWERS_TABLE . " sa ON sa.user_id = ug.user_id
+			WHERE ( (ug.group_id IN ($group_ids) AND ug.user_pending = 0) OR " . SURVEY_ALL_REGISTERED_USERS . " IN ($group_ids) )
+			AND sa.survey_id = " . $survey_info['survey_id'] . "
+			ORDER BY $order_sql";
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, "Could not obtain answer data for the survey in this topic", '', __LINE__, __FILE__, $sql);
+	}
+	// fetch all the answer info; store all the user_ids in a comma separated user_id_list with commas
+	// on the outside (for use in figuring out if the current user has already responded, using the strpos function later on) and in a regular
+	// comma separated list for use in the sql that fetches nonresponders
+	while ($row = $db->sql_fetchrow($result))
+	{
+		$answer_info[] = $row;
+		$user_id_list_in_commas = $user_id_list_in_commas . ',' . $row['user_id'];
+	}
+	$db->sql_freeresult($result);
+	$user_id_list_in_commas = ( $user_id_list_in_commas ) ? $user_id_list_in_commas . ',' : '';
+	$user_id_list = ( $user_id_list_in_commas ) ? trim( $user_id_list_in_commas, ',' ) : '';
+
+	// count the number of responders
+	$number_of_responders = count($answer_info);
+
+	// now, get the usernames of the nonresponders if we are supposed to show nonresponders
+	$sql_not_in_user_id_list = ( $user_id_list ) ? "AND u.user_id NOT IN ($user_id_list)" : '';
+	if( $survey_info['show_nonresponders'] )
+	{
+		$sql = "SELECT DISTINCT u.username, u.user_id
+				FROM " . USERS_TABLE . " u
+				INNER JOIN " . USER_GROUP_TABLE . " ug ON ug.user_id = u.user_id
+				WHERE ( (ug.group_id IN ($group_ids) AND ug.user_pending = 0) OR (" . SURVEY_ALL_REGISTERED_USERS . " IN ($group_ids) AND u.user_id <> " . ANONYMOUS . ") )
+				$sql_not_in_user_id_list
+				ORDER BY u.username";
+
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, "Could not obtain answer data for the survey in this topic", '', __LINE__, __FILE__, $sql);
+		}
+
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$nonresponders[] = $row;
+		}
+		$db->sql_freeresult($result);
+		$number_of_nonresponders = count($nonresponders);
+	}
+
+	// now, let's find out if the current user is supposed to be filling out this survey
+	$sql = "SELECT user_id
+			FROM " . USER_GROUP_TABLE . "
+			WHERE user_id = " . $userdata['user_id'] . "
+			AND ( (group_id IN ($group_ids) && user_pending = 0) OR (" . SURVEY_ALL_REGISTERED_USERS . " IN ($group_ids) AND user_id <> " . ANONYMOUS . ") )";
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, "Could not obtain user data from user groups table", '', __LINE__, __FILE__, $sql);
+	}
+
+	if($db->sql_fetchrow($result) && $userdata['session_logged_in'])
+	{
+		$user_should_answer = 1;
+	}
+	$db->sql_freeresult($result);
+
+
+	// now specify the template the results will be shown on at the top of viewtopic
+	$template->set_filenames(array(
+		'survey_box' => 'survey_result_viewtopic.tpl')
+	);
+
+	// figure out if survey has a time limit and has expired
+	if($survey_info['survey_length'])
+	{
+		$survey_expired = ( $survey_info['survey_start'] + $survey_info['survey_length'] < time() ) ? TRUE : 0;
+	}
+	// let's turn on the survey expired text if the survey has expired
+	if( $survey_expired )
+	{
+		$template->assign_block_vars('switch_survey_expired', array());
+	}
+
+	// now, let's turn on the fill in survey button if the user is in one of the specified groups
+	// unlss either: (a) the survey has a time limit or the user has already answered the survey or (b) users are not
+	// supposed to be able to change their answers and this user has already answered
+	if( $user_should_answer && !$survey_expired && ($survey_info['allow_change_answers'] || strpos($user_id_list_in_commas, ','.$userdata['user_id'].',') === false) )
+	{
+		$template->assign_block_vars('switch_include_fill_in_button', array());
+	}
+
+	// and now, let's turn on the fill in survey for other user button if the user is an ADMIN
+	if( $userdata['user_level'] == ADMIN )
+	{
+		$template->assign_block_vars('switch_include_fill_out_for_other_user_button', array());
+	}
+
+	// next, send the questions to the template
+	for ( $i = 0; $i < $number_of_questions; $i++ )
+	{
+			$template->assign_block_vars("questions", array(
+			'QUESTION_WIDTH' => $widths[$i + 1],
+			'QUESTION' => nl2br($questions[$i])
+			)
+		);
+	}
+
+	// now, loop through the responding users, get their answers and send info to the template
+	for ( $i = 0; $i < $number_of_responders; $i++ )
+	{
+		// test if survey designer set username width to -1; if so, skip the username column
+		if( $widths[0] <> -1 )
+		{
+			$viewprofile = append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $answer_info[$i]['user_id']);
+			$username = $answer_info[$i]['username'];
+			$template->assign_block_vars("user_rows", array(
+				'USERNAME' => "<a href='$viewprofile' class='gen'> $username </a>"
+				)
+			);
+		}
+		else
+		{
+			$template->assign_block_vars("user_rows", array(
+				'U_VIEWPROFILE' => '',
+				'USERNAME' => ''
+				)
+			);
+		}
+
+		// explode all the answers of this user into an answer array
+		$answers = explode("|", $answer_info[$i]['answers']);
+
+		// now loop through the questions and send the answers for this user to the template
+		for ( $j = 0; $j < $number_of_questions; $j++ )
+		{
+			$template->assign_block_vars("user_rows.answers", array(
+				'ANSWER_WIDTH' => $widths[$j + 1],
+				'ANSWER' => nl2br( str_replace('&&', ' || ', $answers[$j]) )
+				)
+			);
+
+			// here, increment the total if the question is answered and supposed to be totalled at the bottom
+			switch( $question_sums[$j] )
+			{
+				case "":
+				case SURVEY_NO_TOTAL:
+					break;
+
+				case SURVEY_TOTAL_BY_RESPONSES:
+					if( $answers[$j] != '' )
+					{
+						$total[$j]++;
+						$include_total = 1;
+					}
+					break;
+
+				case SURVEY_TOTAL_BY_NUMBERS_IN_RESPONSES:
+					if( $answers[$j] != '' )
+					{
+						$total[$j] = $total[$j] + $answers[$j];
+						$include_total = 1;
+					}
+					break;
+
+				case SURVEY_TOTAL_BY_MATCHING_TEXT:
+					// note that I used strtolower to make this case insensitive
+					if( strtolower($answers[$j]) == strtolower($question_selected_text[$j]) )
+					{
+						$total[$j]++;
+						$include_total = 1;
+					}
+					break;
+				case SURVEY_TOTAL_BY_AVERAGE_OF_NUMBERS_IN_REPSONSES:
+					// note: the average gets stored in $total[$j]
+					if( $answers[$j] != '' )
+					{
+						$running_total[$j] = $running_total[$j] + $answers[$j];
+						$total_responders[$j]++;
+						$total[$j] = round($running_total[$j]/$total_responders[$j],$question_average_round[$j]);
+						$include_average = 1;
+					}
+					break;
+			}
+		}
+	}
+
+	// now send the names of the nonresponders to the template if the survey is supposed to show nonresponders
+	if( $survey_info['show_nonresponders'] )
+	{
+		switch( $survey_info['show_nonresponders'] )
+		{
+			case SURVEY_SHOW_NONRESPONDERS_CENTER_COLUMN:
+				$character_separator = "<br />";
+				$alignment = "center";
+				$line_height = "line-height:110%";
+				break;
+
+			case SURVEY_SHOW_NONRESPONDERS_LEFT_COLUMN:
+				$character_separator = "<br />";
+				$alignment = "left";
+				$line_height = "line-height:110%";
+				break;
+
+			case SURVEY_SHOW_NONRESPONDERS_CENTER_COMMA_SEPARATED:
+				$character_separator = ", ";
+				$alignment = "center";
+				$line_height = "line-height:100%";
+				break;
+
+			case SURVEY_SHOW_NONRESPONDERS_LEFT_COMMA_SEPARATED:
+				$character_separator = ", ";
+				$alignment = "left";
+				$line_height = "line-height:100%";
+				break;
+		}
+
+		for ( $i = 0; $i < $number_of_nonresponders; $i++ )
+		{
+			$viewprofile = append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $nonresponders[$i]['user_id']);
+			$username = $nonresponders[$i]['username'];
+			$all_nonresponders = ($all_nonresponders) ? $all_nonresponders . $character_separator . "<a href='$viewprofile' class='gen'>$username</a>" : "<a href='$viewprofile' class='gen'>$username</a>";
+		}
+
+		$template->assign_vars(array(
+			'NONRESPONDER' => $all_nonresponders,
+			'ALIGNMENT' => $alignment,
+			'LINE_HEIGHT' => $line_height
+			)
+		);
+	}
+
+	// now, send other info to the template (name of survey, total responses, etc)
+	$s_hidden_fields = '<input type="hidden" name="topic_id" value="' . $topic_id . '" /><input type="hidden" name="survey_id" value="' . $survey_info['survey_id'] . '" />';
+	$s_hidden_fields .= '<input type="hidden" name="sid" value="' . $userdata['session_id'] . '" />';
+
+	// test to see if the current user has already answered the survey; if so, the button allows the user to change his answers;
+	// if not, the button allows the user to fill out the survey for the first time
+	if ( strpos($user_id_list_in_commas, ','.$userdata['user_id'].',') !== false )
+	{
+		$fill_out_button = $lang['Change_your_answers'];
+		$survey_fill_out_img = $images['change_survey_answers'];
+		$survey_link = append_sid("survey.$phpEx?topic_id=" . $topic_id . "&amp;survey_id=" . $survey_info['survey_id'] . "&amp;mode=answer_edit");
+	}
+	else
+	{
+		$fill_out_button = $lang['Fill_out_survey'];
+		$survey_fill_out_img = $images['fill_out_survey'];
+		$survey_link = append_sid("survey.$phpEx?topic_id=" . $topic_id . "&amp;survey_id=" . $survey_info['survey_id']);
+	}
+
+	// build a variable called lines_to_skip with a number of <br />s equal to the number specified for this survey
+	$lines_to_skip = '';
+	for($i=0; $i < $survey_info['lines_to_skip']; $i++)
+	{
+		$lines_to_skip = $lines_to_skip . '<br />';
+	}
+
+	// now figure out if the survey is supposed to have a maximum survey height and is so turn on that switch
+	if( $survey_info['survey_height'] > 0 )
+	{
+		$template->assign_block_vars('switch_max_survey_height', array());
+	}
+
+	$template->assign_vars(array(
+		'SURVEY_CAPTION' => nl2br($survey_info['survey_caption']),
+		'USERNAME_WIDTH' => ( $widths[0] <> -1 ) ? $widths[0] : '',
+		'TOTAL_RESPONSES' => $number_of_responders,
+		'MAX_SURVEY_HEIGHT' => $survey_info['survey_height'],
+
+		'L_TOTAL_RESPONSES' => $lang['Total_responses'],
+		'L_FILL_OUT' => $fill_out_button,
+		'L_FILL_OUT_FOR_OTHER_USER' => $lang['Fill_out_survey_for_someone_else'],
+		'L_LINES_TO_SKIP' => $lines_to_skip,
+		'L_SURVEY_EXPIRED' => $lang['Survey_has_expired_(no_more_voting)'],
+
+		'SURVEY_FILL_OUT_IMG' => $survey_fill_out_img,
+
+		'U_FILL_OUT_SURVEY' => $survey_link,
+
+		'S_HIDDEN_FIELDS' => $s_hidden_fields,
+		'S_SURVEY_ACTION' => append_sid("survey.$phpEx")
+		)
+	);
+
+	// next, give totals for questions where the question table says to give totals
+	for ( $i = 0; $i < $number_of_questions; $i++ )
+	{
+		$totals = $total[$i];
+			$template->assign_block_vars("totals", array(
+				'TOTAL' => $totals
+				)
+			);
+	}
+
+	// now, add a total caption if any columns are totalled and none are averaged
+	if($include_total && !$include_average)
+	{
+		$template->assign_vars(array('L_TOTAL' => $lang['Total']));
+	}
+
+	// else, add an average caption if any columns are averaged and none are totalled
+	if($include_average && !$include_total)
+	{
+		$template->assign_vars(array('L_TOTAL' => $lang['Average']));
+	}
+
+	// else add a total or average caption if some columns are totalled and some are averaged
+	if($include_total && $include_average)
+	{
+		$template->assign_vars(array('L_TOTAL' => $lang['Total_or_average']));
+	}
+
+	// else if nothing is getting totalled or averaged, send empty text to the template
+	if(!$include_total && !$include_average)
+	{
+		$template->assign_vars(array('L_TOTAL' => ''));
+	}
+
+	if($nonresponders && $survey_info['show_nonresponders'])
+	{
+		$template->assign_vars(array('L_NONRESPONDERS' => $lang['Nonresponders']));
+	}
+
+	else
+	{
+		$template->assign_vars(array('L_NONRESPONDERS' => ''));
+	}
+
+	$template->assign_var_from_handle('SURVEY_DISPLAY', 'survey_box');
+}
+// end mod survey at topic head
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+define('SURVEY_TABLE', $table_prefix.'survey');
+define('SURVEY_ANSWERS_TABLE', $table_prefix.'survey_answers');
+// start mod tabulated survey at topic head (and end too)...added survey tables in prior two lines
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// start mod survey at topic head (and end too)...added next block of survey mod settings
+define('SURVEY_SMALL_TEXT_BLANK', 0);
+define('SURVEY_LARGE_TEXT_BLANK', 1);
+define('SURVEY_TEXT_BOX', 2);
+define('SURVEY_CHECKBOX_OR_RADIO_BUTTONS', 3);
+define('SURVEY_DROP_DOWN_MENU', 4);
+define('SURVEY_MULTIPLE_CHOICE_CHECKBOXES', 5);
+
+define('SURVEY_ALPHABETICAL', 0);
+define('SURVEY_ORDER_OF_RESPONSE', 1);
+define('SURVEY_SORT_BY_FIRST_ANSWER', 2);
+define('SURVEY_SORT_BY_FIRST_ANSWER_DESCENDING_ORDER', 3);
+
+define('SURVEY_NO_TOTAL', 0);
+define('SURVEY_TOTAL_BY_RESPONSES', 1);
+define('SURVEY_TOTAL_BY_NUMBERS_IN_RESPONSES', 2);
+define('SURVEY_TOTAL_BY_MATCHING_TEXT', 3);
+define('SURVEY_TOTAL_BY_AVERAGE_OF_NUMBERS_IN_REPSONSES', 4);
+
+define('SURVEY_SHOW_NONRESPONDERS_NO', 0);
+define('SURVEY_SHOW_NONRESPONDERS_CENTER_COLUMN', 1);
+define('SURVEY_SHOW_NONRESPONDERS_LEFT_COLUMN', 2);
+define('SURVEY_SHOW_NONRESPONDERS_CENTER_COMMA_SEPARATED', 3);
+define('SURVEY_SHOW_NONRESPONDERS_LEFT_COMMA_SEPARATED', 4);
+
+define('SURVEY_ALL_REGISTERED_USERS', -1);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# note the actual line is longer
+function submit_post($mode,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+$post_message,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ &$survey_info,
+
+#
+#-----[ FIND ]------------------------------------------------
+# note actual line is much longer and it has in it "INSERT INTO " . TOPICS_TABLE . "
+		$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE . "
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+topic_vote
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+, topic_survey
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+$topic_vote
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+, $topic_survey
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+$topic_vote : "") . "
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+, topic_survey = $topic_survey
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+		// start mod tabulated survey at topic head (and end mod too) ... added the next line to determine if there is a survey to save and added references in the line after that to topic_survey
+		$topic_survey = ( $survey_info['survey_caption'] || $survey_info['questions'] ) ? 1 : 0;
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				message_die(GENERAL_ERROR, 'Error deleting pruned poll options', '', __LINE__, __FILE__, $sql);
+			}
+		}
+	}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	// start mod tabulated survey at topic head
+	// test to see if this is a survey and if so, add the survey
+	if( $survey_info['survey_caption'] || $survey_info['questions'] )
+	{
+		// get all the variables so that we can upload to the db
+		$survey_id = $survey_info['survey_id'];
+		$survey_caption = $survey_info['survey_caption'];
+		$group_ids = $survey_info['group_ids'];
+		$show_order = ($survey_info['show_order']) ? $survey_info['show_order'] : "0";
+		$show_nonresponders = ($survey_info['show_nonresponders']) ? $survey_info['show_nonresponders'] : "0";
+		$max_number_of_questions = $survey_info['max_number_of_questions'];
+		$lines_to_skip = $survey_info['lines_to_skip'];
+		$allow_change_answers = $survey_info['allow_change_answers'];
+		$survey_length = ( $survey_info['survey_length'] > 0 ) ? $survey_info['survey_length']*86400 : 0;
+		$survey_height = ( $survey_info['survey_height'] > 0 ) ? $survey_info['survey_height'] : 0;
+		$widths = $survey_info['widths'];
+		$questions = $survey_info['questions'];
+		$question_types = $survey_info['question_types'];
+		$question_selections = $survey_info['question_selections'];
+		$question_sums = $survey_info['question_sums'];
+		$question_selected_text = $survey_info['question_selected_text'];
+		$question_response_caps = $survey_info['question_response_caps'];
+		$question_average_round = $survey_info['question_average_round'];
+
+		// now upload the survey info into the db -- if there isn't a survey_id then this is a new survey so we insert a new row into the table...otherwise we update the existing row
+		$sql = ( !$survey_id ) ? "INSERT INTO " . SURVEY_TABLE . " (survey_caption, group_ids, topic_id, show_order, show_nonresponders, max_number_of_questions, lines_to_skip, allow_change_answers, survey_start, survey_length, survey_height, widths, questions, question_types, question_selections, question_sums, question_selected_text, question_response_caps, question_average_round)
+		VALUES ('$survey_caption', '$group_ids', $topic_id, $show_order, $show_nonresponders, $max_number_of_questions, $lines_to_skip, $allow_change_answers, $current_time, $survey_length, $survey_height, '$widths', '$questions', '$question_types', '$question_selections', '$question_sums', '$question_selected_text', '$question_response_caps', '$question_average_round')" :
+		"UPDATE " . SURVEY_TABLE . " SET survey_caption = '$survey_caption', group_ids = '$group_ids', topic_id = $topic_id, show_order = $show_order, show_nonresponders = $show_nonresponders, max_number_of_questions = $max_number_of_questions, lines_to_skip = $lines_to_skip, allow_change_answers = $allow_change_answers, survey_length = $survey_length, survey_height = $survey_height, widths = '$widths', questions = '$questions', question_types = '$question_types', question_selections = '$question_selections', question_sums = '$question_sums', question_selected_text = '$question_selected_text', question_response_caps = '$question_response_caps', question_average_round = '$question_average_round'
+		WHERE survey_id = $survey_id";
+
+		if(!$db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, 'Error inserting or updating data into the survey table', '', __LINE__, __FILE__, $sql);
+		}
+	}
+	// end mod tabulated survey at topic head
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ($mode == 'delete' && $post_data['first_post'] && $post_data['last_post'])
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod tabulated survey at topic head
+	if ($mode == 'delete' && $post_data['first_post'] && $post_data['last_post'] && $post_data['has_survey'])
+	{
+		// ok, we need to get rid of a survey that was tied to this topic...start by getting the survey_id
+		$sql = "SELECT survey_id FROM " . SURVEY_TABLE . "
+			WHERE topic_id = $topic_id";
+		if (!$db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, 'Could not get the survey id needed to delete entry from survey and survey answers tables', '', __LINE__, __FILE__, $sql);
+		}
+		$row = $db->sql_fetchrow($result);
+		$survey_id = $row['survey_id'];
+		$db->sql_freeresult($result);
+
+		// now delete entries from the survey and survey answers tables...
+		$sql = "DELETE FROM " . SURVEY_TABLE . "
+			WHERE survey_id = $survey_id";
+		if (!$db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, 'Could not delete entry from survey table', '', __LINE__, __FILE__, $sql);
+		}
+
+		$sql = "DELETE FROM " . SURVEY_ANSWERS_TABLE . "
+			WHERE survey_id = $survey_id";
+		if (!$db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, 'Could not delete entry from survey answers table', '', __LINE__, __FILE__, $sql);
+		}
+	}
+// end mod tabulated survey at topic head
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod survey at topic head
+$lang['Add_survey_explain'] = 'You can ask any number of questions in a survey.  If you leave any question blank, the questions will not be recognized after the first blank question.';
+$lang['All_registered_users'] = 'All Registered Users';
+$lang['Allow_change_answers'] = 'Allow users to change their answers?';
+$lang['Alphabetical'] = 'alphabetical by username';
+$lang['Average'] = 'Average';
+$lang['By_order_of_response'] = 'in the order that users respond';
+$lang['Cap_response'] = 'If totalling, specify maximum total before users can no longer respond (blank means no cap): &nbsp;&nbsp';
+$lang['Change_your_answers'] = 'Change your answers';
+$lang['Checkbox_or_radio_buttons'] = 'checkbox or radio buttons';
+$lang['Click_design_survey'] = 'Click here to access or hide survey design box';
+$lang['Click_return_topic_survey'] = 'Click %sHere%s to return to the topic where the survey is located';
+$lang['Delete_survey'] = 'Delete survey from this post?';
+$lang['Design_a_survey'] = 'Design a Survey';
+$lang['Drop_down_menu'] = 'drop down menu';
+$lang['Fill_out_survey'] = 'Fill out survey';
+$lang['Fill_out_survey_for_someone_else'] = 'Fill out survey for another user';
+$lang['If_average'] = 'If averaging numbers in responses, specify the number of digits to round to: &nbsp;&nbsp';
+$lang['If_by_matching_text'] = 'If totalling by responses matching text, specify that text: &nbsp;&nbsp';
+$lang['If_selections'] = 'If checkbox, radio buttons, multiple choice checkboxes<br />or drop down menu, specify selections separated by semicolons<br />(if drop down menu, beginning with semicolon allows user to make no selection): &nbsp;&nbsp';
+$lang['Large_text_blank'] = 'large text blank';
+$lang['Lines_to_skip'] = 'Lines to skip between answers';
+$lang['List_nonresponders'] = 'List the nonresponders?';
+$lang['Max_number_of_questions'] = 'Max number of questions<br />(change takes effect after click preview): &nbsp;&nbsp';
+$lang['Multiple_choice_checkboxes'] = 'multiple choice checkboxes';
+$lang['no'] = 'no';
+$lang['No_such_user_authorized_for_survey'] = 'The user you specified does not exist or is not authorized to take this survey.';
+$lang['No_survey_id_specified'] = 'No survey_id specified';
+$lang['No_survey_topic_id_specified'] = 'No topic_id specified for the survey';
+$lang['Nonresponders'] = 'People who haven\'t yet answered';
+$lang['other_user_answers_below'] = '\'s answers are shown below<br />(but you can change them and resubmit if you want)';
+$lang['other_user_not_answered'] = 'hasn\'t answered the survey yet<br />(but you can answer for him or her below)';
+$lang['Order_to_show'] = 'Order to show responders';
+$lang['Question'] = 'Question';
+$lang['Question_type'] = 'Question type';
+$lang['Retrieve_answers_for_other_user'] = 'Retrieve answers for other user';
+$lang['Select_group'] = 'Select the groups that will be allowed to answer this survey';
+$lang['Sending'] = 'Sending';
+$lang['show_nonresponders_center_column'] = 'yes, in column that is centered';
+$lang['show_nonresponders_center_comma_separated'] = 'yes, in comma separated list that is centered';
+$lang['show_nonresponders_left_column'] = 'yes, in column that is left justified';
+$lang['show_nonresponders_left_comma_separated'] = 'yes, in comma separated list that is left justified';
+$lang['Should_responses_be_totalled'] = 'Should the responses be totalled?';
+$lang['Small_text_blank'] = 'small text blank';
+$lang['Sorry_enough_responses'] = 'Sorry, but there are already<br />enough responses to this question';
+$lang['Sorry_question_cap_hit'] = 'Sorry, a question you answered already has enough responses<br />(someone else answered that question just before you did).<br />Please try again.<br /><br />';
+$lang['Sort_by_first_answer'] = 'alphabetical by text in first answer';
+$lang['Sort_by_first_answer_descending_order'] = 'reverse alphabetical by text in first answer';
+$lang['Survey'] = 'Survey';
+$lang['Survey_caption'] = 'Survey Caption';
+$lang['Survey_has_expired_(no_more_voting)'] = 'Survey has expired...no more voting or changing your vote';
+$lang['Survey_height'] = 'Max survey height (in pixels)<br />(adds scroll bars if beyond max)<br />(leave blank for no limit)';
+$lang['Survey_length'] = 'Number of days to run survey<br />(leave blank for no limit)';
+$lang['Text_box'] = 'text box';
+$lang['Topic_Survey'] = '<b>[ Survey ]</b>';
+$lang['Total'] = 'Total';
+$lang['Total_or_average'] = 'Total or average';
+$lang['Total_responses'] = 'Total responses';
+$lang['Username_taking_survey'] = 'Username of person for whom user is answering survey';
+$lang['Width_question'] = 'Question width (in pixels)<br />(you can leave this blank)';
+$lang['Width_username'] = 'Username width (in pixels)<br />(you can leave this blank)<br />note: -1 means no username column';
+$lang['yes'] = 'yes';
+$lang['Yes_by_average_of_numbers_in_responses'] = 'yes, by average of the numbers in the responses';
+$lang['Yes_by_matching_text'] = 'yes, by total responses matching specified text';
+$lang['Yes_by_numbers_in_responses'] = 'yes, by total of the numbers in the responses';
+$lang['Yes_by_number_of_responses'] = 'yes, by number of responses';
+// end mod survey at topic head
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-->
+</script>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod tabulated survey at topic head
+function toggle_on_off(id)
+{
+	var obj = "";
+
+		// Check browser compatibility
+		if(document.getElementById)
+			obj = document.getElementById(id);
+		else if(document.all)
+			obj = document.all[id];
+		else if(document.layers)
+			obj = document.layers[id];
+		else
+			return 1;
+
+		if (!obj) {
+			return 1;
+		}
+		else if (obj.style)
+		{
+			obj.style.display = ( obj.style.display != "none" ) ? "none" : "";
+		}
+		else
+		{
+			obj.visibility = "show";
+		}
+}
+// end mod tabulated survey at topic head
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		  <!-- END switch_type_toggle -->
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+<!-- start mod tabulated survey at topic head -->
+		  <!-- BEGIN switch_show_design_survey_link -->
+		  <tr>
+			<td></td>
+			<td><span class="gen"><a href="javascript:toggle_on_off('survey');">{L_CLICK_DESIGN_SURVEY}</a></span></td>
+		  </tr>
+		  <!-- END switch_show_design_survey_link -->
+<!-- end mod tabulated survey at topic head -->
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	{POLLBOX}
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+	<!-- start mod tabulated survey at topic head -->
+	{SURVEYBOX}
+	<!-- end mod tabulated survey at topic head -->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	{POLL_DISPLAY}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	{SURVEY_DISPLAY}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<td align="left" valign="middle" nowrap="nowrap"><span class="nav"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" align="middle" /></a>&nbsp;&nbsp;&nbsp;<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" /></a></span></td>
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	<td align="left" valign="middle" nowrap="nowrap"><span class="nav"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" align="middle" /></a>&nbsp;&nbsp;&nbsp;<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" /></a>
+		<!-- BEGIN switch_include_fill_in_button -->
+		&nbsp;&nbsp;&nbsp;<a href="{U_FILL_OUT_SURVEY}"><img src="{SURVEY_FILL_OUT_IMG}" border="0" alt="{L_FILL_OUT}" align="middle" /></a>
+		<!-- END switch_include_fill_in_button -->
+		</span></td>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$images['reply_locked'] = "$current_template_images/{LANG}/reply-locked.gif";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod tabulated survey at topic head
+$images['fill_out_survey'] = "$current_template_images/{LANG}/fill_out_survey.gif";
+$images['change_survey_answers'] = "$current_template_images/{LANG}/change_survey_answers.gif";
+// end mod tabulated survey at topic head
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

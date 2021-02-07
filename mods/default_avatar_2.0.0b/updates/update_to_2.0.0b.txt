@@ -1,0 +1,715 @@
+##############################################################
+## MOD Title: Default avatar (Update 1.1.0 -> 2.0.0b)
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com
+## MOD Description: Updates this MOD to version 2.0.0b from 1.1.0
+## MOD Version: 2.0.0b
+##
+## Installation Level: Easy
+## Installation Time: ~ 20 Minutes
+## Files To Edit:
+##		admin/admin_board.php
+##		admin/admin_users.php
+##		includes/constants.php
+##		includes/functions.php
+##		includes/usercp_register.php
+##		includes/usercp_viewprofile.php
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/admin/board_config_body.tpl
+##		templates/subSilver/admin/user_edit_body.tpl
+##		templates/subSilver/profile_add_body.tpl
+##		viewtopic.php
+##
+## Included Files:
+##		updates/db_update_to_2.0.0b.php
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##	You can choose the default avatar by following the "Configuration" link under the "General Admin" heading, in the left panel of the ACP.
+##
+##	If you can't run the SQL commands yourself (If you're not using EasyMOD),
+##	then upload the db_update_to_2.0.0b.php file to install/db_update_to_2.0.0b.php and run it.
+##	Make sure you delete the file after use.
+##
+##	DO NOT RUN THE DB_UPDATE.PHP FILE IN THE INSTALL/ FOLDER IN THIS PACKAGE!
+##
+##	Made by request from this topic: http://www.phpbb.com/phpBB/viewtopic.php?t=254117
+##
+##############################################################
+## MOD History:
+##
+##
+##   2006-02-20 - Version 2.0.0b
+##      - More removing
+##
+##   2006-01-15 - Version 2.0.0a
+##      - Removed unnecissary code
+##
+##   2005-11-23 - Version 2.0.0
+##      - Added random Default Avatars
+##	- Now includes more admin options
+##	- Users can choose to show the default avatar for themselves
+##
+##   2005-01-10 - Version 1.1.0
+##      - Added a function so you can set a different avatar for users and guests, and so that you can set it so that no default avatar is shown.
+##
+##   2005-01-09 - Version 1.0.0
+##      - First version, seems to work fine.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------------------------------
+#
+INSERT INTO phpbb_config(config_name, config_value) VALUES ('default_avatar', '0');
+UPDATE phpbb_config SET config_name = 'default_avatar_guests' WHERE config_name = 'default_avatar_guests_url';
+UPDATE phpbb_config SET config_name = 'default_avatar_users' WHERE config_name = 'default_avatar_users_url';
+UPDATE phpbb_config SET config_name = 'default_avatar_type' WHERE config_name = 'default_avatar_set';
+INSERT INTO phpbb_config(config_name, config_value) VALUES ('default_avatar_random', '0');
+INSERT INTO phpbb_config(config_name, config_value) VALUES ('default_avatar_choose', '0');
+INSERT INTO phpbb_config(config_name, config_value) VALUES ('default_avatar_override', '0');
+ALTER TABLE phpbb_users ADD user_allowdefaultavatar TINYINT(1) DEFAULT '1' NOT NULL;
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$default_avatar_guests = ($new['default_avatar_set'] == '0') ? "checked=\"checked\"" : "";
+$default_avatar_users = ($new['default_avatar_set'] == '1') ? "checked=\"checked\"" : "";
+$default_avatar_both = ($new['default_avatar_set'] == '2') ? "checked=\"checked\"" : "";
+$default_avatar_none = ($new['default_avatar_set'] == '3') ? "checked=\"checked\"" : "";
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+$default_avatar_guests = ( $new['default_avatar_type'] == DEFAULT_AVATAR_GUESTS ) ? "checked=\"checked\"" : "";
+$default_avatar_users = ( $new['default_avatar_type'] == DEFAULT_AVATAR_USERS ) ? "checked=\"checked\"" : "";
+$default_avatar_both = ( $new['default_avatar_type'] == DEFAULT_AVATAR_BOTH ) ? "checked=\"checked\"" : "";
+$default_avatar_yes = ( $new['default_avatar'] ) ? "checked=\"checked\"" : "";
+$default_avatar_no = ( !$new['default_avatar'] ) ? "checked=\"checked\"" : "";
+$default_avatar_choose_yes = ( $new['default_avatar_choose'] ) ? "checked=\"checked\"" : "";
+$default_avatar_choose_no = ( !$new['default_avatar_choose'] ) ? "checked=\"checked\"" : "";
+$default_avatar_random_yes = ( $new['default_avatar_random'] ) ? "checked=\"checked\"" : "";
+$default_avatar_random_no = ( !$new['default_avatar_random'] ) ? "checked=\"checked\"" : "";
+$default_avatar_override_yes = ( $new['default_avatar_override'] ) ? "checked=\"checked\"" : "";
+$default_avatar_override_no = ( !$new['default_avatar_override'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// Default Avatar MOD, By Manipe (Begin)
+	"L_DEFAULT_AVATAR" => $lang['Default_avatar'],
+	"L_DEFAULT_AVATAR_EXPLAIN" => $lang['Default_avatar_explain'],
+	"L_DEFAULT_AVATAR_GUESTS" => $lang['Default_avatar_guests'],
+	"L_DEFAULT_AVATAR_USERS" => $lang['Default_avatar_users'],
+	"L_DEFAULT_AVATAR_BOTH" => $lang['Default_avatar_both'],
+	"L_DEFAULT_AVATAR_NONE" => $lang['Default_avatar_none'],
+// Default Avatar MOD, By Manipe (End)
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# Delete the lines
+ 
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"L_RESET" => $lang['Reset'], 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Default Avatar MOD, By Manipe (Begin)
+	"L_DEFAULT_AVATAR_SETTINGS" => $lang['Default_avatar_settings'],
+	"L_DEFAULT_AVATAR_SETTINGS_EXPLAIN" => $lang['Default_avatar_settings_explain'],
+	"L_DEFAULT_AVATAR_USE" => $lang['Default_avatar_use'],
+	"L_DEFAULT_AVATAR_RANDOM" => $lang['Default_avatar_random'],
+	"L_DEFAULT_AVATAR_RANDOM_EXPLAIN" => $lang['Default_avatar_random_explain'],
+	"L_DEFAULT_AVATAR_TYPE" => $lang['Default_avatar_type'],
+	"L_DEFAULT_AVATAR_USERS" => $lang['Default_avatar_users'],
+	"L_DEFAULT_AVATAR_GUESTS" => $lang['Default_avatar_guests'],
+	"L_DEFAULT_AVATAR_BOTH" => $lang['Default_avatar_both'],
+	"L_DEFAULT_AVATAR_USERS_SET" => $lang['Default_avatar_users_set'],
+	"L_DEFAULT_AVATAR_USERS_EXPLAIN" => $lang['Default_avatar_users_explain'],
+	"L_DEFAULT_AVATAR_GUESTS_SET" => $lang['Default_avatar_guests_set'],
+	"L_DEFAULT_AVATAR_GUESTS_EXPLAIN" => $lang['Default_avatar_guests_explain'],
+	"L_DEFAULT_AVATAR_CHOOSE" => $lang['Default_avatar_choose'],
+	"L_DEFAULT_AVATAR_CHOOSE_EXPLAIN" => $lang['Default_avatar_choose_explain'],
+	"L_DEFAULT_AVATAR_OVERRIDE" => $lang['Default_avatar_override'],
+	"L_DEFAULT_AVATAR_OVERRIDE_EXPLAIN" => $lang['Default_avatar_override_explain'],
+
+	"DEFAULT_AVATAR_YES" => $default_avatar_yes,
+	"DEFAULT_AVATAR_NO" => $default_avatar_no,
+	"DEFAULT_AVATAR_RANDOM_YES" => $default_avatar_random_yes,
+	"DEFAULT_AVATAR_RANDOM_NO" => $default_avatar_random_no,
+	"DEFAULT_AVATAR_USERS" => DEFAULT_AVATAR_USERS,
+	"DEFAULT_AVATAR_GUESTS" => DEFAULT_AVATAR_GUESTS,
+	"DEFAULT_AVATAR_BOTH" => DEFAULT_AVATAR_BOTH,
+	"DEFAULT_AVATAR_USERS_YES" => $default_avatar_users,
+	"DEFAULT_AVATAR_GUESTS_YES" => $default_avatar_guests,
+	"DEFAULT_AVATAR_BOTH_YES" => $default_avatar_both,
+	"DEFAULT_AVATAR_USERS_URL" => $new['default_avatar_users'],
+	"DEFAULT_AVATAR_GUESTS_URL" => $new['default_avatar_guests'],
+	"DEFAULT_AVATAR_CHOOSE_YES" => $default_avatar_choose_yes,
+	"DEFAULT_AVATAR_CHOOSE_NO" => $default_avatar_choose_no,
+	"DEFAULT_AVATAR_OVERRIDE_YES" => $default_avatar_override_yes,
+	"DEFAULT_AVATAR_OVERRIDE_NO" => $default_avatar_override_no,
+// Default Avatar MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+	"DEFAULT_AVATAR_GUESTS_URL" => $new['default_avatar_guests_url'],
+	"DEFAULT_AVATAR_USERS_URL" => $new['default_avatar_users_url'],
+	"DEFAULT_AVATAR_GUESTS" => $default_avatar_guests,
+	"DEFAULT_AVATAR_USERS" => $default_avatar_users,
+	"DEFAULT_AVATAR_BOTH" => $default_avatar_both,
+	"DEFAULT_AVATAR_NONE" => $default_avatar_none,
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# Delete the lines
+ 
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$allowsmilies = ( isset( $HTTP_POST_VARS['allowsmilies']) ) ?
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+		$allowdefaultavatar = ( isset( $HTTP_POST_VARS['allowdefaultavatar']) ) ? ( ( $HTTP_POST_VARS['allowdefaultavatar'] ) ? TRUE : 0 ) : 0;
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				SET " . $username_sql . $passwd_sql
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+$avatar_sql . "
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, user_allowdefaultavatar = $allowdefaultavatar
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$allowviewonline = $this_userdata['user_allow_viewonline'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+		$allowdefaultavatar = $this_userdata['user_allowdefaultavatar'];
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="allowsmilies" value="' . $allowsmilies . '" />';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+			$s_hidden_fields .= '<input type="hidden" name="allowdefaultavatar" value="' . $allowdefaultavatar . '" />';
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			'RANK_SELECT_BOX' => $rank_select_box,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+			'DEFAULT_AVATAR_YES' => ($allowdefaultavatar) ? 'checked="checked"' : '',
+			'DEFAULT_AVATAR_NO' => (!$allowdefaultavatar) ? 'checked="checked"' : '',
+
+			'L_DEFAULT_AVATAR' => $lang['Choose_default_avatar'],
+			'L_DEFAULT_AVATAR_EXPLAIN' => $lang['Choose_default_avatar_explain'],
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if( $board_config['allow_avatar_remote'] == TRUE )
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+		if ( $board_config['default_avatar_choose'] )
+		{
+			$template->assign_block_vars('default_avatar', array() );
+		}
+// Default avatar MOD, By Manipe (End)
+
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+define("DEFAULT_AVATAR_USERS", 1);
+define("DEFAULT_AVATAR_GUESTS", 2);
+define("DEFAULT_AVATAR_BOTH", 3);
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+
+//
+// Sets the default avatar for users
+//
+function default_avatar($userdata, &$avatar_img)
+{
+	global $db, $board_config, $gallery_avatars, $phpbb_root_path;
+
+	//
+	// If a user has an avatar and admin doesn't want to override, abort!
+	//
+	if (!empty($avatar_img) && !$board_config['default_avatar_override'])
+	{
+		return;
+	}
+
+	//
+	// If the user doesn't want the default avatar to be shown and the admin allows it, abort!
+	//
+	if (!$userdata['user_allowdefaultavatar'] && $board_config['default_avatar_choose'])
+	{
+		return;
+	}
+
+	//
+	// No point getting images unless the user might use them
+	//
+	if ($board_config['default_avatar'])
+	{
+		// Get images only if admin allows it and if $default_avatars is not set
+		if (empty($gallery_avatars) && $board_config['default_avatar_random'])
+		{
+			default_avatar_scan_dir($phpbb_root_path . $board_config['avatar_gallery_path']);
+		}
+
+		//
+		// Find out which avatar to show
+		//
+		if ($board_config['default_avatar_random'])
+		{
+			$avatar_img = '<img src="' . $gallery_avatars[array_rand($gallery_avatars)] . '" alt="" border="0" />';
+		}
+		elseif (($board_config['default_avatar_type'] == DEFAULT_AVATAR_USERS) && ($userdata['user_id'] != ANONYMOUS) && ($board_config['default_avatar_users']))
+		{
+			$avatar_img = '<img src="' . $board_config['default_avatar_users'] . '" alt="" border="0" />';
+		}
+		elseif (($board_config['default_avatar_type'] == DEFAULT_AVATAR_GUESTS) && ($userdata['user_id'] == ANONYMOUS) && ($board_config['default_avatar_guests']))
+		{
+			$avatar_img = '<img src="' . $board_config['default_avatar_guests'] . '" alt="" border="0" />';
+		}
+		elseif ($board_config['default_avatar_type'] == DEFAULT_AVATAR_BOTH)
+		{
+			if (($userdata['user_id'] == ANONYMOUS) && $board_config['default_avatar_guests'])
+			{
+				$avatar_img = '<img src="' . $board_config['default_avatar_guests'] . '" alt="" border="0" />';
+			}
+			elseif (($userdata['user_id'] != ANONYMOUS) && $board_config['default_avatar_users'])
+			{
+				$avatar_img = '<img src="' . $board_config['default_avatar_users'] . '" alt="" border="0" />';
+			}
+		}
+	}
+}
+
+//
+// Retrieves all avatars in the images/avatars/gallery folder. Also searches subfolders
+//
+function default_avatar_scan_dir($parent, $dir = "")
+{
+	global $gallery_avatars;
+
+	$dh  = opendir($parent . $dir);
+	while (($filename = @readdir($dh)) !== false)
+	{
+		if ($filename != "." && $filename != "..")
+		{
+			if (preg_match('/(\.gif$|\.png$|\.jpg|\.jpe)/is', $filename))
+			{
+				$gallery_avatars[] = $parent . $dir . "/" . $filename;
+			}
+			elseif (is_dir("{$parent}{$dir}/{$filename}"))
+			{
+				default_avatar_scan_dir($parent . $dir . "/", $filename);
+			}
+		}
+	}
+	opendir("..");
+}
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$popup_pm = ( isset($HTTP_POST_VARS['popup_pm']) ) ? ( ($HTTP_POST_VARS['popup_pm']) ? TRUE : 0 ) : TRUE;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+	$allowdefaultavatar = ( isset($HTTP_POST_VARS['allowdefaultavatar']) ) ? ( ($HTTP_POST_VARS['allowdefaultavatar']) ? TRUE : 0 ) : 0;
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				SET " . $username_sql . $passwd_sql
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+$avatar_sql . "
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, user_allowdefaultavatar = $allowdefaultavatar
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$allowviewonline = $userdata['user_allow_viewonline'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+	$allowdefaultavatar = $userdata['user_allowdefaultavatar'];
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		'SMILIES_STATUS' => $smilies_status,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+		'DEFAULT_AVATAR_YES' => ( $allowdefaultavatar ) ? 'checked="checked"' : '',
+		'DEFAULT_AVATAR_NO' => ( !$allowdefaultavatar ) ? 'checked="checked"' : '',
+		'L_DEFAULT_AVATAR' => $lang['Choose_default_avatar'],
+		'L_DEFAULT_AVATAR_EXPLAIN' => $lang['Choose_default_avatar_explain'],
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			if ( $board_config['allow_avatar_remote'] )
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+			if ( $board_config['default_avatar_choose'] )
+			{
+				$template->assign_block_vars('switch_avatar_block.switch_default_avatar_choose', array() );
+			}
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+if ((!$avatar_img) && (($board_config['default_avatar_set'] == 1) || ($board_config['default_avatar_set'] == 2)) && ($board_config['default_avatar_users_url'])){
+	$avatar_img = '<img src="' . $board_config['default_avatar_users_url'] . '" alt="" border="0" />';
+}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+default_avatar($profiledata, $avatar_img);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['Default_avatar'] = 'Set a default avatar';
+$lang['Default_avatar_explain'] = 'This gives users that haven\'t yet selected an avatar, a default one. Set the default avatar for guests and users, and then select wheather you want the avatar to be displayed for registered users, guests, both or none.';
+$lang['Default_avatar_guests'] = 'Guests';
+$lang['Default_avatar_users'] = 'Users';
+$lang['Default_avatar_both'] = 'Both';
+$lang['Default_avatar_none'] = 'None';
+
+#
+#-----[ REPLACE WITH ]-----------------------------------------
+#
+$lang['Default_avatar_settings'] = 'Default Avatar Settings';
+$lang['Default_avatar_settings_explain'] = 'The Default Avatar is an avatar that is shown when a user has not selected their own avatar. You can disable or enable it here. Different avatars can be choosen for showing for a registered user, or a guest. A random avatar can also be chosen from the avatar gallery. You can also let users decide for themselves whether or not they want to have the default avatar shown for them. This option can also be disabled.';
+$lang['Default_avatar_use'] = 'Enable Default Avatar';
+$lang['Default_avatar_random'] = 'Enable Random Default Avatar';
+$lang['Default_avatar_random_explain'] = 'This will choose a random avatar from your avatar gallery, defined by the "Avatar Gallery Path" in the "Avatar Settings" heading. All subforums in the gallery will be searched for image files, and then one will be taken at random for each user. The same user doesn\'t get the same avatar, and may on the same page in viewtopic.php have numerous avatars.';
+$lang['Default_avatar_type'] = 'Enable Default Avatar for what class of user';
+$lang['Default_avatar_users'] = 'Users';
+$lang['Default_avatar_guests'] = 'Guests';
+$lang['Default_avatar_both'] = 'Users &amp; Guests';
+$lang['Default_avatar_users_set'] = 'Path to registered users\' default avatar';
+$lang['Default_avatar_users_explain'] = 'Path under your phpBB root dir, e.g. images/avatars/avatar.jpg. This image will be shown for each registered user that hasn\'t selected an avatar. Enabling random default avatar overrides this feature.';
+$lang['Default_avatar_guests_set'] = 'Path to guests\' default avatar';
+$lang['Default_avatar_guests_explain'] = 'Path under your phpBB root dir, e.g. images/avatars/avatar.jpg. This image will be shown for each guest. Enabling random default avatar overrides this feature. Enter the same URL as above if you want the same avatar appearing for both users and guests.';
+$lang['Default_avatar_choose'] = 'Let users choose to shown default avatar for them';
+$lang['Default_avatar_choose_explain'] = 'This lets users choose for themselves if they want the default avatar shown for them if they have not selected an avatar.';
+$lang['Default_avatar_override'] = 'Override users\' avatar';
+$lang['Default_avatar_override_explain'] = 'This lets you to show the default avatar for users who have already selected an avatar. For full effect, it is advised not to let users choose if they want the default avatar to be shown.';
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Default avatar MOD, By Manipe (Begin)
+$lang['Choose_default_avatar'] = 'Enable default avatar for you';
+$lang['Default_avatar_choose_explain'] = 'If the administrator has configured the board to show default avatars, this will enable the default avatar to be shown. This only happens when you haven\'t selected an avatar of your own. The administrator chooses the default avatar.';
+// Default avatar MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_DEFAULT_AVATAR} <br /><span class="gensmall">{L_DEFAULT_AVATAR_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="default_avatar_set" value="0" {DEFAULT_AVATAR_GUESTS} /> {L_DEFAULT_AVATAR_GUESTS} &nbsp; <input class="post" type="text" name="default_avatar_guests_url" maxlength="255" value="{DEFAULT_AVATAR_GUESTS_URL}" /><br /><input type="radio" name="default_avatar_set" value="1" {DEFAULT_AVATAR_USERS} /> {L_DEFAULT_AVATAR_USERS} &nbsp; <input class="post" type="text" name="default_avatar_users_url" maxlength="255" value="{DEFAULT_AVATAR_USERS_URL}" /><br /><input type="radio" name="default_avatar_set" value="2" {DEFAULT_AVATAR_BOTH} /> {L_DEFAULT_AVATAR_BOTH}<br /><input type="radio" name="default_avatar_set" value="3" {DEFAULT_AVATAR_NONE} /> {L_DEFAULT_AVATAR_NONE}</td>
+	</tr>
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+# Delete the lines
+ 
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		<td class="row1">{L_AVATAR_GALLERY_PATH} <br /><span class="gensmall">{L_AVATAR_GALLERY_PATH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="avatar_gallery_path" value="{AVATAR_GALLERY_PATH}" /></td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_DEFAULT_AVATAR_SETTINGS}</th>
+	</tr>
+	<tr>
+		<td class="row2" colspan="2"><span class="gensmall">{L_DEFAULT_AVATAR_SETTINGS_EXPLAIN}</span></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_DEFAULT_AVATAR_USE}</td>
+		<td class="row2"><input type="radio" name="default_avatar" value="1" {DEFAULT_AVATAR_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="default_avatar" value="0" {DEFAULT_AVATAR_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_DEFAULT_AVATAR_RANDOM} <br /><span class="gensmall">{L_DEFAULT_AVATAR_RANDOM_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="default_avatar_random" value="1" {DEFAULT_AVATAR_RANDOM_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="default_avatar_random" value="0" {DEFAULT_AVATAR_RANDOM_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_DEFAULT_AVATAR_TYPE} <br /><span class="gensmall">{L_DEFAULT_AVATAR_TYPE_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="default_avatar_type" value="{DEFAULT_AVATAR_USERS}" {DEFAULT_AVATAR_USERS_YES} /> {L_DEFAULT_AVATAR_USERS}&nbsp;&nbsp;<input type="radio" name="default_avatar_type" value="{DEFAULT_AVATAR_GUESTS}" {DEFAULT_AVATAR_GUESTS_YES} /> {L_DEFAULT_AVATAR_GUESTS}&nbsp;&nbsp;<input type="radio" name="default_avatar_type" value="{DEFAULT_AVATAR_BOTH}" {DEFAULT_AVATAR_BOTH_YES} /> {L_DEFAULT_AVATAR_BOTH}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_DEFAULT_AVATAR_USERS_SET}<br /><span class="gensmall">{L_DEFAULT_AVATAR_USERS_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" maxlength="255" name="default_avatar_users" value="{DEFAULT_AVATAR_USERS_URL}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_DEFAULT_AVATAR_GUESTS_SET}<br /><span class="gensmall">{L_DEFAULT_AVATAR_GUESTS_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" maxlength="255" name="default_avatar_guests" value="{DEFAULT_AVATAR_GUESTS_URL}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_DEFAULT_AVATAR_CHOOSE} <br /><span class="gensmall">{L_DEFAULT_AVATAR_CHOOSE_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="default_avatar_choose" value="1" {DEFAULT_AVATAR_CHOOSE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="default_avatar_choose" value="0" {DEFAULT_AVATAR_CHOOSE_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_DEFAULT_AVATAR_OVERRIDE} <br /><span class="gensmall">{L_DEFAULT_AVATAR_OVERRIDE_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="default_avatar_override" value="1" {DEFAULT_AVATAR_OVERRIDE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="default_avatar_override" value="0" {DEFAULT_AVATAR_OVERRIDE_NO} /> {L_NO}</td>
+	</tr>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<!-- END switch_avatar_block -->
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<!-- BEGIN switch_default_avatar_choose -->
+	<tr> 
+	  <td class="row1"><span class="gen">{L_DEFAULT_AVATAR}:</span><br /><span class="gensmall">{L_DEFAULT_AVATAR_EXPLAIN}</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="allowdefaultavatar" value="1" {DEFAULT_AVATAR_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="allowdefaultavatar" value="0" {DEFAULT_AVATAR_YES} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+	<!-- END switch_default_avatar_choose -->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<!-- END avatar_local_gallery -->
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+	<!-- BEGIN default_avatar -->
+	<tr> 
+	  <td class="row1"><span class="gen">{L_DEFAULT_AVATAR}</span><br />
+		<span class="gensmall">{L_DEFAULT_AVATAR_EXPLAIN}</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="allowdefaultavatar" value="1" {DEFAULT_AVATAR_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="allowdefaultavatar" value="0" {DEFAULT_AVATAR_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+	<!-- END default_avatar -->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$sql = "SELECT u.username
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+u.user_allowsmile
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_allowdefaultavatar
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ((!$poster_avatar) && ($board_config['default_avatar_set'] != 3))
+	{
+		if (($board_config['default_avatar_set'] == 0) && ($poster_id == -1) && ($board_config['default_avatar_guests_url']))
+		{
+			$poster_avatar = '<img src="' . $board_config['default_avatar_guests_url'] . '" alt="" border="0" />';
+		}
+		else if (($board_config['default_avatar_set'] == 1) && ($poster_id != -1) && ($board_config['default_avatar_users_url']) )
+		{
+			$poster_avatar = '<img src="' . $board_config['default_avatar_users_url'] . '" alt="" border="0" />';
+		}
+		else if ($board_config['default_avatar_set'] == 2)
+		{
+			if (($poster_id == -1) && ($board_config['default_avatar_guests_url']))
+			{
+				$poster_avatar = '<img src="' . $board_config['default_avatar_guests_url'] . '" alt="" border="0" />';
+			}
+			else if (($poster_id != -1) && ($board_config['default_avatar_users_url']))
+			{
+				$poster_avatar = '<img src="' . $board_config['default_avatar_users_url'] . '" alt="" border="0" />';
+			}
+		}
+	}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	default_avatar($postrow[$i], $poster_avatar);
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

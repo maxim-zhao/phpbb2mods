@@ -1,0 +1,121 @@
+##############################################################
+## MOD Title:		Cache phpBB version in Admin Control Panel (regular phpBB edition)
+## MOD Author:		Ptirhiik < please_use_the_board@clanmckeen.com > (Pierre) http://ptifo.clanmckeen.com
+## MOD Description:	This mod will prevent the admin index to verify at each hit the last phpBB version number, but only once a day.
+##
+## MOD Version:		1.0.2
+##
+## Installation Level:	Easy
+## Installation Time:	3 Minutes
+## Files To Edit:
+##			admin/index.php
+##			language/lang_english/lang_admin.php 
+##
+## Included Files:	n/a
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2007-10-07 - Version 1.0.2
+##      - no change: review the installation description to match phpBB.com wills
+##
+##   2005-02-26 - Version 1.0.0
+##      - first publication
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/index.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : cache version -------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$minor_revision = (int) $current_version[2];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : cache version -------------------------------------------------------
+//-- add
+	// we don't want to check at every time : do it only once a day
+	define('VERSION_CHECK_DELAY', 86400);
+	$now = time();
+	$version_check_delay = intval($board_config['version_check_delay']);
+	if ( intval($HTTP_GET_VARS['vchk']) || empty($version_check_delay) || (($version_check_delay - $now) > VERSION_CHECK_DELAY) )
+	{
+		if ( isset($board_config['version_check_delay']) )
+		{
+			$sql = 'UPDATE ' . CONFIG_TABLE . '
+						SET config_value = ' . $now . '
+						WHERE config_name = \'version_check_delay\'';
+		}
+		else
+		{
+			$sql = 'INSERT INTO ' . CONFIG_TABLE . '(config_name, config_value)
+						VALUES(\'version_check_delay\', ' . $now . ')';
+		}
+		$db->sql_query($sql);
+//-- fin mod : cache version ---------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$version_info = '<p>' . $lang['Socket_functions_disabled'] . '</p>';
+		}
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : cache version -------------------------------------------------------
+//-- add
+	}
+	else
+	{
+		$version_info = '<p style="color:blue">' . sprintf($lang['Current_version_info'], '2' . $board_config['version']) . '&nbsp;<a href="' . append_sid($phpbb_root_path . '/admin/index.' . $phpEx . '?pane=right&amp;vchk=1') . '">' . $lang['Version_check'] . '</a></p>';
+	}
+//-- fin mod : cache version ---------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : cache version -------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : cache version -------------------------------------------------------
+//-- add
+$lang['Version_check'] = 'Check for newest version';
+//-- fin mod : cache version ---------------------------------------------------
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

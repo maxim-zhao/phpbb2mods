@@ -1,0 +1,121 @@
+############################################################## 
+## MOD Title: Tabulated survey at topic head (upgrade from version 1.0.4 to 1.0,5)
+## MOD Author: asinshesq < asinsh@speakeasy.net > (Alan Sinsheimer) N/A
+## MOD Description:	Allow users to design surveys that will appear at the top of a topic.  Users will be able to .
+##			respond to the survey by clicking a button...each user response will appear at the topic head
+##
+## MOD Version:		1.0.5
+## 
+## Installation Level:	Easy
+## Installation Time:	20 Minutes ( 1 minute with easymod) 
+## Files To Edit:
+##			posting.php
+##			survey.php
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:	This is just an upgrade mod.  To use it, you must have tabulated survey at top head version 1.0.4 already installed
+##			If you haven't already installed that mod, install the latest version of the mod directly and don't use this mod at all.
+##
+##			IMPORTANT NOTE: in addition to the changes in this upgrade script (which you can install with easymod), you 
+##			need to open posting.php, FIND all 10 places where the mod added the number 7 and REPLACE each of those 7s with 8.
+##
+############################################################## 
+## MOD History:
+##
+##   2005-3-24	- Version 1.0.5
+##		  Minor changes, mostly to protect against sql injection risk.  No changes in functionality
+##
+##   2005-3-19	- Version 1.0.4
+##		  Added option to leave out the username column; changed max number of questions from 7 to 8;  
+##		  fixed behavior when survey is designed to be taken by 'all users'; changed the text that the person
+##		  designing a survey sees when he is desinging the survey
+##
+##   2005-3-08	- Version 1.0.3
+##		  Added protection against double submission of survey answers when user quickly clicks submit twice; fixed sort by first answer so that it 
+##		  looks only at the first answer and then alphabetizes; added reverse sort by first answer
+##
+##   2005-2-28	- Version 1.0.2
+##		  In the design survey form, added option to sort the tabulated results by first answer with secondary sort by username. 
+##		  Also changed things so that anyone who is authorized to post a poll will be authorized to post a survey (but it's easy to change this 
+##		  back so that only admins are authorized to post surveys if you want).
+##
+##   2005-2-26	- Version 1.0.1
+##		  initial version...still need to build in that previeiwng a post does not kill a new survey in that post, and
+##		  still need to add code so that you can use the delete survey function and, if you delete a post with a survey in it, 
+##		  it will delete the survey and survey answer info tied to that post.
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+posting.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				if ( $HTTP_POST_VARS['survey_delete'] == 1 )
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+				if ( !empty($HTTP_POST_VARS['survey_delete']) )
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+					$survey_info['survey_caption'] = htmlspecialchars( $HTTP_POST_VARS['survey_caption'] );
+					
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+					$survey_info['survey_caption'] = str_replace("\'", "''", $survey_info['survey_caption']);				
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+						$next_question = ( $survey_question[$i] ) ? htmlspecialchars( $survey_question[$i] ) : '';
+						$next_selection = ( $survey_question_selection[$i] ) ? htmlspecialchars( $survey_question_selection[$i] ) : '';
+						$next_selected_text = ( $survey_question_selected_text[$i] ) ? htmlspecialchars( $survey_question_selected_text[$i] ) : '';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+						$next_question = ( $survey_question[$i] ) ? htmlspecialchars( $survey_question[$i] ) : '';
+						$next_question = str_replace("\'", "''", $next_question);
+						$next_selection = ( $survey_question_selection[$i] ) ? htmlspecialchars( $survey_question_selection[$i] ) : '';
+						$next_selection = str_replace("\'", "''", $next_selection);
+						$next_selected_text = ( $survey_question_selected_text[$i] ) ? htmlspecialchars( $survey_question_selected_text[$i] ) : '';
+						$next_selected_text = str_replace("\'", "''", $next_selected_text);
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+survey.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$answer[$i] = ( isset($HTTP_POST_VARS['answer'][$i]) ) ? htmlspecialchars($HTTP_POST_VARS['answer'][$i]) : '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$answer[$i] = str_replace("\'", "''", $answer[$i]);
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM
+

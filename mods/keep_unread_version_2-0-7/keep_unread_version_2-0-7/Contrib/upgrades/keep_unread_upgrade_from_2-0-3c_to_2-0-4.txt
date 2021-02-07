@@ -1,0 +1,364 @@
+##############################################################
+## MOD Title:		keep unread flags (upgrade from 2.0.3c to 2.0.4)
+##
+## MOD Author: Merlin Sythove < N/A > (N/A) N/A
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Author: Ptirhiik < N/A > (Pierre) http://rpgnet.clanmckeen.com
+##
+## MOD Description:	This upgrades an installation of keep unread flags
+##			from version 2.0.3c to 2.0.4
+##
+## MOD Version:		2.0.4
+##
+## Installation Level:	Easy
+## Installation Time:	4 Minutes
+##
+## Files To Edit: 	templates/subSilver/index_body.tpl
+##					includes/functions.php
+##					includes/page_header.php
+##					language/lang_english/lang_main.php
+##
+## Included Files:	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 	Note: this is an upgrade mod that assumes you already have version 2.0.3c of the
+##			keep unread flags mod installed; do not use this mod unless the version you currently
+##			have installed is version 2.0.3c
+##
+##			Note: 2.0.3b and 2.0.3c of this mod are identical (2.0.3c is just a repack of 2.0.3b that includes
+##			changed files you can drop in to a clean phpbb2.0.19 board); so if you have 2.0.3b up and running
+##			you can use this upgrade mod to upgrade to 2.0.4
+##
+##			Important Note: you MUST scroll down towards the bottom of this upgrade script and carefully follow the 
+##			directions in the "special note about the mod to the mod to change view unread posts link"
+##
+##############################################################
+## MOD History:
+##
+##   2006-05-20 - Version 2.0.4
+##		- Changes to conform to phpbb2.0.20 changes (only relevant for the mod itself, 
+##		  not the upgrade...but if you already have keep unread installed and
+##		  are trying to upgrade phpbb from 2.0.19 to 2.0.20 and are stuck because of 
+##		  this mod, see http://www.phpbb.com/phpBB/viewtopic.php?p=2082858#2082858 for help)
+##		- Fixed bugs that would trigger an error for banned users and that would show 
+##		  guests that there are unread posts in forums they are not authorized as guests
+##		  to view on boards with mod to the mod to change view unread posts link installed
+##		- Substantially optimized the queries for the mod to the mod to change view unread 
+##		  posts link so that the code runs fewer queries to get to the same result
+##		- Changed basic mod so that the link will now read "View unread posts" if there 
+##		  are any and "You have no unread posts" if there aren't any
+##		- Changed index_body.tpl to ensure that users would see the mark all forums read 
+##		  link even if they are not logged in.
+##		- Changed the author's notes to include links to posts showing how
+##		  to make this mod compatible with the simple subforums mod, 
+##		  the old version of categories hierarchy mod,
+##		  the latest topics on index mod and the post sort order mod
+##		- Changed author's notes to show how to add the number of topics with unread posts 
+##		  to the link, and how to add a link to the page that shows a list of unread posts 
+##		  that lets the user mark all posts read
+##		- Changed the author's note about adding a text link for marking a post unread so that 
+##		  the link appears on the far right in the same font as the 'Back to Top' link that
+##		  appears on the far left
+##
+##   2006-01-01 - Version 2.0.3c
+##		- No changes at all in the code.  Repacked to show so that the 'changed files' version in
+##		  the contrib folder has phpbb2.0.19 version of those file
+##
+##   2005-11-20 - Version 2.0.3b
+##		- Changes requried for validation (no functional changes)
+##
+##   2005-10-18 - Version 2.0.3 or 2.0.3a
+##		- Added author's notes telling people who use topic calendar mod, PCP or other mods that install
+##		  functions_topic_list.php in the 'includes' directory to look at Niksa's
+##		  post describing how to adapt the mod to work with those mods;
+##		- Fixed bug that would improperly treat 'mark all topics read' request when the user was on the board as a guest;
+##		- security change to prevent possible sql injection risk;
+##		- Changed mod to the mod so that it checks which forums a user is authorized to view when it figures out
+##		  when to turn on the big red "View new posts" link
+##
+##   2005-07-21 - Version 2.0.2a
+##		- No change in mod (you don't need to upgrade from 2.0.2 to this)...just a change in a FIND command in the mod script
+##		  to dovetail with a change made from phpbb2.0.16 to 2.0.17
+##
+##   2005-07-12 - Version 2.0.2
+##		- Small changes required for validation; no change in functionality
+##
+##   2005-07-05 - Version 2.0.1
+##		- Small bugfix to correct intermittant error in topic_last_read function when marking topics read
+##
+##   2005-05-27 - Version 2.0.0
+##		- Merlin Sythove updates as specified above.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/index_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+ 	<!-- BEGIN switch_user_logged_in -->
+ 		<span class="gensmall"><a href="{U_MARK_READ}" class="gensmall">{L_MARK_FORUMS_READ}</a></span>
+ 	<!-- END switch_user_logged_in -->
+
+#
+#-----[ REPLACE WITH ]-----------------------------------------
+#
+ 		<span class="gensmall"><a href="{U_MARK_READ}" class="gensmall">{L_MARK_FORUMS_READ}</a></span>
+
+
+
+
+######################################################################################################
+## first special note about the mod to the mod to change view unread posts link
+##
+## The next set of changes is only for people who have NOT previously installed the
+## "mod to the mod to change view unread posts link".  If you have NOT previously installed
+## the "mod to the mod to change view unread posts link", include the following changes and delete 
+## the changes that follow the second special note about the mod to the mod to change view unread posts link below
+######################################################################################################
+
+#
+#-----------[ OPEN ]-----------
+#
+includes/functions.php
+
+#
+#-----------[ FIND ]-----------
+#
+		//
+		// Load the Page Header
+		//
+		if ( !defined('IN_ADMIN') )
+		{
+			include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+
+#
+#-----------[ BEFORE, ADD ]-----------
+#
+		$omit_unreads_check = true;
+
+#
+#-----------[ FIND ]-----------
+#
+function list_new_unreads(&$forum_unread)
+
+#
+#------------[ REPLACE WITH ]-----------
+#
+function list_new_unreads(&$forum_unread, $check_auth = 0)
+
+#
+#-----------[ FIND ]-----------
+#
+	//Get all topics
+	$sql = "SELECT t.forum_id, t.topic_id, p.post_time
+	FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+		WHERE p.post_id = t.topic_last_post_id
+		AND (p.post_time > " . $tracking_time . " $sql_unreads)
+		AND t.topic_moved_id = 0";
+
+#
+#-----------[ REPLACE WITH ]-----------
+#
+	$auth_list = '';
+	if ($check_auth)
+	{
+		// get a list of all forums the user is allowed to read
+		$is_auth_ary = array();
+		$forum_ids = array();
+		$is_auth_ary = auth(AUTH_READ, AUTH_LIST_ALL, $userdata);
+		if ( count($is_auth_ary) )
+		{
+			foreach ( $is_auth_ary as $forum_id => $auths )
+			{
+				if ( $auths['auth_read'] )
+				{
+					$forum_ids[] = $forum_id;
+				}
+			}
+		}
+
+		$auth_list = implode("," , $forum_ids);
+		// if not authorized in any forum, set $auth_forum to ''
+		$auth_list = ( $auth_list ) ? $auth_list : '';
+	}
+
+	//Get all topics
+	$check_auth_sql = ( $check_auth ) ? "AND t.forum_id IN (" . $auth_list . ")" : '';
+	$sql = "SELECT t.forum_id, t.topic_id, p.post_time
+			FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+			WHERE p.post_id = t.topic_last_post_id
+			AND (p.post_time > " . $tracking_time . " $sql_unreads)
+			$check_auth_sql
+			AND t.topic_moved_id = 0";
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// The following assigns all _common_ variables that may be used at any point
+// in a template.
+//
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//START MOD Keep_unread_2
+if ( !isset($omit_unreads_check) )
+{
+	$have_unreads = (list_new_unreads($forum_unreads, true)) ? true : false;
+}
+//END MOD Keep_unread_2
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_SEARCH_NEW' => $lang['Search_new'],
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	'L_SEARCH_NEW' => ($have_unreads) ? $lang['View_unread_posts'] : $lang['No_unread_posts'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['keep_unread_done'] = 'The post has been marked as unread.';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['View_unread_posts'] = 'View unread posts';
+$lang['No_unread_posts'] = 'You have no unread posts';
+
+######################################################################################################
+## second special note about the mod to the mod to change view unread posts link
+##
+## The next set of changes is only for people who have already installed the
+## "mod to the mod to change view unread posts link".  If you have already installed
+## the "mod to the mod to change view unread posts link", include the following changes and delete
+## the changes that follow the first special note about the mod to the mod to change view unread posts link above
+######################################################################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		//
+		// Load the Page Header
+		//
+		if ( !defined('IN_ADMIN') )
+		{
+			include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+		$omit_unreads_check = true;
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ($check_auth)
+	{
+		// find the forum_ids, cycle thorugh each of them and check authorization...
+		$sql = "SELECT forum_id
+				FROM " . FORUMS_TABLE . "";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not query new topic information', '', __LINE__, __FILE__, $sql);
+		}
+		$arr_forum_id = array();
+		while( $row = $db->sql_fetchrow($result) )
+		{
+			$forum_id = $row['forum_id'];
+			$is_auth_forum = auth(AUTH_VIEW, $forum_id, $userdata);
+			if ( $is_auth_forum['auth_view'] ) $arr_forum_id[] = $forum_id;
+		}
+		$auth_list = implode("," , $arr_forum_id);
+
+		// if not authorized in any forum, set $auth_forum to 0
+		$auth_list = ( $auth_list ) ? $auth_list : 0;
+	}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	if ($check_auth)
+	{
+		// get a list of all forums the user is allowed to read
+		$is_auth_ary = array();
+		$forum_ids = array();
+		$is_auth_ary = auth(AUTH_READ, AUTH_LIST_ALL, $userdata);
+		if ( count($is_auth_ary) )
+		{
+			foreach ( $is_auth_ary as $forum_id => $auths )
+			{
+				if ( $auths['auth_read'] )
+				{
+					$forum_ids[] = $forum_id;
+				}
+			}
+		}
+
+		$auth_list = implode("," , $forum_ids);
+		// if not authorized in any forum, set $auth_forum to ''
+		$auth_list = ( $auth_list ) ? $auth_list : '';
+	}
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//START MOD Keep_unread_2
+$have_unreads = (list_new_unreads($forum_unreads, true)) ? true : false;
+//END MOD Keep_unread_2
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//START MOD Keep_unread_2
+if ( !isset($omit_unreads_check) )
+{
+	$have_unreads = (list_new_unreads($forum_unreads, true)) ? true : false;
+}
+//END MOD Keep_unread_2
+	
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

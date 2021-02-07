@@ -1,0 +1,382 @@
+##############################################################
+## MOD Title: Warn of Old Topic Before Posting Reply
+## MOD Author: Thatbitextra < N/A > (N/A) http://thatbitextra.limitless-webhosting.com
+## MOD Description: This MOD will warn the user via a JavaScript Confirm that they are 
+##		    about to post a reply to an "old" topic.  The length of time after 
+##		    which a topic is deemed "old" is configurable via the ACP.
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit: viewtopic.php
+##		  		  admin/admin_board.php
+##		  		  language/lang_english/lang_main.php
+##		  		  language/lang_english/lang_admin.php
+##		  		  templates/subSilver/admin/board_config_body.tpl
+##		  		  templates/subSilver/viewtopic_body.tpl
+##
+## Included Files: None
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+##
+## Author Notes:  Thanks to pentapenguin (http://www.pentapenguin.com/) for some JavaScript inspiration :)
+##
+##############################################################
+## MOD History:
+##
+##   2005-09-04 - Version 1.0.0
+##		- Fixed various bugs
+##
+##   2005-08-08 - Version 0.2.0 (RC1)
+##      - Changed the Alert to a Confirm
+##      - Added the MOD's functionality to the Quote button
+##
+##   2005-05-25 - Version 0.1.1
+##      - Included optional extra mod to apply effect to CyberAlien's styles that have a
+##        Quick Reply button when used with eXtreme Styles mod, also by CyberAlien
+##
+##   2005-05-17 - Version 0.1.0
+##      - Initial Beta Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+
+INSERT INTO `phpbb_config` (`config_name`, `config_value`) VALUES ('old_topic_length', '1');
+INSERT INTO `phpbb_config` (`config_name`, `config_value`) VALUES ('time_unit', 'Week');
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+#
+	$temp_url = append_sid("posting.$phpEx?mode=quote&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id']);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Begin "Warn of Old Topic Before Posting Reply" MOD
+
+$sql = 'SELECT post_time FROM ' . POSTS_TABLE . ' WHERE topic_id = ' . $topic_id . ' ORDER BY post_time DESC LIMIT 1';
+
+if ( !$result = $db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, $lang['error_last_post_time'], '', __LINE__, __FILE__, $sql);
+}
+
+if ( !$row = $db->sql_fetchrow($result) )
+{
+	message_die(GENERAL_ERROR, $lang['error_last_post_time'], '', __LINE__, __FILE__, $sql);
+}
+
+$last_post_time = $row['post_time'];
+$old_topic_length = $board_config['old_topic_length'];
+$last_post_time_formatted = create_date($userdata['user_dateformat'], $last_post_time, $userdata['user_timezone']);
+
+if ( $old_topic_length == 1 )
+{
+	switch ($board_config['time_unit'])
+	{
+		case 'Second':
+			$multiplier = 1;
+			$unit_name = $lang['Second'];
+			break;
+		case 'Minute';
+			$multiplier = 60;
+			$unit_name = $lang['Minute'];
+			break;
+		case 'Hour';
+			$multiplier = 3600;
+			$unit_name = $lang['Hour'];
+			break;
+		case 'Day';
+			$multiplier = 86400;
+			$unit_name = $lang['Day'];
+			break;
+		case 'Week';
+			$multiplier = 604800;
+			$unit_name = $lang['Week'];
+			break;
+		case 'Month';
+			$multiplier = 18748800;
+			$unit_name = $lang['Month'];
+			break;
+		case 'Year';
+			$multiplier = 31557600;
+			$unit_name = $lang['Year'];
+			break;
+	}
+}
+else
+{
+	switch ($board_config['time_unit'])
+	{
+		case 'Second':
+			$multiplier = 1;
+			$unit_name = $lang['Seconds'];
+			break;
+		case 'Minute';
+			$multiplier = 60;
+			$unit_name = $lang['Minutes'];
+			break;
+		case 'Hour';
+			$multiplier = 3600;
+			$unit_name = $lang['Hours'];
+			break;
+		case 'Day';
+			$multiplier = 86400;
+			$unit_name = $lang['Days'];
+			break;
+		case 'Week';
+			$multiplier = 604800;
+			$unit_name = $lang['Weeks'];
+			break;
+		case 'Month';
+			$multiplier = 18748800;
+			$unit_name = $lang['Months'];
+			break;
+		case 'Year';
+			$multiplier = 31557600;
+			$unit_name = $lang['Years'];
+			break;
+	}
+}
+
+list($aa, $bb) = explode("/viewtopic.$phpEx", $HTTP_SERVER_VARS['SCRIPT_NAME']);
+if (preg_match('/https/i', $HTTP_SERVER_VARS['SERVER_PROTOCOL']))
+{
+	$cc = 'https://' . $HTTP_SERVER_VARS['SERVER_NAME'] . $aa . '/';
+}
+else
+{
+	$cc = 'http://' . $HTTP_SERVER_VARS['SERVER_NAME'] . $aa . '/';
+}
+$timeot = time();
+function unhtmlentities ($string)
+{
+    $trans_tbl = get_html_translation_table (HTML_ENTITIES);
+    $trans_tbl = array_flip ($trans_tbl);
+    return strtr ($string, $trans_tbl);
+}
+((($timeot) - ($last_post_time)) >= ($old_topic_length * $multiplier) ) ? $oldtime = ' onClick="ShowConfirmReply();" onMouseover="ChangeStatus(\'' . $cc . unhtmlentities($reply_topic_url) . '\');this.style.cursor = \'pointer\';" onMouseout="ChangeStatus(\'\')"' : $oldtime = ' onClick="JustGo();" onMouseover="ChangeStatus(\'' . $cc . unhtmlentities($reply_topic_url) . '\');this.style.cursor = \'pointer\';" onMouseout="ChangeStatus(\'\')"';
+((($timeot) - ($last_post_time)) >= ($old_topic_length * $multiplier) ) ? $oldtimequote = ' onClick="ShowConfirmReplyQuote();" onMouseover="ChangeStatus(\'' . $cc . unhtmlentities($temp_url) . '\');this.style.cursor = \'pointer\';" onMouseout="ChangeStatus(\'\')"' : $oldtimequote = ' onClick="JustGoQuote();" onMouseover="ChangeStatus(\'' . $cc . unhtmlentities($temp_url) . '\');this.style.cursor = \'pointer\';" onMouseout="ChangeStatus(\'\')"';
+((($timeot) - ($last_post_time)) >= ($old_topic_length * $multiplier) ) ? $oldtimequickreply = ' onClick="ShowConfirmReplyQuickReply();" onMouseover="ChangeStatus(\'' . $lang['Post_a_reply'] . '\');this.style.cursor = \'pointer\';" onMouseout="ChangeStatus(\'\')"' : $oldtimequickreply = ' onClick="ShowHide(\'quick_reply\',\'quick_reply2\');" onMouseover="ChangeStatus(\'' . $lang['Post_a_reply'] . '\');this.style.cursor = \'pointer\';" onMouseout="ChangeStatus(\'\')"';
+
+$old_topic_javascript = '<script language="javascript" type="text/javascript">function ShowConfirmReply(){if (confirm(\'' . sprintf($lang['Old_topic_notification'], $old_topic_length, $unit_name) . '\')){window.location = (\'' . unhtmlentities($reply_topic_url) . '\');return true;}else{return false;}} function ShowConfirmReplyQuote(){if (confirm(\'' . sprintf($lang['Old_topic_notification'], $old_topic_length, $unit_name) . '\')){window.location = (\'' . unhtmlentities($temp_url) . '\');return true;}else{return false;}} function ShowConfirmReplyQuickReply(){if (confirm(\'' . sprintf($lang['Old_topic_notification'], $old_topic_length, $unit_name) . '\')){ShowHide(\'quick_reply\',\'quick_reply2\');return true;}else{return false;}} function ChangeStatus(message){window.status = message;return true;} function JustGo (){window.location = (\'' . unhtmlentities($reply_topic_url) . '\');} function JustGoQuote (){window.location = (\'' . unhtmlentities($temp_url) . '\')}</script>';
+
+// End "Warn of Old Topic Before Posting Reply" MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$quote_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_quote'] . '" alt="' . $lang['Reply_with_quote'] . '" title="' . $lang['Reply_with_quote'] . '" border="0" /></a>';
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// Begin edit by "Warn of Old Topic Before Posting Reply" MOD
+	$quote_img = '<a><img src="' . $images['icon_quote'] . '" alt="' . $lang['Reply_with_quote'] . '" title="' . $lang['Reply_with_quote'] . '" border="0" ' . $oldtimequote . ' /></a>';
+// End edit by "Warn of Old Topic Before Posting Reply" MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$template->assign_block_vars('postrow', array(
+		'ROW_COLOR' => '#' . $row_color,
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Begin "Warn of Old Topic Before Posting Reply" MOD
+	$template->assign_vars(array(
+		'OLDTIME_JAVASCRIPT' => $old_topic_javascript,
+		'OLDTIME' => $oldtime,)
+	);
+// End "Warn of Old Topic Before Posting Reply" MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// Escape any quotes in the site description for proper display in the text
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Begin "Warn of Old Topic Before Posting Reply" MOD
+$time_unit = array(
+		'Second' => $lang['Second'],
+		'Minute' => $lang['Minute'],
+		'Hour' => $lang['Hour'],
+		'Day' => $lang['Day'],
+		'Week' => $lang['Week'],
+		'Month' => $lang['Month'],
+		'Year' => $lang['Year']);
+
+$time_unit_select = '<select name="time_unit" size="1">';
+while (list($time_unit_id, $time_unit_name) = @each($time_unit))
+	{
+		$selected = ($time_unit_id == $board_config['time_unit']) ? 'selected="selected"' : '';
+		$time_unit_select .= '<option value="' . $time_unit_id . '"' . $selected . '>' . $time_unit_name . '</option>';
+	}
+$time_unit_select .= '</select>';
+// End "Warn of Old Topic Before Posting Reply" MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+	"SERVER_NAME" => $new['server_name'],
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Begin "Warn of Old Topic Before Posting Reply" MOD
+	"OLD_TOPIC_LENGTH" => $new['old_topic_length'],
+	"TIME_UNIT_SELECT" => $time_unit_select,
+	"OLD_TOPIC_EXPLAIN" => $lang['Old_topic_explain'],
+// End "Warn of Old Topic Before Posting Reply" MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all, Folks!
+// -------------------------------------------------
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+// Begin "Warn of Old Topic Before Posting Reply" MOD
+$lang['Old_topic_notification'] = 'This topic is older than %d %s.  Are you sure you still want to reply?';
+$lang['error_last_post_time'] = 'Could not get last post time';
+$lang['Second'] = 'Second';
+$lang['Minute'] = 'Minute';
+$lang['Hour'] = 'Hour';
+$lang['Day'] = 'Day';
+$lang['Week'] = 'Week';
+$lang['Month'] = 'Month';
+$lang['Year'] = 'Year';
+$lang['Seconds'] = 'Seconds';
+$lang['Minutes'] = 'Minutes';
+$lang['Hours'] = 'Hours';
+$lang['Days'] = 'Days';
+$lang['Weeks'] = 'Weeks';
+$lang['Months'] = 'Months';
+$lang['Years'] = 'Years';
+// End "Warn of Old Topic Before Posting Reply" MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all Folks!
+// -------------------------------------------------
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+// Begin "Warn of Old Topic Before Posting Reply" MOD
+$lang['Second'] = 'Second(s)';
+$lang['Minute'] = 'Minute(s)';
+$lang['Hour'] = 'Hour(s)';
+$lang['Day'] = 'Day(s)';
+$lang['Week'] = 'Week(s)';
+$lang['Month'] = 'Month(s)';
+$lang['Year'] = 'Year(s)';
+$lang['Old_topic_explain'] = 'Defines the length of time before a topic is classified as "old".  When a user attempts to reply to an "old" topic, they will receive an alert telling them that they are replying to an old topic.<br />It should be noted that 1 Month is defined as 31 days, so you might want to use 4 Weeks instead.';
+// End "Warn of Old Topic Before Posting Reply" MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	<tr>
+		<td class="row1">{L_HOT_THRESHOLD}</td>
+		<td class="row2"><input class="post" type="text" name="hot_threshold" size="3" maxlength="4" value="{HOT_TOPIC}" /></td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{OLD_TOPIC_EXPLAIN}</td>
+		<td class="row2"><input class="post" type="text" maxlength="4" size="4" name="old_topic_length" value="{OLD_TOPIC_LENGTH}" />&nbsp;{TIME_UNIT_SELECT}</td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<table width="100%" cellspacing="2" cellpadding="2" border="0">
+  <tr> 
+	<td align="left" valign="bottom" colspan="2"><a class="maintitle" href="{U_VIEW_TOPIC}">{TOPIC_TITLE}</a><br />
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+{OLDTIME_JAVASCRIPT}
+#
+#-----[ FIND ]------------------------------------------
+#
+<td align="left" valign="bottom" nowrap="nowrap"><span class="nav"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" align="middle" /></a>&nbsp;&nbsp;&nbsp;<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" /></a></span></td>
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" /></a>
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+<img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}"{OLDTIME} align="middle" />
+#
+#-----[ FIND ]------------------------------------------
+#
+<td align="left" valign="middle" nowrap="nowrap"><span class="nav"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" align="middle" /></a>&nbsp;&nbsp;&nbsp;<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" /></a></span></td>
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" /></a>
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+<img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}"{OLDTIME} align="middle" />
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

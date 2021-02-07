@@ -1,0 +1,257 @@
+######################################################## 
+## 外掛名稱: 管理員可收到新會員註冊通知
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 安裝這個外掛後, 新會員註冊通知會寄給在控制台設定的會員 (最好為管理員)
+## 外掛版本: 1.0.5
+## 
+## 安裝難度: 簡單
+## 安裝時間: 5 分鐘 
+##
+## 需要編輯的檔案: 5
+##	includes/usercp_register.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	admin/admin_board.php
+##	templates/subSilver/admin/board_config_body.tpl
+##
+## 附加的檔案: 1
+##	root/language/lang_chinese_traditional_taiwan/email/notify_admin_new_reg.tpl
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.20 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2005-09-27 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2005-09-29 - 版本 1.0.1
+##      - 修正了一個與 ")" 符號有關的小蟲
+##
+##   2005-10-01 - 版本 1.0.2
+##      - 修正了一個與大小寫有關的問題
+##	- 增加了 add-on: "多個會員可收到新會員註冊通知"
+##
+##   2005-10-04 - 版本 1.0.3
+##      - 移除在英文版的 notify_admin_new_reg.tpl 多餘的 "has"
+##
+##   2006-04-03 - 版本 1.0.4
+##      - 增加顯示會員的電子信箱在通知內
+##
+##   2006-04-16 - 版本 1.0.5
+##      - 修正了一個與 ")" 符號有關的小蟲 (感謝 TerraFrost)
+##      - 更新成可在 2.0.20 上安裝
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+INSERT INTO `phpbb_config` ( `config_name` , `config_value` ) VALUES ( 'notify_admin_new_reg', '1' );
+INSERT INTO `phpbb_config` ( `config_name` , `config_value` ) VALUES ( 'notify_admin_new_reg_userid', '2' );
+
+# 
+#-----[ 複製 ]------------------------------------------ 
+#
+copy root/language/lang_chinese_traditional_taiwan/email/notify_admin_new_reg.tpl to language/lang_english/email/notify_admin_new_reg.tpl
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_main.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Admin Email notification on New Registration MOD
+$lang['Administrator'] = '系統管理員';
+$lang['Notify_admin_new_reg'] = '有新會員註冊!';
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_admin.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Admin Email notification on New Registration MOD
+$lang['Enable_notify_admin_new_reg_title'] = '管理員可收到新會員註冊通知';
+$lang['Enable_notify_admin_new_reg'] = '啟用管理員通知';
+$lang['Enable_notify_admin_new_reg_explain'] = '當新會員在討論版註冊時通知系統管理員';
+$lang['Enable_notify_admin_new_reg_userid'] = '管理員會員 ID';
+$lang['Enable_notify_admin_new_reg_userid_explain'] = '輸入預收到通知的會員 (userid) ID';
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/usercp_register.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# Should look like:
+#				//
+#				// The users account has been deactivated, send them an email with a new activation key
+#				//
+#				include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+				include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+include
+
+# 
+#-----[ 把該行取代為 ]------------------------------------------ 
+#
+include_once
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			if ( !($result = $db->sql_query($sql, BEGIN_TRANSACTION)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not insert data into users table', '', __LINE__, __FILE__, $sql);
+			}
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			if ( $board_config['notify_admin_new_reg'] )
+			{
+				$admin_profile = array();
+				$admin_profile = get_userdata($board_config['notify_admin_new_reg_userid']);
+
+				$use_template = (empty($admin_profile)) ? $board_config['default_lang'] : $admin_profile['user_lang'];
+				$email_address = (empty($admin_profile)) ? $board_config['board_email'] : $admin_profile['user_email'];
+				$admin_name = (empty($admin_profile)) ? $lang['Administrator'] : $admin_profile['username'];
+				
+				include_once($phpbb_root_path . 'includes/emailer.'.$phpEx);
+				$emailer = new emailer($board_config['smtp_delivery']);
+
+				$emailer->from($board_config['board_email']);
+				$emailer->replyto($board_config['board_email']);
+
+				$emailer->use_template('notify_admin_new_reg', stripslashes($use_template));
+				$emailer->email_address($email_address);
+				$emailer->set_subject($lang['Notify_admin_new_reg']);
+
+				$emailer->assign_vars(array(
+					'ADMIN_NAME' => $admin_name,
+					'SITENAME' => $board_config['sitename'],
+					'USER_NAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+					'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
+					'USER_PROFILE' => $server_url . '?mode=viewprofile&' . POST_USERS_URL . '=' . $user_id,
+					'USER_EMAIL' => $email)
+				);
+				$emailer->send();
+				$emailer->reset();
+			}
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# Should look like:
+#				$email_template = 'user_welcome';
+#			}
+#
+#			include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+			include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+include
+
+# 
+#-----[ 把該行取代為 ]------------------------------------------ 
+#
+include_once
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+admin/admin_board.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$smtp_no = ( !$new['smtp_delivery'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+// Admin Email notification on New Registration MOD
+$notify_admin_new_reg_yes = ( $new['notify_admin_new_reg'] ) ? "checked=\"checked\"" : "";
+$notify_admin_new_reg_no = ( !$new['notify_admin_new_reg'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	"SMTP_NO" => $smtp_no,
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// Admin Email notification on New Registration MOD
+	"L_ENABLE_NOTIFY_ADMIN_NEW_REG_TITLE" => $lang['Enable_notify_admin_new_reg_title'],
+	"L_ENABLE_NOTIFY_ADMIN_NEW_REG" => $lang['Enable_notify_admin_new_reg'],
+	"L_ENABLE_NOTIFY_ADMIN_NEW_REG_EXPLAIN" => $lang['Enable_notify_admin_new_reg_explain'],
+	"L_ENABLE_NOTIFY_ADMIN_NEW_REG_USERID" => $lang['Enable_notify_admin_new_reg_userid'],
+	"L_ENABLE_NOTIFY_ADMIN_NEW_REG_USERID_EXPLAIN" => $lang['Enable_notify_admin_new_reg_userid_explain'],
+	"NOTIFY_ADMIN_NEW_REG_YES" => $notify_admin_new_reg_yes,
+	"NOTIFY_ADMIN_NEW_REG_NO" => $notify_admin_new_reg_no,
+	"NOTIFY_ADMIN_NEW_REG_USERID" => $new['notify_admin_new_reg_userid'],
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_COOKIE_SETTINGS}</th>
+	</tr>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_ENABLE_NOTIFY_ADMIN_NEW_REG_TITLE}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_ENABLE_NOTIFY_ADMIN_NEW_REG}<br /><span class="gensmall">{L_ENABLE_NOTIFY_ADMIN_NEW_REG_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="notify_admin_new_reg" value="1" {NOTIFY_ADMIN_NEW_REG_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="notify_admin_new_reg" value="0" {NOTIFY_ADMIN_NEW_REG_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ENABLE_NOTIFY_ADMIN_NEW_REG_USERID}<br /><span class="gensmall">{L_ENABLE_NOTIFY_ADMIN_NEW_REG_USERID_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" maxlength="255" name="Notify_admin_new_reg_userid" value="{NOTIFY_ADMIN_NEW_REG_USERID}" /></td>
+	</tr>
+
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

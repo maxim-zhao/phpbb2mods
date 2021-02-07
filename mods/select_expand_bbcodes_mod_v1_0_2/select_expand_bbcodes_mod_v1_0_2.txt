@@ -1,0 +1,326 @@
+#################################################################
+## MOD Title: Select Expand BBcodes MOD
+## MOD Author: markus_petrux < phpbb.mods@phpmix.com > (Markus) http://www.phpmix.com
+## MOD Description: This MOD is a DHTML add-on for the Code and Quote BBCodes. It adds a couple of commands next to
+##   the BBCode block title. First one, allows you to Select its contents for easier copy/paste actions. Second one,
+##   allows you to Expand or Contract the BBCode block. It has been coded to degrade correctly even if the browser
+##   does not support the required features (please, read author notes for further information).
+##
+## MOD Version: 1.0.2
+##
+## Installation Level: Easy
+## Installation Time: ~10 Minutes
+## Files To Edit: 3
+##   language/lang_english/lang_main.php
+##   includes/bbcode.php
+##   templates/subSilver/bbcode.tpl
+## Included Files: 1
+##   templates/select_expand_bbcodes.js
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## *** WARNING ***
+##
+## General:
+##   Make backups BEFORE installing MODs.
+##   This MOD can be installed with EasyMOD. It works. It rocks. :-)
+##
+## Manual installation:
+##   Please, carefully follow installation instructions detailed in this MOD script.
+##   If something was wrong, please take the time to check the changes made again.
+##   Before asking for support, try to restore your backups and re-try. It should work.
+##   Thanks for you understanding and collaboration. :-)
+##
+##
+## *** ADDITIONAL NOTES ***
+##
+## Background:
+##   Inspired by Daz's fi_divexpand control (www.forumimages.com).
+##   However, SXBB has been investigated and coded from scratch, almost ;-).
+##   FYI: SXBB aka 'Select Expand BBCodes' :-)
+##
+## Inherited features from Daz's Control:
+##   1) Ability to Select (highlight) content for easier Copy/Paste actions.
+##   2) Ability to Expand/Contract block (based on 'overflow:auto;height:#px;' CSS attribs).
+##
+## Problems with Daz's implementation:
+##   1) No check for browser support.
+##   2) Weird result when 'overflow:auto' is not supported, but 'height:#px;' is (ie. Opera 6).
+##   3) Select/Expand actions still available even if browser has javascript disabled (not user friendly).
+##   4) Select/Expand actions may generate javascript error for non-DOM based browsers.
+##   5) Can't expand the block if javascript is being disabled or an error has been generated.
+##
+## Therefore, code has been improved in several ways:
+##   1) Degrades correctly for non-supported browsers (actions not displayed and block expanded).
+##   2) Automatically adjusts height of possible outer blocks (ie. expanding an inner block expands its parent).
+##   3) Easily choose a minimum height (see MINIMUM_BLOCK_HEIGHT on js file).
+##   4) Added workaround to preserve HTML comment delimiters for JS code when bbcode.tpl saved with LF only.
+##   5) The [expand] command will be visible only when necessary (avoid confusion when the box is really short).
+##
+##############################################################
+## MOD History:
+##
+## 2004-09-27 - Version 1.0.2
+## - Fixed javascript code to avoid something that seems to be a firefox bug
+##   related to the 'overflow:auto' CSS attrib for huge boxes.
+## - Fixed CRLF management for closing bbcode tags (I forgot this in previous versions).
+## - Moved code related to the PHP Syntax highlighter BBCode to its own MOD script.
+##
+## 2004-09-25 - Version 1.0.1
+## - Several optimizations related to the visibility of the [expand] command.
+## - Only the javascript has been changed.
+##
+## 2004-09-24 - Version 1.0.0
+## - First time released
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy templates/select_expand_bbcodes.js to templates/select_expand_bbcodes.js
+#
+#-----[ OPEN ]------------------------------------------
+#
+#  NOTE --- You need to do this for all your installed languages
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//+MOD: Select Expand BBcodes MOD
+$lang['Select'] = "Select";
+$lang['Expand'] = "Expand";
+$lang['Contract'] = "Contract";
+//-MOD: Select Expand BBcodes MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	define("BBCODE_TPL_READY", true);
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//+MOD: Select Expand BBcodes MOD
+	global $phpbb_root_path;
+	$u_sxbb_jslib = $phpbb_root_path . 'templates/select_expand_bbcodes.js';
+
+	// Replacing BBCode variables, but also adding CR to preserve HTML comment delimiters for JS code.
+	$expand_ary1 = array('<!--', '//-->', '{L_SELECT}', '{L_EXPAND}', '{L_CONTRACT}', '{U_SXBB_JSLIB}');
+	$expand_ary2 = array("\r<!--\r", "\r//-->\r", $lang['Select'], $lang['Expand'], $lang['Contract'], $u_sxbb_jslib);
+	$expand_ary3 = array('<!--', '//-->');
+	$expand_ary4 = array("\r<!--\r", "\r//-->\r");
+
+	$bbcode_tpl['quote_open'] = str_replace($expand_ary1, $expand_ary2, $bbcode_tpl['quote_open']);
+	$bbcode_tpl['quote_username_open'] = str_replace($expand_ary1, $expand_ary2, $bbcode_tpl['quote_username_open']);
+	$bbcode_tpl['code_open'] = str_replace($expand_ary1, $expand_ary2, $bbcode_tpl['code_open']);
+
+	$bbcode_tpl['quote_close'] = str_replace($expand_ary3, $expand_ary4, $bbcode_tpl['quote_close']);
+	$bbcode_tpl['code_close'] = str_replace($expand_ary3, $expand_ary4, $bbcode_tpl['code_close']);
+//-MOD: Select Expand BBcodes MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+#  NOTE --- You need to do this for all of your installed template styles
+#
+templates/subSilver/bbcode.tpl
+#
+#================================================================================
+#	MOD Section: quote_username_open
+#================================================================================
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- BEGIN quote_username_open --></span>
+<table
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+<table
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ class="bodyline"
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td><span class="genmed"><b>{USERNAME} {L_WROTE}:</b></span></td>
+	</tr>
+	<tr>
+	  <td class="quote"><!-- END quote_username_open -->
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		<td class="helpline"><span class="genmed"><b>{USERNAME} {L_WROTE}:</b>
+<script type="text/javascript" src="{U_SXBB_JSLIB}"></script>
+<script type="text/javascript">
+<!--
+	var id = 'SXBB' + (1000 + Math.floor(Math.random() * 5000));
+	SXBB[id] = new _SXBB(id);
+	SXBB[id].T['select'] = '{L_SELECT}';
+	SXBB[id].T['expand'] = '{L_EXPAND}';
+	SXBB[id].T['contract'] = '{L_CONTRACT}';
+	SXBB[id].writeCmd();
+//-->
+</script>
+		</span></td>
+	</tr>
+	<tr>
+	  <td class="quote">
+<script type="text/javascript">
+<!--
+	SXBB[id].writeDiv();
+//-->
+</script><!-- END quote_username_open -->
+#
+#================================================================================
+#	MOD Section: quote_open
+#================================================================================
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- BEGIN quote_open --></span>
+<table
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+<table
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ class="bodyline"
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td><span class="genmed"><b>{L_QUOTE}:</b></span></td>
+	</tr>
+	<tr>
+	  <td class="quote"><!-- END quote_open -->
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		<td class="helpline"><span class="genmed"><b>{L_QUOTE}:</b>
+<script type="text/javascript" src="{U_SXBB_JSLIB}"></script>
+<script type="text/javascript">
+<!--
+	var id = 'SXBB' + (1000 + Math.floor(Math.random() * 5000));
+	SXBB[id] = new _SXBB(id);
+	SXBB[id].T['select'] = '{L_SELECT}';
+	SXBB[id].T['expand'] = '{L_EXPAND}';
+	SXBB[id].T['contract'] = '{L_CONTRACT}';
+	SXBB[id].writeCmd();
+//-->
+</script>
+		</span></td>
+	</tr>
+	<tr>
+	  <td class="quote">
+<script type="text/javascript">
+<!--
+	SXBB[id].writeDiv();
+//-->
+</script><!-- END quote_open -->
+#
+#================================================================================
+#	MOD Section: quote_close
+#================================================================================
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- BEGIN quote_close --></td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+<!-- BEGIN quote_close -->
+<script type="text/javascript">
+<!--
+	document.write('</div>');
+//-->
+</script>
+		</td>
+#
+#================================================================================
+#	MOD Section: code_open
+#================================================================================
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- BEGIN code_open --></span>
+<table
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+<table
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ class="bodyline"
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td><span class="genmed"><b>{L_CODE}:</b></span></td>
+	</tr>
+	<tr>
+	  <td class="code"><!-- END code_open -->
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		<td class="helpline"><span class="genmed"><b>{L_CODE}:</b>
+<script type="text/javascript" src="{U_SXBB_JSLIB}"></script>
+<script type="text/javascript">
+<!--
+	var id = 'SXBB' + (1000 + Math.floor(Math.random() * 5000));
+	SXBB[id] = new _SXBB(id);
+	SXBB[id].T['select'] = '{L_SELECT}';
+	SXBB[id].T['expand'] = '{L_EXPAND}';
+	SXBB[id].T['contract'] = '{L_CONTRACT}';
+	SXBB[id].writeCmd();
+//-->
+</script>
+		</span></td>
+	</tr>
+	<tr>
+	  <td class="code">
+<script type="text/javascript">
+<!--
+	SXBB[id].writeDiv();
+//-->
+</script><!-- END code_open -->
+#
+#================================================================================
+#	MOD Section: code_close
+#================================================================================
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- BEGIN code_close --></td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+<!-- BEGIN code_close -->
+<script type="text/javascript">
+<!--
+	document.write('</div>');
+//-->
+</script>
+		</td>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,1041 @@
+################################################################# 
+## MOD Title: File Attachment Mod v2 
+## MOD Author: Acyd Burn < N/A > (Meik Sievertsen) http://www.opentools.de/
+## MOD Description: 
+##	This Mod adds the ability to attach files in phpBB2. 
+##	This Version has been tested and works with phpBB 2.0.21.
+##	This Version will NOT work with phpBB2 Modules designed for *Nuke Portals or phpBB2 Ports.
+## MOD Version: 2.4.5
+## 
+## Installation Level:   Intermediate 
+## Installation Time:   30-60 Minutes 
+## Files To Edit:   common.php, faq.php, modcp.php, posting.php, privmsg.php, 
+##         viewforum.php, viewtopic.php, admin/admin_forumauth.php, admin/admin_ug_auth.php, admin/admin_forums.php, 
+##         admin/admin_groups.php, admin/admin_users.php, includes/auth.php, includes/functions.php, includes/functions_admin.php, 
+##         includes/prune.php, includes/topic_review.php, includes/usercp_viewprofile.php, modcp_body.tpl, posting_body.tpl, 
+##         posting_preview.tpl, posting_topic_review.tpl, privmsgs_body.tpl, privmsgs_preview.tpl, privmsgs_read_body.tpl, 
+##         profile_view_body.tpl, viewforum_body.tpl, viewtopic_body.tpl, admin/group_edit_body.tpl, admin/user_edit_body.tpl 
+## Included Files:   many many files 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: 
+## 
+## Complete feature list: docs/features.txt
+## The user guide: docs/user_guide.html
+##
+## Some notes:
+## - I suggest reading the user guide first if you haven't installed any Mods before.
+## - Please note that this Mod is NOT written to be EasyMod compatible (i haven't tested it).
+## - Please follow the installation instructions as strict as you can.
+##
+##
+## UPDATING/UPGRADING:
+##
+## Please skip to the NEW INSTALLATION part if you want to install the 
+## attachment mod for the first time or want to setup a new installation.
+##
+## Please read the docs/update.txt document for update/upgrade instructions.
+## 
+##
+## NEW INSTALLATION:
+##
+## You are able to choose between two installation types, depending on your setup:
+## 
+## -> Using the pre-modified files:
+##	
+##	This method is recommended for those having a vanilla (plain, not modded) phpBB Installation.
+##	With this method you do not need to adjust your phpBB files at all, only running the installer
+##	and uploading all files - including the pre-modified files - is required.
+##
+##	If you think this is the correct method for you, please follow the following steps listet in:
+##		docs/install_using_premod_files.txt
+##	to install the attachment mod.
+##	
+##	BTW, it is save to close this file now if you use this method. ;)
+##
+##
+##
+## -> Using the mod instructions:
+##
+##	This method is recommended for those already having applied mods to their phpBB Installation.
+##
+##	If you think this is the correct method for you, please read further.
+## 
+## 
+## 
+## Credits: 
+##	Thanks to all people translating this Mod into their language and offering their work.
+##	Also a big thank you to those supporting this Mod and offering help to those having problems.
+##
+## 
+## The following sites also contain the latest version of this MOD: 
+## 
+## http://www.opentools.de/
+## http://sourceforge.net/projects/acydmods
+## http://www.phpbb.com/mods
+## 
+## Full support for this MOD can be obtained at: 
+## http://www.opentools.de/
+## Please Note that i am not able to contribute to the Attachment Mod topic at phpbb.com (http://www.phpbb.com/phpBB/viewtopic.php?t=74505)
+## 
+############################################################## 
+## MOD History: 
+##
+##	2006-09-06 - Version 2.4.5
+##		- fixed another XSS vulnerability only occurring for users using the internet explorer - Kellanved
+##		- added COPY statement for easymod
+##		- some very tiny template fixes
+##		- thanks to alcaeus for verifying that the XSS issues got fixed by the implemented code
+##
+##	2006-09-04 - Version 2.4.4
+##		- fixed typo in functions_filetypes.php
+##		- adjusted install.txt to follow the phpBB MOD guidelines
+##		- adjusted attachment viewtopic template for calling the loop param correctly
+##		- fixed XSS only occurring for users using Internet Explorer - Vovochka
+##		- used constant for user id in functions_includes
+##
+##	2006-04-23 - Version 2.4.3
+##		- fixed wrong id in posting_attachments.php
+##		- fixed some wrong db calls in functions_admin.php (not changing functionality)
+##
+##	2006-04-18 - Version 2.4.2
+##		- fixed XSS on uploading while displaying an error - Ptirhiik
+##		- take user_pending status into account while checking the quota limits - Ptirhiik
+##		- check the edited attachment ids if they belong to the post/pm - Ptirhiik
+##		- check filename/id information for new attachments on new post/pm - Ptirhiik
+##		- moved check for empty files before database check in shadow attachments - John Bigg
+##		- show all forbidden extensions
+##
+##	2005-12-30 - Version 2.4.1
+##		- fixed doubled sql_freeresult in functions_selects.php
+##		- fix extension admin panel (unable to update extensions)
+##		- changed tmp dir for ftp download in safe mod from temp directory in upload directory to upload directory
+##
+##	2005-11-24 - Version 2.4.0a
+##		- fixed a call to sql_build_array (wrong function used) in attach_mod/includes/functions_admin.php
+##			this is producing a php error message within the user administration panel (editing user details)
+##		- this version is a repackage, therefore the "a" at the end (nothing else changed, update path and everything else is the same)
+##
+##	2005-11-21 - Version 2.4.0
+##		- using olympus' system of retrieving and storing values
+##		- using function for sql escaping
+##		- installer now checks for upload directory
+##		- fixing multiple call to database in installer
+##		- fixing sort_multi_array to correctly decide if sorting is based on numeric or string
+##		- taking open basedir restriction into account if checking for image size
+##		- making creation of temporary thumbnail file more unique if ftp upload is used (thanks to Douglas Hoffman)
+##		- fixing viewing of no longer viewable/denied attachments for admins (alcaeus)
+##		- display correct filename on download
+##		- added optional language variables (Sync_topics, Sync_posts and Sync_thumbnails)
+##
+##	Please read the docs/changelog.txt document for a complete changelog.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+############################################################## 
+
+#
+# Here starts the Installation, follow the steps very closely.
+#
+
+# 
+# STEP NUMBER I: Uploading all new Files
+#
+# Copy/Upload all files to their respective Location
+# The left side shows the location of the file you should have after decompressing the package,
+# the right side shows the location the file must be copied to, it is always the phpBB Root path (where the config.php file is stored at).
+# Alternatively just decompress/upload the contents within the attachment_mod folder directly to your phpBB folder.
+#
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy attachment_mod/download.php to download.php 
+copy attachment_mod/uacp.php to uacp.php
+copy attachment_mod/attach_rules.php to attach_rules.php
+copy attachment_mod/admin/admin_attach_cp.php to admin/admin_attach_cp.php
+copy attachment_mod/admin/admin_attachments.php to admin/admin_attachments.php
+copy attachment_mod/admin/admin_extensions.php to admin/admin_extensions.php
+copy attachment_mod/attach_mod/attachment_mod.php to attach_mod/attachment_mod.php
+copy attachment_mod/attach_mod/displaying.php to attach_mod/displaying.php
+copy attachment_mod/attach_mod/index.htm to attach_mod/index.htm
+copy attachment_mod/attach_mod/pm_attachments.php to attach_mod/pm_attachments.php
+copy attachment_mod/attach_mod/posting_attachments.php to attach_mod/posting_attachments.php
+copy attachment_mod/attach_mod/includes/constants.php to attach_mod/includes/constants.php
+copy attachment_mod/attach_mod/includes/functions_admin.php to attach_mod/includes/functions_admin.php
+copy attachment_mod/attach_mod/includes/functions_attach.php to attach_mod/includes/functions_attach.php
+copy attachment_mod/attach_mod/includes/functions_delete.php to attach_mod/includes/functions_delete.php
+copy attachment_mod/attach_mod/includes/functions_filetypes.php to attach_mod/includes/functions_filetypes.php
+copy attachment_mod/attach_mod/includes/functions_includes.php to attach_mod/includes/functions_includes.php
+copy attachment_mod/attach_mod/includes/functions_selects.php to attach_mod/includes/functions_selects.php
+copy attachment_mod/attach_mod/includes/functions_thumbs.php to attach_mod/includes/functions_thumbs.php
+copy attachment_mod/attach_mod/includes/index.htm to attach_mod/includes/index.htm
+copy attachment_mod/files/index.php to files/index.php
+copy attachment_mod/images/icon_clip.gif to images/icon_clip.gif
+copy attachment_mod/images/icon_disk.gif to images/icon_disk.gif
+copy attachment_mod/images/icon_disk_gray.gif to images/icon_disk_gray.gif
+copy attachment_mod/templates/subSilver/add_attachment_body.tpl to templates/subSilver/add_attachment_body.tpl
+copy attachment_mod/templates/subSilver/posted_attachments_body.tpl to templates/subSilver/posted_attachments_body.tpl
+copy attachment_mod/templates/subSilver/posting_attach_body.tpl to templates/subSilver/posting_attach_body.tpl
+copy attachment_mod/templates/subSilver/posting_attach_rules.tpl to templates/subSilver/posting_attach_rules.tpl
+copy attachment_mod/templates/subSilver/uacp_body.tpl to templates/subSilver/uacp_body.tpl
+copy attachment_mod/templates/subSilver/viewtopic_attach_body.tpl to templates/subSilver/viewtopic_attach_body.tpl
+copy attachment_mod/templates/subSilver/admin/attach_cat_body.tpl to templates/subSilver/admin/attach_cat_body.tpl
+copy attachment_mod/templates/subSilver/admin/attach_cp_attachments.tpl to templates/subSilver/admin/attach_cp_attachments.tpl
+copy attachment_mod/templates/subSilver/admin/attach_cp_body.tpl to templates/subSilver/admin/attach_cp_body.tpl
+copy attachment_mod/templates/subSilver/admin/attach_cp_search.tpl to templates/subSilver/admin/attach_cp_search.tpl
+copy attachment_mod/templates/subSilver/admin/attach_cp_user.tpl to templates/subSilver/admin/attach_cp_user.tpl
+copy attachment_mod/templates/subSilver/admin/attach_extension_groups.tpl to templates/subSilver/admin/attach_extension_groups.tpl
+copy attachment_mod/templates/subSilver/admin/attach_extensions.tpl to templates/subSilver/admin/attach_extensions.tpl
+copy attachment_mod/templates/subSilver/admin/attach_forbidden_extensions.tpl to templates/subSilver/admin/attach_forbidden_extensions.tpl
+copy attachment_mod/templates/subSilver/admin/attach_manage_body.tpl to templates/subSilver/admin/attach_manage_body.tpl
+copy attachment_mod/templates/subSilver/admin/attach_quota_body.tpl to templates/subSilver/admin/attach_quota_body.tpl
+copy attachment_mod/templates/subSilver/admin/attach_shadow.tpl to templates/subSilver/admin/attach_shadow.tpl
+copy attachment_mod/templates/subSilver/admin/extension_groups_permissions.tpl to templates/subSilver/admin/extension_groups_permissions.tpl
+copy attachment_mod/language/lang_english/lang_admin_attach.php to language/lang_english/lang_admin_attach.php
+copy attachment_mod/language/lang_english/lang_faq_attach.php to language/lang_english/lang_faq_attach.php
+copy attachment_mod/language/lang_english/lang_main_attach.php to language/lang_english/lang_main_attach.php
+copy attachment_mod/install/install.php to install/install.php
+copy attachment_mod/install/schemas/attach_mysql_basic.sql to install/schemas/attach_mysql_basic.sql
+copy attachment_mod/install/schemas/attach_mysql_schema.sql to install/schemas/attach_mysql_schema.sql
+copy attachment_mod/install/schemas/attach_mssql_basic.sql to install/schemas/attach_mssql_basic.sql
+copy attachment_mod/install/schemas/attach_mssql_schema.sql to install/schemas/attach_mssql_schema.sql
+copy attachment_mod/install/schemas/attach_postgres_basic.sql to install/schemas/attach_postgres_basic.sql
+copy attachment_mod/install/schemas/attach_postgres_schema.sql to install/schemas/attach_postgres_schema.sql
+
+#
+# If you want/have another language, please visit http://www.opentools.de/ and download your
+# Language if it is available. If you have a multi-lingual board you may want to upload all language files.
+# Please make sure you download the Language Pack for at least Version 2.3.9 of the Attachment Mod.
+#
+
+# 
+# STEP NUMBER II: Installing the Attachment Mod (Database)
+#
+# You should have uploaded the install folder (above), which is only needed for running the database installer.
+# Make sure you uploaded the schema Files (those files ending in .sql) in ASCII Mode (This is the Layout and Data for your Database):
+#
+#
+#
+# Now we want to create the tables, therefore we run the install.php file (http://www.yoursite.com/phpBB2/install/install.php)
+# Please be sure to enter the correct URL (replacing www.yoursite.com with your sites URL), 
+# the install.php file has to be placed within the install folder. If it is not within the install folder, you WILL get errors.
+#
+# After the install.php file hass been executed successfully, you should remove the complete install folder.
+#
+#
+#
+
+
+#
+# STEP NUMBER III: Modifying existing phpBB2 Files
+#
+# Now you have to alter existing phpBB2 files, read the instructions carefully and make sure you find the correct lines.
+# The Line Numbers are only a hint, most of the time they are not correct, especially if you have Mods installed.
+#
+# 
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+common.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# around line 219
+	$board_config[$row['config_name']] = $row['config_value'];
+}
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------- 
+# After the closing brace
+include($phpbb_root_path . 'attach_mod/attachment_mod.'.$phpEx);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+faq.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 62
+include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/' . $lang_file . '.' . $phpEx);
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------- 
+# 
+attach_faq_include($lang_file);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+modcp.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 358
+				remove_search_post($post_id_sql);
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+				delete_attachment(explode(', ', $post_id_sql));
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 1237
+				'TOPIC_ID' => $topic_id,
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+				'TOPIC_ATTACHMENT_IMG' => topic_attachment_image($row['topic_attachment']),
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+posting.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 422
+$attach_sig = ( $submit || $refresh ) ? ( ( !empty($HTTP_POST_VARS['attach_sig']) ) ? TRUE : 0 ) : ( ( $userdata['user_id'] == ANONYMOUS ) ? 0 : $userdata['user_attachsig'] );
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------- 
+# 
+execute_posting_attachment_handling();
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 580
+			update_post_stats($mode, $post_data, $forum_id, $topic_id, $post_id, $user_id);
+		}
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------- 
+# the Line have to be added AFTER the closing brace
+		$attachment_mod['posting']->insert_attachment($post_id);
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 715
+			'preview' => 'posting_preview.tpl')
+		);
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------- 
+# the Line have to be added AFTER the ');'
+		$attachment_mod['posting']->preview_attachments();
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+privmsg.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 131
+// ----------
+// Start main
+
+# 
+#-----[ BEFORE, ADD ]-------------------------------------- 
+# 
+execute_privmsgs_attachment_handling($mode);
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 350
+	//
+	// Pick a folder, any folder, so long as it's one below ...
+
+# 
+#-----[ BEFORE, ADD ]-------------------------------------- 
+# 
+	$attachment_mod['pm']->duplicate_attachment_pm($privmsg['privmsgs_attachment'], $privmsg['privmsgs_id'], $privmsg_sent_id);
+
+#
+#-----[ FIND ]---------------------------------------------
+# around line 490
+	$user_id_to = $privmsg['user_id_2'];
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------- 
+# 
+	init_display_pm_attachments($privmsg['privmsgs_attachment']);
+
+#
+#-----[ FIND ]---------------------------------------------
+# around line 750
+			$mark_list[] = $row['privmsgs_id'];
+		}
+
+		unset($delete_type);
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------- 
+# 
+		$attachment_mod['pm']->delete_all_pm_attachments($mark_list);
+
+#
+#-----[ FIND ]---------------------------------------------
+# around line 1319
+		if ( $mode != 'edit' )
+		{
+			//
+			// Add to the users new pm counter
+			//
+
+# 
+#-----[ BEFORE, ADD ]--------------------------------------- 
+# The Line has to be added BEFORE 'if ( $mode != 'edit' )'
+		$attachment_mod['pm']->insert_attachment_pm($privmsg_id);
+
+#
+#-----[ FIND ]---------------------------------------------
+# around line 1629
+			"preview" => 'privmsgs_preview.tpl')
+		);
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------- 
+# The Line have to be added AFTER the ');'
+		$attachment_mod['pm']->preview_attachments();
+
+#
+#-----[ FIND ]---------------------------------------------
+# around line 2171
+			'DATE' => $msg_date,
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------- 
+# 
+			'PRIVMSG_ATTACHMENTS_IMG' => privmsgs_attachment_image($privmsg_id),
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+viewforum.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 370
+$s_auth_can .= ( ( $is_auth['auth_vote'] ) ? $lang['Rules_vote_can'] : $lang['Rules_vote_cannot'] ) . '<br />';
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+attach_build_auth_levels($is_auth, $s_auth_can);
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 648
+			'NEWEST_POST_IMG' => $newest_post_img, 
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+			'TOPIC_ATTACHMENT_IMG' => topic_attachment_image($topic_rowset[$i]['topic_attachment']),
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+viewtopic.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 152
+		AND f.forum_id = t.forum_id
+		$order_sql";
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+attach_setup_viewtopic_auth($order_sql, $sql);
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 587
+$s_auth_can .= ( ( $is_auth['auth_vote'] ) ? $lang['Rules_vote_can'] : $lang['Rules_vote_cannot'] ) . '<br />';
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+attach_build_auth_levels($is_auth, $s_auth_can);
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 817
+//
+// Update the topic view counter
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------------
+# 
+init_display_post_attachments($forum_topic_data['topic_attachment']);
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 1209
+		'U_POST_ID' => $postrow[$i]['post_id'])
+	);
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# The Line have to be added AFTER the ');' and BEFORE the '}' (without single quotes)
+	display_post_attachments($postrow[$i]['post_id'], $postrow[$i]['post_attachment']);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+admin/admin_forumauth.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 72
+$forum_auth_const = array(AUTH_ALL, AUTH_REG, AUTH_ACL, AUTH_MOD, AUTH_ADMIN);
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+attach_setup_forum_auth($simple_auth_ary, $forum_auth_fields, $field_names);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+admin/admin_forums.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 52
+//
+// Mode setting
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------------
+# 
+$forum_auth_ary['auth_attachments'] = AUTH_REG;
+$forum_auth_ary['auth_download'] = AUTH_REG;
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+admin/admin_groups.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 59
+if ( isset($HTTP_POST_VARS['edit']) || isset($HTTP_POST_VARS['new']) )
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------------
+# 
+attachment_quota_settings('group', $HTTP_POST_VARS['group_update'], $mode);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+admin/admin_ug_auth.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 91
+// ---------------
+// Start Functions
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------------
+# 
+attach_setup_usergroup_auth($forum_auth_fields, $auth_field_match, $field_names);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+admin/admin_users.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 62
+	//
+	// Ok, the profile has been modified and submitted, let's update
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------------
+# 
+	attachment_quota_settings('user', $HTTP_POST_VARS['submit'], $mode);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+includes/auth.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 105
+		case AUTH_ATTACH:
+			break;
+
+		default:
+			break;
+	}
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# the Line have to be added AFTER the closing brace
+	attach_setup_basic_auth($type, $auth_fields, $a_sql);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+includes/functions.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 350
+	//
+	// Set up style
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------------
+# 
+	include_attach_lang();
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+includes/functions_admin.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 184
+			}
+			break;
+	}
+	
+	return true;
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------------
+#
+				attachment_sync_topic($id);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+includes/prune.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 127
+			remove_search_post($sql_post);
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+			prune_attachments($sql_post);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+includes/topic_review.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 43
+			WHERE t.topic_id = $topic_id
+				AND f.forum_id = t.forum_id";
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+		$tmp = '';
+		attach_setup_viewtopic_auth($tmp, $sql);
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 120
+	//
+	// Okay, let's do the loop, yeah come on baby let's do the loop
+	// and it goes like this ...
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------------
+# 
+	init_display_review_attachments($is_auth);
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 203
+				'L_MINI_POST_ALT' => $mini_post_alt)
+			);
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# the Line have to be added AFTER the ');'
+			display_review_attachments($row['post_id'], $row['post_attachment'], $is_auth);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+includes/usercp_viewprofile.php
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 175
+include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+display_upload_attach_box_limits($profiledata['user_id']);
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/modcp_body.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+# around line 27 
+	  <td class="row1">&nbsp;<span class="topictitle">{topicrow.TOPIC_TYPE}<a href="{topicrow.U_VIEW_TOPIC}" class="topictitle">{topicrow.TOPIC_TITLE}</a></span></td>
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------------
+# around line 27 (directly in that line)
+{topicrow.TOPIC_TYPE}
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------------
+# 
+{topicrow.TOPIC_ATTACHMENT_IMG}
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/posting_body.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 258
+<form action="{S_POST_ACTION}" method="post" name="post" onsubmit="return checkForm(this)">
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------
+# 
+<form action="{S_POST_ACTION}" method="post" name="post" onsubmit="return checkForm(this)" {S_FORM_ENCTYPE}>
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 462
+	{POLLBOX} 
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------------
+# 
+	{ATTACHBOX}
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/posting_preview.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 13
+					<span class="postbody">{MESSAGE}</span>
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# Do NOT make one line out of this, a <!-- --> template statement has to be on one seperate line
+					<!-- BEGIN postrow -->
+					{ATTACHMENTS}
+					<!-- END postrow -->
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/posting_topic_review.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 26
+				<td colspan="2"><span class="postbody">{postrow.MESSAGE}</span></td>
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------------
+# around line 26 (directly in that line)
+{postrow.MESSAGE}</span>
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------------
+# 
+{postrow.ATTACHMENTS}
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/privmsgs_body.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 15
+<table border="0" cellspacing="0" cellpadding="0" align="center" width="100%">
+  <tr> 
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+	<td align="right"> 
+	<!-- BEGIN switch_box_size_notice -->
+	<table width="175" cellspacing="1" cellpadding="2" border="0" class="bodyline">
+	<tr> 
+		<td colspan="3" width="175" class="row1" nowrap="nowrap"><span class="gensmall">{ATTACH_BOX_SIZE_STATUS}</span></td>
+	</tr>
+	<tr> 
+		<td colspan="3" width="175" class="row2">
+			<table cellspacing="0" cellpadding="1" border="0">
+			<tr> 
+				<td bgcolor="{T_TD_COLOR2}"><img src="templates/subSilver/images/spacer.gif" width="{ATTACHBOX_LIMIT_IMG_WIDTH}" height="8" alt="{ATTACH_LIMIT_PERCENT}" /></td>
+			</tr>
+			</table>
+		</td>
+	</tr>
+	<tr> 
+		<td width="33%" class="row1"><span class="gensmall">0%</span></td>
+		<td width="34%" align="center" class="row1"><span class="gensmall">50%</span></td>
+		<td width="33%" align="right" class="row1"><span class="gensmall">100%</span></td>
+	</tr>
+	</table>
+	<!-- END switch_box_size_notice -->
+	</td>
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 106
+	  <td width="55%" valign="middle" class="{listrow.ROW_CLASS}"><span class="topictitle">&nbsp;<a href="{listrow.U_READ}" class="topictitle">{listrow.SUBJECT}</a></span></td>
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------------
+# around line 106 (directly in that line)
+<span class="topictitle">&nbsp;<a href="{listrow.U_READ}" class="topictitle">{listrow.SUBJECT}
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------------
+# 
+{listrow.PRIVMSG_ATTACHMENTS_IMG}
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/privmsgs_preview.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 23
+	<td valign="top" colspan="2" class="row1"><span class="postbody">{MESSAGE}</span></td>
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------
+# Do NOT make one line out of this, a <!-- --> template statement has to be on one seperate line
+	<td valign="top" colspan="2" class="row1"><span class="postbody">{MESSAGE}</span>
+	<!-- BEGIN postrow -->
+	{ATTACHMENTS}
+	<!-- END postrow -->
+	</td>
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/privmsgs_read_body.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 47
+	  <td valign="top" colspan="3" class="row1"><span class="postbody">{MESSAGE}</span></td>
+
+# 
+#-----[ REPLACE WITH ]---------------------------------------
+# Do NOT make one line out of this, a <!-- --> template statement has to be on one seperate line
+	  <td valign="top" colspan="3" class="row1"><span class="postbody">{MESSAGE}</span>
+<!-- BEGIN postrow -->
+	{ATTACHMENTS}
+<!-- END postrow -->
+	  </td>
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 74
+		<input type="submit" name="delete" value="{L_DELETE_MSG}" class="liteoption" />
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# Do NOT make one line out of this, a <!-- --> template statement has to be on one seperate line
+<!-- BEGIN switch_attachments -->
+		&nbsp; 
+		<input type="submit" name="pm_delete_attach" value="{L_DELETE_ATTACHMENTS}" class="liteoption" />
+<!-- END switch_attachments -->
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/profile_view_body.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 41
+		  <td> <b><span class="gen">{INTERESTS}</span></b></td>
+		</tr>
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+<!-- BEGIN switch_upload_limits -->
+		<tr> 
+			<td valign="top" align="right" nowrap="nowrap"><span class="gen">{L_UPLOAD_QUOTA}:</span></td>
+			<td> 
+				<table width="175" cellspacing="1" cellpadding="2" border="0" class="bodyline">
+				<tr> 
+					<td colspan="3" width="100%" class="row2">
+						<table cellspacing="0" cellpadding="1" border="0">
+						<tr> 
+							<td bgcolor="{T_TD_COLOR2}"><img src="templates/subSilver/images/spacer.gif" width="{UPLOAD_LIMIT_IMG_WIDTH}" height="8" alt="{UPLOAD_LIMIT_PERCENT}" /></td>
+						</tr>
+						</table>
+					</td>
+				</tr>
+				<tr> 
+					<td width="33%" class="row1"><span class="gensmall">0%</span></td>
+					<td width="34%" align="center" class="row1"><span class="gensmall">50%</span></td>
+					<td width="33%" align="right" class="row1"><span class="gensmall">100%</span></td>
+				</tr>
+				</table>
+				<b><span class="genmed">[{UPLOADED} / {QUOTA} / {PERCENT_FULL}]</span> </b><br />
+				<span class="genmed"><a href="{U_UACP}" class="genmed">{L_UACP}</a></span></td>
+			</td>
+		</tr>
+<!-- END switch_upload_limits -->
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/viewforum_body.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 26
+	  <td class="row1" width="100%"><span class="topictitle">{topicrow.NEWEST_POST_IMG}{topicrow.TOPIC_TYPE}<a href="{topicrow.U_VIEW_TOPIC}" class="topictitle">{topicrow.TOPIC_TITLE}</a></span><span class="gensmall"><br />
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------------
+# around line 26 (directly in that line)
+{topicrow.NEWEST_POST_IMG}
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------------
+# 
+{topicrow.TOPIC_ATTACHMENT_IMG}
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/viewtopic_body.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 39
+				<td colspan="2"><span class="postbody">{postrow.MESSAGE}{postrow.SIGNATURE}</span><span class="gensmall">{postrow.EDITED_MESSAGE}</span></td>
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------------
+# around line 39 (directly in that line)
+{postrow.SIGNATURE}
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------------
+# 
+</span>{postrow.ATTACHMENTS}<span class="postbody">
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/admin/group_edit_body.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 48
+	<!-- END group_edit -->
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------------
+# 
+	<tr> 
+	  <td class="row1"><span class="gen">{L_UPLOAD_QUOTA}</span></td>
+	  <td class="row2">{S_SELECT_UPLOAD_QUOTA}</td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_PM_QUOTA}</span></td>
+	  <td class="row2">{S_SELECT_PM_QUOTA}</td>
+	</tr>
+
+# 
+#-----[ OPEN ]---------------------------------------------
+# 
+templates/subSilver/admin/user_edit_body.tpl
+
+# 
+#-----[ FIND ]---------------------------------------------
+# around line 267
+	  <td class="row1" colspan="2"><span class="gensmall">{L_SPECIAL_EXPLAIN}</span></td>
+	</tr>
+
+# 
+#-----[ AFTER, ADD ]---------------------------------------
+# 
+	<tr> 
+	  <td class="row1"><span class="gen">{L_UPLOAD_QUOTA}</span></td>
+	  <td class="row2">{S_SELECT_UPLOAD_QUOTA}</td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_PM_QUOTA}</span></td>
+	  <td class="row2">{S_SELECT_PM_QUOTA}</td>
+	</tr>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+
+#
+# STEP NUMBER IV: Additional Instructions
+#
+# The standard path for your files is 'files' and the standard upload image is images/icon_clip.gif.
+# If you want to change it, go to your Administration Panel and change it under Attachments->Management.
+#
+# If the installer told you to make the upload path writeable, you have to chmod it to 777 
+# (or change the owner to you httpd-servers owner) to upload files if you do not use the ftp upload feature.
+# if you only have plain ftp-access change the 'Attribute' of your files-directory to rwxrwxrwx.
+#
+# If you are using the ftp-upload feature, enter the relevant information in Attachments->Management. 
+# The password is stored in plaintext within the database. You don't have to chmod the directory (ftp-path).
+#
+# it would be wise if you put the provided index.php to this directory to prevent directory indexing if this 
+# has been enabled at your server.
+#
+# Before you make anything, i suggest you go to your Administration Panel->Attachments->Management and prove
+# that uploading is working with the Test Upload button. ;)
+#
+# CONFIG CACHING
+# 
+# If you want the Attachment Mod config table to be cached (reduce of one query on all phpBB2 Pages), you
+# have to create a directory 'cache' within your phpBB2 root folder.
+# This directory have to be chmodded to 777 (see above instructions on how to do this).
+#
+
+# EoM 

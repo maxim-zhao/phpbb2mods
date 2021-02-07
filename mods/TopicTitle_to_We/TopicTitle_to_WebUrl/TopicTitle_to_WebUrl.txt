@@ -1,0 +1,989 @@
+#################################################################
+## MOD Title: TopicTitle to WebUrl
+## MOD Author: Wicher < N/A > (N/A) http://www.detecties.com/modforum
+## MOD Description: This mod makes it possible to give the topictitle an url to a 
+##                  website or page outside your board.
+##                  This option can be set trough the forum and group permissions.
+##                  The messagebox can be used as field for a title description 
+##                  with all bbcode function that normally would work in the normal message.
+##  
+## MOD Version: 1.1.0	
+## 
+## Installation Level:  easy 
+## Installation Time:  20 minutes 
+## 
+## Files To Edit:    - posting.php
+##                   - search.php
+##                   - viewforum.php
+##                   - admin/admin_ug_auth.php
+##                   - admin/admin_forumauth.php
+##                   - admin/admin_forums.php
+##                   - includes/auth.php
+##                   - includes/functions_post.php
+##                   - language/lang_english/lang_admin.php
+##                   - language/lang_english/lang_main.php
+##                   - templates/subSilver/posting_body.tpl
+##                   - templates/subSilver/search_results_topics.tpl
+##                   - templates/subSilver/subSilver.cfg
+##                   - templates/subSilver/viewforum_body.tpl
+## 
+## Included Files: - add_topic_view.php
+##                 - templates/subSilver/images/info.gif
+##                 - templates/subSilver/images/outsidearrow.gif
+##                 - templates/subSilver/images/lang_english/editthistopic.gif
+## 
+## License:      http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+## 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:   
+##		   This mod has been tested on phpbb 2.0.22
+##
+############################################################## 
+## MOD History: 
+##
+##   2007-03-07 - Version 1.1.0 
+##    - fixed somethings and resubmitted to phpbb
+##   2007-03-06 - Version 1.0.0 
+##    - Submitted to phpbb
+##   2007-03-01 - Version 0.0.5 
+##    - Fixed some things in search
+##    - added choice whether to open in same window or in new window
+##   2007-02-28 - Version 0.0.4 
+##    - Added url title description, with bbcode functions
+##    - Changed modname into "TopicTitle to WebUrl"
+##   2007-02-27 - Version 0.0.3 
+##    - Added forum and group permissions
+##   2007-02-27 - Version 0.0.2 
+##    - edits in search
+##    - added new icon ( thanks to DualFusion)
+##    - url views are now counted
+##   2007-02-24 - Version 0.0.1 
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+ALTER TABLE phpbb_topics ADD topic_title_url CHAR(255) not null DEFAULT '';
+ALTER TABLE phpbb_topics ADD topic_title_url_target CHAR(7) not null DEFAULT '';
+ALTER TABLE phpbb_auth_access ADD auth_topicurl TINYINT(1) not null DEFAULT '0';
+ALTER TABLE phpbb_forums ADD auth_topicurl TINYINT(2) not null DEFAULT '5';
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy root/add_topic_view.php to add_topic_view.php
+copy root/templates/subSilver/images/info.gif to templates/subSilver/images/info.gif
+copy root/templates/subSilver/images/outsidearrow.gif to templates/subSilver/images/outsidearrow.gif
+copy root/templates/subSilver/images/lang_english/editthistopic.gif to templates/subSilver/images/lang_english/editthistopic.gif
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+posting.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$select_sql = (!$submit)
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, t.topic_title
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, t.topic_title_url
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$subject = ( !empty($HTTP_POST_VARS['subject']) ) ? trim($HTTP_POST_VARS['subject']) : '';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+			// TopicTitle Url Outside Board
+			$outsideurl = ( !empty($HTTP_POST_VARS['outsidelink']) ) ? trim($HTTP_POST_VARS['outsidelink']) : '';
+			$outsideurltarget = ( !empty($HTTP_POST_VARS['targets']) ) ? trim($HTTP_POST_VARS['targets']) : '';
+			// TopicTitle Url Outside Board
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+prepare_post($mode, $post_data, $bbcode_on
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, $subject
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, $outsideurl, $outsideurltarget
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+submit_post($mode, $post_data, $return_message
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+"''", $subject)
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, $outsideurl, $outsideurltarget
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$poll_length = '';
+		$subject = '';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		// TopicTitle to WebUrl by Wicher
+		$outsideurl = '';
+		$outsideurltarget = '';
+		// TopicTitle to WebUrl by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$message = $post_info['post_text'];
+
+		if ( $mode == 'editpost' )
+		{
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+			// TopicTitle to WebUrl by Wicher
+			$outsideurl = ( $post_info['topic_title_url'] ) ? $post_info['topic_title_url'] : '';
+			$outsideurltarget = ( $post_info['topic_title_url_target'] ) ? $post_info['topic_title_url_target'] : '';
+			// TopicTitle to WebUrl by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	case 'newtopic':
+		$page_title = $lang['Post_a_new_topic'];
+		$hidden_form_fields .= '<input type="hidden" name="' . POST_FORUM_URL . '" value="' . $forum_id . '" />';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		// TopicTitle to WebUrl by Wicher
+		if ($is_auth['auth_topicurl'])
+		{
+			$template->assign_block_vars('switch_new_edit_topic', array());
+		}
+		// TopicTitle to WebUrl by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	case 'editpost':
+		$page_title = $lang['Edit_Post'];
+		$hidden_form_fields .= '<input type="hidden" name="' . POST_POST_URL . '" value="' . $post_id . '" />';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		// TopicTitle to WebUrl by Wicher
+		if (($is_auth['auth_topicurl']) && ($post_data['first_post']))
+		{
+			$template->assign_block_vars('switch_new_edit_topic', array());
+		}
+		// TopicTitle to WebUrl by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$template->assign_vars(array(
+	'USERNAME' => $username,
+	'SUBJECT' => $subject,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// TopicTitle to WebUrl by Wicher
+	'OUTSIDE_URL' => $outsideurl,
+	// TopicTitle to WebUrl by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'L_SUBJECT' => $lang['Subject'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// TopicTitle Url Outside Board
+	'L_OUTSIDELINK' => $lang['OutSideLink'],
+	'INFO_IMG' => $images['info'],
+	'L_OUTSIDELINK_EXPLAIN' => $lang['OutSideLink_explain'],
+	'L_TARGET' => $lang['target'],
+	'L_BLANK' => $lang['blank'],
+	'L_SELF' => $lang['self'],
+	// TopicTitle Url Outside Board
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+search.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+					AND f.forum_id = p.forum_id
+					AND p.topic_id = t.topic_id
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+					AND t.topic_title_url = ''
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$template->assign_block_vars('searchresults', array( 
+					'FORUM_NAME' => $searchset[$i]['forum_name'],
+					'FORUM_ID' => $forum_id,
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+				// TopicTitle to WebUrl by Wicher
+				if ( $searchset[$i]['topic_title_url'] )
+				{
+					$view_topic_url_img = '<img src="'.$images['outsidearrow'].'" border="0" alt="'.$lang['LinkToOffBoard'].'" title="'.$lang['LinkToOffBoard'].'" />&nbsp;';
+					$topic_url = $searchset[$i]['topic_title_url'];
+					$target = 'target="'.$searchset[$i]['topic_title_url_target'].'"';
+					$newest_post_img = '';
+					$replies = '';
+					$views = $searchset[$i]['topic_views'];
+					$last_post_author = '';
+					$last_post_url = '';
+					$folder_alt = '';
+				}
+				else
+				{
+					$view_topic_url_img = '';
+				}
+				// TopicTitle to WebUrl by Wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+					'GOTO_PAGE' => $goto_page,
+					'REPLIES' => $replies,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+					// TopicTitle to WebUrl by Wicher
+					'VIEW_TOPIC_IMG' => $view_topic_url_img,
+					'TARGET' => $target,
+					// TopicTitle to WebUrl by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewforum.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+include($phpbb_root_path . 'common.'.$phpEx);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// TopicTitle to WebUrl by Wicher
+include($phpbb_root_path . 'includes/bbcode.'.$phpEx);
+// TopicTitle to WebUrl by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$view_topic_url = append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id");
+
+		$topic_author = ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $topic_rowset[$i]['user_id']) . '">' : '';
+		$topic_author .= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? $topic_rowset[$i]['username'] : ( ( $topic_rowset[$i]['post_username'] != '' ) ? $topic_rowset[$i]['post_username'] : $lang['Guest'] );
+
+		$topic_author .= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '</a>' : '';
+
+		$first_post_time = create_date($board_config['default_dateformat'], $topic_rowset[$i]['topic_time'], $board_config['board_timezone']);
+
+		$last_post_time = create_date($board_config['default_dateformat'], $topic_rowset[$i]['post_time'], $board_config['board_timezone']);
+
+		$last_post_author = ( $topic_rowset[$i]['id2'] == ANONYMOUS ) ? ( ($topic_rowset[$i]['post_username2'] != '' ) ? $topic_rowset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $topic_rowset[$i]['id2']) . '">' . $topic_rowset[$i]['user2'] . '</a>';
+
+		$last_post_url = '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $topic_rowset[$i]['topic_last_post_id']) . '#' . $topic_rowset[$i]['topic_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" border="0" /></a>';
+
+		$views = $topic_rowset[$i]['topic_views'];
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+		// TopicTitle to WebUrl by Wicher
+		if (!$topic_rowset[$i]['topic_title_url'])
+		{
+			$view_topic_url = append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id");
+			$first_post_time = create_date($board_config['default_dateformat'], $topic_rowset[$i]['topic_time'], $board_config['board_timezone']);
+			$last_post_time = create_date($board_config['default_dateformat'], $topic_rowset[$i]['post_time'], $board_config['board_timezone']);
+			$last_post_author = ( $topic_rowset[$i]['id2'] == ANONYMOUS ) ? ( ($topic_rowset[$i]['post_username2'] != '' ) ? $topic_rowset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $topic_rowset[$i]['id2']) . '">' . $topic_rowset[$i]['user2'] . '</a>';
+			$last_post_url = '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $topic_rowset[$i]['topic_last_post_id']) . '#' . $topic_rowset[$i]['topic_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" border="0" /></a>';
+			$views = $topic_rowset[$i]['topic_views'];
+
+			$view_topic_url_img = '';
+			$view_topic_button_img = '';
+			$view_topic_button_url = '';
+			$view_topic_url_target = '';
+			$topicdesc = '';
+			$row1 = 'row1';
+			$row2 = 'row2';
+			$row3 = 'row3';
+			$row3right = 'row3Right';
+		}
+		else
+		{
+			$view_topic_url_img = '<img src="'.$images['outsidearrow'].'" border="0" alt="'.$lang['LinkToOffBoard'].'" title="'.$lang['LinkToOffBoard'].'" />&nbsp;';
+			$view_topic_url = 'add_topic_view.'.$phpEx.'?site='.urlencode($topic_rowset[$i]['topic_title_url']).'&'.POST_TOPIC_URL.'='.$topic_id;
+			if ($is_auth['auth_topicurl'])
+			{
+				$view_topic_button_img = '<img src="'.$images['editthistopic'].'" border="0" />';
+				$view_topic_button_url = '<a href="'.append_sid("posting.$phpEx?mode=editpost&" . POST_POST_URL . "=".$topic_rowset[$i]['topic_first_post_id']).'">'.$view_topic_button_img.'</a>';
+				//$target = ($topic_rowset[$i]['topic_title_url_target'] == 0) ? '_blank' : '_self';
+				$view_topic_url_target = 'target="'.$topic_rowset[$i]['topic_title_url_target'].'"';
+			}
+			else
+			{
+				$view_topic_button_img = '';
+				$view_topic_button_url = '';
+				$view_topic_url_target = '';
+			}
+			$first_post_time = create_date($board_config['default_dateformat'], $topic_rowset[$i]['topic_time'], $board_config['board_timezone']);
+			$last_post_time = create_date($board_config['default_dateformat'], $topic_rowset[$i]['post_time'], $board_config['board_timezone']);
+			$last_post_author = '';
+			$last_post_url = '';
+			$views = $topic_rowset[$i]['topic_views'];
+
+			$replies = '';
+			$row1 = 'row1';
+			$row2 = 'row1';
+			$row3 = 'row1';
+			$row3right = 'row1';
+
+			$sql = "SELECT pt.post_text, pt.bbcode_uid
+					FROM " . POSTS_TABLE . " p, " . POSTS_TEXT_TABLE . " pt
+					WHERE p.topic_id = $topic_id
+					AND pt.post_id = p.post_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Could not obtain post/user information.", '', __LINE__, __FILE__, $sql);
+			}
+			$desc_row = $db->sql_fetchrow($result);
+			if ($desc_row['post_text'])
+			{
+				$topicdesc = '<br />'.$desc_row['post_text'];
+			}
+			else
+			{
+				$topicdesc = '';
+			}
+			$bbcode_uid = $desc_row['bbcode_uid'];
+			if ($bbcode_uid != '')
+			{
+				$topicdesc = ($board_config['allow_bbcode']) ? bbencode_second_pass($topicdesc, $bbcode_uid) : preg_replace("/\:$bbcode_uid/si", '', $topicdesc);
+			}
+			$topicdesc = make_clickable($topicdesc);
+			if ( $board_config['allow_smilies'] )
+			{
+				$topicdesc = smilies_pass($topicdesc);
+			}
+			$topicdesc = str_replace("\n", "\n<br />\n", $topicdesc);
+		}
+
+		$topic_author = ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $topic_rowset[$i]['user_id']) . '">' : '';
+		$topic_author .= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? $topic_rowset[$i]['username'] : ( ( $topic_rowset[$i]['post_username'] != '' ) ? $topic_rowset[$i]['post_username'] : $lang['Guest'] );
+		$topic_author .= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '</a>' : '';
+		// TopicTitle to WebUrl by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			'U_VIEW_TOPIC' => $view_topic_url)
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+			// TopicTitle to WebUrl by Wicher
+			'ROW1' => $row1,
+			'ROW2' => $row2,
+			'ROW3' => $row3,
+			'ROW3RIGHT' => $row3right,
+			'VIEW_TOPIC_IMG' => $view_topic_url_img,
+			'U_VIEW_TOPIC_BUTTON' => $view_topic_button_url,
+			'TARGET' => $view_topic_url_target,
+			'VIEW_TOPIC_IMG' => $view_topic_url_img,
+			'TOPIC_DESC' => $topicdesc,
+			// TopicTitle to WebUrl by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_ug_auth.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$forum_auth_fields = array('auth_view', 'auth_read', 'auth_post'
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, 'auth_post'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, 'auth_topicurl'
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'auth_post' => AUTH_POST,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	'auth_topicurl' => AUTH_TOPICURL,
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'auth_post' => $lang['Post'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	'auth_topicurl' => $lang['Topicurl'],
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				SET auth_view = 0, auth_read = 0, auth_post = 0
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, auth_post = 0
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, auth_topicurl = 0
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+					SET auth_view = 0, auth_read = 0, auth_post = 0
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, auth_post = 0
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, auth_topicurl = 0
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_forumauth.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//                View      Read      Post
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+      Reply
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+    TopicUrl    Reply
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	0  => array(AUTH_ALL, AUTH_ALL, AUTH_ALL
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+(AUTH_ALL, AUTH_ALL, AUTH_ALL
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, AUTH_ALL
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	1  => array(AUTH_ALL, AUTH_ALL, AUTH_REG
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+(AUTH_ALL, AUTH_ALL, AUTH_REG
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, AUTH_REG
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	2  => array(AUTH_REG, AUTH_REG, AUTH_REG
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+(AUTH_REG, AUTH_REG, AUTH_REG
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, AUTH_REG
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	3  => array(AUTH_ALL, AUTH_ACL, AUTH_ACL
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+(AUTH_ALL, AUTH_ACL, AUTH_ACL
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, AUTH_ACL
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	4  => array(AUTH_ACL, AUTH_ACL, AUTH_ACL
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+(AUTH_ACL, AUTH_ACL, AUTH_ACL
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, AUTH_ACL
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	5  => array(AUTH_ALL, AUTH_MOD, AUTH_MOD
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+(AUTH_ALL, AUTH_MOD, AUTH_MOD
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, AUTH_MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	6  => array(AUTH_MOD, AUTH_MOD, AUTH_MOD
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+(AUTH_MOD, AUTH_MOD, AUTH_MOD
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, AUTH_MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$forum_auth_fields = array('auth_view', 'auth_read', 'auth_post'
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, 'auth_post'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, 'auth_topicurl'
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'auth_post' => $lang['Post'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// TopicTitle to WebUrl by Wicher
+	'auth_topicurl' => $lang['Topicurl'],
+	// TopicTitle to WebUrl by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_forums.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"auth_post" => AUTH_REG, 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// TopicTitle to WebUrl by Wicher
+	"auth_topicurl" => AUTH_REG, 
+	// TopicTitle to WebUrl by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/auth.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$a_sql = 'a.auth_view, a.auth_read, a.auth_post
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, a.auth_post
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, a.auth_topicurl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$auth_fields = array('auth_view', 'auth_read', 'auth_post'
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, 'auth_post'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, 'auth_topicurl'
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		case AUTH_POST:
+			$a_sql = 'a.auth_post';
+			$auth_fields = array('auth_post');
+			break;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		// TopicTitle to WebUrl by Wicher
+		case AUTH_TOPICURL:
+			$a_sql = 'a.auth_topicurl';
+			$auth_fields = array('auth_topicurl');
+			break;
+		// TopicTitle to WebUrl by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/constants.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('AUTH_ATTACH', 11);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// TopicTitle to WebUrl by Wicher
+define('AUTH_TOPICURL', 12);
+// TopicTitle to WebUrl by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+function redirect_out($url)
+{
+	global $db, $board_config;
+
+	if (!empty($db))
+	{
+		$db->sql_close();
+	}
+
+	if (strstr(urldecode($url), "\n") || strstr(urldecode($url), "\r") || strstr(urldecode($url), ';url'))
+	{
+		message_die(GENERAL_ERROR, 'Tried to redirect to potentially insecure url.');
+	}
+
+	// Redirect via an HTML form for PITA webservers
+	if (@preg_match('/Microsoft|WebSTAR|Xitami/', getenv('SERVER_SOFTWARE')))
+	{
+		header('Refresh: 0; URL=' . $url);
+		echo '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"><html><head><meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"><meta http-equiv="refresh" content="0; url=' . $url . '"><title>Redirect</title></head><body><div align="center">If your browser does not support meta redirection please click <a href="' . $url . '">HERE</a> to be redirected</div></body></html>';
+		exit;
+	}
+
+	// Behave as per HTTP/1.1 spec for others
+	header('Location: ' . $url);
+	exit;
+}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions_post.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+function prepare_post(&$mode
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, &$subject
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, &$outsideurl, &$outsideurltarget
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$error_msg .= (!empty($error_msg)) ? '<br />' . $lang['Empty_subject'] : $lang['Empty_subject'];
+	}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// TopicTitle to WebUrl by Wicher
+	// Check topic_url
+	if (!empty($outsideurl))
+	{
+		$outsideurl = htmlspecialchars(trim($outsideurl));
+		$url_check = substr($outsideurl, 0, 7);
+		$url_check = strtolower($url_check);
+		if ($url_check != 'http://')
+		{
+			$error_msg .= (!empty($error_msg)) ? '<br />' . $lang['Wrong_url'] : $lang['Wrong_url'];
+		}
+	}
+	// TopicTitle to WebUrl by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	else if ($mode != 'delete' && $mode != 'poll_delete')
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+'poll_delete'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ && $url_check != 'http://'
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+function submit_post($mode, &$post_data
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, $post_subject
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, $outsideurl, $outsideurltarget
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE . " (
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+(topic_title
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, topic_title_url, topic_title_url_target
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+('$post_subject'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, '$outsideurl', '$outsideurltarget'
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+topic_title = '$post_subject'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, topic_title_url = '$outsideurl', topic_title_url_target = '$outsideurltarget'
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['Post'] =
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// TopicTitle to WebUrl by Wicher
+$lang['Topicurl'] = 'TopicUrl';
+// TopicTitle to WebUrl by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// TopicTitle Url Outside Board
+$lang['OutSideLink'] = 'Url to OutSide';
+// leave below lines on separate lines.
+$lang['OutSideLink_explain'] = 'You can give an url for this subject to a webpage outside this phpbb board.
+								Give the full url, with http:// included.
+								If you leave this empty the topic will get the normal phpbb url. If you put an url here you dont need to type a message below. 
+								If you do type a message below AND you put an url in abobe field then that text will be used as topic description when viewing forums.';
+$lang['LinkToOffBoard'] = 'Link to offboard webpage';
+$lang['Wrong_url'] = 'The url you gave as Topictitle url is not correct, you need to put \'http://\' in front of the url. Please try again.';
+$lang['target'] = 'Target';
+$lang['blank'] = 'Open in new window';
+$lang['self'] = 'Open in same window';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/posting_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		formErrors = "{L_EMPTY_MESSAGE}";
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+		if (!document.post.outsidelink.value.length) {
+			formErrors = "{L_EMPTY_MESSAGE}";
+		}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<tr> 
+	  <td class="row1" width="22%"><span class="gen"><b>{L_SUBJECT}</b></span></td>
+	  <td class="row2" width="78%"> <span class="gen"> 
+		<input type="text" name="subject" size="45" maxlength="60" style="width:450px" tabindex="2" class="post" value="{SUBJECT}" />
+		</span> </td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<!-- BEGIN switch_new_edit_topic -->
+	<tr> 
+	  <td class="row1" width="22%" valign="top"><span class="gen"><b>{L_OUTSIDELINK}</b></span>&nbsp;<img src="{INFO_IMG}" border="0" alt="{L_OUTSIDELINK_EXPLAIN}" title="{L_OUTSIDELINK_EXPLAIN}" /></td>
+	  <td class="row2" width="78%"><span class="gen"> 
+		<input type="text" name="outsidelink" size="45" maxlength="255" style="width:450px" tabindex="2" class="post" value="{OUTSIDE_URL}" />
+		</span>
+		<br /><span class="gen"><b>{L_TARGET}:</b> <select name="targets"><option value="_blank" selected="selected">{L_BLANK}</option><option value="_self">{L_SELF}</option></select>
+	  	</span>
+	  </td>
+	</tr>
+	<!-- END switch_new_edit_topic -->
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.cfg
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// TopicTitle to WebUrl by Wicher
+$images['info'] = "$current_template_images/info.gif";
+$images['outsidearrow'] = "$current_template_images/outsidearrow.gif";
+$images['editthistopic'] = "$current_template_images/{LANG}/editthistopic.gif";
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/search_results_topics.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<td class="row2"><span class="topictitle">{searchresults.NEWEST_POST_IMG}{searchresults.TOPIC_TYPE}
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+{searchresults.TOPIC_TYPE}
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+{searchresults.VIEW_TOPIC_IMG}
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+{searchresults.U_VIEW_TOPIC}"
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ {searchresults.TARGET}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewforum_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	  <td class="row1" width="100%"><span class="topictitle">{topicrow.NEWEST_POST_IMG}
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+{topicrow.TOPIC_TYPE}
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+{topicrow.VIEW_TOPIC_IMG}
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+{topicrow.U_VIEW_TOPIC}"
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ {topicrow.TARGET}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		{topicrow.GOTO_PAGE}</span></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+{topicrow.GOTO_PAGE}
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+# 
+{topicrow.U_VIEW_TOPIC_BUTTON}{topicrow.TOPIC_DESC}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	  <td class="row2" align="center" valign="middle"><span class="postdetails">{topicrow.REPLIES}
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+row2
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+{topicrow.ROW2}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	  <td class="row3" align="center" valign="middle"><span class="name">{topicrow.TOPIC_AUTHOR}
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+row3
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+{topicrow.ROW3}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	  <td class="row2" align="center" valign="middle"><span class="postdetails">{topicrow.VIEWS}
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+row2
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+{topicrow.ROW2}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	  <td class="row3Right" align="center" valign="middle" nowrap="nowrap"><span class="postdetails">{topicrow.LAST_POST_TIME}
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+row3Right
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+{topicrow.ROW3RIGHT}
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

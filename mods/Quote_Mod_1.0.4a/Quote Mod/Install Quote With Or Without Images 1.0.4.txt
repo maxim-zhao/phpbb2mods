@@ -1,0 +1,312 @@
+#############################################################################################################
+## MOD Title: Quote With Or Without Images
+## MOD Author: poyntesm < esmond.poynton[at]gmail[dot]com > (Esmond Poynton) http://www.imoc.co.uk/forums/
+## MOD Description:
+##			This mod will make the normal quote replace a image with a link. A new quote button for 
+##			keeping the image is introduced.
+##
+## MOD Version:		1.0.4 
+## 
+## Installation Level:	Easy
+## Installation Time:	5 Minutes
+## Files To Edit: (4)
+## 			viewtopic.php
+## 			posting.php
+##			language/lang_english/lang_main.php
+##			templates/subSilver/viewtopic_body.tpl
+##
+## Included Files: (1)
+##			root/templates/subSilver/images/language_english/icon_quote_pic.gif
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+######################################################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+######################################################################################
+## Author Notes: 
+## 	Gives your users the option to include/exclude images from quotes 
+## 
+###################################################################################### 
+## MOD History: 
+##   12-10-2005 - Version 1.0.4
+##      - ReSubmitted to MOD DB with fixed install file
+##   28-09-2005 - Version 1.0.2
+##      - ReSubmitted to MOD DB with fixed install file
+##   16-09-2005 - Version 1.0.0
+##      - Submitted to MOD DB
+##	- Fix missing subSilver.cfg entry
+##   15-09-2005 - Version 0.0.1
+##	- First Release
+## 			
+###################################################################################### 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+###################################################################################### 
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy root/templates/subSilver/images/lang_english/icon_quote_pic.gif to templates/subSilver/images/lang_english/icon_quote_pic.gif
+
+# 
+#-----[ OPEN ]-----------------------------------------
+# 
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<?php
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Quote With Or Without Images ------------------------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+		$yim = '';
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Quote With Or Without Images ------------------------------------------------------------------------------------
+//-- modify
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	$temp_url = append_sid("posting.$phpEx?mode=quote&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id']);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+=quote&amp;
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+
+image=exclude&amp;
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# this is a partial search : the full line is longer
+
+$quote_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_quote']
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//-- fin mod : Quote With Or Without Images --------------------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	$quote = '<a href="' . $temp_url . '">' . $lang['Reply_with_quote'] . '</a>';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Quote With Or Without Images ------------------------------------------------------------------------------------
+//-- add
+	$temp_url = append_sid("posting.$phpEx?mode=quote&amp;image=include&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id']);
+	$quote_pic_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_quote_pic'] . '" alt="' . $lang['Reply_with_quote_including_images'] . '" title="' . $lang['Reply_with_quote_including_images'] . '" border="0" /></a>';
+	$quote_pic = '<a href="' . $temp_url . '">' . $lang['Reply_with_quote_including_images'] . '</a>';
+//-- fin mod : Quote With Or Without Images --------------------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+		'QUOTE' => $quote,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Quote With Or Without Images ------------------------------------------------------------------------------------
+//-- add
+		'QUOTE_PIC_IMG' => $quote_pic_img,
+		'QUOTE_PIC' => $quote_pic,
+//-- fin mod : Quote With Or Without Images --------------------------------------------------------------------------------
+
+# 
+#-----[ OPEN ]-------------------------------------------
+# 
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+  
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Quote With Or Without Images ------------------------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+$lang['Reply_with_quote'] = 'Reply with quote';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Quote With Or Without Images ------------------------------------------------------------------------------------
+//-- add
+$lang['Reply_with_quote_including_images'] = 'Reply with quote including images';
+$lang['Image_replaced_with_url'] = '[b]Image Replaced With URL For Quote[/b] [url]';
+//-- fin mod : Quote With Or Without Images --------------------------------------------------------------------------------
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+  
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Quote With Or Without Images ------------------------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+//
+// Check and set various parameters
+//
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Quote With Or Without Images ------------------------------------------------------------------------------------
+//-- modify
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# this is a partial search : the full line is longer
+
+$params = array('submit' => 'post', 'preview' => 'preview'
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+'mode' => 'mode'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+
+, 'image' => 'image'
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+while( list($var, $param) = @each($params) )
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//-- fin mod : Quote With Or Without Images --------------------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+				$subject = 'Re: ' . $subject;
+			}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Quote With Or Without Images ------------------------------------------------------------------------------------
+//-- add
+
+			if ( $image == 'exclude')
+			{
+				$message = ( !empty($message) ) ? preg_replace('[/img]', '/url', $message) : '';
+				$message = ( !empty($message) ) ? preg_replace('/\[img]/', $lang['Image_replaced_with_url'], $message) : '';
+			}
+//-- fin mod : Quote With Or Without Images ---------------------------------------------------------------------------------
+
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+<td valign="top" nowrap="nowrap">{postrow.QUOTE_IMG}
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+
+{postrow.QUOTE_IMG}
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+
+ {postrow.QUOTE_PIC_IMG}
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+$images['icon_quote'] = "$current_template_images/{LANG}/icon_quote.gif";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Quote With Or Without Images ------------------------------------------------------------------------------------
+//-- add
+$images['icon_quote_pic'] = "$current_template_images/{LANG}/icon_quote_pic.gif";
+//-- fin mod : Quote With Or Without Images ---------------------------------------------------------------------------------
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM
+

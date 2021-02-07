@@ -1,0 +1,260 @@
+##############################################################
+## MOD Title: Online Since
+## MOD Author: 3Di < N/A > (Marco) http://you3d.net/ip2/index.php
+## MOD Author: Dicky < rfoote@tellink.net > (Richard Foote) http://dicky.askmaggymae.com
+## MOD Description:	Displays on overall header a string that shows in Years, Months, Days the length of time your board has been online.
+## MOD Version:         1.0.0
+##
+## Installation Level:	(Easy)
+## Installation Time:	10 Minutes
+## Files To Edit:
+##			includes/functions.php
+##			includes/page_header.php
+##			language/lang_english/lang_main.php
+##			templates/subSilver/overall_header.tpl
+##     
+## Included Files:
+##			online_since_100.mod
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## tested on a fresh phpBB 2.0.21 (localhost)
+## Can be installed with EasyMOD 0.3.0 into a fresh 2.0.21
+##
+##############################################################
+## MOD History:
+##
+##   2006-12-06 - Version 1.0.0
+##	- MOD script checked for phpBB 2.0.21
+##	- passed the pre-validation process
+##
+##   2005-10-22 - Version 0.5.1
+##	- fixed grammatical errors (thx Dicky)
+##
+##   2005-10-22 - Version 0.5.0
+##	- this project has been joined by Dicky
+##	- code re-written (thx Dicky)
+##
+##   2005-10-18 - Version 0.3.1
+##	- single/multiple year,month,day statement reviewed (thx Graham)
+##	- code re-written
+##
+##   2005-10-18 - Version 0.3.0
+##	- added single/multiple year, month, day .. statement
+##	- code re-written
+##
+##   2005-10-17 - Version 0.1.0
+##	- beta
+##	- code written
+##	- made the script
+##	- removed hardcoded text
+##
+##   2005-10-16 - Version 0.0.1
+##	- alpha version
+##
+##   2005-10-15 - Version 0.0.0
+##	- converting a JavaScript to PHP ..o_O
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//-- START MOD : online since ----------------------------------------------
+
+function board_online_time()
+{
+   global $board_config, $online_for, $lang;
+   
+   $days_of_month = array(   
+      array(0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+      ),
+      array(0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+      )
+      );
+
+   $start_date = create_date('Y-m-d', $board_config['board_startdate'], $board_config['board_timezone'] );
+   $today_date = create_date('Y-m-d', time(), $board_config['board_timezone']);
+
+   list($year1, $month1, $day1) = split('-', $start_date);
+   list($year2, $month2, $day2) = split('-', $today_date);
+      
+   $diff_year = $year2 - $year1;
+   $diff_month = $month2 - $month1;
+   $diff_day = $day2 - $day1;
+   
+   $is_leap = ((($year2)%4 == 0 && ($year2)%100 != 0 || ($year2)%400 == 0) ? 1 : 0);
+      
+  /* Do obvious corrections (days before months!)
+    *
+    * This is a loop in case the previous month is
+    * February, and days < -28.
+    */
+
+   $prev_month_days = $days_of_month[$is_leap][$month2 - 1];
+
+   while ($diff_day < 0)
+   {
+      /* Borrow from the previous month */
+      if ($prev_month_days == 0)
+      {
+         $prev_month_days = 31;
+      }
+         --$diff_month;
+         $diff_day += $prev_month_days;
+   }
+   
+   if ($diff_month < 0)
+   {
+      /* Borrow from the previous year */
+      --$diff_year;
+      $diff_month += 12;
+   }
+
+/* if statements as tertiary operators for single/multiples lang output */
+$lang_year = ($diff_year == 1) ? $lang['Online_Year'] : $lang['Online_Years'];
+$lang_month = ($diff_month == 1) ? $lang['Online_Month'] : $lang['Online_Months'];
+$lang_day = ($diff_day == 1) ? $lang['Online_Day'] : $lang['Online_Days'];
+
+$online_for = "$diff_year $lang_year $diff_month $lang_month $diff_day $lang_day";
+
+return $online_for;
+
+}
+//-- END MOD : online since ----------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$s_privmsg_new = 0;
+}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- START MOD : online since --------------------------------------------
+// -- Calculate length of time the board has been online
+board_online_time ();
+//-- END MOD : online since ----------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// The following assigns all _common_ variables that may be used at any point
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//-- START MOD : online since --------------------------------------
+// add
+$boarddatetrue = date("d-M-Y", $board_config['board_startdate'] );
+//-- END MOD : online since ----------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'PRIVATE_MESSAGE_NEW_FLAG' => $s_privmsg_new,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- START MOD : online since --------------------------------------
+// add
+	'BOARD_STARTS' => $boarddatetrue,
+	'ONLINE_FOR' => $online_for,
+//-- END MOD : online since --------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the line is longer, this is a partial match..
+#
+	'L_WHOSONLINE_MOD' =>
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+//-- START MOD : online since --------------------------------------
+// add
+	'L_BOARD_STARTS' => $lang['Online_Start'],
+	'L_ONLINE_SINCE' => $lang['Online_Since'],
+//-- END MOD : online since --------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all, Folks!
+// -------------------------------------------------
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- START MOD : online since -------------------------------------------
+$lang['Online_Start'] = 'Online since ';
+$lang['Online_Since'] = 'for';
+$lang['Online_Year'] = 'year';
+$lang['Online_Years'] = 'years';
+$lang['Online_Month'] = 'month';
+$lang['Online_Months'] = 'months';
+$lang['Online_Day'] = 'day';
+$lang['Online_Days'] = 'days';
+$lang['Online_For'] = $online_for;
+//-- END MOD : online since ----------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+#	this is a partial search because the line it is longer..
+#
+						<td height="25" align="center" valign="top" nowrap="nowrap">
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					<tr>
+						<td align="center" valign="top" nowrap="nowrap"><span class="gensmall">{L_BOARD_STARTS}{BOARD_STARTS} {L_ONLINE_SINCE} {ONLINE_FOR} </span></td>
+					</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

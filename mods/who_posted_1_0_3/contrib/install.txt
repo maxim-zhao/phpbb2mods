@@ -1,0 +1,131 @@
+##############################################################
+## MOD Title: Who Posted?
+## MOD Author: eviL3 < evil@phpbbmodders.net > (Igor Wiedler) http://phpbbmodders.net
+## MOD Description: This MOD will allow users to view who posted in a topic.
+## MOD Version: 1.0.3
+##
+## Installation Level: Easy
+## Installation Time: 1 Minute
+##
+## Files To Edit: posting.php,
+##                viewforum.php,
+##                templates/subSilver/viewforum_body.tpl
+##
+## Included Files: copy root/includes/class_who_posted.php
+##                 copy root/language/lang_english/lang_who_posted.php
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## This MOD was inspired by a feature of vBulletin.
+## It's more or less just stats, but i still like it. :D
+##
+##############################################################
+## MOD History:
+##
+##   2006-12-06 - Version 0.1.0
+##      - Initial Release
+##
+##   2006-12-06 - Version 0.1.0a
+##      - Forgot the posting.php changes
+##
+##   2006-12-09 - Version 1.0.0
+##      - Commented some globals out for efficiency
+##      - Submitted to MODDB
+##
+##   2007-01-10 - Version 1.0.1
+##      - Moved most code to constructor
+##      - Added license.txt
+##
+##   2007-01-14 - Version 1.0.2
+##      - Thanks paul (& the MOD team)
+##      - .php => $phpEx
+##      - t => POST_TOPIC_URL
+##
+##   2007-02-12 - Version 1.0.3
+##      - Added lang_german and lang_dutch (thanks raimon)
+##      - Fixed array_merge problem
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+# 
+
+copy root/includes/class_who_posted.php to includes/class_who_posted.php
+copy root/language/lang_english/lang_who_posted.php to language/lang_english/lang_who_posted.php
+copy root/templates/subSilver/who_posted_body.tpl to templates/subSilver/who_posted_body.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------
+#
+else if ( $mode == 'smilies' )
+{
+	generate_smilies('window', PAGE_POSTING);
+	exit;
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Who Posted ------------------------------------------------------------
+//-- add
+elseif ( $mode == 'who_posted' )
+{
+	require( "{$phpbb_root_path}includes/class_who_posted.$phpEx" );
+	new who_posted( $topic_id );
+	exit;
+}
+//-- fin mod : Who Posted --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------
+#
+			'REPLIES' => $replies,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Who Posted ------------------------------------------------------------
+//-- add
+			'U_WHO_POSTED' => append_sid( "posting.$phpEx?mode=who_posted&" . POST_TOPIC_URL . "=$topic_id" ),
+//-- fin mod : Who Posted --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+{topicrow.REPLIES}
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+{topicrow.REPLIES}
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+<a href="#" onclick="window.open('{topicrow.U_WHO_POSTED}','','statusbar=no,menubar=no,toolbar=no,scrollbars=yes,resizable=yes,width=500,height=300'); return false;">
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+</a>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

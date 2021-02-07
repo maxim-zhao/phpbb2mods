@@ -1,0 +1,512 @@
+[size=18]phpBB 2.0.14 to phpBB 2.0.15 Code Changes[/size]
+
+
+
+These are the Changes from phpBB 2.0.14 to phpBB 2.0.15 summed up into a little Mod. This might be very helpful if you want to update your Board and have installed a bunch of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.
+
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in the 'REPLACE WITH'-Statement.
+
+After you have finished this tutorial, you have to upload the install/update_to_latest.php file, execute it and then delete it from your webspace.
+
+[size=18][color=blue][list][*]admin/admin_forums.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 236[/color]
+[code]
+
+	if( $mode == "addforum" )
+	{
+		list($cat_id) = each($HTTP_POST_VARS['addforum']);
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+		$cat_id = intval($cat_id);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_smilies.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 450[/color]
+[code]
+
+			$smile_code = ( isset($HTTP_POST_VARS['smile_code']) ) ? $HTTP_POST_VARS['smile_code'] : $HTTP_GET_VARS['smile_code'];
+			$smile_url = ( isset($HTTP_POST_VARS['smile_url']) ) ? $HTTP_POST_VARS['smile_url'] : $HTTP_GET_VARS['smile_url'];
+			$smile_emotion = ( isset($HTTP_POST_VARS['smile_emotion']) ) ? $HTTP_POST_VARS['smile_emotion'] : $HTTP_GET_VARS['smile_emotion'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+			$smile_code = trim($smile_code);
+			$smile_url = trim($smile_url);
+			$smile_emotion = trim($smile_emotion);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/pagestart.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 62[/color]
+[code]
+
+	redirect("index.$phpEx?sid=" . $userdata['session_id']);
+}
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+if (!$userdata['session_admin'])
+{
+	redirect(append_sid("login.$phpEx?redirect=admin/&admin=1", true));
+}
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]db/postgres7.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 126[/color]
+[code]
+
+			$query = preg_replace('#(.*WHERE.*)(username|user_email|ban_email) = \'(.*)\'#ise', "\"\\1LOWER(\\2) = '\" . strtolower('\\3') . \"'\"", $query);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+//			$query = preg_replace('#(.*WHERE.*)(username|user_email|ban_email) = \'(.*)\'#ise', "\"\\1LOWER(\\2) = '\" . strtolower('\\3') . \"'\"", $query);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]groupcp.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 340[/color]
+[code]
+
+			if ( !($row = $db->sql_fetchrow($result)) )
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			if ( !($row = $db->sql_fetchrow($result)) || $row['is_auth_mod'] == 0 )
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/bbcode.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 127[/color]
+[code]
+
+{
+	global $lang, $bbcode_tpl;
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$text = preg_replace('#(script|about|applet|activex|chrome):#is', "\\1&#38;#058;", $text);
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 197[/color]
+[code]
+
+	// [img]image_url_here[/img] code..
+	// This one gets first-passed..
+	$patterns[] = "#\[img:$uid\](.*?)\[/img:$uid\]#si";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	// [img]image_url_here[/img] code..
+	// This one gets first-passed..
+	$patterns[] = "#\[img:$uid\]([^?].*?)\[/img:$uid\]#i";
+[/code]
+
+[*]
+[color=blue]FIND - Line 210[/color]
+[code]
+
+	// [url=xxxx://www.phpbb.com]phpBB[/url] code..
+	$patterns[] = "#\[url=([\w]+?://[^ \"\n\r\t<]*?)\](.*?)\[/url\]#is";
+	$replacements[] = $bbcode_tpl['url3'];
+
+	// [url=www.phpbb.com]phpBB[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url=((www|ftp)\.[^ \"\n\r\t<]*?)\](.*?)\[/url\]#is";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	// [url=xxxx://www.phpbb.com]phpBB[/url] code..
+	$patterns[] = "#\[url=([\w]+?://[^ \"\n\r\t<]*?)\]([^?].*?)\[/url\]#i";
+	$replacements[] = $bbcode_tpl['url3'];
+
+	// [url=www.phpbb.com]phpBB[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url=((www|ftp)\.[^ \"\n\r\t<]*?)\]([^?].*?)\[/url\]#i";
+[/code]
+
+[*]
+[color=blue]FIND - Line 619[/color]
+[code]
+
+ */
+function make_clickable($text)
+{
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$text = preg_replace('#(script|about|applet|activex|chrome):#is', "\\1&#38;#058;", $text);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/sessions.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 27[/color]
+[code]
+
+function session_begin($user_id, $user_ip, $page_id, $auto_create = 0, $enable_autologin = 0)
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+function session_begin($user_id, $user_ip, $page_id, $auto_create = 0, $enable_autologin = 0, $admin = 0)
+[/code]
+
+[*]
+[color=blue]FIND - Line 158[/color]
+[code]
+
+		SET session_user_id = $user_id, session_start = $current_time, session_time = $current_time, session_page = $page_id, session_logged_in = $login
+		WHERE session_id = '" . $session_id . "' 
+			AND session_ip = '$user_ip'";
+	if ( !$db->sql_query($sql) || !$db->sql_affectedrows() )
+	{
+		$session_id = md5(uniqid($user_ip));
+
+		$sql = "INSERT INTO " . SESSIONS_TABLE . "
+			(session_id, session_user_id, session_start, session_time, session_ip, session_page, session_logged_in)
+			VALUES ('$session_id', $user_id, $current_time, $current_time, '$user_ip', $page_id, $login)";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		SET session_user_id = $user_id, session_start = $current_time, session_time = $current_time, session_page = $page_id, session_logged_in = $login, session_admin = $admin
+		WHERE session_id = '" . $session_id . "' 
+			AND session_ip = '$user_ip'";
+	if ( !$db->sql_query($sql) || !$db->sql_affectedrows() )
+	{
+		list($sec, $usec) = explode(' ', microtime());
+		mt_srand((float) $sec + ((float) $usec * 100000));
+		$session_id = md5(uniqid(mt_rand(), true));
+
+		$sql = "INSERT INTO " . SESSIONS_TABLE . "
+			(session_id, session_user_id, session_start, session_time, session_ip, session_page, session_logged_in, session_admin)
+			VALUES ('$session_id', $user_id, $current_time, $current_time, '$user_ip', $page_id, $login, $admin)";
+[/code]
+
+[*]
+[color=blue]FIND - Line 180[/color]
+[code]
+
+	{// ( $userdata['user_session_time'] > $expiry_time && $auto_create ) ? $userdata['user_lastvisit'] : ( 
+		$last_visit = ( $userdata['user_session_time'] > 0 ) ? $userdata['user_session_time'] : $current_time; 
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+		if (!$admin)
+		{
+[/code]
+
+[*]
+[color=blue]FIND - Line 189[/color]
+[code]
+
+
+		$userdata['user_lastvisit'] = $last_visit;
+
+		$sessiondata['autologinid'] = ( $enable_autologin && $sessionmethod == SESSION_METHOD_COOKIE ) ? $auto_login_key : '';
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		}
+
+		$userdata['user_lastvisit'] = $last_visit;
+
+		$sessiondata['autologinid'] = (!$admin) ? (( $enable_autologin && $sessionmethod == SESSION_METHOD_COOKIE ) ? $auto_login_key : '') : $sessiondata['autologinid'];
+[/code]
+
+[*]
+[color=blue]FIND - Line 204[/color]
+[code]
+
+	$userdata['session_page'] = $page_id;
+	$userdata['session_start'] = $current_time;
+	$userdata['session_time'] = $current_time;
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$userdata['session_admin'] = $admin;
+[/code]
+
+[*]
+[color=blue]FIND - Line 294[/color]
+[code]
+
+					$sql = "UPDATE " . SESSIONS_TABLE . " 
+						SET session_time = $current_time, session_page = $thispage_id 
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+					// A little trick to reset session_admin on session re-usage
+					$update_admin = (!defined('IN_ADMIN') && $current_time - $userdata['session_time'] > ($board_config['session_length']+60)) ? ', session_admin = 0' : '';
+
+					$sql = "UPDATE " . SESSIONS_TABLE . " 
+						SET session_time = $current_time, session_page = $thispage_id$update_admin
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/smtp.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 109[/color]
+[code]
+
+	if( !$socket = fsockopen($board_config['smtp_host'], 25, $errno, $errstr, 20) )
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	if( !$socket = @fsockopen($board_config['smtp_host'], 25, $errno, $errstr, 20) )
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_viewprofile.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 36[/color]
+[code]
+
+}
+$profiledata = get_userdata($HTTP_GET_VARS[POST_USERS_URL]);
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+if (!$profiledata)
+{
+	message_die(GENERAL_MESSAGE, $lang['No_user_id_specified']);
+}
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]language/lang_english/lang_main.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 1021[/color]
+[code]
+
+$lang['An_error_occured'] = 'An Error Occurred';
+$lang['A_critical_error'] = 'A Critical Error Occurred';
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+$lang['Admin_reauthenticate'] = 'To administer the board you must re-authenticate yourself.';
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]login.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 55[/color]
+[code]
+
+	if( ( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) ) && !$userdata['session_logged_in'] )
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	if( ( isset($HTTP_POST_VARS['login']) || isset($HTTP_GET_VARS['login']) ) && (!$userdata['session_logged_in'] || isset($HTTP_POST_VARS['admin'])) )
+[/code]
+
+[*]
+[color=blue]FIND - Line 80[/color]
+[code]
+
+					$session_id = session_begin($row['user_id'], $user_ip, PAGE_INDEX, FALSE, $autologin);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+					$admin = (isset($HTTP_POST_VARS['admin'])) ? 1 : 0;
+					$session_id = session_begin($row['user_id'], $user_ip, PAGE_INDEX, FALSE, $autologin, $admin);
+[/code]
+
+[*]
+[color=blue]FIND - Line 162[/color]
+[code]
+
+	if( !$userdata['session_logged_in'] )
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	if( !$userdata['session_logged_in'] || (isset($HTTP_GET_VARS['admin']) && $userdata['session_logged_in'] && $userdata['user_level'] == ADMIN))
+[/code]
+
+[*]
+[color=blue]FIND - Line 211[/color]
+[code]
+
+
+		make_jumpbox('viewforum.'.$phpEx, $forum_id);
+		$template->assign_vars(array(
+			'USERNAME' => $username,
+
+			'L_ENTER_PASSWORD' => $lang['Enter_password'],
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		$s_hidden_fields .= (isset($HTTP_GET_VARS['admin'])) ? '<input type="hidden" name="admin" value="1" />' : '';
+
+		make_jumpbox('viewforum.'.$phpEx, $forum_id);
+		$template->assign_vars(array(
+			'USERNAME' => $username,
+
+			'L_ENTER_PASSWORD' => (isset($HTTP_GET_VARS['admin'])) ? $lang['Admin_reauthenticate'] : $lang['Enter_password'],
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]viewtopic.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 1110[/color]
+[code]
+
+		$message = str_replace('\"', '"', substr(@preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "@preg_replace('#\b(" . $highlight_match . ")\b#i', '<span style=\"color:#" . $theme['fontcolor3'] . "\"><b>\\\\1</b></span>', '\\0')", '>' . $message . '<'), 1, -1));
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		$message = str_replace('\"', '"', substr(@preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "@preg_replace('#\b(" . str_replace('\\', '\\\\', $highlight_match) . ")\b#i', '<span style=\"color:#" . $theme['fontcolor3'] . "\"><b>\\\\1</b></span>', '\\0')", '>' . $message . '<'), 1, -1));
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_ug_auth.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 553[/color]
+[code]
+
+		message_die(GENERAL_MESSAGE, $message);
+	}
+}
+else if ( ( $mode == 'user' && ( isset($HTTP_POST_VARS['username']) || $user_id ) ) || ( $mode == 'group' && $group_id ) )
+[/code]
+
+[color=blue]BEFORE, ADD[/color]
+[code]
+
+
+		$sql = 'SELECT user_id FROM ' . USER_GROUP_TABLE . "
+			WHERE group_id = $group_id";
+		$result = $db->sql_query($sql);
+
+		$group_user = array();
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$group_user[$row['user_id']] = $row['user_id'];
+		}
+		$db->sql_freeresult($result);
+
+		$sql = "SELECT ug.user_id, COUNT(auth_mod) AS is_auth_mod 
+			FROM " . AUTH_ACCESS_TABLE . " aa, " . USER_GROUP_TABLE . " ug 
+			WHERE ug.user_id IN (" . implode(', ', $group_user) . ") 
+				AND aa.group_id = ug.group_id 
+				AND aa.auth_mod = 1
+			GROUP BY ug.user_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain moderator status', '', __LINE__, __FILE__, $sql);
+		}
+
+		while ($row = $db->sql_fetchrow($result))
+		{
+			if ($row['is_auth_mod'])
+			{
+				unset($group_user[$row['user_id']]);
+			}
+		}
+		$db->sql_freeresult($result);
+
+		if (sizeof($group_user))
+		{
+			$sql = "UPDATE " . USERS_TABLE . " 
+				SET user_level = " . USER . " 
+				WHERE user_id IN (" . implode(', ', $group_user) . ") AND user_level = " . MOD;
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not update user level', '', __LINE__, __FILE__, $sql);
+			}
+		}
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_register.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 414[/color]
+[code]
+
+			if (strtolower($username) != strtolower($userdata['username']))
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			if (strtolower($username) != strtolower($userdata['username']) || $mode == 'register')
+[/code]
+
+[/list]

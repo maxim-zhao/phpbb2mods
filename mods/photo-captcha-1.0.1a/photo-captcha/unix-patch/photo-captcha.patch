@@ -1,0 +1,319 @@
+diff -u -r /data/site/admin/admin_board.php ./admin/admin_board.php
+--- /data/site/admin/admin_board.php	2006-10-19 19:03:33.000000000 -0400
++++ ./admin/admin_board.php	2006-10-20 17:10:16.361629250 -0400
+@@ -104,8 +104,16 @@
+ $activation_user = ( $new['require_activation'] == USER_ACTIVATION_SELF ) ? "checked=\"checked\"" : "";
+ $activation_admin = ( $new['require_activation'] == USER_ACTIVATION_ADMIN ) ? "checked=\"checked\"" : "";
+ 
+-$confirm_yes = ($new['enable_confirm']) ? 'checked="checked"' : '';
+-$confirm_no = (!$new['enable_confirm']) ? 'checked="checked"' : '';
++$confirm_photos = ($new['enable_confirm'] == VISUAL_CONFIRM_PHOTOS) ? 'checked="checked"' : '';
++$confirm_digits = ($new['enable_confirm'] == VISUAL_CONFIRM_DIGITS) ? 'checked="checked"' : '';
++$confirm_disable = ($new['enable_confirm'] == VISUAL_CONFIRM_DISABLE) ? 'checked="checked"' : '';
++
++if (!extension_loaded("gd")) {
++	$visual_explain = $lang['Visual_confirm_explain_nogd'];
++} else {
++	$visual_explain = $lang['Visual_confirm_explain'];
++	$template->assign_block_vars('switch_enable_photos', array());
++}
+ 
+ $allow_autologin_yes = ($new['allow_autologin']) ? 'checked="checked"' : '';
+ $allow_autologin_no = (!$new['allow_autologin']) ? 'checked="checked"' : '';
+@@ -174,7 +182,10 @@
+ 	"L_USER" => $lang['Acc_User'], 
+ 	"L_ADMIN" => $lang['Acc_Admin'], 
+ 	"L_VISUAL_CONFIRM" => $lang['Visual_confirm'], 
+-	"L_VISUAL_CONFIRM_EXPLAIN" => $lang['Visual_confirm_explain'], 
++	"L_VISUAL_CONFIRM_EXPLAIN" => $visual_explain,
++	"L_VISUAL_CONFIRM_PHOTOS" => $lang['Visual_confirm_photos'],
++	"L_VISUAL_CONFIRM_DIGITS" => $lang['Visual_confirm_digits'],
++	"L_VISUAL_CONFIRM_DISABLE" => $lang['Visual_confirm_disable'],
+ 	"L_ALLOW_AUTOLOGIN" => $lang['Allow_autologin'],
+ 	"L_ALLOW_AUTOLOGIN_EXPLAIN" => $lang['Allow_autologin_explain'],
+ 	"L_AUTOLOGIN_TIME" => $lang['Autologin_time'],
+@@ -278,8 +289,9 @@
+ 	"ACTIVATION_USER_CHECKED" => $activation_user,
+ 	"ACTIVATION_ADMIN" => USER_ACTIVATION_ADMIN, 
+ 	"ACTIVATION_ADMIN_CHECKED" => $activation_admin, 
+-	"CONFIRM_ENABLE" => $confirm_yes,
+-	"CONFIRM_DISABLE" => $confirm_no,
++	"CONFIRM_PHOTOS" => $confirm_photos,
++	"CONFIRM_DIGITS" => $confirm_digits,
++	"CONFIRM_DISABLE" => $confirm_disable,
+ 	'ALLOW_AUTOLOGIN_YES' => $allow_autologin_yes,
+ 	'ALLOW_AUTOLOGIN_NO' => $allow_autologin_no,
+ 	'AUTOLOGIN_TIME' => (int) $new['max_autologin_time'],
+diff -u -r /data/site/includes/constants.php ./includes/constants.php
+--- /data/site/includes/constants.php	2006-10-19 19:03:33.000000000 -0400
++++ ./includes/constants.php	2006-10-20 04:13:42.000000000 -0400
+@@ -44,6 +44,10 @@
+ define('USER_ACTIVATION_SELF', 1);
+ define('USER_ACTIVATION_ADMIN', 2);
+ 
++define('VISUAL_CONFIRM_DISABLE', 0);
++define('VISUAL_CONFIRM_DIGITS', 1);
++define('VISUAL_CONFIRM_PHOTOS', 2);
++
+ define('USER_AVATAR_NONE', 0);
+ define('USER_AVATAR_UPLOAD', 1);
+ define('USER_AVATAR_REMOTE', 2);
+diff -u -r /data/site/includes/usercp_confirm.php ./includes/usercp_confirm.php
+--- /data/site/includes/usercp_confirm.php	2006-10-19 19:03:33.000000000 -0400
++++ ./includes/usercp_confirm.php	2006-10-20 17:12:12.236871000 -0400
+@@ -40,6 +40,7 @@
+ 
+ $confirm_id = htmlspecialchars($HTTP_GET_VARS['id']);
+ 
++
+ // Define available charset
+ $chars = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',  'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',  'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9');
+ 
+@@ -66,6 +67,64 @@
+ 	exit;
+ }
+ 
++
++if ($board_config['enable_confirm'] == VISUAL_CONFIRM_PHOTOS) {
++
++	if(!extension_loaded("gd")){
++		exit;
++	}
++
++	$idx = intval($HTTP_GET_VARS['idx']);
++	$code = substr(base_convert($code, 16, 2), $idx, 1);
++
++	if ($code == "0") {
++		$directory = $phpbb_root_path . "/images/captcha/non";
++	} else {
++		$directory = $phpbb_root_path . "/images/captcha/animal";
++	}
++	$options = array();
++	$dirlist = opendir($directory);
++	while( ($jpg = readdir($dirlist)) !== false) {
++		if(!is_dir($jpg)) {
++			if (strtolower(substr($jpg,-4,4)) == ".jpg") {
++				$options[] = $jpg;
++			}
++		}
++	}
++	closedir($dirlist);
++	if (empty($options)) {
++		exit;
++	}
++	$selindex = intval(base_convert(substr(dss_rand(), 0, 7), 16, 10));
++	$selindex = $selindex % count($options);
++	$fullpath = $directory . "/" . $options[$selindex];
++
++	$image = @imagecreatefromjpeg($fullpath);
++	if (!$image) {
++		exit;
++	}
++
++	$resultx = 112;
++	$resulty = 84;
++
++	mt_srand();
++	$targetx = @imagesx($image);
++	$targety = @imagesy($image);
++	$sourcex = mt_rand(($targetx * 7)/10, ($targetx * 9)/10);
++	$sourcey = mt_rand(($targety * 7)/10, ($targety * 9)/10);
++	$offx = mt_rand(0, $targetx - $sourcex);
++	$offy = mt_rand(0, $targety - $sourcey);
++	$sub = imagecreatetruecolor($resultx, $resulty);
++	@imagecopyresampled($sub, $image, 0, 0, $offx, $offy, $resultx, $resulty, $sourcex, $sourcey);
++	$image = $sub;
++	@imagegammacorrect($image, 1.0, (0.5 + mt_rand(0,1200)*0.001));
++
++	header('Content-Type: image/jpg');
++	header('Cache-control: no-cache, no-store');
++	@imagepng($image);
++	exit;
++}
++
+ // We can we will generate a single filtered png 
+ // Thanks to DavidMJ for emulating zlib within the code :)
+ $_png = define_filtered_pngs();
+diff -u -r /data/site/includes/usercp_register.php ./includes/usercp_register.php
+--- /data/site/includes/usercp_register.php	2006-10-19 19:03:33.000000000 -0400
++++ ./includes/usercp_register.php	2006-10-20 17:12:45.170929250 -0400
+@@ -297,6 +297,18 @@
+ 
+ 			if ($row = $db->sql_fetchrow($result))
+ 			{
++				if ($board_config['enable_confirm'] == VISUAL_CONFIRM_PHOTOS) {
++					$confirm_code = '';
++					for ($box=0; $box<20; $box++) {
++						if ($HTTP_POST_VARS["captchabox$box"] == "on") {
++							$confirm_code .= "1";
++						} else {
++							$confirm_code .= "0";
++						}
++					}
++					$row['code'] = substr(base_convert($row['code'], 16, 2), 0, 20);
++				}
++
+ 				if ($row['code'] != $confirm_code)
+ 				{
+ 					$error = TRUE;
+@@ -981,7 +993,7 @@
+ 
+ 		if ($row = $db->sql_fetchrow($result))
+ 		{
+-			if ($row['attempts'] > 3)
++			if ($row['attempts'] > 3)
+ 			{
+ 				message_die(GENERAL_MESSAGE, $lang['Too_many_registers']);
+ 			}
+@@ -989,9 +1001,18 @@
+ 		$db->sql_freeresult($result);
+ 		
+ 		// Generate the required confirmation code
+-		// NB 0 (zero) could get confused with O (the letter) so we make change it
+-		$code = dss_rand();
+-		$code = substr(str_replace('0', 'Z', strtoupper(base_convert($code, 16, 35))), 2, 6);
++
++		if ($board_config['enable_confirm'] == VISUAL_CONFIRM_DIGITS) {
++			// NB 0 (zero) could get confused with O (the letter) so we make change it
++			$code = dss_rand();
++			$code = substr(str_replace('0', 'Z', strtoupper(base_convert($code, 16, 35))), 2, 6);
++		}
++
++		if ($board_config['enable_confirm'] == VISUAL_CONFIRM_PHOTOS) {
++			// Each one in the code indicates 'animal', each zero 'non-animal'.
++			$code = dss_rand();
++			$code = substr($code, 0, 6);
++		}
+ 
+ 		$confirm_id = md5(uniqid($user_ip));
+ 
+@@ -1004,10 +1025,31 @@
+ 
+ 		unset($code);
+ 		
+-		$confirm_image = '<img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id") . '" alt="" title="" />';
++
+ 		$s_hidden_fields .= '<input type="hidden" name="confirm_id" value="' . $confirm_id . '" />';
+ 
+-		$template->assign_block_vars('switch_confirm', array());
++		if ($board_config['enable_confirm'] == VISUAL_CONFIRM_DIGITS) {
++			 $confirm_image = '<img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id") . '" alt="" title="" />';
++			 $template->assign_block_vars('switch_confirm_digits', array());
++		}
++
++		if ($board_config['enable_confirm'] == VISUAL_CONFIRM_PHOTOS) {
++			if (extension_loaded("gd")) {
++				$confirm_image = '<table>';
++				for ($tablerow=0; $tablerow<5; $tablerow++) {
++					$confirm_image .= '<tr>';
++					for ($tablecol=0; $tablecol<4; $tablecol++) {
++						$idx = $tablerow*4 + $tablecol;
++						$confirm_image .= '<td><img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id&amp;idx=$idx") . '" alt="" title="" /></td>';
++						$confirm_image .= '<td><input type="checkbox" name="captchabox' . "$idx" . '"></td>';
++						$confirm_image .= '<td width=50></td>';
++					}
++					$confirm_image .= '</tr>';
++				}
++				$confirm_image .= '</table>';
++			}
++			$template->assign_block_vars('switch_confirm_photos', array());
++		}
+ 	}
+ 
+ 
+@@ -1121,7 +1163,8 @@
+ 
+ 		'L_CONFIRM_CODE_IMPAIRED'	=> sprintf($lang['Confirm_code_impaired'], '<a href="mailto:' . $board_config['board_email'] . '">', '</a>'), 
+ 		'L_CONFIRM_CODE'			=> $lang['Confirm_code'], 
+-		'L_CONFIRM_CODE_EXPLAIN'	=> $lang['Confirm_code_explain'], 
++		'L_CONFIRM_CODE_EXPLAIN_DIGITS'	=> $lang['Confirm_code_explain_digits'], 
++		'L_CONFIRM_CODE_EXPLAIN_PHOTOS'	=> (extension_loaded("gd") ? $lang['Confirm_code_explain_photos'] : $lang['Confirm_code_missing_gd']),
+ 
+ 		'S_ALLOW_AVATAR_UPLOAD' => $board_config['allow_avatar_upload'],
+ 		'S_ALLOW_AVATAR_LOCAL' => $board_config['allow_avatar_local'],
+diff -u -r /data/site/language/lang_english/lang_admin.php ./language/lang_english/lang_admin.php
+--- /data/site/language/lang_english/lang_admin.php	2006-10-19 19:03:33.000000000 -0400
++++ ./language/lang_english/lang_admin.php	2006-10-20 17:10:29.794468750 -0400
+@@ -333,7 +333,11 @@
+ 
+ // Visual Confirmation
+ $lang['Visual_confirm'] = 'Enable Visual Confirmation';
+-$lang['Visual_confirm_explain'] = 'Requires users enter a code defined by an image when registering.';
++$lang['Visual_confirm_explain'] = 'Requires registering users to either recognize objects in photos, or recognize digits in an image.';
++$lang['Visual_confirm_explain_nogd'] = 'Requires registering users to recognize digits in an image.  If you were to install the php GD extension, a photo-recognition mode would become available here.';
++$lang['Visual_confirm_photos'] = 'Photos';
++$lang['Visual_confirm_digits'] = 'Digits';
++$lang['Visual_confirm_disable'] = 'None';
+ 
+ // Autologin Keys - added 2.0.18
+ $lang['Allow_autologin'] = 'Allow automatic logins';
+diff -u -r /data/site/language/lang_english/lang_main.php ./language/lang_english/lang_main.php
+--- /data/site/language/lang_english/lang_main.php	2006-10-19 19:03:33.000000000 -0400
++++ ./language/lang_english/lang_main.php	2006-10-20 17:04:56.325628250 -0400
+@@ -659,10 +659,10 @@
+ $lang['Confirm_code_wrong'] = 'The confirmation code you entered was incorrect';
+ $lang['Too_many_registers'] = 'You have exceeded the number of registration attempts for this session. Please try again later.';
+ $lang['Confirm_code_impaired'] = 'If you are visually impaired or cannot otherwise read this code please contact the %sAdministrator%s for help.';
++$lang['Confirm_code_missing_gd'] = 'Error: photo confirmation requires the PHP GD extension, which is not currently installed.';
+ $lang['Confirm_code'] = 'Confirmation code';
+-$lang['Confirm_code_explain'] = 'Enter the code exactly as you see it. The code is case sensitive and zero has a diagonal line through it.';
+-
+-
++$lang['Confirm_code_explain_digits'] = 'Enter the code exactly as you see it. The code is case sensitive and zero has a diagonal line through it.';
++$lang['Confirm_code_explain_photos'] = 'Put a check mark next to all photographs of animals. (This is a spam prevention mechanism).';
+ 
+ //
+ // Memberslist
+Only in ./templates/subSilver/admin: bcb.tpl
+diff -u -r /data/site/templates/subSilver/admin/board_config_body.tpl ./templates/subSilver/admin/board_config_body.tpl
+--- /data/site/templates/subSilver/admin/board_config_body.tpl	2006-10-19 19:03:59.000000000 -0400
++++ ./templates/subSilver/admin/board_config_body.tpl	2006-10-20 17:10:51.979855250 -0400
+@@ -37,7 +37,13 @@
+ 	</tr>
+ 	<tr>
+ 		<td class="row1">{L_VISUAL_CONFIRM}<br /><span class="gensmall">{L_VISUAL_CONFIRM_EXPLAIN}</span></td>
+-		<td class="row2"><input type="radio" name="enable_confirm" value="1" {CONFIRM_ENABLE} />{L_YES}&nbsp; &nbsp;<input type="radio" name="enable_confirm" value="0" {CONFIRM_DISABLE} />{L_NO}</td>
++		<td class="row2">
++			<!-- BEGIN switch_enable_photos -->
++			<input type="radio" name="enable_confirm" value="2" {CONFIRM_PHOTOS} />{L_VISUAL_CONFIRM_PHOTOS}&nbsp;
++			<!-- END switch_enable_photos -->
++			<input type="radio" name="enable_confirm" value="1" {CONFIRM_DIGITS} />{L_VISUAL_CONFIRM_DIGITS}&nbsp;
++                        <input type="radio" name="enable_confirm" value="0" {CONFIRM_DISABLE} />{L_VISUAL_CONFIRM_DISABLE}
++		</td>
+ 	</tr>
+ 	<tr>
+ 		<td class="row1">{L_ALLOW_AUTOLOGIN}<br /><span class="gensmall">{L_ALLOW_AUTOLOGIN_EXPLAIN}</span></td>
+diff -u -r /data/site/templates/subSilver/profile_add_body.tpl ./templates/subSilver/profile_add_body.tpl
+--- /data/site/templates/subSilver/profile_add_body.tpl	2006-10-19 19:03:59.000000000 -0400
++++ ./templates/subSilver/profile_add_body.tpl	2006-10-20 04:13:42.000000000 -0400
+@@ -55,16 +55,26 @@
+ 		<input type="password" class="post" style="width: 200px" name="password_confirm" size="25" maxlength="32" value="{PASSWORD_CONFIRM}" />
+ 	  </td>
+ 	</tr>
+-	<!-- Visual Confirmation -->
+-	<!-- BEGIN switch_confirm -->
++	<!-- Visual Confirmation, Digits  -->
++	<!-- BEGIN switch_confirm_digits -->
+ 	<tr>
+ 		<td class="row1" colspan="2" align="center"><span class="gensmall">{L_CONFIRM_CODE_IMPAIRED}</span><br /><br />{CONFIRM_IMG}<br /><br /></td>
+ 	</tr>
+ 	<tr> 
+-	  <td class="row1"><span class="gen">{L_CONFIRM_CODE}: * </span><br /><span class="gensmall">{L_CONFIRM_CODE_EXPLAIN}</span></td>
++	  <td class="row1"><span class="gen">{L_CONFIRM_CODE}: * </span><br /><span class="gensmall">{L_CONFIRM_CODE_EXPLAIN_DIGITS}</span></td>
+ 	  <td class="row2"><input type="text" class="post" style="width: 200px" name="confirm_code" size="6" maxlength="6" value="" /></td>
+ 	</tr>
+-	<!-- END switch_confirm -->
++	<!-- END switch_confirm_digits -->
++	<!-- Visual Confirmation, Photos -->
++	<!-- BEGIN switch_confirm_photos -->
++	<tr>
++		<td class="row1" colspan="2" align="center">
++		<span class="gensmall">{L_CONFIRM_CODE_IMPAIRED}</span><br /><br />
++		<span class="gen">{L_CONFIRM_CODE_EXPLAIN_PHOTOS}</span><br /><br />
++		{CONFIRM_IMG}<br /><br />
++		</td>
++	</tr>
++	<!-- END switch_confirm_photos -->
+ 	<tr> 
+ 	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+ 	</tr>

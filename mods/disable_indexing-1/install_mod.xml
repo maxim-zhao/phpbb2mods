@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+  <header>
+    <license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+    <title lang="en-gb">Disable Search Indexing</title>
+    <description lang="en-gb">Enables administrators to selectively turn off posts from being indexed in the search tables on a per forum basis. Indexing will be adjusted accordingly when posts are moved between forums that have indexing enabled or disabled.</description>
+    <author-notes lang="en-gb">This MOD was written mainly for large forums to alleviate unnecessary strain on the server when querying very large search tables.</author-notes>
+    <author-group>
+      <author>
+        <realname>Peter Murphy</realname>
+        <email>albosky@comcast.net</email>
+        <username>Albosky</username>
+        <homepage>http://forum.tip.it</homepage>
+        <contributions />
+      </author>
+    </author-group>
+    <mod-version>
+      <major>1</major>
+      <minor>0</minor>
+      <revision>0</revision>
+    </mod-version>
+    <installation>
+      <level>intermediate</level>
+      <time>1202</time>
+      <target-version>
+        <target-primary>2.0.21</target-primary>
+        <target-major allow="exact">2</target-major>
+        <target-minor allow="exact">0</target-minor>
+		<target-revision allow="exact">.21</target-revision>
+      </target-version>
+    </installation>
+    <history>
+      <entry>
+        <date>2006-09-01</date>
+        <rev-version>
+          <major>1</major>
+          <minor>0</minor>
+          <revision>0</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change> Initial release </change>
+        </changelog>
+      </entry>
+    </history>
+    <meta name="generator" content="Phpbb.ModTeam.Tools (c#)" />
+  </header>
+  <action-group>
+    <sql>ALTER TABLE phpbb_forums ADD index_posts TINYINT( 1 ) DEFAULT '1' NOT NULL;
+</sql>
+    <open src="modcp.php">
+      <edit>
+        <find>	$sql = "SELECT f.forum_id, f.forum_name, f.forum_topics</find>
+        <inline-edit>
+          <inline-find>f.forum_topics</inline-find>
+          <inline-action type="after-add">, f.index_posts</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>	$forum_id = $topic_row['forum_id'];
+	$forum_name = $topic_row['forum_name'];</find>
+        <action type="after-add">	$index_posts = $topic_row['index_posts'];</action>
+      </edit>
+      <edit>
+        <find>	$sql = "SELECT forum_name, forum_topics</find>
+        <inline-edit>
+          <inline-find>forum_topics</inline-find>
+          <inline-action type="after-add">, index_posts</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>	$forum_topics = ( $topic_row['forum_topics'] == 0 ) ? 1 : $topic_row['forum_topics'];
+	$forum_name = $topic_row['forum_name'];</find>
+        <action type="after-add">	$index_posts = $topic_row['index_posts'];</action>
+      </edit>
+      <edit>
+        <find>				remove_search_post($post_id_sql);</find>
+        <action type="before-add">				if ($index_posts)
+				{</action>
+      </edit>
+      <edit>
+        <find>			}
+
+			if ( $vote_id_sql != '' )</find>
+        <action type="before-add">				}</action>
+      </edit>
+      <edit>
+        <find>			$new_forum_id = intval($HTTP_POST_VARS['new_forum']);</find>
+        <action type="before-add">			include($phpbb_root_path . 'includes/functions_search.'.$phpEx);
+			$post_id_sql = '';</action>
+      </edit>
+      <edit>
+        <find>			$sql = 'SELECT forum_id FROM ' . FORUMS_TABLE . '</find>
+        <inline-edit>
+          <inline-find>forum_id</inline-find>
+          <inline-action type="after-add">, index_posts</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>				message_die(GENERAL_ERROR, 'Could not select from forums table', '', __LINE__, __FILE__, $sql);
+			}</find>
+        <action type="after-add"><![CDATA[			$forum_row = $db->sql_fetchrow($result);]]></action>
+      </edit>
+      <edit>
+        <find><![CDATA[			if (!$db->sql_fetchrow($result))
+			{
+				message_die(GENERAL_MESSAGE, 'New forum does not exist');
+			}]]></find>
+        <action type="replace-with">			if (!$forum_row)
+			{
+				message_die(GENERAL_MESSAGE, 'New forum does not exist');
+			}</action>
+      </edit>
+      <edit>
+        <find><![CDATA[			$db->sql_freeresult($result);]]></find>
+        <action type="before-add">			$index_posts = $forum_row['index_posts'];
+
+</action>
+      </edit>
+      <edit>
+        <find>			if ( $new_forum_id != $old_forum_id )</find>
+        <action type="before-add"><![CDATA[			$sql = 'SELECT index_posts FROM ' . FORUMS_TABLE . '
+				WHERE forum_id = ' . $old_forum_id;
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not select from forums table', '', __LINE__, __FILE__, $sql);
+			}
+
+			$forum_row = $db->sql_fetchrow($result);
+			$index_post = $forum_row['index_posts'];
+
+			$db->sql_freeresult($result);]]></action>
+      </edit>
+      <edit>
+        <find>					$sql = "UPDATE " . TOPICS_TABLE . "</find>
+        <action type="before-add"><![CDATA[					while ( $row2 = $db->sql_fetchrow($result) )
+					{
+						$post_id_sql .= ( ( $post_id_sql != '' ) ? ', ' : '' ) . intval($row2['post_id']);
+						if ((!$index_post) && (index_posts))
+						{
+							$sql = "SELECT post_id, post_subject, post_text  
+								FROM " . POSTS_TEXT_TABLE . "
+								WHERE post_id = " . $row2['post_id'];
+							if ( !($result2 = $db->sql_query($sql)) )
+							{
+								message_die(GENERAL_ERROR, 'Could not get post information', '', __LINE__, __FILE__, $sql);
+							}
+							
+							while ( $row3 = $db->sql_fetchrow($result2) )
+							{
+								 add_search_words('single', $row3['post_id'], $row3['post_text'], $row3['post_subject']);
+							}
+							$db->sql_freeresult($result2);
+						}
+					}
+					$db->sql_freeresult($result);]]></action>
+      </edit>
+      <edit>
+        <find>				// Sync the forum indexes</find>
+        <action type="before-add">				if (!$index_posts)
+				{
+					remove_search_post($post_id_sql);
+				}</action>
+      </edit>
+    </open>
+    <open src="posting.php">
+      <edit>
+        <find>	$forum_id = $post_info['forum_id'];
+	$forum_name = $post_info['forum_name'];</find>
+        <action type="after-add">	$post_index = $post_info['index_posts'];
+</action>
+      </edit>
+      <edit>
+        <find>submit_post($mode, $post_data, $return_message, $return_meta, $forum_id, $topic_id, $post_id, $poll_id, $topic_type, $bbcode_on, $html_on, $smilies_on, $attach_sig, $bbcode_uid, str_replace("\'", "''", $username), str_replace("\'", "''", $subject), str_replace("\'", "''", $message), str_replace("\'", "''", $poll_title), $poll_options, $poll_length);</find>
+                <inline-edit>
+				<inline-find>$post_data</inline-find>
+				<inline-action type="after-add">, $post_index</inline-action>
+
+
+        </inline-edit>
+      </edit>
+    </open>
+    <open src="includes/functions_post.php">
+      <edit>
+        <find><![CDATA[function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_id, &$post_id, &$poll_id, &$topic_type, &$bbcode_on, &$html_on, &$smilies_on, &$attach_sig, &$bbcode_uid, $post_username, $post_subject, $post_message, $poll_title, &$poll_options, &$poll_length)]]></find>
+          <inline-edit>
+          <inline-find><![CDATA[&$post_data]]></inline-find>
+		<inline-action type="after-add"><![CDATA[, &$post_index]]></inline-action>
+
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>	add_search_words('single', $post_id, stripslashes($post_message), stripslashes($post_subject));</find>
+        <action type="before-add">	if ($post_index)
+	{
+</action>
+      </edit>
+      <edit>
+        <find>	//
+	// Add poll
+	// </find>
+        <action type="before-add">	}
+</action>
+      </edit>
+    </open>
+    <open src="admin/admin_forums.php">
+      <edit>
+        <find><![CDATA[				'S_PRUNE_ENABLED' => $prune_enabled,]]></find>
+        <action type="after-add"><![CDATA[				'S_INDEX_POSTS' => ( isset($row) && isset($row['index_posts']) && ($row['index_posts'] == 0) ) ? '' : 'checked="checked"',]]></action>
+      </edit>
+      <edit>
+        <find><![CDATA[				'L_DAYS' => $lang['Days'],]]></find>
+        <action type="after-add"><![CDATA[				'L_INDEX_POSTS' => $lang['index_posts'],]]></action>
+      </edit>
+      <edit>
+        <find>prune_enable" . $field_sql</find>
+        <inline-edit>
+          <inline-find>prune_enable</inline-find>
+          <inline-action type="after-add">, index_posts</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>intval($HTTP_POST_VARS['prune_enable']) . $value_sql</find>
+        <inline-edit>
+          <inline-find>intval($HTTP_POST_VARS['prune_enable'])</inline-find>
+          <inline-action type="after-add"> . ", " . intval($HTTP_POST_VARS['index_posts'])</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>prune_enable = " . intval($HTTP_POST_VARS['prune_enable']) . "</find>
+        <action type="after-add">, index_posts = " . intval($HTTP_POST_VARS['index_posts']) . "</action>
+      </edit>
+    </open>
+    <open src="language/lang_english/lang_admin.php">
+      <edit>
+        <find>$lang['prune_freq']</find>
+        <action type="before-add">$lang['index_posts'] = 'Index posts for searching';</action>
+      </edit>
+    </open>
+    <open src="templates/subSilver/admin/forum_edit_body.tpl">
+      <edit>
+        <find><![CDATA[	<tr> 
+	  <td class="catBottom" colspan="2" align="center">{S_HIDDEN_FIELDS}<input type="submit" name="submit" value="{S_SUBMIT_VALUE}" class="mainoption" /></td>]]></find>
+        <action type="before-add"><![CDATA[	<tr> 
+	  <td class="row1">{L_INDEX_POSTS}</td>
+	  <td class="row2">{L_ENABLED}<input type="checkbox" name="index_posts" value="1" {S_INDEX_POSTS} /></td>
+	</tr>]]></action>
+      </edit>
+    </open>
+  </action-group>
+</mod>

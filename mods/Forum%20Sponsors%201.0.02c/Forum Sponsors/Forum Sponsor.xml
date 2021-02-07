@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en-GB">Forum Sponsors</title>
+		<description lang="en-GB">Allows you to add advertisments in specific forums</description>
+		<author-notes lang="en-GB"><![CDATA[This mod is owned by WW < bjgobble@yahoo.com > http://www.thearkansashuntingandfishingforum.com, and was created by EXreaction.
+
+Please use my forums(you can find them at http://www.lithiumstudios.org) for support.  WW paid for this mod and was kind enough to allow me to release this mod to everyone, so drop him a thanks over at his forum(located at http://www.thearkansashuntingandfishingforum.com).
+
+If you want to move the location of the ad placement in viewforum and viewtopic, simply change the locations of the sections that were added to viewforum_body.tpl and viewtopic_body.tpl.]]></author-notes>
+		<author-group>
+			<author>
+				<realname>Nathan Guse</realname>
+				<username>EXreaction</username>
+				<homepage>http://www.lithiumstudios.org</homepage>
+			</author>
+		</author-group>
+		<mod-version>
+			<major>1</major>
+			<minor>0</minor>
+			<revision>02c</revision>
+			<release></release>
+		</mod-version>
+		<installation>
+			<level>intermediate</level>
+			<time>300</time>
+
+			<target-version>
+				<target-primary>2.0.21</target-primary>
+				<target-major allow="exact">2</target-major>
+				<target-minor allow="exact">0</target-minor>
+			</target-version>
+		</installation>
+		<history>
+
+			<entry>
+				<date>2006-07-31</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>0</revision>
+					<release></release>
+
+				</rev-version>
+				<changelog lang="en-GB">
+					<change>Initial Release</change>
+				</changelog>
+			</entry>
+			
+			<entry>
+				<date>2006-08-20</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>01</revision>
+					<release></release>
+
+				</rev-version>
+				<changelog lang="en-GB">
+					<change>Fixes</change>
+				</changelog>
+			</entry>
+
+			<entry>
+				<date>2006-09-19</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>01a</revision>
+					<release></release>
+
+				</rev-version>
+				<changelog lang="en-GB">
+					<change>Forgot the language section in the adminCP(thanks LoganSix for noticing it)</change>
+				</changelog>
+			</entry>
+
+			<entry>
+				<date>2006-10-12</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>02</revision>
+					<release></release>
+
+				</rev-version>
+				<changelog lang="en-GB">
+					<change>Added BBCode/Smiley Parsing</change>
+				</changelog>
+			</entry>
+			
+			<entry>
+				<date>2006-10-20</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>02a</revision>
+					<release></release>
+
+				</rev-version>
+				<changelog lang="en-GB">
+					<change>Fixes for Mod Validation</change>
+				</changelog>
+			</entry>
+
+			<entry>
+				<date>2006-10-22</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>02b</revision>
+					<release></release>
+
+				</rev-version>
+				<changelog lang="en-GB">
+					<change>More fixes for Mod Validation...</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-10-23</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>02c</revision>
+					<release></release>
+
+				</rev-version>
+				<changelog lang="en-GB">
+					<change>Lol, more fixes(this time I got it right though). :-P</change>
+				</changelog>
+			</entry>
+		</history>
+	</header>
+	<action-group>
+		<sql><![CDATA[ALTER TABLE `phpbb_forums` ADD `sponsor` TEXT NOT NULL;]]></sql>
+		<open src="admin/admin_forums.php">
+			<edit>
+				<find><![CDATA[			$s_hidden_fields = '<input type="hidden" name="mode" value="' . $newmode .'" /><input type="hidden" name="' . POST_FORUM_URL . '" value="' . $forum_id . '" />';
+
+			$template->assign_vars(array(]]></find>
+				<action type="before-add"><![CDATA[			if ($forum_id)
+			{
+				$sql = "SELECT sponsor
+					FROM " .  FORUMS_TABLE . "
+					WHERE forum_id = " . intval($forum_id);
+				if ( !$result = $db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select forum sponsor data', '', __LINE__, __FILE__, $sql);
+				}
+	
+				while( $row = $db->sql_fetchrow($result) )
+				{
+					$forum_sponsor = $row['sponsor'];
+					$forum_sponsor = str_replace("quote:1", "quote", $forum_sponsor);
+				}
+			}]]></action>
+				<action type="after-add">				'SPONSOR'				=> $forum_sponsor,
+				'L_FORUM_SPONSOR'		=> $lang['Forum_Sponsor'],
+				'L_FORUM_SPONSOR_NOTE'	=> $lang['Forum_Sponsor_Note'],</action>
+			</edit>
+			<edit>
+				<find>			$sql = "INSERT INTO " . FORUMS_TABLE . " (forum_id, forum_name, cat_id, forum_desc, forum_order, forum_status, prune_enable" . $field_sql . ")</find>
+					<inline-edit>
+						<inline-find>, prune_enable</inline-find>
+						<inline-action type="after-add">, sponsor</inline-action>
+					</inline-edit>
+			</edit>
+			<edit>
+				<find>				VALUES ('" . $next_id . "', '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', $next_order, " . intval($HTTP_POST_VARS['forumstatus']) . ", " . intval($HTTP_POST_VARS['prune_enable']) . $value_sql . ")";</find>
+					<inline-edit>
+						<inline-find>intval($HTTP_POST_VARS['prune_enable'])</inline-find>
+						<inline-action type="after-add"> . ", '" . str_replace("quote", "quote:1", str_replace("\'", "''", $HTTP_POST_VARS['sponsor']) ) . "'"</inline-action>
+					</inline-edit>
+			</edit>
+			<edit>
+				<find>				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', cat_id = " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", forum_desc = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . ", prune_enable = " . intval($HTTP_POST_VARS['prune_enable']) . "</find>
+					<inline-edit>
+						<inline-find>" . intval($HTTP_POST_VARS['prune_enable']) . "</inline-find>
+						<inline-action type="after-add">, sponsor = '" . str_replace("quote", "quote:1", str_replace("\'", "''", $HTTP_POST_VARS['sponsor']) ) . "'</inline-action>
+					</inline-edit>
+			</edit>
+		</open>
+		<open src="includes/page_header.php">
+			<edit>
+				<find>//
+// The following assigns all _common_ variables that may be used at any point
+// in a template.
+//
+</find>
+				<action type="before-add">if ($forum_id)
+{
+	$sql = "SELECT sponsor
+		FROM " .  FORUMS_TABLE . "
+		WHERE forum_id = " . intval($forum_id);
+	if ( !$result = $db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, 'Could not select forum sponsor data', '', __LINE__, __FILE__, $sql);
+	}
+
+	while( $row = $db->sql_fetchrow($result) )
+	{
+		$forum_sponsor = $row['sponsor'];
+	}
+	
+	if ($forum_sponsor != '')
+	{
+		include_once($phpbb_root_path . "includes/bbcode.$phpEx");
+		$forum_sponsor = bbencode_first_pass($forum_sponsor, '1');
+		$forum_sponsor = bbencode_second_pass ($forum_sponsor, '1');
+		$forum_sponsor = smilies_pass ($forum_sponsor);
+		$forum_sponsor = str_replace("quote:1", "quote", $forum_sponsor);
+		$forum_sponsor = nl2br($forum_sponsor);
+	}
+}</action>
+			</edit>
+			<edit>
+				<find>$template->assign_vars(array(</find>
+				<action type="after-add">	'FORUM_SPONSOR'		=> $forum_sponsor,</action>
+			</edit>
+		</open>
+		<open src="language/lang_english/lang_admin.php">
+			<edit>
+				<find>?></find>
+				<action type="before-add">$lang['Forum_Sponsor'] = 'Forum Sponsor';
+$lang['Forum_Sponsor_Note'] = 'Note: HTML and BBCodes are on.';</action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/viewforum_body.tpl">
+			<edit>
+				<find><![CDATA[</table>]]></find>
+				<action type="after-add"><![CDATA[<table width="100%" cellspacing="1" cellpadding="2" border="0" align="center"> 
+	<tr>
+		<td align="center">
+			{FORUM_SPONSOR}
+		</td>
+	</tr>
+</table>]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/viewtopic_body.tpl">
+			<edit>
+				<find><![CDATA[	  -> <a href="{U_VIEW_FORUM}" class="nav">{FORUM_NAME}</a></span></td>
+  </tr>
+</table>]]></find>
+				<action type="after-add"><![CDATA[<table width="100%" cellspacing="1" cellpadding="2" border="0" align="center"> 
+	<tr>
+		<td align="center">
+			{FORUM_SPONSOR}
+		</td>
+	</tr>
+</table>]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/admin/forum_edit_body.tpl">
+			<edit>
+				<find><![CDATA[	  </table></td>
+	</tr>]]></find>
+				<action type="after-add"><![CDATA[	<tr>
+		<td class="row1">{L_FORUM_SPONSOR}<br/><span class="gensmall">{L_FORUM_SPONSOR_NOTE}</span></td>
+		<td class="row2"><textarea rows="5" cols="45" wrap="virtual"  name="sponsor" class="post">{SPONSOR}</textarea></td>
+	</tr>]]></action>
+			</edit>
+		</open>
+	</action-group>
+</mod>

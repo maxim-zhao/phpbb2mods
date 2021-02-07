@@ -1,0 +1,639 @@
+######################################################## 
+## MOD Title: Skype MOD
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This mod display a skype (http://www.skype.com/) button in your forum's viewtopic, viewprofile and admin can edit user's skype setting in user management panel.
+##			There are currently 2 add-ons: (1) Display skype icon in PM and (2) Show Skype Status.
+## MOD Version: 1.0.7
+## 
+## Installation Level: Intermediate 
+## Installation Time: 10 Minutes 
+##
+## Files To Edit: 12
+##	viewtopic.php
+##	includes/usercp_register.php
+##	includes/functions_validate.php
+##	includes/usercp_avatar.php
+##	includes/usercp_viewprofile.php
+##	admin/admin_users.php
+##	language/lang_english/lang_main.php
+##	templates/subSilver/subSilver.cfg
+##	templates/subSilver/profile_view_body.tpl
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/viewtopic_body.tpl
+##	templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files: 3
+##	icon_skype.gif
+##	contrib/blue/icon_skype.gif
+##	contrib/green/icon_skype.gif
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.19. Can be installed using EasyMOD 0.3.0
+##	No button in memberlist and usergroup listing because there isn't enough space,
+##		more button can distort the table.
+##
+##	Skype: http://www.skype.com/
+##
+##	Skype is free Internet telephony that just works.
+##	Skype is for calling other people on their computers or phones. 
+##	Download Skype and start calling for free all over the world.
+## 
+############################################################## 
+## MOD History: 
+##
+##   2004-12-21 - Version 1.0.0
+##      - Initial Release
+##
+##   2005-01-10 - Version 1.0.1
+##      - Change the position of Skype to before ICQ button to avoid clashing.
+##
+##   2005-05-02 - Version 1.0.2
+##      - Change "Skype USERNAME" to 'Skype Name' to fix a bug
+##
+##   2005-10-02 - Version 1.0.3
+##	- Updated MOD template and test the MOD in 2.0.17
+##	- Added two varient of the skype icon
+##	- Added add-on "Display Skype Icon in Private Message"
+##
+##   2006-01-08 - Version 1.0.4
+##      - Small tweak to make the MOD installable on 2.0.19
+##
+##   2006-01-17 - Version 1.0.5
+##      - Change "callto://" to "skype:" as <quote>callto:// protocol is obsolete (due to security issues and otherwise)</quote>
+##
+##   2006-01-22 - Version 1.0.6
+##      - Forgot to remove {USERNAME} from user_edit_body.tpl. Now it is fixed.
+##
+##   2006-04-02 - Version 1.0.7
+##      - Remove extra "/"
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+ALTER TABLE `phpbb_users` ADD `user_skype` VARCHAR( 255 ) ;
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy icon_skype.gif to templates/subSilver/images/lang_english/icon_skype.gif
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+viewtopic.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "SELECT u.username, u.user_id,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+u.user_yim,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ u.user_skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$yim = ( $postrow[$i]['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $postrow[$i]['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$skype_img = ( $postrow[$i]['user_skype'] ) ? '<a href="skype:' . $postrow[$i]['user_skype'] . '"><img src="' . $images['icon_skype'] . '" alt="' . $lang['SKYPE'] . '" title="' . $lang['SKYPE'] . '" border="0" /></a>' : '';
+		$skype = ( $postrow[$i]['user_skype'] ) ? '<a href="skype:' . $postrow[$i]['user_skype'] . '">' . $lang['SKYPE'] . '</a>' : '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$yim_img = '';
+		$yim = '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$skype_img = '';
+		$skype = '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'YIM_IMG' => $yim_img,
+		'YIM' => $yim,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'SKYPE_IMG' => $skype_img,
+		'SKYPE' => $skype,
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_register.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$strip_var_list = array('
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+'yim' => 'yim',
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ 'skype' => 'skype',
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+validate_optional_fields($icq,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$yim,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ $skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$yim = stripslashes($yim);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$skype = stripslashes($skype);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_msnm = '" . str_replace("\'", "''", $msn) . "',
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_skype = '" . str_replace("\'", "''", $skype) . "',
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "INSERT INTO " . USERS_TABLE . "	(user_id, username
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_msnm,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+VALUES ($user_id, '" . str_replace("\'", "''", $username)
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+'" . str_replace("\'", "''", $msn) . "',
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ '" . str_replace("\'", "''", $skype) . "',
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+					'YIM' => $yim,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+					'SKYPE' => $skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$yim = stripslashes($yim);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$skype = stripslashes($skype);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$yim = $userdata['user_yim'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$skype = $userdata['user_skype'];
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+display_avatar_gallery($mode, $avatar_category,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$yim,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ $skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'YIM' => $yim,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'SKYPE' => $skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'L_RESET' => $lang['Reset'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'L_SKYPE' => $lang['SKYPE'],
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions_validate.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+function validate_optional_fields(&$icq,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+&$yim,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ &$skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$check_var_length = array('aim'
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+'yim',
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ 'skype',
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_avatar.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+function display_avatar_gallery($mode, &$category,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+&$yim,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ &$skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$params = array('coppa', 'user_id', 'username',
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+'yim',
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ 'skype',
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_viewprofile.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$yim = ( $profiledata['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $profiledata['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$skype_img = ( $profiledata['user_skype'] ) ? '<a href="skype:' . $profiledata['user_skype'] . '"><img src="' . $images['icon_skype'] . '" alt="' . $lang['SKYPE'] . '" title="' . $lang['SKYPE'] . '" border="0" /></a>' : '';
+$skype = ( $profiledata['user_skype'] ) ? '<a href="skype:' . $profiledata['user_skype'] . '">' . $lang['SKYPE'] . '</a>' : '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'YIM_IMG' => $yim_img,
+	'YIM' => $yim,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	'SKYPE_IMG' => $skype_img,
+	'SKYPE' => $skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_YAHOO' => $lang['YIM'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	'L_SKYPE' => $lang['SKYPE'],
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/profile_add_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<input type="text" class="post" style="width: 150px"  name="yim" size="20" maxlength="255" value="{YIM}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_SKYPE}:</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 150px"  name="skype" size="20" maxlength="255" value="{SKYPE}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/profile_view_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		<tr> 
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_YAHOO}:</span></td>
+		  <td class="row1" valign="middle"><span class="gen">{YIM_IMG}</span></td>
+		</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		<tr> 
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_SKYPE}:</span></td>
+		  <td class="row1" valign="middle"><span class="gen">{SKYPE_IMG}</span></td>
+		</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/subSilver.cfg
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$images['icon_yim'] = "$current_template_images/{LANG}/icon_yim.gif";
+
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$images['icon_skype'] = "$current_template_images/{LANG}/icon_skype.gif";
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/user_edit_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_YAHOO}</span></td>
+	  <td class="row2"> 
+		<input class="post" type="text" name="yim" size="20" maxlength="255" value="{YIM}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_SKYPE}</span></td>
+	  <td class="row2"> 
+		<input class="post" type="text" name="skype" size="20" maxlength="255" value="{SKYPE}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/viewtopic_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+<td valign="middle" nowrap="nowrap">{postrow.PROFILE_IMG}
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+{postrow.MSN_IMG}
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ {postrow.SKYPE_IMG}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_users.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$yim = ( !empty($HTTP_POST_VARS['yim']) ) ? trim(strip_tags( $HTTP_POST_VARS['yim'] ) ) : '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$skype = ( !empty($HTTP_POST_VARS['skype']) ) ? trim(strip_tags( $HTTP_POST_VARS['skype'] ) ) : '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+validate_optional_fields($icq,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$yim,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ $skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$yim = htmlspecialchars(stripslashes($yim));
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$skype = htmlspecialchars(stripslashes($skype));
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_msnm = '" . str_replace("\'", "''", $msn) . "',
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_skype = '" . str_replace("\'", "''", $skype) . "',
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$yim = htmlspecialchars(stripslashes($yim));
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$skype = htmlspecialchars(stripslashes($skype));
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$yim = htmlspecialchars($this_userdata['user_yim']);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$skype = htmlspecialchars($this_userdata['user_skype']);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="yim" value="' . str_replace("\"", "&quot;", $yim) . '" />';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="skype" value="' . str_replace("\"", "&quot;", $skype) . '" />';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'YIM' => $yim,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'SKYPE' => $skype,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'L_YAHOO' => $lang['YIM'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'L_SKYPE' => $lang['SKYPE'],
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['YIM'] = 'Yahoo Messenger';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$lang['SKYPE'] = 'Skype Name';
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

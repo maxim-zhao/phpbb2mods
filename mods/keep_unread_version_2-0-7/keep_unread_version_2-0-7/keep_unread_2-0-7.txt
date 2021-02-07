@@ -1,0 +1,1897 @@
+##############################################################
+## MOD Title:		keep unread flags
+##
+## MOD Author: Merlin Sythove < N/A > (N/A) N/A
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Author: Ptirhiik < N/A > (Pierre) http://rpgnet.clanmckeen.com
+##
+## MOD Description:	This mod keeps the unread flags for a topic active until the topic is read.
+##			It also activates the new post feature for guests.
+##
+##			The following are new features as a result of the upgrades in May 2005 and 2006:
+##
+##			1.	Solves the bugs that sometimes gave a user an unread flag on
+##				his or her own posts, sometimes gave a user an unread flag on other posts that
+##				he or she had already read and sometimes caused a user to lose all unread flags.
+##
+##			2.	Keeps unread flags beyond the current page of a topic until
+##				the user actually visits that page.
+##
+##			3. 	Gives the user a new yellow button on each post (right next
+##				to the quote button) that allows the user to mark the topic unread
+##				again from that post onwards (a sort of bookmark function).
+##
+##			4.	Changes text of unread post link that appears on index page so that
+##				it reads "View your unread posts" or "You have no unread posts"
+##				depending on whether or not the user has unread posts.
+##
+## MOD Version:		2.0.7
+##
+## Installation Level:	Intermediate
+## Installation Time:	30 Minutes ( 1 minute with easymod)
+##
+## Files To Edit:	index.php
+##					posting.php
+##					search.php
+##					viewforum.php
+##					viewtopic.php
+##
+##					includes/functions.php
+##					includes/page_header.php
+##
+##					language/lang_english/lang_main.php
+##
+##					templates/subSilver/index_body.tpl
+##					templates/subSilver/subSilver.cfg
+##					templates/subSilver/viewtopic_body.tpl
+##
+## Included Files:	icon_keep_unread.gif
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:	You can install this mod in one of the following three ways:
+##
+##			1.	If you are not already running a previous version of the keep unread mod,
+##				you can follow the mod installation instructions that appear later in this file
+##				to install the keep unread mod.
+##
+##				or
+##
+##			2.	If the current version of phpbb2 is still 2.0.22 and you have a clean board that has
+##				no other mods so that you don't care about over-writing	your files, copy the files
+##				that appear in the folder called "contrib/changed files (for phpbb2 2-0-22 only)" into 
+##				their corresponding locations in your phpBB2 folder; those files are clean phpBB 2.0.22
+##				files with just the keep unread code added to them; since they appear in the same directory
+##				structure as phpBB2, you can on most systems simply overwrite your root phpBB2 directory
+##				with the phpBB2 folder that appears under the "Changed_files" folder and that should
+##				put the files in the right places and only overwrite the changed file.
+##
+##				or
+##
+##			3.	If you already have an earlier version of keep unread installed and properly running
+##				on the latest version of phpbb, follow the mod installation instructions you will find
+##				in the keep_unread_upgrade_from_a-b-c_to_x-y-z files (located in the contrib folder of this download)
+##				to upgrade from earlier versions to later ones one step at a time
+##
+##			If you are running the new Categories Hierarchy mod (version 2.1.xx), you should NOT
+##			install this mod.  But don't worry, because CH 2.1.xx already has properly working keep unreads code
+##			so this mod is not necessary. On the other hand, if you are running the old
+##			Categories Hierarchy mod (version 2.0.xx) and have decided not to upgrade to CH2.1.xx,
+##			this mod will not work properly without some adaptation.  Go to http://www.phpbb.com/phpBB/viewtopic.php?p=1938793#1938793
+##			for a solution.
+##
+##			Similarly, if you want to run this with simple subforums, you need to make some additional modifications figured out by Wicher; go to
+##			this post for a solution: http://www.phpbb.com/phpBB/viewtopic.php?p=2033623#2033623 (you may also want to check
+##			here in case there is a new version of that mod: http://www.phpbb.com/phpBB/viewtopic.php?p=2090189#2090189 or directly at:
+##			http://www.detecties.com/phpbb2018/viewtopic.php?t=15 )
+##
+##			Or, if you want to run this with the sub forums plus mod, take a look at this post: http://www.phpbb.com/community/viewtopic.php?p=2910791#p2910791
+##
+##			If you are running the split topic type mod, the topic calendar mod,
+##			the profile control panel or any other mod that installs a file
+##			called 'functions_topic_list.php' in your includes/
+##			directory, you need to make an additional change figured out by Niksa and described here:
+##			http://www.phpbb.com/phpBB/viewtopic.php?p=2164395#2164395
+##			Thanks, Niksa!
+##
+##			If you want to run this mod with the latest topics on index mod, see the string of posts starting here: http://www.phpbb.com/phpBB/viewtopic.php?p=2117576#2117576
+##
+##			If you want to include in the link the number of topics that have unread posts in them,
+##			see http://www.phpbb.com/phpBB/viewtopic.php?p=2144470#2144470
+##			(I don't see much point in this but some people like it)
+##
+##			If you want to add information on your link page about how many new posts there are since your last visit (note this is 
+##			different from the number of unread posts), see: http://www.phpbb.com/phpBB/viewtopic.php?p=2144495#2144495
+##			(but note that this is about 'new' posts since last visit and not 'unread posts' so this change
+##			has nothing to do with the keep unread mod) 
+##
+##			If you want to add a mark all posts read link in the page that displays the list of unread posts, see
+##			this: http://www.phpbb.com/phpBB/viewtopic.php?p=2144444#2144444
+##
+##			If you want to add simple links on pages other than index but you don't want to install the mod
+##			to the mod referred to below, then for each page where you want a link do this in the relevant php file (viewforum, viewtopic.php, etc.):
+##				FIND
+##				// End session management
+##				//
+##
+##				AFTER, ADD
+##				//START MOD Keep_unread_2 * set $toggle_unreads_link so that later on the script knows wheter to run the extra queries to toggle view unread link text depending on whether or not there are unread posts 
+##				$toggle_unreads_link = true;
+##				//END MOD Keep_unread
+##
+##			and then add to the relevant template (e.g. viewtopic_body.tpl or viewforum_body.tpl, etc.) the following link whereever you want it to appear:
+##				<a href="{U_SEARCH_NEW}" class="gensmall">{L_SEARCH_NEW}</a>
+##
+##			If you have a really huge board and are concerned about cutting down query time for everything that happens on your board,
+##			consider whether you really need the feature that changes the "View your unread posts" link to read "View your unread posts" or "You have no unread posts" 
+##			depeninding on whether there are unread posts...if you don't need that feature, you can get rid of some query time
+##			by changing every place where this mod adds 
+##				$toggle_unreads_link = true;
+##			so that it instead reads
+##				$toggle_unreads_link = false;
+##			(but keep in mind that this will only make a difference on really huge boards)
+##
+##			NOTE: I have included in the zip file an additional mod script called
+##			"mod_to_the_mod_to_change_view_unread_post_links.txt" which adds view your unread posts links
+##			in additional places and allows you to change the size and color of the links when there are
+##			unread posts.  If you open up that script and take a look at the description
+##			at the top, you can see exactly what features it adds and decide whether
+##			you want those features; if so, just install that mod after you install this one.
+##
+##			NOTE: this mod stores keep unread info for guests in their cookies; some people want to
+##			disable this mod for guests altogether (I guess as an incentive to register); in order
+##			to turn off this mod for guests, install the mod in the usual way and then do this:
+##
+##				OPEN
+##				includes/functions.php
+##
+##				FIND
+##				return $new_unreads;
+##
+##				REPLACE WITH
+##				return ($userdata['session_logged_in'] ? $new_unreads : array());
+##
+##				FIND
+##				return $t;
+##
+##				REPLACE WITH
+##				return ($userdata['session_logged_in'] ? $t: time());
+##
+##				OPEN viewtopic.php
+##
+##				FIND
+##				'KEEP_UNREAD_IMG' => $keep_unread_img,
+##
+##				REPLACE WITH
+##				'KEEP_UNREAD_IMG' => ($userdata['session_logged_in'] ? $keep_unread_img : ''),
+##
+##
+##			NOTE: some people prefer to store the keep unread info for everyone in cookies rather than in
+##			the database.  This saves a little bit of database storage but a user will lose his unread info if
+##			he moves from one computer to another.  If you want to change the mod so that it stores info in
+##			the user's cookies arther than in the database, install the mod in the usual way and then:
+##
+##				OPEN
+##				includes/functions.php
+##
+##				FIND
+##				define('KEEP_UNREAD_DB', TRUE);
+##
+##				REPLACE WITH
+##				define('KEEP_UNREAD_DB', FALSE);
+##
+##			NOTE: some people prefer to add a textual link to 'mark post as unread' at the bottom of each post
+##			(on the right side of the page on ths same line where there are icons that allow you to pm or email the poster).
+##			If you want to do that, here's what to do:
+##
+##			OPEN
+##			viewtopic.php
+##
+##			FIND
+##			$keep_unread_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_keep_unread'] . '" title = "' . $lang['keep_post_unread_explain'] . '" border="0" /></a>';
+##
+##			AFTER, ADD
+##			$keep_unread_link = '<span class="nav"><a href="' . $temp_url . '" class="nav" style="text-align:right;display:block;">' . $lang['keep_post_unread_explain'] . '</a></span>';
+##
+##			FIND
+##			'KEEP_UNREAD_IMG' => $keep_unread_img,
+##
+##			AFTER, ADD
+##			'KEEP_UNREAD_LINK' => $keep_unread_link,
+##
+##			OPEN
+##			templates/subSilver/viewtopic_body.tpl
+##
+##			FIND
+##			<td class="{postrow.ROW_CLASS}" width="100%" height="28" valign="bottom" nowrap="nowrap"><table cellspacing="0" cellpadding="0" border="0" height="18" width="18">
+##
+##			REPLACE WITH
+##			<td class="{postrow.ROW_CLASS}" width="100%" height="28" valign="bottom" nowrap="nowrap"><table cellspacing="0" cellpadding="0" border="0" height="18" width="100%">
+##
+##			FIND
+##			//--></script><noscript>{postrow.ICQ_IMG}</noscript></td>
+##
+##			REPLACE WITH
+##			//--></script><noscript>{postrow.ICQ_IMG}</noscript></td><td valign="middle" nowrap="nowrap">{postrow.KEEP_UNREAD_LINK}</td>
+##
+##
+##			Note: if you want to change this mod so that if a user fails to log in for more than 60 days then
+##			posts that have been posted between his last login time and 60 days ago will not be marked as unread, do the following:  
+##
+##				OPEN
+##				includes/functions.php
+##
+##				FIND
+##				function read_cookies($userdata)
+##				{
+##					global $board_config, $HTTP_COOKIE_VARS;[/code]
+##
+##				AFTER, ADD
+##				if ($userdata['user_lastvisit'] < time() - 5184000) $userdata['user_lastvisit'] = time() - 5184000;[/code]
+##
+##			NOTE: If your PHP version is older than 4.3.10, please read this topic:
+##			http://www.phpbb.com/phpBB/viewtopic.php?f=14&t=248046
+##			and install safe versions of the serialize and unserialize functions, which this MOD uses as well.
+##
+##############################################################
+## MOD History:
+##
+##   2007-07-04 - Version 2.0.7
+##		- Fixed bug that sometimes resulted in a users's own posts being shown as unread after
+##		  'mark all topics read' link is clicked;
+##		- Fixed timing bug that sometimes caused a whole topic to be marked as read when you 
+##		  reply to a post in the middle and sometimes caused problems when other people post
+##		  in a topic while you were replying to a post in that topic
+##
+##   2006-06-20 - Version 2.0.6
+##		- Fixed bug that gave error message when someone gives the wrong login info 
+##		  and in certain other instances when guests are not authorized to view any forums;
+##		  changed code in list_new_unreads() to make it a bit more efficient.
+##
+##   2006-06-09 - Version 2.0.5a
+##		- Changed mod script so that it installs properly on phpbb 2.0.21 (simply deleted the two changes
+##		  in search.php that disabled the usual phpbb behavior of preventing a user from searching for 
+##		  an author with a wildcard and specifying less than a minimum number of characters (e.g. 3); 
+##		  but note that I did not add an upgrade script from 2.0.5 to 2.0.5a because any user who had 2.0.5 
+##		  installed and who successfully upgraded to phpbb 2.0.21 has already addressed these changes);
+##		  for information on how to upgrade to phpbb 2.0.21 if you have this mod installed, 
+##		  see: http://www.phpbb.com/phpBB/viewtopic.php?p=2173137#2173137
+##
+##   2006-06-01 - Version 2.0.5
+##		- Optimized the query in the list_new_unreads function (thanks for the idea, bigwebmaster); and 
+##		  changed the code so that list_new_unreads only gets run a single time when the user is on index.php
+##		  (before this change, index.php ran list_new_unreads a first time and page_header.php ran it a second time)
+##		- Put in code that will allow people to easily add a toggling link ("View your unread posts" versus 
+##		  "You have no unread posts") on pages other than index.php (see author's notes for how to add links)
+##		- Changed viewtopic.php so that the mod will work regardless of whether viewtopic is set
+##		  to display from oldest to newest or newest to oldest
+##
+##   2006-05-20 - Version 2.0.4
+##		- Changes to conform to phpbb2.0.20 changes (only relevant for the mod itself, 
+##		  not the upgrade...but if you already have keep unread installed and
+##		  are trying to upgrade phpbb from 2.0.19 to 2.0.20 and are stuck because of 
+##		  this mod, see http://www.phpbb.com/phpBB/viewtopic.php?p=2082858#2082858 for help)
+##		- Fixed bugs that would trigger an error for banned users and that would show 
+##		  guests that there are unread posts in forums they are not authorized as guests
+##		  to view on boards with mod to the mod to change view unread posts link installed
+##		- Optimized the queries for the mod to the mod to change view unread 
+##		  posts link so that the code runs fewer queries to get to the same result
+##		- Changed basic mod so that the link will now read "View unread posts" if there 
+##		  are any and "You have no unread posts" if there aren't any
+##		- Changed index_body.tpl to ensure that users would see the mark all forums read 
+##		  link even if they are not logged in.
+##		- Changed the author's notes to include links to posts showing how
+##		  to make this mod compatible with the simple subforums mod, 
+##		  the old version of categories hierarchy mod,
+##		  the latest topics on index mod and the post sort order mod
+##		- Changed author's notes to show how to add the number of topics with unread posts 
+##		  to the link, and how to add a link to the page that shows a list of unread posts 
+##		  that lets the user mark all posts read
+##		- Changed the author's note about adding a text link for marking a post unread so that 
+##		  the link appears on the far right in the same font as the 'Back to Top' link that
+##		  appears on the far left
+##
+##   2006-01-01 - Version 2.0.3c
+##		- No changes at all in the code.  Repacked to show so that the 'changed files' version in
+##		  the contrib folder has phpbb2.0.19 version of those file
+##
+##   2005-11-20 - Version 2.0.3b
+##		- Changes requried for validation (no functional changes)
+##
+##   2005-10-30 - Version 2.0.3a
+##		- Changes to conform to phpbb2 2.0.18 upgrade
+##
+##   2005-10-18 - Version 2.0.3
+##		- Added author's notes telling people who use topic calendar mod, PCP or other mods that install
+##		  functions_topic_list.php in the 'includes' directory to look at Niksa's
+##		  post describing how to adapt the mod to work with those mods;
+##		- Fixed bug that would improperly treat 'mark all topics read' request when the user was on the board as a guest;
+##		- security change to prevent possible sql injection risk;
+##		- Changed mod to the mod so that it checks which forums a user is authorized to view when it figures out
+##		  when to turn on the big red "View new posts" link
+##
+##   2005-07-21 - Version 2.0.2a
+##		- No change in mod (you don't need to upgrade from 2.0.2 to this)...just a change in a FIND command in the mod script
+##		  to dovetail with a change made from phpbb2.0.16 to 2.0.17
+##
+##   2005-07-12 - Version 2.0.2
+##		- Small changes required for validation; no change in functionality
+##
+##   2005-07-05 - Version 2.0.1
+##		- Small bugfix to correct intermittant error in topic_last_read function when marking topics read
+##
+##   2005-05-27 - Version 2.0.0
+##		- Merlin Sythove updates as specified above.
+##
+##   2003-12-15 - Version 1.0.0
+##		- fix potential message that can occur in the acp (header already sent)
+##		- fix users online 0 issue
+##
+#@   2003-12-11 - Version 0.0.4
+##		- add the possibility to store unread topics in the database (part 5)
+##
+##   2003-12-10 - Version 0.0.3
+##		- make the cookies added permanent (the added cookies were destroyed
+##		  at the close of the browser : call me an idiot :))
+##		- fix a sql bug in viewforum
+##		- add the last visit time for guest on index
+##
+##   2003-12-10 - Version 0.0.2
+##		- add a better first init of the cookie (should prevent for user to have
+##		  to delete the old one)
+##		- open the mark all in sub-categories with Categories Hierarchy, for anonymous users
+##
+##   2003-12-09 - Version 0.0.1-beta
+##		- first publication
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy icon_keep_unread.gif to templates/subSilver/images/icon_keep_unread.gif
+
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_users ADD user_unread_topics TEXT;
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+index.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// End session management
+//
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+//START MOD Keep_unread_2 * set $toggle_unreads_link so that later on the script knows wheter to run the extra queries to toggle view unread link text depending on whether or not there are unread posts 
+$toggle_unreads_link = true;
+//END MOD Keep_unread
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+if( $mark_read == 'forums' )
+{
+	if( $userdata['session_logged_in'] )
+	{
+		setcookie($board_config['cookie_name'] . '_f_all', time(), 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+	}
+
+	$template->assign_vars(array(
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+if( $mark_read == 'forums' )
+{
+  	//START MOD Keep_unread_2 * Mark everything as read
+	$board_config['tracking_time'] = time(); //at this moment
+	$board_config['tracking_forums'] = array(); //clean
+	$board_config['tracking_unreads'] = array(); //clean
+	write_cookies($userdata);
+  	//END MOD Keep_unread_2
+
+	$template->assign_vars(array(
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$tracking_topics = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . "_t"]) : array();
+$tracking_forums = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . "_f"]) : array();
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//MOD Keep_unread * deleted
+// $tracking_topics = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . "_t"]) : array();
+// $tracking_forums = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . "_f"]) : array();
+//END MOD Keep_unread
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Obtain a list of topic ids which contain
+	// posts made since user last visited
+	//
+	if ($userdata['session_logged_in'])
+	{
+		// 60 days limit
+		if ($userdata['user_lastvisit'] < (time() - 5184000))
+		{
+			$userdata['user_lastvisit'] = time() - 5184000;
+		}
+
+		$sql = "SELECT t.forum_id, t.topic_id, p.post_time 
+			FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p 
+			WHERE p.post_id = t.topic_last_post_id 
+				AND p.post_time > " . $userdata['user_lastvisit'] . " 
+				AND t.topic_moved_id = 0"; 
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not query new topic information', '', __LINE__, __FILE__, $sql);
+		}
+
+		$new_topic_data = array();
+		while( $topic_data = $db->sql_fetchrow($result) )
+		{
+			$new_topic_data[$topic_data['forum_id']][$topic_data['topic_id']] = $topic_data['post_time'];
+		}
+		$db->sql_freeresult($result);
+	}
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+	//MOD Keep_unread_2 * Get new_unreads list and forum_unread flags, save cookies etc.
+	$new_unreads = list_new_unreads($forum_unreads, $toggle_unreads_link);
+	//END MOD Keep_unread_2
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+							else
+							{
+								$unread_topics = false;
+								if ( $userdata['session_logged_in'] )
+								{
+									if ( !empty($new_topic_data[$forum_id]) )
+									{
+										$forum_last_post_time = 0;
+
+										while( list($check_topic_id, $check_post_time) = @each($new_topic_data[$forum_id]) )
+										{
+											if ( empty($tracking_topics[$check_topic_id]) )
+											{
+												$unread_topics = true;
+												$forum_last_post_time = max($check_post_time, $forum_last_post_time);
+
+											}
+											else
+											{
+												if ( $tracking_topics[$check_topic_id] < $check_post_time )
+												{
+													$unread_topics = true;
+													$forum_last_post_time = max($check_post_time, $forum_last_post_time);
+												}
+											}
+										}
+
+										if ( !empty($tracking_forums[$forum_id]) )
+										{
+											if ( $tracking_forums[$forum_id] > $forum_last_post_time )
+											{
+												$unread_topics = false;
+											}
+										}
+
+										if ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all']) )
+										{
+											if ( $HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all'] > $forum_last_post_time )
+											{
+												$unread_topics = false;
+											}
+										}
+
+									}
+								}
+
+								$folder_image = ( $unread_topics ) ? $images['forum_new'] : $images['forum'];
+								$folder_alt = ( $unread_topics ) ? $lang['New_posts'] : $lang['No_new_posts'];
+							}
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+ 						else
+						{
+							//MOD Keep_Unread_2 * Forum_unread flags set earlier
+							$unread_topic = $forum_unreads[$forum_id];
+							$folder_image = ( $unread_topic ) ? $images['forum_new'] : $images['forum'];
+							$folder_alt = ( $unread_topic ) ? $lang['New_posts'] : $lang['No_new_posts'];
+						}
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if ( $mode == 'newtopic' || $mode == 'reply' )
+		{
+			$tracking_topics = ( !empty($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) : array();
+			$tracking_forums = ( !empty($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) : array();
+
+			if ( count($tracking_topics) + count($tracking_forums) == 100 && empty($tracking_topics[$topic_id]) )
+			{
+				asort($tracking_topics);
+				unset($tracking_topics[key($tracking_topics)]);
+			}
+
+			$tracking_topics[$topic_id] = time();
+
+			setcookie($board_config['cookie_name'] . '_t', serialize($tracking_topics), 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+		}
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+		//START MOD Keep_unread_2
+		if ( $mode == 'newtopic' || $mode == 'reply' || $mode == 'quote' || ($mode == 'editpost' && $post_data['last_post']) )
+		{
+			//Get old tracking time and set set new default.
+			$tracking_time = $board_config['tracking_unreads'][$topic_id];
+			$board_config['tracking_unreads'][$topic_id] = time();
+			//If the next post in this topic, beyond my "unread time", is not THIS post,
+			//then mark the topic UNread at that post.
+			//This covers situations where I reply to posts in the middle of a topic
+			//and where people respond whilst I write a reply
+			if ($tracking_time)
+			{
+				$sql = "SELECT post_id, post_time
+				FROM "  . POSTS_TABLE . "
+				WHERE post_time > $tracking_time
+				AND topic_id = $topic_id
+				ORDER BY post_time
+				LIMIT 1";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not query latest post information', '', __LINE__, __FILE__, $sql);
+				}
+				$row = $db->sql_fetchrow($result);
+				if ($row['post_id'] != $post_id && $row['post_time'] > 0)
+				{
+					$board_config['tracking_unreads'][$topic_id] = $row['post_time'] - 1; //-1 marks the found post as unread
+				}
+			}
+			write_cookies($userdata);
+		}
+		//END MOD Keep_unread_2
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			if ( $search_id == 'newposts' )
+			{
+				if ( $userdata['session_logged_in'] )
+				{
+					$sql = "SELECT post_id
+						FROM " . POSTS_TABLE . "
+						WHERE post_time >= " . $userdata['user_lastvisit'];
+				}
+				else
+				{
+					redirect(append_sid("login.$phpEx?redirect=search.$phpEx&search_id=newposts", true));
+				}
+
+				$show_results = 'topics';
+				$sort_by = 0;
+				$sort_dir = 'DESC';
+			}
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+			if ( $search_id == 'newposts' )
+			{
+				//START MOD Keep_unread_2
+				$list_unreads = implode(',', array_keys(list_new_unreads($dummy, $toggle_unreads_link)));
+				$sql = "SELECT post_id, topic_id, forum_id, post_time
+					FROM " . POSTS_TABLE . "
+					WHERE ";//post_time >= " . $userdata['user_lastvisit'] ;
+				$sql .= ($list_unreads != '')	? " topic_id IN (" . $list_unreads . ")" : " topic_id=-1";
+				//END MOD Keep_unread_2
+				$show_results = 'topics';
+				$sort_by = 0;
+				$sort_dir = 'DESC';
+			}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain matched posts list', '', __LINE__, __FILE__, $sql);
+			}
+
+			$search_ids = array();
+			while( $row = $db->sql_fetchrow($result) )
+			{
+				$search_ids[] = $row['post_id'];
+			}
+			$db->sql_freeresult($result);
+
+			$total_match_count = count($search_ids);
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain posts list', '', __LINE__, __FILE__, $sql);
+			}
+
+			// Add posts to list of id's
+			while( $row = $db->sql_fetchrow($result) )
+			{
+				//START MOD Keep_unread_2
+				$topic_id = $row['topic_id'];
+				$forum_id = $row['forum_id'];
+				$unread_topic = true;
+				//Don't add post if you've read it and you want new posts only
+				if ( ($search_id == 'newposts') )
+				{
+					$unread_topic = ( $row['post_time'] > topic_last_read($forum_id, $topic_id) );
+				}
+				if ( $unread_topic )	$search_ids[] = $row['post_id'];
+				//END MOD Keep_unread_2
+			}
+			$db->sql_freeresult($result);
+
+			$total_match_count = count($search_ids);
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$highlight_active = urlencode(trim($highlight_active));
+
+		$tracking_topics = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) : array();
+		$tracking_forums = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) : array();
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+		$highlight_active = urlencode(trim($highlight_active));
+
+		//MOD Keep_unread_2
+		//$tracking_topics = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) : array();
+		//$tracking_forums = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) : array();
+		//END MOD Keep_unread_2
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				if ( $userdata['session_logged_in'] && $searchset[$i]['post_time'] > $userdata['user_lastvisit'] )
+				{
+					if ( !empty($tracking_topics[$topic_id]) && !empty($tracking_forums[$forum_id]) )
+					{
+						$topic_last_read = ( $tracking_topics[$topic_id] > $tracking_forums[$forum_id] ) ? $tracking_topics[$topic_id] : $tracking_forums[$forum_id];
+					}
+					else if ( !empty($tracking_topics[$topic_id]) || !empty($tracking_forums[$forum_id]) )
+					{
+						$topic_last_read = ( !empty($tracking_topics[$topic_id]) ) ? $tracking_topics[$topic_id] : $tracking_forums[$forum_id];
+					}
+
+					if ( $searchset[$i]['post_time'] > $topic_last_read )
+					{
+						$mini_post_img = $images['icon_minipost_new'];
+						$mini_post_alt = $lang['New_post'];
+					}
+					else
+					{
+						$mini_post_img = $images['icon_minipost'];
+						$mini_post_alt = $lang['Post'];
+					}
+				}
+				else
+				{
+					$mini_post_img = $images['icon_minipost'];
+					$mini_post_alt = $lang['Post'];
+				}
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+				//START MOD Keep_unread_2
+				$topic_id = $searchset[$i]['topic_id'];
+				$forum_id = $searchset[$i]['forum_id'];
+				$topic_last_read = topic_last_read($forum_id, $topic_id);
+				if ( $searchset[$i]['post_time'] > $topic_last_read ) // unread status ?
+				{
+					$mini_post_img = $images['icon_minipost_new'];
+					$mini_post_alt = $lang['New_post'];
+				}
+				else
+				{
+					$mini_post_img = $images['icon_minipost'];
+					$mini_post_alt = $lang['Post'];
+				}
+				//END MOD Keep_unread_2
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					if ( $userdata['session_logged_in'] )
+					{
+						if ( $searchset[$i]['post_time'] > $userdata['user_lastvisit'] )
+						{
+							if ( !empty($tracking_topics) || !empty($tracking_forums) || isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all']) )
+							{
+
+								$unread_topics = true;
+
+								if ( !empty($tracking_topics[$topic_id]) )
+								{
+									if ( $tracking_topics[$topic_id] > $searchset[$i]['post_time'] )
+									{
+										$unread_topics = false;
+									}
+								}
+
+								if ( !empty($tracking_forums[$forum_id]) )
+								{
+									if ( $tracking_forums[$forum_id] > $searchset[$i]['post_time'] )
+									{
+										$unread_topics = false;
+									}
+								}
+
+								if ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all']) )
+								{
+									if ( $HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all'] > $searchset[$i]['post_time'] )
+									{
+										$unread_topics = false;
+									}
+								}
+
+								if ( $unread_topics )
+								{
+									$folder_image = $folder_new;
+									$folder_alt = $lang['New_posts'];
+
+									$newest_post_img = '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=newest") . '"><img src="' . $images['icon_newest_reply'] . '" alt="' . $lang['View_newest_post'] . '" title="' . $lang['View_newest_post'] . '" border="0" /></a> ';
+								}
+								else
+								{
+									$folder_alt = ( $searchset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+
+									$folder_image = $folder;
+									$folder_alt = $folder_alt;
+									$newest_post_img = '';
+								}
+
+							}
+							else if ( $searchset[$i]['post_time'] > $userdata['user_lastvisit'] )
+							{
+								$folder_image = $folder_new;
+								$folder_alt = $lang['New_posts'];
+
+								$newest_post_img = '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=newest") . '"><img src="' . $images['icon_newest_reply'] . '" alt="' . $lang['View_newest_post'] . '" title="' . $lang['View_newest_post'] . '" border="0" /></a> ';
+							}
+							else
+							{
+								$folder_image = $folder;
+								$folder_alt = ( $searchset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+								$newest_post_img = '';
+							}
+						}
+						else
+						{
+							$folder_image = $folder;
+							$folder_alt = ( $searchset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+							$newest_post_img = '';
+						}
+					}
+					else
+					{
+						$folder_image = $folder;
+						$folder_alt = ( $searchset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+						$newest_post_img = '';
+					}
+				}
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+					//START MOD Keep_unread_2
+					$topic_id = $searchset[$i]['topic_id'];
+					$forum_id = $searchset[$i]['forum_id'];
+					if (  $searchset[$i]['post_time'] > topic_last_read($forum_id, $topic_id) )
+					{
+						$folder_image = $folder_new;
+						$folder_alt = $lang['New_posts'];
+						$newest_post_img = '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=newest") . '"><img src="' . $images['icon_newest_reply'] . '" alt="' . $lang['View_newest_post'] . '" title="' . $lang['View_newest_post'] . '" border="0" /></a> ';
+					}
+					else
+					{
+						$folder_alt = ( $searchset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+						$folder_image = $folder;
+	 					$folder_alt = $folder_alt;
+						$newest_post_img = '';
+					}
+					//END MOD Keep_unread_2
+				}
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Handle marking posts
+//
+if ( $mark_read == 'topics' )
+{
+	if ( $userdata['session_logged_in'] )
+	{
+		$sql = "SELECT MAX(post_time) AS last_post
+			FROM " . POSTS_TABLE . "
+			WHERE forum_id = $forum_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain forums information', '', __LINE__, __FILE__, $sql);
+		}
+
+		if ( $row = $db->sql_fetchrow($result) )
+		{
+			$tracking_forums = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) : array();
+			$tracking_topics = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) : array();
+
+			if ( ( count($tracking_forums) + count($tracking_topics) ) >= 150 && empty($tracking_forums[$forum_id]) )
+			{
+				asort($tracking_forums);
+				unset($tracking_forums[key($tracking_forums)]);
+			}
+
+			if ( $row['last_post'] > $userdata['user_lastvisit'] )
+			{
+				$tracking_forums[$forum_id] = time();
+
+				setcookie($board_config['cookie_name'] . '_f', serialize($tracking_forums), 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+			}
+		}
+
+		$template->assign_vars(array(
+			'META' => '<meta http-equiv="refresh" content="3;url=' . append_sid("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id") . '">')
+		);
+	}
+
+	$message = $lang['Topics_marked_read'] . '<br /><br />' . sprintf($lang['Click_return_forum'], '<a href="' . append_sid("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id") . '">', '</a> ');
+	message_die(GENERAL_MESSAGE, $message);
+}
+//
+// End handle marking posts
+//
+
+$tracking_topics = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) : '';
+$tracking_forums = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) : '';
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+
+if ( $mark_read == 'topics' )
+{
+	//START MOD Keep_unread_2
+	//
+	//Mark this forum as read
+	$board_config['tracking_forums'][$forum_id] = time(); //right now
+	$list_topics = implode(',', array_keys($board_config['tracking_unreads'])); //all tracking topic_id's
+	if ($list_topics)
+	{ //Get all the topics that are in this forum
+		$sql = "SELECT topic_id
+			FROM " . TOPICS_TABLE . "
+			WHERE topic_id IN ($list_topics)
+			AND forum_id = $forum_id AND topic_moved_id = 0";
+		if ( !$result = $db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Could not access topics', '', __LINE__, __FILE__, $sql);
+		}
+		while ( $row = $db->sql_fetchrow($result) ) //Clean them
+		{
+			$id = $row['topic_id'];
+			if ( isset($board_config['tracking_unreads'][$id]) )	unset($board_config['tracking_unreads'][$id]);
+		}
+	}
+	write_cookies($userdata); //Save
+	//END MOD Keep_unread_2
+
+	//Message
+	$template->assign_vars(array(
+		'META' => '<meta http-equiv="refresh" content="3;url=' . append_sid("index.$phpEx") . '">')
+		);
+	$message = $lang['Topics_marked_read'] . '<br /><br />' . sprintf($lang['Click_return_forum'], '<a href="' . append_sid("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id") . '">', '</a> ');
+	$message .= '<br /><br />' . sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a> ');
+	message_die(GENERAL_MESSAGE, $message);
+}
+//
+// End handle marking posts
+//
+
+//START MOD Keep_unread_2
+//$tracking_topics = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) : '';
+//$tracking_forums = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) : '';
+//END MOD Keep_unread_2
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$newest_post_img = '';
+			if( $userdata['session_logged_in'] )
+			{
+				if( $topic_rowset[$i]['post_time'] > $userdata['user_lastvisit'] )
+				{
+					if( !empty($tracking_topics) || !empty($tracking_forums) || isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all']) )
+					{
+						$unread_topics = true;
+
+						if( !empty($tracking_topics[$topic_id]) )
+						{
+							if( $tracking_topics[$topic_id] >= $topic_rowset[$i]['post_time'] )
+							{
+								$unread_topics = false;
+							}
+						}
+
+						if( !empty($tracking_forums[$forum_id]) )
+						{
+							if( $tracking_forums[$forum_id] >= $topic_rowset[$i]['post_time'] )
+							{
+								$unread_topics = false;
+							}
+						}
+
+						if( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all']) )
+						{
+							if( $HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all'] >= $topic_rowset[$i]['post_time'] )
+							{
+								$unread_topics = false;
+							}
+						}
+
+						if( $unread_topics )
+						{
+							$folder_image = $folder_new;
+							$folder_alt = $lang['New_posts'];
+
+							$newest_post_img = '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=newest") . '"><img src="' . $images['icon_newest_reply'] . '" alt="' . $lang['View_newest_post'] . '" title="' . $lang['View_newest_post'] . '" border="0" /></a> ';
+						}
+						else
+						{
+							$folder_image = $folder;
+							$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+
+							$newest_post_img = '';
+						}
+					}
+					else
+					{
+						$folder_image = $folder_new;
+						$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['New_posts'];
+
+						$newest_post_img = '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=newest") . '"><img src="' . $images['icon_newest_reply'] . '" alt="' . $lang['View_newest_post'] . '" title="' . $lang['View_newest_post'] . '" border="0" /></a> ';
+					}
+				}
+				else
+				{
+					$folder_image = $folder;
+					$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+
+					$newest_post_img = '';
+				}
+			}
+			else
+			{
+				$folder_image = $folder;
+				$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+
+				$newest_post_img = '';
+			}
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+			//START MOD Keep_unread_2
+			if( $topic_rowset[$i]['post_time'] > topic_last_read($forum_id, $topic_id) )
+			{
+				$folder_image = $folder_new;
+				$folder_alt = $lang['New_posts'];
+				$newest_post_img = '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=newest") . '"><img src="' . $images['icon_newest_reply'] . '" alt="' . $lang['View_newest_post'] . '" title="' . $lang['View_newest_post'] . '" border="0" /></a> ';
+			}
+			else
+			{
+				$folder_image = $folder;
+				$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+				$newest_post_img = '';
+			}
+			//END MOD Keep_unread_2
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+if (!$topic_id && !$post_id)
+{
+	message_die(GENERAL_MESSAGE, 'Topic_post_not_exist');
+}
+
+//
+// Find topic id if user requested a newer
+// or older topic
+//
+if ( isset($HTTP_GET_VARS['view']) && empty($HTTP_GET_VARS[POST_POST_URL]) )
+{
+	if ( $HTTP_GET_VARS['view'] == 'newest' )
+	{
+		if ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid']) || isset($HTTP_GET_VARS['sid']) )
+		{
+			$session_id = isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid']) ? $HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_sid'] : $HTTP_GET_VARS['sid'];
+
+			if (!preg_match('/^[A-Za-z0-9]*$/', $session_id)) 
+			{
+				$session_id = '';
+			}
+
+			if ( $session_id )
+			{
+				$sql = "SELECT p.post_id
+					FROM " . POSTS_TABLE . " p, " . SESSIONS_TABLE . " s,  " . USERS_TABLE . " u
+					WHERE s.session_id = '$session_id'
+						AND u.user_id = s.session_user_id
+						AND p.topic_id = $topic_id
+						AND p.post_time >= u.user_lastvisit
+					ORDER BY p.post_time ASC
+					LIMIT 1";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain newer/older topic information', '', __LINE__, __FILE__, $sql);
+				}
+
+				if ( !($row = $db->sql_fetchrow($result)) )
+				{
+					message_die(GENERAL_MESSAGE, 'No_new_posts_last_visit');
+				}
+
+				$post_id = $row['post_id'];
+
+				if (isset($HTTP_GET_VARS['sid']))
+				{
+					redirect("viewtopic.$phpEx?sid=$session_id&" . POST_POST_URL . "=$post_id#$post_id");
+				}
+				else
+				{
+					redirect("viewtopic.$phpEx?" . POST_POST_URL . "=$post_id#$post_id");
+				}
+			}
+		}
+
+		redirect(append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id", true));
+	}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//START MOD Keep_unread_2
+$mode = ( isset($HTTP_GET_VARS['mode']) ) ? htmlspecialchars( $HTTP_GET_VARS['mode'] ) : '';
+
+if ( !empty($post_id) )
+{ //added topic_last_post_id, p.post_time to sql
+	$sql = "SELECT t.forum_id, t.topic_id, t.topic_last_post_id, p.post_time
+		FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+		WHERE t.topic_id = p.topic_id
+		AND t.topic_moved_id = 0
+		AND p.post_id = $post_id";
+}
+else if ( !empty($topic_id) )
+{
+	$sql = "SELECT t.forum_id, t.topic_id, t.topic_last_post_id
+		FROM " . TOPICS_TABLE . " t
+		WHERE t.topic_moved_id = 0
+		AND t.topic_id = $topic_id";
+}
+else
+{
+	message_die(GENERAL_MESSAGE, 'Topic_post_not_exist');
+}
+if ( !$result = $db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+}
+if ( !$row = $db->sql_fetchrow($result) )
+{
+	message_die(GENERAL_MESSAGE, 'Topic_post_not_exist');
+}
+$forum_id = $row['forum_id'];
+$topic_id = $row['topic_id'];
+$post_time = $row['post_time'];
+$topic_last_post_id = $row['topic_last_post_id'];
+//END MOD Keep_unread_2
+
+//
+// Start session management
+//
+$userdata = session_pagestart($user_ip, $forum_id);
+init_userprefs($userdata);
+//
+// End session management
+//
+
+//START MOD Keep_unread_2 * Keep topic unread from given post onwards
+if ($mode == 'unread')
+{
+	$board_config['tracking_unreads'][$topic_id] = $post_time-1; //testing for ">" only later on
+	write_cookies($userdata);
+	$message = $lang['keep_unread_done'] . '<br /><br />' .
+	sprintf($lang['Click_return_forum'], '<a href="' . append_sid("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id") . '">', '</a> ') . '<br /><br />' .
+	sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a> ');
+	message_die(GENERAL_MESSAGE, $message);
+}
+$topic_last_read = topic_last_read($forum_id, $topic_id);
+//END MOD Keep_unread_2
+
+//
+// Find topic id if user requested a newer
+// or older topic
+//
+if ( isset($HTTP_GET_VARS['view']) && empty($HTTP_GET_VARS[POST_POST_URL]) )
+{
+	if ( $HTTP_GET_VARS['view'] == 'newest' )
+	{ // read the first unread post in this topic
+		$sql = "SELECT p.post_id, t.topic_last_post_id
+			FROM (" . TOPICS_TABLE . " t
+			LEFT JOIN " . POSTS_TABLE . " p ON p.topic_id = t.topic_id AND p.post_time > $topic_last_read)
+			WHERE t.topic_id = $topic_id
+			AND t.topic_moved_id = 0
+			ORDER BY p.post_time";
+		if ( !$result = $db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain newer/older topic information', '', __LINE__, __FILE__, $sql);
+		}
+
+		if ( !($row = $db->sql_fetchrow($result)) )
+		{
+			message_die(GENERAL_MESSAGE, 'No_new_posts_last_visit');
+		}
+		$post_id = empty($row['post_id']) ? $row['topic_last_post_id'] : $row['post_id'];
+		redirect(append_sid("./viewtopic.$phpEx?" . POST_POST_URL . "=$post_id#$post_id", true));
+	}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, "Could not obtain newer/older topic information", '', __LINE__, __FILE__, $sql);
+		}
+
+		if ( $row = $db->sql_fetchrow($result) )
+		{
+			$topic_id = intval($row['topic_id']);
+
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+			//MOD Keep_unread_2
+			redirect(append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id", true));
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$forum_id = intval($forum_topic_data['forum_id']);
+
+//
+// Start session management
+//
+$userdata = session_pagestart($user_ip, $forum_id);
+init_userprefs($userdata);
+//
+// End session management
+//
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+
+$forum_id = intval($forum_topic_data['forum_id']);
+
+//MOD Keep_unread_2: session management already done above
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Set a cookie for this topic
+//
+if ( $userdata['session_logged_in'] )
+{
+	$tracking_topics = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) : array();
+	$tracking_forums = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) : array();
+
+	if ( !empty($tracking_topics[$topic_id]) && !empty($tracking_forums[$forum_id]) )
+	{
+		$topic_last_read = ( $tracking_topics[$topic_id] > $tracking_forums[$forum_id] ) ? $tracking_topics[$topic_id] : $tracking_forums[$forum_id];
+	}
+	else if ( !empty($tracking_topics[$topic_id]) || !empty($tracking_forums[$forum_id]) )
+	{
+		$topic_last_read = ( !empty($tracking_topics[$topic_id]) ) ? $tracking_topics[$topic_id] : $tracking_forums[$forum_id];
+	}
+	else
+	{
+		$topic_last_read = $userdata['user_lastvisit'];
+	}
+
+	if ( count($tracking_topics) >= 150 && empty($tracking_topics[$topic_id]) )
+	{
+		asort($tracking_topics);
+		unset($tracking_topics[key($tracking_topics)]);
+	}
+
+	$tracking_topics[$topic_id] = time();
+
+	setcookie($board_config['cookie_name'] . '_t', serialize($tracking_topics), 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+}
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//
+// Set a cookie for this topic
+//
+//START MOD Keep_unread_2 * $topic_last_read is known
+//Reached the last post in a topic with unread posts
+// (note: the definition in the next line makes sure things work right regardless of whether viewtopic is set to display from oldest to newest or newest to oldest) 
+$lastpost = $postrow[0]['post_time'] < $postrow[($total_posts-1)]['post_time'] ? $total_posts-1 : 0;
+if ($topic_last_post_id == $postrow[$lastpost]['post_id']) 
+{
+	//Read up to time of retrieval of this topic
+	$board_config['tracking_unreads'][$topic_id] = time();
+}
+//Reading a page, but not the last one, in a topic with new posts
+elseif (isset($board_config['tracking_unreads'][$topic_id]))
+{
+	//Set the highest of current topic_last_read and time of last post on page
+	$board_config['tracking_unreads'][$topic_id] = max($topic_last_read, $postrow[$lastpost]['post_time']);  
+}
+write_cookies($userdata); //Save
+//END MOD Keep_unread_2
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Define the little post icon
+	//
+	if ( $userdata['session_logged_in'] && $postrow[$i]['post_time'] > $userdata['user_lastvisit'] && $postrow[$i]['post_time'] > $topic_last_read )
+	{
+		$mini_post_img = $images['icon_minipost_new'];
+		$mini_post_alt = $lang['New_post'];
+	}
+	else
+	{
+		$mini_post_img = $images['icon_minipost'];
+		$mini_post_alt = $lang['Post'];
+	}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+	//
+	//START MOD Keep_Unread_2 * Define the little post icon
+	//
+	if ( $postrow[$i]['post_time'] > $topic_last_read )
+	{
+		$mini_post_img = $images['icon_minipost_new'];
+		$mini_post_alt = $lang['New_post'];
+	}
+	else
+	{
+		$mini_post_img = $images['icon_minipost'];
+		$mini_post_alt = $lang['Post'];
+	}
+	//END MOD Keep_unread_2
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+	$search = '<a href="' . $temp_url . '">' . sprintf($lang['Search_user_posts'], $postrow[$i]['username']) . '</a>';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	//START MOD Keep_Unread_2
+	$temp_url = append_sid("viewtopic.$phpEx?mode=unread&amp;" . POST_POST_URL . '=' . $postrow[$i]['post_id']);
+	//$keep_unread_img_ms = '<a class="postmenu" onclick="this.blur();" href="' . $temp_url . '" title = "' . $lang['keep_post_unread_explain'] . '">' . $lang['keep_post_unread'] . '</a>';
+	$keep_unread_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_keep_unread'] . '" title = "' . $lang['keep_post_unread_explain'] . '" border="0" /></a>';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+  	'L_MINI_POST_ALT' => $mini_post_alt,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+ 	//MOD Keep_Unread_2
+ 	'KEEP_UNREAD_IMG' => $keep_unread_img,
+ 	//'KEEP_UNREAD_IMG_MS' => $keep_unread_img_ms,
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# in function init_userprefs
+
+		include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_admin.' . $phpEx);
+	}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	//MOD Keep_unread_2
+	read_cookies($userdata);
+
+#
+#-----------[ FIND ]-----------
+#
+		//
+		// Load the Page Header
+		//
+		if ( !defined('IN_ADMIN') )
+		{
+			include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+
+#
+#-----------[ BEFORE, ADD ]-----------
+#
+		$toggle_unreads_link = true;
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//START MOD Keep_Unread_2
+// maximum number of items (topic_id) per cookie
+define('MAX_COOKIE_ITEM', 300);
+//Default if no board setting
+define('KEEP_UNREAD_DB', TRUE);
+
+function read_cookies($userdata)
+{
+	global $board_config, $HTTP_COOKIE_VARS;
+
+	// do we use the tracking ?
+	if ( !isset($board_config['keep_unreads']) )
+	{
+		$board_config['keep_unreads'] = true;
+	}
+	if ( !isset($board_config['keep_unreads_db']) )
+	{
+		$board_config['keep_unreads_db'] = KEEP_UNREAD_DB;
+	}
+	// do we use database to store data ?
+	if ( !$userdata['session_logged_in'] || !$board_config['keep_unreads'] )
+	{
+		$board_config['keep_unreads_db'] = false;
+	}
+	// cookies name
+	$user_id = ( $userdata['user_id'] == ANONYMOUS ? '_' : $userdata['user_id']);
+	$base_name = $board_config['cookie_name'] . '_' . $user_id;
+
+	// get the anonymous last visit date
+	if ( !$userdata['session_logged_in'] )
+	{
+		$board_config['guest_lastvisit'] = intval($HTTP_COOKIE_VARS[$base_name . '_lastvisit']);
+		if ( $board_config['guest_lastvisit'] < (time()-300) )
+		{
+			$board_config['guest_lastvisit'] = time();
+			setcookie($base_name . '_lastvisit', intval($board_config['guest_lastvisit']), $current_time + 31536000, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+		}
+  		$userdata['user_lastvisit'] = $board_config['guest_lastvisit'];
+	}
+
+	//Assume old system: data in cookie
+	$board_config['tracking_time']		= isset($HTTP_COOKIE_VARS[$base_name . '_tt']) ? intval($HTTP_COOKIE_VARS[$base_name . '_tt']) : $userdata['user_lastvisit'];
+	$board_config['tracking_forums']	= isset($HTTP_COOKIE_VARS[$base_name . '_f']) ? unserialize($HTTP_COOKIE_VARS[$base_name . '_f']) : array();
+	$board_config['tracking_unreads'] = array();
+	if ( $board_config['keep_unreads'] )
+	{
+		if ( $userdata['session_logged_in'] && $board_config['keep_unreads_db'] )
+		{
+			$temp = explode('//', $userdata['user_unread_topics']);
+			if ($temp[1])
+			{
+				$board_config['tracking_time'] = $temp[1];
+				$w_forums = ($temp[2] ? explode(';', $temp[2]) : array());
+  				for ( $i = 0; $i < count($w_forums); $i++ )
+  				{
+  					$forum_data = explode(':', $w_forums[$i]);
+  					$board_config['tracking_forums'][ intval($forum_data[0]) ] = intval($forum_data[1]);
+  				}
+			}
+			$w_unreads = $temp[0] ? explode(';', $temp[0]) : array();
+			$tracking_floor = intval($w_unreads[0]); // we don't use serialized data to gain some digits
+			for ( $i = 1; $i < count($w_unreads); $i++ )
+			{
+				$topic_data = explode(':', $w_unreads[$i]);
+				$board_config['tracking_unreads'][ intval($topic_data[0]) ] = intval($topic_data[1]) + $tracking_floor;
+			}
+		}
+		else //not logged in or not database: cookie. If you delete this block then guests have no unread functionality
+  		{
+			//the tracking floor (min time value) allows to reduce the size of the time data, so the size of the cookie is smaller
+			$tracking_floor = intval($HTTP_COOKIE_VARS[$base_name . '_uf']);
+			$board_config['tracking_unreads'] = isset($HTTP_COOKIE_VARS[$base_name . '_u']) ? unserialize($HTTP_COOKIE_VARS[$base_name . '_u']) : array();
+			@reset( $board_config['tracking_unreads'] );
+			while ( list($id, $time) = @each($board_config['tracking_unreads']) )
+			{
+				if ( intval($id) > 0 )
+				{
+					$board_config['tracking_unreads'][intval($id)] = intval($time) + $tracking_floor;
+				}
+				else
+				{
+					unset($board_config['tracking_unreads'][$id]);
+				}
+			}
+		}
+	}
+	define('COOKIE_READ', true);
+}
+
+function write_cookies($userdata)
+{
+	global $board_config, $HTTP_COOKIE_VARS, $db;
+
+	// do we use the tracking ?
+	if ( !isset($board_config['keep_unreads']) )
+	{
+		$board_config['keep_unreads'] = true;
+	}
+	if ( !isset($board_config['keep_unreads_db']) )
+	{
+		$board_config['keep_unreads_db'] = KEEP_UNREAD_DB;
+	}
+
+	// do we use database to store data ?
+	if ( !$userdata['session_logged_in'] || !$board_config['keep_unreads'] )
+	{
+		$board_config['keep_unreads_db'] = false;
+	}
+
+	// check if the cookie has been read (prevent any erase)
+	if ( !defined('COOKIE_READ') )
+	{
+		return;
+	}
+
+	// cookies name
+	$user_id = ( $userdata['user_id'] == ANONYMOUS ? '_' : $userdata['user_id']);
+	$base_name = $board_config['cookie_name'] . '_' . $user_id;
+
+	if ( $board_config['keep_unreads'] )
+	{
+		// sort the unread array
+		if ( !empty($board_config['tracking_unreads']) )
+		{
+			asort($board_config['tracking_unreads']);
+		}
+		if ( count($board_config['tracking_unreads']) > MAX_COOKIE_ITEM )
+		{
+			$nb = count($board_config['tracking_unreads']) - MAX_COOKIE_ITEM;
+			while ( ($nb > 0) && ( list($id, $time) = @each($board_config['tracking_unreads']) ) )
+			{
+				unset($board_config['tracking_unreads'][$id]);
+				$nb--;
+			}
+		}
+	}
+
+	// store the unread topics
+	$sql = '';
+	if ( $board_config['keep_unreads'] )
+	{
+		// the array is already sorted
+		$tracking_floor = 0;
+		$tracking_forums = $board_config['tracking_forums'];
+		$tracking_unreads = $board_config['tracking_unreads'];
+
+		//Change all times to offset from lowest time.
+		if ( !empty($tracking_unreads) )
+		{
+			$first_found = false;
+			$tracking_floor = 0;
+			@reset($tracking_unreads);
+			while ( list($id, $time) = @each($tracking_unreads) )
+			{
+				if ( !$first_found )
+				{
+					$tracking_floor = intval($time);
+					$first_found = true;
+				}
+				$tracking_unreads[$id] -= $tracking_floor;
+			}
+		}
+
+		if ( $board_config['keep_unreads_db'] && $userdata['session_logged_in'] )
+		{
+			$data = intval($tracking_floor);
+			@reset($tracking_unreads);
+			while ( list($id, $time) = @each($tracking_unreads) )
+			{
+				if ($id) $data .= ';' . intval($id) . ':' . intval($time);
+			}
+			$data .= '//' . intval($board_config['tracking_time']) . '//';
+			@reset($tracking_forums);//board_config['tracking_forums']);
+			while ( list($id, $time) = @each($tracking_forums)) //$board_config['tracking_forums']) )
+			{
+				if ($id) $data .= ';' . intval($id) . ':' . intval($time);
+			}
+			//Erase old cookies
+			@setcookie($base_name . '_tt', '', 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+			@setcookie($base_name . '_f', '', 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+			@setcookie($base_name . '_uf', '', 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+			@setcookie($base_name . '_u', '', 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET user_unread_topics = '$data'
+				WHERE user_id = " . intval($userdata['user_id']);
+		}
+		else
+		{
+    			@setcookie($base_name . '_tt', intval($board_config['tracking_time']), time() + 31536000, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+    			@setcookie($base_name . '_f', serialize($board_config['tracking_forums']), time() + 31536000, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+			@setcookie($base_name . '_uf', intval($tracking_floor), time() + 31536000, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+			@setcookie($base_name . '_u', serialize($tracking_unreads), time() + 31536000, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+			// erase the users table to prevent a timewrap if the user reactivate the unreads database storage
+			if ( !empty($userdata['user_unread_topics']) && $userdata['session_logged_in'] )
+			{
+				$sql = "UPDATE " . USERS_TABLE . "
+					SET user_unread_topics = NULL
+					WHERE user_id = " . intval($userdata['user_id']);
+			}
+		}
+	}
+	if ( !empty($sql) )
+	{
+		if ( !$db->sql_query($sql) )
+		{
+			message_die(CRITICAL_ERROR, 'Failed to update users table for unread topics', '', __LINE__, __FILE__, $sql);
+		}
+	}
+}
+
+//Return an array with all true unreads and array with topics with new posts
+//Will check everything and write new arrays to database / cookie
+function list_new_unreads(&$forum_unread, $check_auth = 0)
+{
+	global $board_config, $userdata, $db;
+
+	//Clean tracking_forums
+	$tracking_time = ( $board_config['tracking_time'] != 0 ) ? $board_config['tracking_time'] : $userdata['user_lastvisit'];
+	if ($tracking_time == '') $tracking_time = 0;
+	if ( !empty($board_config['tracking_forums']) )
+	{
+		@reset($board_config['tracking_forums']); //Mark whole forum as read records
+		while ( list($id, $time) = @each($board_config['tracking_forums']) )
+		{ //obsolete if forum was marked read before current visit time
+			if ( $time <= $tracking_time )	unset($board_config['tracking_forums'][$id]);
+		}
+	}
+
+	//get list of remembered topic id's
+	@reset($board_config['tracking_unreads']); //Mark whole forum as read records
+	while ( list($id, $time) = @each($board_config['tracking_unreads']) )
+	{
+		if ($id) $list_unreads .= ($list_unreads ? ',':'') . $id;
+	}
+
+	$new_unreads = array();
+	$forum_unread = array();
+	$sql_and = array();
+	$sql_and[0] = " AND p.post_time > $tracking_time";
+	if ($list_unreads)
+	{
+		$sql_and[1] = " AND t.topic_id IN ($list_unreads) AND (p.post_time <= $tracking_time)";
+	}
+	$check_auth_sql = '';
+	
+	// the next line of code artificially sets $auth_list to true so that when it is used later on
+	// in an if statement the if statement will resolve to true if either (a) $check_auth is false (since in 
+	// that case $auth_list never gets reset) or (b) $check_auth is true and the user is authorized
+	// to view some forums
+	$auth_list = TRUE;
+
+	if ($check_auth)
+	{
+		// get a list of all forums the user is allowed to read
+		$is_auth_ary = array();
+		$forum_ids = array();
+		$is_auth_ary = auth(AUTH_READ, AUTH_LIST_ALL, $userdata);
+		if ( count($is_auth_ary) )
+		{
+			foreach ( $is_auth_ary as $forum_id => $auths )
+			{
+				if ( $auths['auth_read'] )
+				{
+					$forum_ids[] = $forum_id;
+				}
+			}
+		}
+		$auth_list = implode("," , $forum_ids);
+		$check_auth_sql = "AND t.forum_id IN (" . $auth_list . ")";
+	}
+
+	//Get all topics
+	// note that $auth_list may resolve to true if $check_auth is false (i.e. we are not checking authorizations on this board)
+	// or alternatively if we are checking authorizations and there are in fact forums the user is authorized to view;
+	// however, if we are checking authorizations and there are no forums the user is authorized to view we can skip the rest of this
+	// since the user will not be shown any unreads, and that's what the next if statement is for
+	if ($auth_list)
+	{
+		for ( $i = 0; $i < count($sql_and); $i++)
+		{
+			$sql = "SELECT t.forum_id, t.topic_id, p.post_time
+					FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+					WHERE p.post_id = t.topic_last_post_id
+					$sql_and[$i]
+					$check_auth_sql
+					AND t.topic_moved_id = 0";
+
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not query new topic information', '', __LINE__, __FILE__, $sql);
+			}
+
+			while( $topic_data = $db->sql_fetchrow($result) ) //Keep the valid unread topics
+			{
+				$id = $topic_data['topic_id'];
+				$topic_last_read = topic_last_read($topic_data['forum_id'], $id);
+				if ( $topic_data['post_time'] > $topic_last_read)
+				{
+					$new_unreads[$id] = $topic_last_read;
+					$forum_unread[$topic_data['forum_id']]=true;
+				}
+			}
+		}
+		$db->sql_freeresult($result);
+	}
+	$board_config['tracking_time'] = time();
+	$board_config['tracking_unreads'] = $new_unreads;
+	write_cookies($userdata); //save
+
+	return $new_unreads;
+}
+
+function topic_last_read($forum_id, $topic_id) //Returns a time stamp
+{
+	global $userdata, $board_config;
+	$t = intval($board_config['tracking_unreads'][$topic_id]);
+	//No tracking data at all, then last read when last logged in.
+	if ($t == 0)  $t = (($board_config['tracking_time'] != 0) ? intval($board_config['tracking_time']) : $userdata['user_lastvisit']);
+	return $t;
+}
+//END MOD Keep_unread_2
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$s_last_visit = ( $userdata['session_logged_in'] ) ? create_date($board_config['default_dateformat'], $userdata['user_lastvisit'], $board_config['board_timezone']) : '';
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//MOD Keep_unread
+$t = $userdata['session_logged_in'] ? $userdata['user_lastvisit'] :	$board_config['guest_lastvisit'];
+$s_last_visit = create_date($board_config['default_dateformat'], $t, $board_config['board_timezone']);
+//END MOD Keep_unread
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// The following assigns all _common_ variables that may be used at any point
+// in a template.
+//
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//START MOD Keep_unread_2
+// check to see if we are supposed to toggle unread link from "View your unread posts" to "You have no unread posts" depending on whether 
+// there are unread posts (on large boards people may want to skip that toggle by defining $toggle_unreads_link as false 
+// in index.php to save query time)
+if ($toggle_unreads_link)
+{
+	// only run a new list_new_unreads check if we haven't already done that by the time we get here (if we're coming from index.php this will already have been done in index.php)
+	if ( !isset($new_unreads) )
+	{
+		$new_unreads = (list_new_unreads($forum_unreads, $toggle_unreads_link)) ? true : false;
+	}
+}
+else
+{
+	// if we get here, we are not supposed to toggle the unread link so we'll just set the link to read "View your unread posts" in all cases
+	$new_unreads = true;
+}
+//END MOD Keep_unread_2
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_SEARCH_NEW' => $lang['Search_new'],
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	'L_SEARCH_NEW' => ($new_unreads) ? $lang['View_unread_posts'] : $lang['No_unread_posts'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['Search_new'] = 'View posts since last visit';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+$lang['Search_new'] = 'View unread posts';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+//MOD Keep_unread
+$lang['keep_post_unread_explain'] = 'Mark post as unread';
+$lang['keep_unread_done'] = 'The post has been marked as unread.';
+$lang['View_unread_posts'] = 'View unread posts';
+$lang['No_unread_posts'] = 'You have no unread posts';
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/index_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# at top of the file
+#
+<table width="100%" cellspacing="0" cellpadding="2" border="0" align="center">
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- MOD Keep_unread -->
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<!-- BEGIN switch_user_logged_in -->
+	{LAST_VISIT_DATE}<br />
+	<!-- END switch_user_logged_in -->
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	{LAST_VISIT_DATE}<br />
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		<!-- BEGIN switch_user_logged_in -->
+		<a href="{U_SEARCH_NEW}" class="gensmall">{L_SEARCH_NEW}</a><br /><a href="{U_SEARCH_SELF}" class="gensmall">{L_SEARCH_SELF}</a><br />
+		<!-- END switch_user_logged_in -->
+
+#
+#-----[ REPLACE WITH ]-----------------------------------------
+#
+		<a href="{U_SEARCH_NEW}" class="gensmall">{L_SEARCH_NEW}</a><br /><a href="{U_SEARCH_SELF}" class="gensmall">{L_SEARCH_SELF}</a><br />
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+ 	<!-- BEGIN switch_user_logged_in -->
+ 		<span class="gensmall"><a href="{U_MARK_READ}" class="gensmall">{L_MARK_FORUMS_READ}</a></span>
+ 	<!-- END switch_user_logged_in -->
+
+#
+#-----[ REPLACE WITH ]-----------------------------------------
+#
+ 		<span class="gensmall"><a href="{U_MARK_READ}" class="gensmall">{L_MARK_FORUMS_READ}</a></span>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//MOD Keep_unread
+$images['icon_keep_unread'] = "$current_template_images/icon_keep_unread.gif";
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: actual line is longer
+				<td valign="top" nowrap="nowrap">{postrow.QUOTE_IMG} {postrow.EDIT_IMG} {postrow.DELETE_IMG} {postrow.IP_IMG}</td>
+
+#
+#-----[ REPLACE WITH ]-----------------------------------------
+#
+				<td valign="top" nowrap="nowrap">{postrow.QUOTE_IMG} {postrow.EDIT_IMG} {postrow.DELETE_IMG} {postrow.KEEP_UNREAD_IMG} {postrow.IP_IMG}</td>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

@@ -1,0 +1,452 @@
+######################################################## 
+## 外掛名稱: 討論版 版面圖示 (清單方塊)
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 這個外掛可以讓管理員在控制台中指定各個討論版的版面圖示，然後顯示在 index、viewforum 和 viewtopic
+## 外掛版本: 1.1.0
+## 
+## 安裝難度: 中等
+## 安裝時間: 10 分鐘
+##
+## 需要編輯的檔案: 12
+##	index.php
+##	viewforum.php
+##	viewtopic.php
+##	admin/admin_board.php
+##	admin/admin_forums.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	templates/subSilver/admin/forum_admin_body.tpl
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/admin/forum_edit_body.tpl
+##	templates/subSilver/index_body.tpl
+##	templates/subSilver/viewforum_body.tpl
+##	templates/subSilver/viewtopic_body.tpl
+##
+## 附加的檔案: n/a
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.18 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##
+##	如果你想用欄位寫入 (預設方式) 的選圖方式,
+##	你必須使用 Forum_Icon_tw.txt 的安裝指示. 
+##	請勿使用以下的安裝指示! 你只能選其中一種的選圖方式.
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2003-11-04 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2003-11-08 - 版本 1.0.1
+##      - 確定可以在 2.0.6 上使用，程式碼沒有變動
+##
+##   2003-11-15 - 版本 1.0.2
+##      - 安裝指示經過修改以符合 phpBB MOD Database 的投件要求
+##
+##   2003-12-01 - 版本 1.0.3
+##      - 版面圖示可以用清單方塊 (選圖方式 2)
+##	- 在版面管理的主頁中可以顯示版面圖示
+##	- 在 viewforum.php 中可以顯示版面圖示
+##
+##   2004-02-11 - 版本 1.0.4
+##      - 修正選單圖示叉燒包現象當第一次選用圖示
+##		使用預設選圖方式的朋友們不需要做更新
+##
+##   2004-03-13 - 版本 1.0.5
+##      - 修正選單圖示叉燒包現象當第一次建立版面時
+##		使用預設選圖方式的朋友們不需要做更新
+##
+##   2004-05-29 - 版本 1.0.6
+##      - 安裝指示經過修改以符合 phpBB MOD Database 的投件要求
+##
+##   2004-08-15 - 版本 1.0.7
+##	- 在 viewtopic.php 中可以顯示版面圖示
+##
+##   2005-05-03 - 版本 1.0.8
+##	- 修正選單圖示在編輯版面時回覆預設選項 (由 obiku 回報)
+##	- * 預設選圖方式並未有新更新 *
+##
+##   2005-05-09 - 版本 1.0.9
+##	- 修正 $forum_icons_list 裡的一個小錯誤
+##	- * 預設選圖方式並未有新更新 *
+##
+##   2005-12-25 - 版本 1.1.0
+##	- 更新 MOD Template
+##	- 改變了版面圖示在 index_body.tpl 的寫法
+##	- 修改了一些不重要的部分
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# 請記得修改成你的資料表頭名稱
+ALTER TABLE phpbb_forums ADD forum_icon VARCHAR(255) DEFAULT NULL;
+INSERT INTO phpbb_config VALUES('forum_icon_path','');
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_admin.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$lang['Forum_status']
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+$lang['Forum_icon'] = '版區圖示'; // Forum Icon MOD
+$lang['Forum_icon_path'] = '版區圖示儲存路徑'; // Forum Icon MOD
+$lang['Forum_icon_path_explain'] = '在您 phpBB 2 根目錄底下的路徑, 例如: images/forum_icons'; // Forum Icon MOD
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+admin/admin_board.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	"L_AVATAR_GALLERY_PATH_EXPLAIN" => $lang['Avatar_gallery_path_explain'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	"L_FORUM_ICON_PATH" => $lang['Forum_icon_path'], // Forum Icon MOD
+	"L_FORUM_ICON_PATH_EXPLAIN" => $lang['Forum_icon_path_explain'], // Forum Icon MOD
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	"AVATAR_GALLERY_PATH" => $new['avatar_gallery_path'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	"FORUM_ICON_PATH" => $new['forum_icon_path'], // Forum Icon MOD
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+admin/admin_forums.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+			if ($mode == 'editforum')
+			{
+				// $newmode determines if we are going to INSERT or UPDATE after posting?
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+			// Forum Icon MOD
+			$dir = @opendir($phpbb_root_path . $board_config['forum_icon_path']);
+			$count = 0;
+			while( $file = @readdir($dir) )
+			{
+				if( !@is_dir(phpbb_realpath($phpbb_root_path . $board_config['forum_icon_path'] . '/' . $file)) )
+				{
+					if( preg_match('/(\.gif$|\.png$|\.jpg|\.jpeg)$/is', $file) )
+					{
+						$forum_icons[$count] = $file; 
+						$count++;
+					}
+				}
+			}
+
+			@closedir($dir);
+				
+			if ($mode == 'addforum')
+			{
+				$forum_icons_list = "";
+				$forum_icons_list .= '<option value="' . $forum_icons[0] . '" selected="selected">' . $forum_icons[0] . '</option>'; 
+				
+				for( $i = 1; $i < count($forum_icons); $i++ )
+				{
+					$forum_icons_list .= '<option value="' . $forum_icons[$i] . '">' . $forum_icons[$i] . '</option>';
+					$default_ficon = $forum_icons[0];
+				}
+			}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+				$forumstatus = $row['forum_status'];
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+				$forumicon = $row['forum_icon']; // Forum Icon MOD
+
+				// Forum Icon MOD - New fix for 1.0.8
+				$forum_icons_list = "";
+				for( $i = 0; $i < count($forum_icons); $i++ )
+				{
+					if ($forum_icons[$i] == $row['forum_icon'])
+					{
+						$forum_icons_list .= '<option value="' . $forum_icons[$i] . '" selected="selected">' . $forum_icons[$i] . '</option>';
+					}
+					else
+					{
+						$forum_icons_list .= '<option value="' . $forum_icons[$i] . '">' . $forum_icons[$i] . '</option>';
+					}
+					$default_ficon = $forum_icons[0];
+				}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+				$forumstatus = FORUM_UNLOCKED;
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+				$forumicon = ''; // Forum Icon MOD
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+				'L_FORUM_STATUS' => $lang['Forum_status'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+				'L_FORUM_ICON' => $lang['Forum_icon'], // Forum Icon MOD
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				'DESCRIPTION' => $forumdesc)
+# 
+#-----[ 取代為 ]------------------------------------------ 
+#
+				'DESCRIPTION' => $forumdesc, 
+				'ICON_LIST' => $forum_icons_list, // Forum Icon MOD
+				'ICON_BASEDIR' => $phpbb_root_path . $board_config['forum_icon_path'], // Forum Icon MOD
+				'ICON_IMG' => ( $forumicon ) ? $phpbb_root_path . $board_config['forum_icon_path'] . '/' . $forumicon : $phpbb_root_path . $board_config['forum_icon_path'] . '/' . $default_ficon // Forum Icon MOD
+				)
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			$sql = "INSERT INTO " . FORUMS_TABLE
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, forum_status
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, forum_icon
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				VALUES ('" . $next_id . "', '" . 
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, " . intval($HTTP_POST_VARS['forumstatus']) . "
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, '" . str_replace("\'", "''", $HTTP_POST_VARS['forumicon']) . "'
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "'
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . "
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, forum_icon = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumicon']) . "'
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+					'FORUM_DESC' => $forum_rows[$j]['forum_desc'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+					'FORUM_ICON_IMG' => ( $forum_rows[$j]['forum_icon'] ) ? '<img src="' . $phpbb_root_path . $board_config['forum_icon_path'] .'/' . $forum_rows[$j]['forum_icon'] . '" alt="'.$forum_data[$j]['forum_name'].'" title="'.$forum_data[$j]['forum_name'].'" border="0" />' : '', // Forum Icon Mod
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+index.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+							$posts = $forum_data[$j]['forum_posts'];
+							$topics = $forum_data[$j]['forum_topics'];
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+							$icon = $forum_data[$j]['forum_icon'];	// Forum Icon Mod
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+								'FORUM_FOLDER_IMG' => $folder_image, 
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+								'FORUM_ICON_IMG' => ($icon) ? '<img src="' . $phpbb_root_path . $board_config['forum_icon_path'] . '/' . $icon . '" alt="'.$forum_data[$j]['forum_name'].'" title="'.$forum_data[$j]['forum_name'].'" border="0" />' : '',	// Forum Icon Mod
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+viewforum.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	'FORUM_NAME' => $forum_row['forum_name'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	'FORUM_ICON_IMG' => ($forum_row['forum_icon']) ? '<img src="' . $phpbb_root_path . $board_config['forum_icon_path'] . '/' . $forum_row['forum_icon'] . '" alt="'.$forum_row['forum_name'].'" title="'.$forum_row['forum_name'].'" border="0" />&nbsp;' : '', // Forum Icon Mod
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+viewtopic.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+//
+// End auth check
+//
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+// Forum Icon Mod
+$sql = "SELECT forum_icon
+	FROM " . FORUMS_TABLE . "
+	WHERE forum_id = $forum_id";
+if ( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, 'Could not obtain forums information', '', __LINE__, __FILE__, $sql);
+}
+$forum_row = $db->sql_fetchrow($result);
+$forum_icon = $forum_row['forum_icon'];
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	'FORUM_NAME' => $forum_name,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	'FORUM_ICON_IMG' => ($forum_icon) ? '<img src="' . $phpbb_root_path . $board_config['forum_icon_path'] . '/' . $forum_icon . '" alt="'.$forum_name.'" title="'.$forum_name.'" border="0" />&nbsp;' : '',	// Forum Icon Mod
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_SYSTEM_TIMEZONE}</td>
+		<td class="row2">{TIMEZONE_SELECT}</td>
+	</tr>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_FORUM_ICON_PATH} <br /><span class="gensmall">{L_FORUM_ICON_PATH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="forum_icon_path" value="{FORUM_ICON_PATH}" /></td>
+	</tr>
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+templates/subSilver/admin/forum_edit_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+<p>{L_FORUM_EXPLAIN}</p>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+<script language="javascript" type="text/javascript">
+<!--
+function update_forum_icon(newimage)
+{
+	document.forum_icon.src = "{ICON_BASEDIR}/" + newimage;
+}
+//-->
+</script>
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	  <td class="row2"><input type="text" size="25" name="forumname" value="{FORUM_NAME}" class="post" /></td> 
+	</tr> 
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	<tr> 
+	  <td class="row1">{L_FORUM_ICON}</td>
+	  <td class="row2"><select name="forumicon" onchange="update_forum_icon(this.options[selectedIndex].value);">{ICON_LIST}</select> &nbsp; <img name="forum_icon" src="{ICON_IMG}" border="0" alt="" /> &nbsp;</td>
+	</tr>
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+templates/subSilver/admin/forum_admin_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+		<td class="row2"><span class="gen"><a href="{catrow.forumrow.U_VIEWFORUM}" target="_new">{catrow.forumrow.FORUM_NAME}</a></span>
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+		<td class="row2"><span class="gen">
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+{catrow.forumrow.FORUM_ICON_IMG}&nbsp;&nbsp;
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/index_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	<td class="row1" width="100%" height="50"><span class="forumlink"> <a href="{catrow.forumrow.U_VIEWFORUM}" class="forumlink">{catrow.forumrow.FORUM_NAME}</a><br />
+	  </span> <span class="genmed">{catrow.forumrow.FORUM_DESC}<br />
+	  </span><span class="gensmall">{catrow.forumrow.L_MODERATOR} {catrow.forumrow.MODERATORS}</span></td>
+# 
+#-----[ 取代為 ]------------------------------------------ 
+#
+	<td class="row1" width="100%" height="50"><table width="100%" cellpadding="2" cellspacing="0" border="0">
+		<tr><td><a href="{catrow.forumrow.U_VIEWFORUM}" class="forumlink">{catrow.forumrow.FORUM_ICON_IMG}</a></td>
+			<td width="100%"><span class="forumlink"><a href="{catrow.forumrow.U_VIEWFORUM}" class="forumlink">{catrow.forumrow.FORUM_NAME}</a><br />
+  				</span> <span class="genmed">{catrow.forumrow.FORUM_DESC}<br />
+  				</span><span class="gensmall">{catrow.forumrow.L_MODERATOR} {catrow.forumrow.MODERATORS}</span>
+  			</td>
+  		</tr>
+  	</table></td>
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/viewforum_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	  <td align="left" valign="bottom" colspan="2"><a class="maintitle" href="{U_VIEW_FORUM}">{FORUM_NAME}</a>
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+	  <td align="left" valign="bottom" colspan="2">
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+# 
+<a class="maintitle" href="{U_VIEW_FORUM}">{FORUM_ICON_IMG}</a> 
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/viewtopic_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	  -> <a href="{U_VIEW_FORUM}" class="nav">{FORUM_NAME}</a></span></td>
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+<a href="{U_VIEW_FORUM}" class="nav">
+# 
+#-----[ 在該行前, 加上 ]------------------------------------------ 
+# 
+<a href="{U_VIEW_FORUM}" class="nav">{FORUM_ICON_IMG}</a> 
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+#
+# 外掛修正結束

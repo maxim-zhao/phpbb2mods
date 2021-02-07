@@ -1,0 +1,163 @@
+######################################################## 
+## 外掛名稱: 可設定的討論版 Logo 網址
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 管理員可以在控制台設定討論版的 Logo 存放網址
+## 外掛版本: 1.0.4
+## 
+## 安裝難度: 簡單
+## 安裝時間: 5 分鐘 
+##
+## 需要編輯的檔案: 5
+##	admin/admin_board.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	includes/page_header.php
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/overall_header.tpl
+##
+## 附加的檔案: 0
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.21 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##
+## 	監控更新進度: http://sourceforge.net/project/filemodule_monitor.php?filemodule_id=165219
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2005-09-29 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2006-06-24 - 版本 1.0.1
+##      - 更新了 SQL 指令，增加了預設使用的圖片網址
+##	- 修正網址檢查的代碼
+##
+##   2006-07-16 - 版本 1.0.2
+##      - 整理了 admin_board.php 裡對 logo_image_linkout_url 的檢查
+##
+##   2006-09-02 - 版本 1.0.3
+##      - 無效網址的錯誤訊息顯示
+##
+##   2006-09-10 - 版本 1.0.4
+##      - 修正了無效網址的問題
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# 請記得修改成你的資料表名稱
+INSERT INTO `phpbb_config` VALUES ('logo_image_linkout_url', 'templates/subSilver/images/logo_phpBB.gif');
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_admin.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Forum Logo LinkOut MOD
+$lang['Logo_linkout_path'] = '討論版 Logo 網址';
+$lang['Logo_linkout_path_explain'] = '提供 討論版 Logo 存放的網址位置';
+$lang['Invalid_logo_linkout_URL'] = '討論版 Logo 設定是無效的';
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+admin/admin_board.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+			$new['server_name'] = str_replace('http://', '', $new['server_name']);
+		}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+		// Forum Logo LinkOut MOD
+		if ($config_name == 'logo_image_linkout_url' && !empty($new['logo_image_linkout_url']))
+		{
+			if ( (!preg_match("#^((ht|f)tp://)([^ \?&=\#\"\n\r\t<]*?(\.(jpg|jpeg|gif|png))$)#is", $new['logo_image_linkout_url'])) && $new['logo_image_linkout_url'] != 'templates/subSilver/images/logo_phpBB.gif' )
+			{
+				$message = $lang['Invalid_logo_linkout_URL'] . "<br /><br />" . sprintf($lang['Click_return_config'], "<a href=\"" . append_sid("admin_board.$phpEx") . "\">", "</a>") . "<br /><br />" . sprintf($lang['Click_return_admin_index'], "<a href=\"" . append_sid("index.$phpEx?pane=right") . "\">", "</a>");
+				message_die(GENERAL_MESSAGE, $message);
+			}
+		}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	"L_ADMIN" => $lang['Acc_Admin'], 
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	"L_LOGO_LINKOUT_PATH" => $lang['Logo_linkout_path'],	// Forum Logo LinkOut MOD
+	"L_LOGO_LINKOUT_PATH_EXPLAIN" => $lang['Logo_linkout_path_explain'],	// Forum Logo LinkOut MOD
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	"SERVER_PORT" => $new['server_port'], 
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	"LOGO_LINKOUT_PATH" => $new['logo_image_linkout_url'],		// Forum Logo LinkOut MOD
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+includes/page_header.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	'SITE_DESCRIPTION' => $board_config['site_desc'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	'LOGO_LINKOUT_PATH' => ($board_config['logo_image_linkout_url']) ? $board_config['logo_image_linkout_url'] : '',	// Forum Logo LinkOut MOD
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_SITE_DESCRIPTION}</td>
+		<td class="row2"><input class="post" type="text" size="40" maxlength="255" name="site_desc" value="{SITE_DESCRIPTION}" /></td>
+	</tr>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	<tr> 
+	  <td class="row1">{L_LOGO_LINKOUT_PATH}<br /><span class="gensmall">{L_LOGO_LINKOUT_PATH_EXPLAIN}</span></td>
+	  <td class="row2"><input class="post" type="text" size="40" maxlength="255" name="logo_image_linkout_url" value="{LOGO_LINKOUT_PATH}" /></td>
+	</tr>
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+				<td><a href="{U_INDEX}"><img src="templates/subSilver/images/logo_phpBB.gif" border="0" alt="{L_INDEX}" vspace="1" /></a></td>
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+"templates/subSilver/images/logo_phpBB.gif"
+# 
+#-----[ 把該行取代為 ]------------------------------------------ 
+# 
+"{LOGO_LINKOUT_PATH}"
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

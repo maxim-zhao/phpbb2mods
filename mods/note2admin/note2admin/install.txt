@@ -1,0 +1,162 @@
+############################################################## 
+## MOD Title: Note to Admin on Admin Activation
+## MOD Author: TerraFrost < terrafrost@phpbb.com > (Jim Wigginton) http://www.frostjedi.com/terra/wordpress/
+## MOD Description: How do you know, when admin activation is enabled, whether or not the person who's just signed up
+##                  for your board signed up just to spam it?  Letting people justify their activation can help you
+##                  decide exactly who should be activated and who shouldn't be.
+## MOD Version: 1.0.0
+##
+## Installation Level: easy
+## Installation Time: 5 Minutes
+##
+## Files To Edit: 4
+##      includes/usercp_register.php
+##      language/lang_english/email/admin_activate.tpl
+##      language/lang_english/lang_main.php
+##      templates/subSilver/profile_add_body.tpl
+##
+## Included Files: 1
+##      language/lang_english/email/admin_reactivate.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##   The latest version of this mod can be found here:
+##   http://www.frostjedi.com/terra/scripts/phpbb/note2admin.zip
+##
+##############################################################
+## MOD History:
+##
+##   2007-02-01 - Version 1.0.0
+##      - initial release
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy language/lang_english/email/admin_reactivate.tpl to language/lang_english/email/admin_reactivate.tpl
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+# we're not going to do anything with this line - we're just going to use it to
+# help us hone in on the line we really want to modify.
+#
+ 				else if ( $board_config['require_activation'] == USER_ACTIVATION_ADMIN )
+#
+#-----[ FIND ]------------------------------------------
+#
+ 						$emailer->use_template("admin_activate", $row['user_lang']);
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+ 						$emailer->use_template("admin_reactivate", $row['user_lang']);
+#
+#-----[ FIND ]------------------------------------------
+# we're not going to do anything with this line - we're just going to use it to
+# help us hone in on the line we really want to modify.
+#
+			$emailer->reset();
+
+			if ( $board_config['require_activation'] == USER_ACTIVATION_ADMIN )
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+						'USERNAME' =>
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+						'NOTE' => trim(stripslashes($HTTP_POST_VARS['note_to_admin'])),
+#
+#-----[ FIND ]------------------------------------------
+#
+		$template->assign_block_vars('switch_confirm', array());
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+
+	if ( $board_config['require_activation'] == USER_ACTIVATION_ADMIN && $mode == 'register' )
+	{
+		$template->assign_block_vars('switch_note_to_admin', array());
+	}
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_CONFIRM_CODE_EXPLAIN'	=> $lang['Confirm_code_explain'], 
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+
+		'L_NOTE_TO_ADMIN' => $lang['note_to_admin'],
+		'L_NOTE_TO_ADMIN_EXPLAIN' => $lang['note_to_admin_explain'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/email/admin_activate.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+The account owned by "{USERNAME}" has been deactivated or newly created, you should check the details of this user (if required) and activate it using the following link:
+
+{U_ACTIVATE}
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+A new user has registered under the name "{USERNAME}".  The following link can be used to activate them:
+
+{U_ACTIVATE}
+
+They believe they should be activated per the following
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{NOTE}
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+$lang['note_to_admin'] = 'Note to Admin';
+$lang['note_to_admin_explain'] = 'Explain to the administrator why, exactly, you believe you deserve to be activated.';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<!-- END switch_confirm -->
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	<!-- BEGIN switch_note_to_admin -->
+	<tr>
+	  <td class="row1"><span class="gen">{L_NOTE_TO_ADMIN}:</span><br /><span class="gensmall">{L_NOTE_TO_ADMIN_EXPLAIN}</span></td>
+	  <td class="row2">
+		<textarea name="note_to_admin" style="width: 300px" rows="6" cols="30" class="post"></textarea>
+	  </td>
+	</tr>
+	<!-- END switch_note_to_admin -->
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

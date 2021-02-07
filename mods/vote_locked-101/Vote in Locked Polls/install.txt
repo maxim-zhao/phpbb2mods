@@ -1,0 +1,125 @@
+##############################################################
+## MOD Title: Vote in Locked Polls
+## MOD Author: Thoul < thoul@phpbbsmith.com > (Jeremy Rogers) http://www.phpbbsmith.com
+## MOD Description: Allows users to vote in polls of locked topics.
+## MOD Version: 1.0.1
+##
+## Installation Level: Intermediate
+## Installation Time: 3 Minutes
+## Files To Edit:
+##		posting.php,
+##		viewtopic.php
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## If you have installed Categories Hierarchy, you need to follow a different
+## set of instructions.  Find these in contrib/categories_hierarchy.txt.
+##
+## This modification allows users to vote in a poll that is displayed on a
+## locked topic.  All this does is remove the check of locked status in
+## regards to the polls.  There is no form of permissions involved here; the
+## standard phpBB permissions for voting will come into play on their own.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	else if ( $mode != 'newtopic' && $post_info['topic_status'] == TOPIC_LOCKED && !$is_auth['auth_mod']) 
+
+#
+#-----[ BEFORE, ADD ]--------------------------------------
+#
+
+/*----------------------------------------------------------------------
+// Vote in Locked Polls - Begin Code Alteration
+//		Added:	($mode != 'newtopic' && $mode != 'vote')
+//		Original phpBB Code:
+	else if ( $mode != 'newtopic' && $post_info['topic_status'] == TOPIC_LOCKED && !$is_auth['auth_mod']) 
+*/
+
+#
+#-----[ IN-LINE FIND ]--------------------------------------
+#
+
+$mode != 'newtopic'
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------------
+#
+
+($mode != 'newtopic' && $mode != 'vote')
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+//
+// Vote in Locked Polls - End Code Alteration
+//----------------------------------------------------------------------
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+		if ( $user_voted || $view_result || $poll_expired || !$is_auth['auth_vote'] || $forum_topic_data['topic_status'] == TOPIC_LOCKED )
+
+#
+#-----[ BEFORE, ADD ]--------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Vote in Locked Polls - Begin Code Alteration
+//		Removed:	|| $forum_topic_data['topic_status'] == TOPIC_LOCKED
+//		Added:	/* removed lock check was here */
+/*		Original phpBB Code:
+		if ( $user_voted || $view_result || $poll_expired || !$is_auth['auth_vote'] || $forum_topic_data['topic_status'] == TOPIC_LOCKED )
+*/
+
+#
+#-----[ IN-LINE FIND ]--------------------------------------
+#
+
+|| $forum_topic_data['topic_status'] == TOPIC_LOCKED
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------------
+#
+
+/* removed lock check was here */
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+//
+// Vote in Locked Polls - End Code Alteration
+//----------------------------------------------------------------------
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,178 @@
+##############################################################
+## MOD Title: Animated New Message Icon Mod
+## MOD Author: vHiker < tomdav@yahoo.com > (Tom Davenport)
+## MOD Description: This MOD will display a blinking orange "new message" icon if there are new private messages, a non-blinking orange "unread message" icon if there are unread private messages, and the standard icon if there are no unread messages.  Also, instead of indicating the number of new messages it will indicate the number of unread messages (the number of new messages is still indicated in the alt message).  It also gets around some phpbb bugs which cause the unread message counter in the database to be unreliable.
+## MOD Version: 1.0.5
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit: privmsg.php,
+##                includes/page_header.php,
+##                templates/subSilver/subSilver.cfg,
+##                templates/subSilver/overall_header.tpl
+## Included Files: icon_mini_message_new.gif, icon_mini_message_unread.gif, 8 optional icons (see Author Notes)
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: Included are 8 optional icons you can copy to /templates/subSilver/images/.  They look exactly the same as the standard subsilver icons but have transparent corners to better match the 2 new icons (which have transparent corners).  This is highly recommended if you display the icons against a non-white background.
+##
+##############################################################
+## MOD History:
+##
+##   2003-12-29 - Version 1.0.5
+##      - documentation changes requested by mod validation team
+##   2003-11-22 - Version 1.0.4
+##      - documentation changes requested by mod validation team
+##   2003-11-03 - Version 1.0.3
+##      - documentation changes requested by mod validation team
+##   2003-10-10 - Version 1.0.2
+##      - updated code to work with phpbb 2.0.6
+##   2002-12-03 - Version 1.0.1
+##      - added code to get around some phpbb bugs
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "UPDATE " . USERS_TABLE . "
+	SET user_unread_privmsg = user_unread_privmsg + user_new_privmsg, user_new_privmsg = 0, user_last_privmsg = " . $userdata['session_start'] . " 
+	WHERE user_id = " . $userdata['user_id'];
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// fix phpbb bug (user_unread_privmsg and user_new_privmsg are unreliable if > 0)
+$check_total = $userdata['user_unread_privmsg'] + $userdata['user_new_privmsg'];
+if ( $check_total )
+{
+	$sql = "SELECT COUNT(privmsgs_id) AS total 
+		FROM " . PRIVMSGS_TABLE . " 
+		WHERE privmsgs_to_userid = " . $userdata['user_id'] . "
+		AND privmsgs_type = " . PRIVMSGS_UNREAD_MAIL;
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not query private message information', '', __LINE__, __FILE__, $sql);
+	}
+	$userdata['user_unread_privmsg'] = ( $row = $db->sql_fetchrow($result) ) ? $row['total'] : 0;
+
+	$sql = "SELECT COUNT(privmsgs_id) AS total 
+		FROM " . PRIVMSGS_TABLE . " 
+		WHERE privmsgs_to_userid = " . $userdata['user_id'] . " 
+		AND privmsgs_type = " . PRIVMSGS_NEW_MAIL;
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not query private message information', '', __LINE__, __FILE__, $sql);
+	}
+	$userdata['user_new_privmsg'] = ( $row = $db->sql_fetchrow($result) ) ? $row['total'] : 0;
+}
+
+$sql = $userdata['user_unread_privmsg'] + $userdata['user_new_privmsg'];
+$sql = ( $check_total == $sql ) ? "user_unread_privmsg + user_new_privmsg" : $sql;
+$sql = "UPDATE " . USERS_TABLE . "
+	SET user_unread_privmsg = " . $sql . ", user_new_privmsg = 0, user_last_privmsg = " . $userdata['session_start'] . " 
+	WHERE user_id = " . $userdata['user_id'];
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$userdata['user_new_privmsg'] = 0;
+$userdata['user_unread_privmsg'] = ( $userdata['user_new_privmsg'] + $userdata['user_unread_privmsg'] );
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// fix more phpbb bugs :(
+if ( $userdata['user_last_privmsg'] <= $userdata['user_lastvisit'] )
+{
+	$userdata['user_unread_privmsg'] = ( $userdata['user_new_privmsg'] + $userdata['user_unread_privmsg'] );
+	$userdata['user_new_privmsg'] = 0;
+}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ( $userdata['user_unread_privmsg'] )
+	{
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	$userdata['user_unread_privmsg'] = $userdata['user_unread_privmsg'] + $userdata['user_new_privmsg'];
+	if ( $userdata['user_unread_privmsg'] )
+	{
+		$icon_pm = ( $userdata['user_new_privmsg'] ) ? $images['pm_new_msg'] : $images['pm_unread_msg'];
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$l_privmsgs_text_unread = '';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	$l_privmsgs_text_unread = $lang['Login_check_pm'];
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$images['pm_new_msg'] = "";
+$images['pm_no_new_msg'] = "";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+$images['pm_new_msg'] = "$current_template_images/icon_mini_message_new.gif";
+$images['pm_unread_msg'] = "$current_template_images/icon_mini_message_unread.gif";
+$images['pm_no_new_msg'] = "$current_template_images/icon_mini_message.gif";
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+						<td height="25" align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_PROFILE}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_profile.gif" width="12" height="13" border="0" alt="{L_PROFILE}" hspace="3" />{L_PROFILE}</a>&nbsp; &nbsp;<a href="{U_PRIVATEMSGS}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_message.gif" width="12" height="13" border="0" alt="{PRIVATE_MESSAGE_INFO}" hspace="3" />{PRIVATE_MESSAGE_INFO}</a>&nbsp; &nbsp;<a href="{U_LOGIN_LOGOUT}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_login.gif" width="12" height="13" border="0" alt="{L_LOGIN_LOGOUT}" hspace="3" />{L_LOGIN_LOGOUT}</a>&nbsp;</span></td>
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+<img src="templates/subSilver/images/icon_mini_message.gif" width="12" height="13" border="0" alt="{PRIVATE_MESSAGE_INFO}" hspace="3" />{PRIVATE_MESSAGE_INFO}
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+<img src="{PRIVMSG_IMG}" width="12" height="13" border="0" alt="{PRIVATE_MESSAGE_INFO}" hspace="3" />{PRIVATE_MESSAGE_INFO_UNREAD}
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy icon_mini_message_new.gif to /templates/subSilver/images/icon_mini_message_new.gif
+copy icon_mini_message_unread.gif to /templates/subSilver/images/icon_mini_message_unread.gif
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

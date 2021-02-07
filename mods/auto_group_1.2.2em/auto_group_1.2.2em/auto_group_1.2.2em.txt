@@ -1,0 +1,844 @@
+######################################################## 
+## MOD Title:          Auto group 
+## MOD Author:         Raimon < Raimon@phpBBservice.nl > (Raimon Meuldijk) http://www.phpbbservice.nl
+## MOD Author:         Niels Chr. Denmark < ncr@db9.dk > (Niels Chr. Rod) http://mods.db9.dk
+## MOD Description:    This mod will make it posible to add member to a user group, depending on there post count
+##                     this makes it posible to make a group "Everyone" (0 posts) where all members are members by default.
+##                     or a group like "Posters" (1 posts) where all users witch have posted are a member
+##                     now also support MAX post count, so the users will be removed if they have more posts than required
+## MOD Version:        1.2.2.
+##
+## Installation Level: Intermediate
+## Installation Time: 17 Minutes
+## Files To Edit: 
+##   language/lang_english/lang_main.php,
+##   language/lang_english/lang_admin.php,
+##   admin/admin_groups.php,
+##   modcp.php,
+##   groupcp.php,
+##   include/functions_post.php,
+##   include/usercp_register.php,
+##   templates/subSilver/admin/group_edit_body.tpl
+##
+## Included Files:  
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: you must update your database manually by copying the auto_group_db_update.php file in your phpBB root directory, execute it with your navigator and after, delete it.
+############################################################## 
+## MOD History: 
+##
+##   2008-03-09 - Version 1.2.2
+##       - Taking the MOD over from Niels for update it and testing it for phpBB 2.0.23 since the phpBB.com MOD database cleanup to save this MOD remaining on to download on phpBB.com
+##       - Changed to the correct versionnumber since i made a few mistakes with it.
+##       - Fixed error when you post a message/topic
+##
+##   2007-12-05 - Version 1.2.1.a
+##        - Taking the MOD over from Niels for update it and testing it for phpBB 2.0.22 since the phpBB.com MOD database cleanup to save this MOD remaining on to download on phpBB.com
+##        - Fixed oncorrect sql queries
+##
+##   2003-10-04 - Version 1.2.1.
+##        - changed some of the syntax used in the how-to
+##
+##   2003-08-24 - Version 1.2.0.
+##        - EM ready for 2.0.6.
+##   ????-??-?? - - Version 1.1.9. 
+##        - corrected admin_groups.php, a spell error prevented the user list to show, when add/update users
+##
+##   ????-??-?? - Version 1.1.8.
+##        - corrected admin_groups.php, a missing language variable added
+##
+##   ????-??-?? - Version 1.1.7.
+##        - corrected a typo in the how-to related to groupcp.php, witch caused a SQL error
+##
+##   ????-??-?? - Version 1.1.6.
+##        - bugs in version 1.1.3. corrected (functions_post.php and modcp.php)
+##
+##   ????-??-?? - Version 1.1.5.
+##        - changed groupcp.php to prevent SQL error
+##
+##   ????-??-?? - Version 1.1.4.
+##        - corrected a bug in modcp.php, witch caused a SQL error
+##
+##   ????-??-?? - Version 1.1.3.
+##        - now support maximum number of posts
+##
+##   ????-??-?? - Version 1.1.2.
+##        - corrected groupcp.php, to allow re-join of a hidden group
+##
+##   ????-??-?? - Version 1.1.1.
+##        - missed some changes into the lang_main.php
+##
+##   ????-??-?? - Version 1.1.0.
+##        - if a user have unsubscribed from a autogroup, they are now allowed to re-join "closer/hidden groups" later
+##
+##   ????-??-?? - Version 1.0.5.
+##        - typo in the how-to, regarding modcp.php
+##
+##   ????-??-?? - Version 1.0.4.
+##        - not include change into modcp.php
+##
+##   ????-??-?? - Version 1.0.3.
+##        - the how-to for admin_groups.php was corrected
+##
+##   ????-??-?? - Version 1.0.2.
+##        - fixed that guest users was added to autogroups, upon posting
+##
+##   ????-??-?? - Version 1.0.1.
+##        - corrected the placement of the code in usercp_register.php file
+##
+##   ????-??-?? - Version 1.0.0.
+##        - now considerd as final
+##
+##   ????-??-?? - Version 0.10.2.
+##        - users are added to "0" groups when register even if "Users automatic added when posting" are disabled
+##
+##   ????-??-?? - Version 0.10.1.
+##        - minor change to the language file 
+##
+##   ????-??-?? - Version 0.10.0.
+##        - re-written code, now users are true members of user groups, code consider as BETA
+##
+##   ????-??-?? - Version 0.9.9.
+##        - minor changes to lang_admin.php
+##
+##   ????-??-?? - Version 0.9.8.
+##        - now posible to mass email a auto group
+##
+##   ????-??-?? - Version 0.9.7.
+##        - now display the groups members when changing the groups permissions
+##
+##   ????-??-?? - Version 0.9.6.
+##        - improved the SQL in auth.php
+##
+##   ????-??-?? - Version 0.9.5.
+##        - I had put a "update" find in the script instead of a original code
+##
+##   ????-??-?? - Version 0.9.4.
+##        - Important security update, in auth.php
+##
+##   ????-??-?? - Version 0.9.3.
+##        - changed the explanation text in group permissions, admin panel
+##
+##   ????-??-?? - Version 0.9.2.
+##        - Fixed some typos in the how-to, regarding admin_ug_auth.php, and corrected where groupcp.php are located
+##
+##   ????-??-?? - Version 0.9.1.
+##        - cosmetic change, "post group" are now "Auto group"
+##
+##   ????-??-?? - Version 0.9.0.
+##        - initial BETA release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+ALTER TABLE phpbb_groups ADD group_count INT (4) UNSIGNED DEFAULT '99999999';
+ALTER TABLE phpbb_groups ADD group_count_max INT (4) UNSIGNED DEFAULT '99999999';
+ALTER TABLE phpbb_groups ADD group_count_enable SMALLINT (2) UNSIGNED DEFAULT '0';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['This_closed_group'] = 'This is a closed group: no more users accepted';
+$lang['This_hidden_group'] = 'This is a hidden group: automatic user addition is not allowed';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+$lang['This_closed_group'] = 'This is a closed group: %s';
+$lang['This_hidden_group'] = 'This is a hidden group: %s';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+//added to autogroup mod
+$lang['No_more'] = 'no more users accepted';
+$lang['No_add_allowed'] = 'automatic user addition is not allowed';
+$lang['Join_auto'] = 'You may join this group, since your post count meet the group criteria';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// addded to Auto group mod
+$lang['group_count'] = 'Number of required posts';
+$lang['group_count_max'] = 'Number of max posts';
+$lang['group_count_updated'] = '%d member(s) have been removed, %d member(s) are added to this group';
+$lang['Group_count_enable'] = 'Users automaticly added when posting';
+$lang['Group_count_update'] = 'Add/Update new users';
+$lang['Group_count_delete'] = 'Delete/Update old users';
+$lang['User_allow_ag'] = "Activate Auto Group";
+$lang['group_count_explain'] = 'When users have posted more posts than this value <i>(in any forum)</i> then they will be added to this usergroup<br />, This only applys if "'.$lang['Group_count_enable'].'" are enabled';
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_groups.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+'group_moderator' => '',
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+'group_count' => '99999999',
+'group_count_max' => '99999999',
+'group_count_enable' => '0',
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$group_hidden = ( $group_info['group_type'] == GROUP_HIDDEN ) ? ' checked="checked"' : '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$group_count_enable_checked = ( $group_info['group_count_enable'] ) ? ' checked="checked"' : '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+'GROUP_MODERATOR' => $group_moderator, 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+'GROUP_COUNT' => $group_info['group_count'], 
+'GROUP_COUNT_MAX' => $group_info['group_count_max'], 
+'GROUP_COUNT_ENABLE_CHECKED' => $group_count_enable_checked,
+
+'L_GROUP_COUNT' => $lang['group_count'],
+'L_GROUP_COUNT_MAX' => $lang['group_count_max'],
+'L_GROUP_COUNT_EXPLAIN' => $lang['group_count_explain'],
+'L_GROUP_COUNT_ENABLE' => $lang['Group_count_enable'],
+'L_GROUP_COUNT_UPDATE' => $lang['Group_count_update'],
+'L_GROUP_COUNT_DELETE' => $lang['Group_count_delete'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$delete_old_moderator = isset($HTTP_POST_VARS['delete_old_moderator']) ? true : false;
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$group_count = isset($HTTP_POST_VARS['group_count']) ? intval($HTTP_POST_VARS['group_count']) : 0;
+$group_count_max = isset($HTTP_POST_VARS['group_count_max']) ? intval($HTTP_POST_VARS['group_count_max']) : 0;
+$group_count_enable = isset($HTTP_POST_VARS['group_count_enable']) ? true : false;
+$group_count_update = isset($HTTP_POST_VARS['group_count_update']) ? true : false;
+$group_count_delete = isset($HTTP_POST_VARS['group_count_delete']) ? true : false;
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "UPDATE " . GROUPS_TABLE . "
+SET group_type =
+WHERE
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+$group_moderator
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, group_count='$group_count', group_count_max='$group_count_max', group_count_enable='$group_count_enable'
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+# this line must be found rigth below the abouve find tag, as this line are pressent 2 places
+message_die(GENERAL_ERROR, 'Could not update group', '', __LINE__, __FILE__, $sql);
+}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+if ($group_count_delete)
+			{
+				//removing old users
+				$sql = "DELETE FROM " . USER_GROUP_TABLE . "
+					WHERE group_id=$group_id 
+					AND user_id NOT IN ('$group_moderator','".ANONYMOUS."')";
+				if ( !$db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not remove users, group count', '', __LINE__, __FILE__, $sql);
+				}
+				$group_count_remove=$db->sql_affectedrows();
+			}
+			if ( $group_count_update)
+			{
+				//finding new users
+				$sql = "SELECT u.user_id FROM " . USERS_TABLE . " u
+					LEFT JOIN " . USER_GROUP_TABLE ." ug ON u.user_id=ug.user_id AND ug.group_id='$group_id'
+					WHERE u.user_posts>='$group_count' AND u.user_posts<'$group_count_max'
+					AND ug.group_id is NULL
+					AND u.user_id NOT IN ('$group_moderator','".ANONYMOUS."')";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select new users, group count', '', __LINE__, __FILE__, $sql);
+				}
+				//inserting new users
+				$group_count_added=0;
+				while ( ($new_members = $db->sql_fetchrow($result)) )
+				{
+					$sql = "INSERT INTO " . USER_GROUP_TABLE . " (group_id, user_id, user_pending) 
+						VALUES ($group_id, " . $new_members['user_id'] . ", 0)";
+					if ( !($result2 = $db->sql_query($sql)) )
+					{
+						message_die(GENERAL_ERROR, 'Error inserting user group, group count', '', __LINE__, __FILE__, $sql);
+					}
+					$group_count_added++;
+				}
+			}
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$message = $lang['Updated_group'] . '<br />
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+$lang['Updated_group'] .
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+'<br />'.sprintf($lang['group_count_updated'],$group_count_remove,$group_count_added).
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+else if( $mode == 'newgroup' )
+{
+$sql = "INSERT INTO " . GROUPS_TABLE . " (
+VALUES (
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, group_moderator
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# * 
+, group_count,group_count_max,group_count_enable
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# * 
+, $group_moderator
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# *
+, '$group_count','$group_count_max','$group_count_enable'
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+message_die(GENERAL_ERROR, 'Could not insert new user-group info', '', __LINE__, __FILE__, $sql);
+}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		if ($group_count_delete)
+			{
+				//removing old users
+				$sql = "DELETE FROM " . USER_GROUP_TABLE . "
+					WHERE group_id=$new_group_id 
+					AND user_id NOT IN ('$group_moderator','".ANONYMOUS."')";
+				if ( !$db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not remove users, group count', '', __LINE__, __FILE__, $sql);
+				}
+				$group_count_remove=$db->sql_affectedrows();
+			}
+			if ( $group_count_update)
+			{
+				//finding new users
+				$sql = "SELECT u.user_id FROM " . USERS_TABLE . " u
+					LEFT JOIN " . USER_GROUP_TABLE ." ug ON u.user_id=ug.user_id AND ug.group_id='$new_group_id'
+					WHERE u.user_posts>='$group_count' AND u.user_posts<'$group_count_max'
+					AND ug.group_id is NULL
+					AND u.user_id NOT IN ('$group_moderator','".ANONYMOUS."')";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select new users, group count', '', __LINE__, __FILE__, $sql);
+				}
+				//inserting new users
+				$group_count_added=0;
+				while ( ($new_members = $db->sql_fetchrow($result)) )
+				{
+					$sql = "INSERT INTO " . USER_GROUP_TABLE . " (group_id, user_id, user_pending) 
+						VALUES ($new_group_id, " . $new_members['user_id'] . ", 0)";
+					if ( !($result2 = $db->sql_query($sql)) )
+					{
+						message_die(GENERAL_ERROR, 'Error inserting user group, group count', '', __LINE__, __FILE__, $sql);
+					}
+					$group_count_added++;
+				}
+			}
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$message = $lang['Added_new_group'] . '<br />
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+$lang['Added_new_group'] .
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+'<br />'.sprintf($lang['group_count_updated'],$group_count_remove,$group_count_added).
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions_post.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	return;
+}
+
+//
+// Delete a post/poll
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	$sql = "SELECT ug.user_id, g.group_id as g_id, u.user_posts, g.group_count, g.group_count_max FROM (" . GROUPS_TABLE . " g, ".USERS_TABLE." u) 
+		LEFT JOIN ". USER_GROUP_TABLE." ug ON g.group_id=ug.group_id AND ug.user_id=$user_id
+		WHERE u.user_id=$user_id
+		AND g.group_single_user=0 
+		AND g.group_count_enable=1
+		AND g.group_moderator<>$user_id";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Error geting users post stat', '', __LINE__, __FILE__, $sql);
+	}
+	while ($group_data = $db->sql_fetchrow($result))
+	{
+$user_already_added = (empty($group_data['user_id'])) ? FALSE : TRUE; 
+$user_add = ($group_data['group_count'] == $group_data['user_posts'] && $user_id!=ANONYMOUS) ? TRUE : FALSE; 
+$user_remove = ($group_data['group_count'] > $group_data['user_posts'] || $group_data['group_count_max'] < $group_data['user_posts']) ? TRUE : FALSE;
+		if ($user_add && !$user_already_added)
+		{
+			//user join a autogroup
+			$sql = "INSERT INTO " . USER_GROUP_TABLE . " (group_id, user_id, user_pending) 
+				VALUES (".$group_data['g_id'].", $user_id, '0')";
+			if ( !($db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Error insert users, group count', '', __LINE__, __FILE__, $sql);
+			}
+		} 
+		else if ( $user_already_added && $user_remove)
+		{
+			//remove user from auto group
+			$sql = "DELETE FROM " . USER_GROUP_TABLE . "
+				WHERE group_id=".$group_data['g_id']." 
+				AND user_id=$user_id";
+			if ( !($db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not remove users, group count', '', __LINE__, __FILE__, $sql);
+			}
+		}
+	}
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_register.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$email_template = 'user_welcome'; 
+}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$sql = "SELECT ug.user_id, g.group_id as g_id, g.group_name , u.user_posts, g.group_count FROM (" . GROUPS_TABLE . " g, ".USERS_TABLE." u) 
+      LEFT JOIN ". USER_GROUP_TABLE." ug ON g.group_id=ug.group_id AND ug.user_id=$user_id 
+      WHERE u.user_id=$user_id 
+         AND ug.user_id is NULL 
+         AND g.group_count=0 
+         AND g.group_single_user=0 
+         AND g.group_moderator<>$user_id"; 
+if ( !($result = $db->sql_query($sql)) ) 
+{ 
+   message_die(GENERAL_ERROR, 'Error geting users post stat', '', __LINE__, __FILE__, $sql); 
+} 
+while ($group_data = $db->sql_fetchrow($result)) 
+{ 
+   //user join a autogroup 
+   $sql = "INSERT INTO " . USER_GROUP_TABLE . " (group_id, user_id, user_pending) 
+      VALUES (".$group_data['g_id'].", $user_id, 0)"; 
+   if ( !($db->sql_query($sql)) ) 
+   { 
+      message_die(GENERAL_ERROR, 'Error inserting user group, group count', '', __LINE__, __FILE__, $sql); 
+   } 
+} 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+modcp.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$count_sql = array();
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$user_updated = array();
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+WHERE user_id = " . $row['poster_id'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	$user_updated [] = "SELECT ug.user_id, g.group_id as g_id, u.user_posts, g.group_count, g.group_count_max, ".$row['poster_id']." as u_id FROM (" . GROUPS_TABLE . " g, ".USERS_TABLE." u)
+		LEFT JOIN ". USER_GROUP_TABLE." ug ON g.group_id=ug.group_id AND ug.user_id=".$row['poster_id']."
+		WHERE u.user_id=".$row['poster_id']."
+		AND g.group_single_user=0 
+		AND g.group_count_enable=1
+		AND g.group_moderator<>".$row['poster_id'];
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "SELECT post_id
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+if ( sizeof($user_updated) )
+{
+	for($i = 0; $i < sizeof($user_updated); $i++)
+	{
+		if ( !($result = $db->sql_query($user_updated[$i])) )
+		{
+			message_die(GENERAL_ERROR, 'Error geting users post stat', '', __LINE__, __FILE__, $user_updated[$i]);
+		}
+		while ($group_data = $db->sql_fetchrow($result))
+		{
+			$user_already_added = (!empty($group_data['user_id']) || $group_data['u_id']==ANONYMOUS) ? TRUE : FALSE;
+			$user_add = ($group_data['group_count'] == $group_data['user_posts'] && $group_data['u_id']!=ANONYMOUS) ? TRUE : FALSE;
+			$user_remove = ($group_data['group_count'] > $group_data['user_posts'] && $group_data['u_id']!=ANONYMOUS) ? TRUE : FALSE;
+			if ($user_add && !$user_already_added)
+			{
+				//user join a autogroup
+				$sql = "INSERT INTO " . USER_GROUP_TABLE . " (group_id, user_id, user_pending) 
+					VALUES (".$group_data['g_id'].", ".$group_data['u_id'].", '0')";
+				if ( !($db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Error insert users, group count', '', __LINE__, __FILE__, $sql);
+				}
+			} 
+			else if ( $user_already_added && $user_remove)
+			{
+				//remove user from autogroup
+				$sql = "DELETE FROM " . USER_GROUP_TABLE . "
+					WHERE group_id=".$group_data['g_id']." 
+					AND user_id=".$group_data['u_id'];
+				if ( !($db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not remove users, group count', '', __LINE__, __FILE__, $sql);
+				}
+			}
+			unset ($group_data);
+		}
+		$db->sql_freeresult($result);
+	}
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+groupcp.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "SELECT ug.user_id, g.group_type
+FROM " . USER_GROUP_TABLE . " ug, " . GROUPS_TABLE . " g 
+WHERE g.group_id = $group_id 
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+ug.user_id, g.group_type
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, group_count, group_count_max
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+AND g.group_type <> " . GROUP_HIDDEN . "
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+AND ( g.group_type <> " . GROUP_HIDDEN . " OR (g.group_count <= '".$userdata['user_posts']."' AND g.group_count_max > '".$userdata['user_posts']."'))
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if ( $row = $db->sql_fetchrow($result))
+	{
+		if ( $row['group_type'] == GROUP_OPEN )
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+if (	$row = $db->sql_fetchrow($result) )
+{
+$is_autogroup_enable = ($row['group_count'] <= $userdata['user_posts'] && $row['group_count_max'] > $userdata['user_posts']) ? true : false;
+if ( $row['group_type'] == GROUP_OPEN || $is_autogroup_enable)
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "INSERT INTO " . USER_GROUP_TABLE . " (group_id, user_id, user_pending) 
+VALUES ($group_id, " . $userdata['user_id'] . ", 1)";
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, 1
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+,'".(($is_autogroup_enable)? 0 : 1)."'
+
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$moderator = $db->sql_fetchrow($result);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+if (!$is_autogroup_enable)
+{
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$emailer->reset();
+
+$template->assign_vars(array(
+	'META' => '<meta http-equiv="refresh" content="3;url=' . append_sid("index.$phpEx") . '">')
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+$emailer->reset();
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$message = $lang['Group_joined'] . '<br /><br />' . sprintf($lang['Click_return_group'], '<a href="' . append_sid("groupcp.$phpEx?" . POST_GROUPS_URL . "=$group_id") . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+$lang['Group_joined']
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+($is_autogroup_enable) ? $lang['Group_added'] : $lang['Group_joined']
+
+
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$is_group_pending_member = 0;
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$is_autogroup_enable = ($group_info['group_count'] <= $userdata['user_posts'] && $group_info['group_count_max'] > $userdata['user_posts']) ? true : false;
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if ( $group_info['group_type'] == GROUP_CLOSED )
+{
+$group_details =  $lang['This_closed_group'];
+$s_hidden_fields = '';
+}
+else if ( $group_info['group_type'] == GROUP_HIDDEN )
+{
+$group_details =  $lang['This_hidden_group'];
+$s_hidden_fields = '';
+}
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+if ( $group_info['group_type'] == GROUP_CLOSED )
+{
+if ($is_autogroup_enable) 
+{
+	$template->assign_block_vars('switch_subscribe_group_input', array());
+	$group_details =  sprintf ($lang['This_closed_group'],$lang['Join_auto']);
+	$s_hidden_fields = '<input type="hidden" name="' . POST_GROUPS_URL . '" value="' . $group_id . '" />';
+} 
+else
+{
+	$group_details =  sprintf ($lang['This_closed_group'],$lang['No_more']);
+	$s_hidden_fields = '';
+}
+		}
+		else if ( $group_info['group_type'] == GROUP_HIDDEN )
+		{
+if ($is_autogroup_enable) 
+{
+	$template->assign_block_vars('switch_subscribe_group_input', array());
+	$group_details =  sprintf ($lang['This_hidden_group'],$lang['Join_auto']);
+	$s_hidden_fields = '<input type="hidden" name="' . POST_GROUPS_URL . '" value="' . $group_id . '" />';
+} 
+else
+{
+	$group_details =  sprintf ($lang['This_closed_group'],$lang['No_add_allowed']);
+	$s_hidden_fields = '';
+}
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "SELECT group_id, group_name, group_type
+FROM " . GROUPS_TABLE . " g 
+WHERE group_single_user <> " . TRUE . " 
+$ignore_group_sql 
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+group_type
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, group_count , group_count_max
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$s_group_list_opt = '';
+while
+{
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$is_autogroup_enable = ($row['group_count'] <= $userdata['user_posts'] && $row['group_count_max'] > $userdata['user_posts']) ? true : false;
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if  ( $row['group_type'] != GROUP_HIDDEN || $userdata['user_level'] == ADMIN )
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+$userdata['user_level'] == ADMIN
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+|| $is_autogroup_enable
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/group_edit_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	{L_GROUP_HIDDEN}</td> 
+</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+<tr> 
+  <td class="row1" width="38%"><span class="gen">{L_GROUP_COUNT}:<br/>{L_GROUP_COUNT_MAX}:</span><br/>
+  <span class="gensmall">{L_GROUP_COUNT_EXPLAIN}</span></td>
+  <td class="row2" width="62%"><input type="text" class="post" name="group_count" maxlength="12" size="12" value="{GROUP_COUNT}" /><br/><input type="text" class="post" name="group_count_max" maxlength="12" size="12" value="{GROUP_COUNT_MAX}" />
+	<br />&nbsp;&nbsp; <input type="checkbox" name="group_count_enable" {GROUP_COUNT_ENABLE_CHECKED} />&nbsp;{L_GROUP_COUNT_ENABLE}
+	<br />&nbsp;&nbsp; <input type="checkbox" name="group_count_update" value="0" />&nbsp;{L_GROUP_COUNT_UPDATE}
+    <br />&nbsp;&nbsp; <input type="checkbox" name="group_count_delete" value="0" />&nbsp;{L_GROUP_COUNT_DELETE}</span>
+	</td>
+</tr>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

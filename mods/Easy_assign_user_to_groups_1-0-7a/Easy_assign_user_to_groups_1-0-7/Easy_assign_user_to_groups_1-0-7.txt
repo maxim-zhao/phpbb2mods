@@ -1,0 +1,350 @@
+############################################################## 
+## MOD Title:		Easy assign user to groups
+## MOD Author: asinshesq < N/A > (Alan) N/A
+##
+## MOD Description:	This mod allows the admin to assign a user to any combination of groups
+##			from a single page by using the usual manage user page in the ACP.
+##
+## MOD Version:		1.0.7
+## 
+## Installation Level:	Easy
+## Installation Time:	5 Minutes
+##
+## Files To Edit:	admin/admin_users.php
+##			templates/subSilver/admin/user_edit_body.tpl
+##			language/lang_english/lang_admin.php
+##
+## Included Files:	current_groups.tpl
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:	This mod can be used by itself but is especially useful as an add-on to the Admin Userlist mod 
+##			( http://www.phpbb.com/phpBB/viewtopic.php?t=117359 )
+############################################################## 
+## MOD History:
+##
+##   2006-05-20	- Version 1.0.7
+##		- changed the ordering so it lists groups in alphabetical order rather than order of group_id (just changed ORDER BY group_id part to read: ORDER BY group_name)
+##		  and deleted extraneous <tr> that this added in templates/subSilver/admin/user_edit_body.tpl (it was just before the line that read <!-- END listrow -->); and
+##		  deleted extraneous class="{listrow.ROW_CLASS}" references that this added in user_edit_bodyt.tpl
+##
+##   2004-11-23	- Version 1.0.6
+##		- added ability to accept or deny membership in a group for any user whose membership is pending and added capability to notify user by email whenever he is added to a new group
+##
+##   2004-11-23	- Version 1.0.5
+##		- changed the buttons for the groups to radio YES and NO buttons to match the rest of the manage user page
+##
+##   2004-11-20	- Version 1.0.4
+##		- changed the approach so that it does NOT delete all group memberships and then recreate them but instead
+##		  deletes memberships that are no longer checked and adds memberships that are newly checked;
+##		  also add a check to see if the user has a membership pending status in a group...if so, includes a link in the list to go to the group in question so that the user can be accepted into the group;
+##
+##   2004-10-10	- Version 1.0.3
+##		- changed deletion sql to assure that user is not able to delete a moderator from a group
+##
+##   2004-10-19	- Version 1.0.2
+##		- changed insert to set user_pending to 0 rather than leaving it at null for added groups
+##
+##   2004-10-19	- Version 1.0.1
+##		- added loop to intval values of $mark_list[] for security purposes; changed
+##		  delete sql definition so that the single user group of the user does not get deleted;
+##		  mad a few other small changes
+##
+##   2004-10-10	- Version 1.0.0
+##		- first release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy current_groups.tpl to language/lang_english/email/current_groups.tpl
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		//
+		// Avatar stuff
+		//
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+		// start mod assign user to groups
+			// first step...find out which checkboxes the admin checked off and which he did not...
+			$mark_list = $HTTP_POST_VARS['mark'];
+			$email_notification = intval($HTTP_POST_VARS['email_notification']);
+
+			for ($i = 0; $i < count($mark_list); $i++)
+			{
+				$mark_list[$i] = intval($mark_list[$i]);
+			}
+
+			// now add the user to any group checked 'YES' if he is not already in that group
+
+			$temp_count = 0;
+			for ($i = 0; $i < count($mark_list); $i++)
+			{
+				if( $mark_list[$i] > 0 )
+				{
+					// test to see if there is already an entry for this group and user; if so, skip the insert and go to the next group...
+					$sql = "SELECT user_id, user_pending
+						FROM " . USER_GROUP_TABLE . "
+						WHERE user_id = $user_id
+						AND group_id = $mark_list[$i]";
+					if ( !($result = $db->sql_query($sql) ) )
+					{
+						message_die(GENERAL_ERROR, 'Cannot find group info', '', __LINE__, __FILE__, $sql);
+					}
+					if ( !($row = $db->sql_fetchrow($result)) )
+					{
+					// here, we actually put the user into a selected group if there was no entry for the user in this group
+						$sql = "INSERT INTO " . USER_GROUP_TABLE . "
+						(group_id, user_id, user_pending) VALUES ($mark_list[$i], $user_id, 0)";
+						if ( !$db->sql_query($sql) )
+						{
+							message_die(GENERAL_ERROR, 'Could not add user to checked groups', '', __LINE__, __FILE__, $sql);
+						}
+						$temp_count = 1;
+					}
+					else
+					{
+					// here, we update the user's entry in the group if his membership was pending and the admin checked YES for the group...
+						if($row['user_pending'] == 1)
+						{
+							$sql = "UPDATE " . USER_GROUP_TABLE . "
+							SET user_pending = 0
+							WHERE group_id = $mark_list[$i]
+							AND user_id = $user_id";
+							if ( !$db->sql_query($sql) )
+							{
+								message_die(GENERAL_ERROR, 'Could not add user to checked groups', '', __LINE__, __FILE__, $sql);
+							}
+							$temp_count = 1;
+						}
+					}
+				}
+			}
+
+			// now delete the user from any group that is checked 'NO' if he is currently in that group and is not the moderator (but don't allow deletion of moderator)
+			for ($i = 0; $i < count($mark_list); $i++)
+			{
+				if( $mark_list[$i] < -1 )
+				{
+					// delete user from any group checked 'NO'.
+					$group_id = (-1) * $mark_list[$i];
+					$sql = "SELECT user_id
+						FROM " . USER_GROUP_TABLE . " ug, " . GROUPS_TABLE . " g
+						WHERE ug.user_id = $user_id
+						AND ug.group_id = $group_id
+						AND g.group_id = ug.group_id
+						AND g.group_moderator <> $user_id";
+					if ( !($result = $db->sql_query($sql) ) )
+					{
+						message_die(GENERAL_ERROR, 'Cannot find group info', '', __LINE__, __FILE__, $sql);
+					}
+					if ( $row = $db->sql_fetchrow($result) )
+					{
+					// here, we actually delete the user from the group if there an entry for the user in the group
+						$sql = "DELETE FROM " . USER_GROUP_TABLE . "
+						WHERE user_id = " . $row['user_id'] . "
+						AND group_id = $group_id";
+						if ( !$db->sql_query($sql) )
+						{
+							message_die(GENERAL_ERROR, 'Could not add delete user from group marked \'NO\'', '', __LINE__, __FILE__, $sql);
+						}
+					}
+
+				}
+			}
+
+			// now, find out if user has been added to any groups and the admin wants a notification email sent out
+			if( $temp_count == 1 && $email_notification == 1 )
+			{
+				// the following code is adapted from code in groupsp.php
+				// Email the user and tell him what groups he is now in
+									//
+									$group_name = '';
+									$sql = "SELECT g.group_name, u.username, u.user_email, u.user_lang
+										FROM " . GROUPS_TABLE . " g, " . USERS_TABLE . " u, " . USER_GROUP_TABLE . " ug
+										WHERE u.user_id = $user_id
+										AND ug.user_id = u.user_id
+										AND g.group_id = ug.group_id
+										AND ug.user_pending = 0";
+									if ( !($result = $db->sql_query($sql)) )
+									{
+										message_die(GENERAL_ERROR, 'Could not get group information', '', __LINE__, __FILE__, $group_sql);
+									}
+
+									$row = $db->sql_fetchrow($result);
+									$username = $row['username'];
+									$user_email = $row['user_email'];
+									$user_lang = $row['user_lang'];
+									$group_name = $row['group_name'];
+									while ( $row = $db->sql_fetchrow($result) )
+									{
+										$group_name = $group_name . "\n" . $row['group_name'];
+									}
+
+									include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+									$emailer = new emailer($board_config['smtp_delivery']);
+
+									$emailer->from($board_config['board_email']);
+									$emailer->replyto($board_config['board_email']);
+
+									$emailer->use_template('current_groups', $user_lang);
+									$emailer->email_address($user_email);
+									$emailer->set_subject($lang['Group_added']);
+
+									$emailer->assign_vars(array(
+										'SITENAME' => $board_config['sitename'],
+										'GROUP_NAMES' => $group_name,
+										'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '')
+									);
+									$emailer->send();
+									$emailer->reset();
+			}
+
+		// end mod assign user to groups
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			'L_PREFERENCES' => $lang['Preferences'],
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+			'L_ASSIGNED_GROUPS' => $lang['Assigned_groups'],
+			'L_EMAIL_NOTIFICATION' => $lang['Email_notification'],
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			'S_PROFILE_ACTION' => append_sid("admin_users.$phpEx"))
+		);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		// start mod assign user to groups
+		$sql = "SELECT group_id, group_name
+				FROM " . GROUPS_TABLE . "
+				WHERE group_single_user = 0
+				ORDER BY group_name";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Cannot find group info', '', __LINE__, __FILE__, $sql);
+		}
+
+		// feed the template with info for the various groups
+		$i = 0;
+		while ( $row = $db->sql_fetchrow($result) )
+		{
+			$group_id = $row['group_id'];
+			$group_name = $row['group_name'];
+
+			$sql = "SELECT user_id, user_pending
+					FROM " . USER_GROUP_TABLE . "
+					WHERE user_id = " . $user_id . " AND group_id = " . $group_id . "";
+			if ( !($result1 = $db->sql_query($sql)) )
+			{
+			message_die(GENERAL_ERROR, 'Cannot find group info', '', __LINE__, __FILE__, $sql);
+			}
+
+			$member = ( $row = $db->sql_fetchrow($result1) ) ? TRUE : FALSE;
+			$neg_group_id = -1*$group_id;
+			$template->assign_block_vars('listrow', array(
+
+			'S_MARK_NAME' => 'mark[' . $i . ']',
+			'S_MARK_ID' => $group_id,
+			'S_NEG_MARK_ID' => $neg_group_id,
+			'S_ASSIGNED_GROUP' => ( $member && !$row['user_pending'] ) ? 'checked="checked"' : '',
+			'S_UNASSIGNED_GROUP' => ( $member ) ? '' : 'checked="checked"',
+
+			'U_USER_PENDING' => ( $row['user_pending'] ) ? $lang['Membership_pending'] : '',
+			'U_GROUP_NAME' => $group_name)
+			);
+			$i = $i + 1;
+		}
+		//end mod assign user to groups
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr> 
+	  <th class="thSides" colspan="2">{L_PREFERENCES}</th>
+	</tr>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+<!-- start mod assign user to groups -->
+	<tr> 
+	  <th class="thSides" colspan="2">{L_ASSIGNED_GROUPS}</th>
+	</tr>
+	
+	<!-- BEGIN listrow -->
+	<tr> 
+	  <td class="row1"><span class="gen">{listrow.U_GROUP_NAME}</span></td>
+	  <td class="row2"><span class="gen"> 
+		<input type="radio" name="{listrow.S_MARK_NAME}" value="{listrow.S_MARK_ID}" {listrow.S_ASSIGNED_GROUP}  />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="{listrow.S_MARK_NAME}" value="{listrow.S_NEG_MARK_ID}" {listrow.S_UNASSIGNED_GROUP}  />
+		<span class="gen">{L_NO}&nbsp;&nbsp;{listrow.U_USER_PENDING}</span>
+		</td>
+	</tr>
+	<!-- END listrow -->
+	<tr> 
+	  <td class="row1"><span class="gen">{L_EMAIL_NOTIFICATION}</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="email_notification" value="1" checked="checked" />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="email_notification" value="0" ''/>
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+<!-- end mod assign user to groups -->
+
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// That's all Folks!
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+$lang['Assigned_groups'] = 'Assigned Groups';
+$lang['Membership_pending'] = '(membership pending: click \'YES\' to approve or \'NO\' to deny)';
+$lang['Email_notification'] = 'Email notification if user is added to any groups';
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

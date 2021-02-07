@@ -1,0 +1,417 @@
+############################################################## 
+## MOD Title: Last topics from - upgrade from v 1.0.1 to v 1.0.2
+## MOD Author: Ptirhiik < admin@rpgnet-fr.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description:
+##		This mod is an upgrade for Last topics from mod version v 1.0.1
+## MOD Version: 1.0.2
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit:
+##		includes/functions.php
+##		includes/page_header.php
+##		includes/usercp_viewprofile.php
+##
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##
+## Included Files:
+##		functions_last_topics_from.php
+##		lang_extend_last_topics_from.php
+##		mod-lang_settings/lang_extend_mac.php
+##		mod-mods_settings/lang_extend_mods_settings.php
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##	This mod requires Last topics from mod v 1.0.0 to be installed
+##
+##	You can delete templates/subSilver/viewforum_topicbox.tpl at the end
+##
+############################################################## 
+## MOD History: 
+## 
+##   2003-10-18 - Version 1.0.2
+##	- adaptation for lang settings and PCP v 1.0.4
+##
+##   2003-09-16 - Version 1.0.1
+##      - add the use of the topics list mod for enhancement to display,
+##      - add the use of the mods_settings mod for users preferences,
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy functions_last_topics_from.php to includes/functions_last_topics_from.php
+copy lang_extend_last_topics_from.php to language/lang_english/lang_extend_last_topics_from.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+# this one is relative to the lang_settings mod
+#
+copy mod-lang_settings/lang_extend_mac.php to includes/lang_extend_mac.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+#
+# this one is part of the mods_settings mod, and is required for last topics from v 1.0.2
+#
+copy mod-mods_settings/lang_extend_mods_settings.php to language/lang_english/lang_extend_mods_settings.php
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : last topics from ------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- mod : mods settings ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this part has been moved from functions.php to functions_last_topics_from.php
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+//-- add
+function last_topics_from($view_userdata, $last_started_box='', $last_replied_box='', $last_ended_box='')
+{
+	global $db, $template, $board_config, $userdata, $phpEx, $lang, $images, $HTTP_COOKIE_VARS;
+	global $tree;
+
+	include_once($phpbb_root_path . './includes/functions_topics_list.' . $phpEx);
+
+	// fix some default values
+	if (empty($last_started_box))
+	{
+		$last_started_box = 'BOARD_TOPICS_FROM_STARTED';
+	}
+	if (empty($last_replied_box))
+	{
+		$last_replied_box = 'BOARD_TOPICS_FROM_REPLIED';
+	}
+	if (empty($last_ended_box))
+	{
+		$last_ended_box = 'BOARD_TOPICS_FROM_ENDED';
+	}
+
+	// get the user viewed
+	$view_user_id = $view_userdata['user_id'];
+	if ($view_user_id == ANONYMOUS) return false;
+
+	// display
+	$to_display = array();
+	$to_display[0]		= isset($board_config['last_topics_from_started']) ? intval($board_config['last_topics_from_started']) : 0;
+	$to_display[1]		= isset($board_config['last_topics_from_replied']) ? intval($board_config['last_topics_from_replied']) : 0;
+	$to_display[2]		= isset($board_config['last_topics_from_ended']) ? intval($board_config['last_topics_from_ended']) : 0;
+	$split_type			= isset($board_config['last_topics_from_split']) ? (intval($board_config['last_topics_from_split']) == 1) : false;
+	$display_nav_tree	= isset($board_config['last_topics_from_forum']) ? (intval($board_config['last_topics_from_forum']) == 1) : false;
+
+	// ACP config says : do not display - who am I to say the contrary ? ;)
+	$sum = 0;
+	for ($k=0; $k < count($to_display); $k++)
+	{
+		$sum = $sum + $to_display[$k];
+	}
+	if ($sum <= 0) return false;
+
+	// read the forums authorized
+	$cat_hierarchy = function_exists(get_auth_keys);
+	$forum_ids = array();
+	if (!$cat_hierarchy)
+	{
+		// standard read
+		$is_auth = array();
+		$is_auth = auth(AUTH_ALL, AUTH_LIST_ALL, $userdata);
+
+		// get the list of authorized forums
+		while (list($forum_id, $forum_auth) = each($is_auth))
+		{
+			if ( $forum_auth['auth_read'])
+			{
+				$forum_ids[] = $forum_id;
+			}
+		}
+	}
+	else
+	{
+		// compliency with categories hierarchy v2 mod
+		// get auth key
+		$keys = array();
+		$keys = get_auth_keys('Root', true, -1, -1, 'auth_read');
+		for ($i=1; $i < count($keys['id']); $i++)
+		{
+			if ( ($tree['type'][$keys['idx'][$i]] == POST_FORUM_URL) && ($tree['auth'][ $keys['id'][$i] ]['auth_read']) )
+			{
+				$forum_ids[] = $tree['id'][$keys['idx'][$i]];
+			}
+		}
+	}
+
+	// no forums allowed to the viewer, say goodbye :)
+	if (count($forum_ids) <= 0) return false;
+
+	// get the list of forum for selection
+	$sql_forums = 't.forum_id IN (' . implode(', ', $forum_ids) . ')';
+
+	// ok, process the last replied topics
+	$topic_rowset = array();
+	for ($k = 0; $k < count($to_display); $k++) if ($to_display[$k] > 0)
+	{
+		$title = '??';
+		switch ( $k )
+		{
+			case 0:
+				// started by
+				$sql_filter = "t.topic_poster = $view_user_id";
+				$title = sprintf($lang['Topic_last_started'], $view_userdata['username']);
+				$box = $last_started_box;
+				break;
+			case 1:
+				// replied by
+				$sql = "SELECT DISTINCT p.topic_id FROM " . POSTS_TABLE . " p, " . TOPICS_TABLE . " t
+						WHERE 
+							$sql_forums
+							AND t.topic_id = p.topic_id
+							AND p.poster_id = $view_user_id
+						GROUP BY p.topic_id
+						ORDER BY p.post_time DESC
+						LIMIT 0, " . $to_display[$k];
+				if (!$result = $db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain users post informations', '', __LINE__, __FILE__, $sql);
+				}
+				$topic_ids = array();
+				while ($row = $db->sql_fetchrow($result))
+				{
+					$topic_ids[] = $row['topic_id'];
+				}
+				$db->sql_freeresult($result);
+				$sql_filter = 't.topic_id = -1';
+				if (!empty($topic_ids))
+				{
+					$sql_filter = 't.topic_id IN (' . implode(', ', $topic_ids) . ')';
+				}
+				$title = sprintf($lang['Topic_last_replied'], $view_userdata['username']);
+				$box = $last_replied_box;
+				break;
+			case 2:
+				// ended by
+				$sql_filter = "u2.user_id = $view_user_id";
+				$title = sprintf($lang['Topic_last_ended'], $view_userdata['username']);
+				$box = $last_ended_box;
+				break;
+			default:
+				message_die(GENERAL_ERROR, 'Wrong setup in the process for $k=' . $k, '', __LINE__, __FILE__, $sql);
+				break;
+		} // end switch
+
+		// get topics data
+		$topic_rowset = array();
+		$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_time, p.post_username, f.forum_name
+				FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . USERS_TABLE . " u2, " . FORUMS_TABLE . " f
+				WHERE 
+					$sql_forums
+					AND t.topic_poster = u.user_id
+					AND p.post_id = t.topic_last_post_id
+					AND p.poster_id = u2.user_id
+					AND $sql_filter
+					AND f.forum_id = t.forum_id
+				ORDER BY t.topic_type DESC, t.topic_last_post_id DESC
+				LIMIT 0, " . $to_display[$k];
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+		}
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$row['topic_id'] = POST_TOPIC_URL . $row['topic_id'];
+			$topic_rowset[] = $row;
+		}
+		$db->sql_freeresult($result);
+
+		// send this to box
+		$split_type = true;
+		$display_nav_tree = true;
+		$footer = '';
+		$inbox = false;
+		topic_list($box, 'topics_list_box', $topic_rowset, $title, $split_type, $display_nav_tree, $footer, $inbox );
+	} // end for $k = type of display
+}
+//-- fin mod : last topics from --------------------------------------------------------------------
+function get_db_stat($mode)
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+function get_db_stat($mode)
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( $userdata['user_id'] != ANONYMOUS )
+	{
+		if ( !empty($userdata['user_lang']))
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+	global $db, $mods, $list_yes_no, $userdata;
+
+	//	get all the mods settings
+	$dir = @opendir($phpbb_root_path . 'includes/mods_settings');
+	while( $file = @readdir($dir) )
+	{
+		if( preg_match("/^mod_.*?\." . $phpEx . "$/", $file) )
+		{
+			include_once($phpbb_root_path . 'includes/mods_settings/' . $file);
+		}
+	}
+	@closedir($dir);
+//-- fin mod : mods settings -----------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Set up style
+	//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+	include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		}
+
+		if ( empty($template) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+			include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : last topics from ------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this part is now handled in functions.php
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/mods_settings/mod_last_topics_from.' . $phpEx);
+//-- fin mod : last topics from --------------------------------------------------------------------
+$template->pparse('overall_header');
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+$template->pparse('overall_header');
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+last_topics_from($profiledata);
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+include_once( $phpbb_root_path . './includes/functions_last_topics_from.' . $phpEx );
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+# language keys has been moved to lang_extend_last_topics_from.php & lang_extend_mods_settings.php
+#
+<?php
+//-- mod : mods settings ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+$lang['Configuration_extend']	= 'Configuration +';
+$lang['Override_user_choices']	= 'Override user choices';
+//-- end of mod : mods settings --------------------------------------------------------------------
+?>
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+?>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : last topics from ------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+//-- add
+$lang['Topic_last']					= 'Last topics';
+$lang['Topic_last_settings']		= 'Last topics from a user';
+$lang['Topic_last_started']			= 'Last topics started by %s';
+$lang['Topic_last_started_title']	= 'Last topics started by a user';
+$lang['Topic_last_started_explain']	= 'Set here the number of the last topics the user started you want to display on profile view. 0 means no display.';
+$lang['Topic_last_replied']			= 'Last topics %s replied to';
+$lang['Topic_last_replied_title']	= 'Last topics a user replied to';
+$lang['Topic_last_replied_explain']	= 'Set here the number of the last topics the user replied you want to display on profile view. 0 means no display.';
+$lang['Topic_last_ended']			= 'Last topics %s ended';
+$lang['Topic_last_ended_title']		= 'Last topics a user ended';
+$lang['Topic_last_ended_explain']	= 'Set here the number of the last topics on which the user posted the last replied you want to display on profile view. 0 means no display.';
+$lang['Topic_last_split']			= 'Split the topics per type';
+$lang['Topic_last_split_explain']	= 'Add a separation row in the boxes per topics type (announcements, topics, and so).';
+$lang['Topic_last_forum']			= 'Forum';
+$lang['Topic_last_forum_explain']	= 'Display the forum title where the topic stands under the topic title';
+//-- fin mod : last topics from --------------------------------------------------------------------
+?>
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+?>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

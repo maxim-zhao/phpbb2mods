@@ -1,0 +1,178 @@
+############################################################## 
+## MOD Title: User Hide Anywhere
+## MOD Author: Brf < b.fermanich@insightbb.com  > (Brad Fermanich) http://castledoom.com/forum 
+## MOD Description: This MOD adds a button to any or all forum pages,
+##	which when clicked, toggles the user's Online/Hidden status
+## MOD Version: 1.0.1
+## 
+## Installation Level: Easy 
+## Installation Time: 3 Minutes 
+## Files To Edit: templates/subSilver/overall_header.tpl
+##		  includes/page_header.php
+##		  language/lang_english/lang_main.php
+## Included Files: root/ajax_hide_online.php
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: 
+##
+##	The button can be placed on any page separately, or within overall_header or overall_footer
+##	The contrib folder has also has instructions for creating a link, rather than a button  
+############################################################## 
+## MOD History: 
+##
+##   2006-11-15 - Version 1.0.1
+#	- Language strings, other minor fixes.
+##
+##   2006-11-04 - Version 1.0.0
+##	- Submitted 
+##
+##   2006-10-16 - Version 0.1.1
+##	- Corrected search for L_RANKS, which is not a standard menu item.
+##
+##   2006-10-08 - Version 0.1.0
+##	- Initial Release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy root/ajax_hide_online.php to ajax_hide_online.php
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+//
+// That's all, Folks!
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$lang['Hide'] = 'Hide';
+$lang['UnHide'] = 'UnHide';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/page_header.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'L_USERNAME' => $lang['Username'],
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	'L_HIDE' => $lang['Hide'],
+	'L_UNHIDE' => $lang['UnHide'],
+	'L_HIDE_STAT' => ($userdata['user_allow_viewonline'])?$lang['Hide']:$lang['UnHide'],
+	'U_AJAX_HIDE' => append_sid('ajax_hide_online.'.$phpEx),
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<!-- END switch_enable_pm_popup -->
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+<script language="javascript">
+<!-- 
+//initiates the XMLHttpRequest object
+//as found here: http://www.webpasties.com/xmlHttpRequest
+function getHideHTTPObject()
+{
+  var xmlhttp;
+  /*@cc_on
+  @if (@_jscript_version >= 5)
+    try {
+      xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+    } catch (e) {
+      try {
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+      } catch (E) {
+        xmlhttp = false;
+      }
+    }
+  @else
+  xmlhttp = false;
+  @end @*/
+  if (!xmlhttp && typeof XMLHttpRequest != 'undefined')
+	{
+    try
+		{
+      xmlhttp = new XMLHttpRequest();
+    }
+		catch (e)
+		{
+      xmlhttp = false;
+    }
+  }
+  return xmlhttp;
+}
+var objHttpHide = getHideHTTPObject();
+var btnHide;
+function doAjaxHide(btnClicked) {
+  btnHide=btnClicked;
+  url="";
+  rnd = Math.random().toString().substring(2);
+  url = '{U_AJAX_HIDE}';
+  objHttpHide.open("POST",url, true);
+  objHttpHide.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+  objHttpHide.onreadystatechange = handleHttpHide; 
+  objHttpHide.send('rnd='+rnd);
+}
+function handleHttpHide()
+{
+  if (objHttpHide.readyState == 4)
+	{
+	inString= objHttpHide.responseText;
+	if (inString.indexOf("xxxHIDDENxxx")>=0) {
+	    btnHide.value="{L_UNHIDE}";
+	    } else {
+	    btnHide.value="{L_HIDE}";
+	    }
+      }
+}
+//-->
+</script>
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# Note: This button can be added anywhere here in overall_header, in overall_footer, or on individual pages
+# This particular spot is the very end of the Main Menu
+#
+{L_USERGROUPS}</a>&nbsp;
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<input type="button" class="liteoption" value="{L_HIDE_STAT}" onclick="doAjaxHide(this)" style="width:70px" />
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

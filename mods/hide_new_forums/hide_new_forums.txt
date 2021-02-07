@@ -1,0 +1,152 @@
+##############################################################
+## MOD Title: Hide New Forums
+## MOD Author: drathbun < N/A > (Dave Rathbun) http://www.phpBBDoctor.com
+## MOD Description: 
+## MOD Version: 1.0.0
+##
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+## Files To Edit: admin/admin_forums.php, index.php, language/lang_english/lang_main.php
+## Included Files: 
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## This MOD solves a particularly irritating problem for many.
+## When you create a new forum the permissions default to: 
+## 
+## View: All (including guests) 
+## Read: All (including guests) 
+## Post: All (including guests) 
+## Reply: All (including guests) 
+## Edit: Registered Members 
+## Delete: Registered Members 
+## Sticky: Moderator 
+## Announcement: Moderator 
+## Vote: Registered Members 
+## Create Poll: Registered Members 
+## 
+## Now this is fine if you want people to be able to post
+## without registering. But many boards do not want guests to
+## be able to post. Another aspect of creating a new forum...
+## permissions are set at the forum level and not the category
+## level. If you have a category that has zero forums in it,
+## the category is not displayed. That works even if the
+## category has private forums. To a non-authorized visitor,
+## the category is empty because they don't have access to the
+## private forums. 
+## 
+## Now suppose you want to create a new private forum. For the
+## brief moment in between when you create the forum and you
+## get a chance to update the default permissions, that forum
+## is visible. If a member is online at that time, they will
+## see the new category! This may or may not be an issue for
+## you. 
+## 
+## In any case, this MOD will change the default permissions
+## for new forums. It will also append a tag to the forum
+## description if a forum is set to "ADMIN" for View.
+##############################################################
+## MOD History:
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+admin/admin_forums.php
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+$forum_auth_ary = array(
+	"auth_view" => AUTH_ALL, 
+	"auth_read" => AUTH_ALL, 
+	"auth_post" => AUTH_ALL, 
+	"auth_reply" => AUTH_ALL, 
+	"auth_edit" => AUTH_REG, 
+	"auth_delete" => AUTH_REG, 
+	"auth_sticky" => AUTH_MOD, 
+	"auth_announce" => AUTH_MOD, 
+	"auth_vote" => AUTH_REG, 
+	"auth_pollcreate" => AUTH_REG
+);
+
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+// BEGIN Hide New Forums 1.0.0 (www.phpBBDoctor.com) 
+$forum_auth_ary = array( 
+	'auth_view' => AUTH_ADMIN, 
+	'auth_read' => AUTH_ADMIN, 
+	'auth_post' => AUTH_ADMIN, 
+	'auth_reply' => AUTH_ADMIN, 
+	'auth_edit' => AUTH_ADMIN, 
+	'auth_delete' => AUTH_ADMIN, 
+	'auth_sticky' => AUTH_ADMIN, 
+	'auth_announce' => AUTH_ADMIN, 
+	'auth_vote' => AUTH_ADMIN, 
+	'auth_pollcreate' => AUTH_ADMIN 
+);
+// END Hide New Forums 1.0.0 (www.phpBBDoctor.com) 
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+index.php
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+			if ( $is_auth_ary[$forum_data[$j]['forum_id']]['auth_view'] && $forum_data[$j]['cat_id'] == $cat_id )
+			{
+				$display_forums = true;
+
+
+#
+#-----[ AFTER, ADD ]-------------------------------------
+#
+				// BEGIN Hide New Forums 1.0.0 (www.phpBBDoctor.com) 
+				if ($is_auth_ary[$forum_data[$j]['forum_id']]['auth_view_type'] == $lang['Auth_Administrators']) 
+				{ 
+					$forum_data[$j]['forum_desc'] .= $lang['Admin_only_forum']; 
+				} 
+				// END Hide New Forums 1.0.0 (www.phpBBDoctor.com) 
+
+
+
+#
+#-----[ OPEN ]-------------------------------------
+#
+language/lang_english/lang_main.php
+
+
+#
+#-----[ FIND ]-------------------------------------
+#
+?>
+
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+// BEGIN Hide New Forums 1.0.0 (www.phpBBDoctor.com) 
+$lang['Admin_only_forum'] = '<span style="color:red"> Admin Only Forum</span>'; 
+// END Hide New Forums 1.0.0 (www.phpBBDoctor.com) 
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

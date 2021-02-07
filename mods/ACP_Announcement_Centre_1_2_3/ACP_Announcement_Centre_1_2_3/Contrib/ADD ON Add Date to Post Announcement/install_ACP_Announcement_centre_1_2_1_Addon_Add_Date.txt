@@ -1,0 +1,109 @@
+##############################################################
+## MOD Title: ACP Site Announcement Centre - ADD ON - ADD DATE TO POST
+## MOD Author: lefty74 < lefty@lefty74.com > (Heiko Carstens) http://www.lefty74.com
+## MOD Description: 
+## MOD Version: 0.0.0
+## 
+## Installation Level: Easy
+## Installation Time: 5 minutes
+## Files To Edit: index.php
+## templates/subSilver/index_body.tpl
+## Included Files: 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+## Generator: Phpbb.ModTeam.Tools
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: Adds the date to the announcements when posts are used as announcements
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT p.post_id,
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+p.post_id, 
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+p.post_time, 
+#
+#-----[ FIND ]------------------------------------------
+#
+			if ($row = $db->sql_fetchrow($result))
+			{
+				
+				$row['post_text']	= smilies_pass($row['post_text']);
+				$row['post_text']	= bbencode_first_pass( $row['post_text'], $row['bbcode_uid'] );
+				$row['post_text']	= bbencode_second_pass ( $row['post_text'], $row['bbcode_uid'] );
+				$row['post_text']	= str_replace("\n", "\n<br />\n", $row['post_text']);
+				$announcement_text = $row['post_text'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+         if ( $row['post_time'] )
+         {
+         $announcement_date = $lang['Posted'] . ': ' . create_date('D M d, Y g:i a', $row['post_time'], $board_config['board_timezone']) . '</br></br>' ;
+         }
+         else
+         {
+         $announcement_date = '';
+         }
+
+#
+#-----[ FIND ]------------------------------------------
+#
+    'GUEST_ANNOUNCEMENTS_LEFTY74' => $announcement_guest_text, 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+    'ANNOUNCEMENT_DATE' => $announcement_date, 
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/index_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- BEGIN announcement_displayed -->
+<table width="100%" cellpadding="2" cellspacing="1" border="0" class="forumline"> 
+   <tr> 
+      <th class="thCornerL" height="25" nowrap="nowrap">&nbsp;{L_ANNOUNCEMENT_TITLE}&nbsp;</th> 
+   </tr> 
+   <tr> 
+      <td class="row1" width="100%"><span class="gen"><p align="center">{SITE_ANNOUNCEMENTS_LEFTY74}</p></span></td> 
+   </tr> 
+</table><br />
+<!-- END announcement_displayed -->
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+<!-- BEGIN announcement_displayed -->
+<table width="100%" cellpadding="2" cellspacing="1" border="0" class="forumline"> 
+   <tr> 
+      <th class="thCornerL" height="25" nowrap="nowrap">&nbsp;{L_ANNOUNCEMENT_TITLE}&nbsp;</th> 
+   </tr> 
+   <tr> 
+      <td class="row1" width="100%"><span class="gen"><p align="center"><span class="gensmall">{ANNOUNCEMENT_DATE}</span>{SITE_ANNOUNCEMENTS_LEFTY74}</p></span></td> 
+   </tr> 
+</table><br />
+<!-- END announcement_displayed -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

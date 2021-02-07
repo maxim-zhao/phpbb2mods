@@ -1,0 +1,377 @@
+############################################################## 
+## MOD Title: Latest active topics on index
+## MOD Author: zparta < zparta@hispan.se  > (Jens Holmqvist) http://www.hispan.se 
+## MOD Description: Show the latest active topics on index and the amout of topics to show is ACP changeable
+## MOD Version: 1.1.9 
+## 
+## Installation Level: Easy 
+## Installation Time: ~1 Minutes 
+## Files To Edit: index.php, templates/subSilver/index_body.tpl, language/lang_english/lang_main.php, language/lang_english/lang_admin.php, admin/admin_board.php, templates/subSilver/admin/board_config_body.tpl 
+## Included Files: n/a 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: this works with the global announcement mod has 
+## different picture for different kind of topic 
+## and only shows topics the user is allowed to view 
+## Thanks to: LifeIsPain for helping me with the auth part!! 
+## 
+############################################################## 
+## MOD History: 
+## 
+## 2005-05-31 - Version 1.1.9
+## - Fixed yet another validation error that me personaly think was uneseceray like put { and } on seperate lines :P
+## - They could just have sent me a PM about this and released it anyways since it didn't interfere with the funtionality but what to do, what to do.
+## 2005-05-28 - Version 1.1.8
+## - Fixed a bug where the new auth array stuff wouldnt be put to the right place
+## 2005-03-24 - Version 1.1.7
+## - Fixed two validation errors
+## 2005-03-05 - Version 1.1.6
+## - Fixed a validation error
+## 2005-03-01 - Version 1.1.5
+## - Fixed a small bug that made topics in forums that they where only allowed to know that it existed where displayed
+## - I have also tested it on a fresh install on phpBB 2.0.13 and it works like a charm
+## 2004-02-17 - Version 1.1.4
+## - Fixed validation problem
+## 2003-12-25 - Version 1.1.3
+## - Fixed categories hierarchy compability problem
+## 2003-11-01 - Version 1.1.2
+## - Fixed validation problem
+## 2003-10-27 - Version 1.1.1
+## - Fixed user profile bug
+## 2003-10-20 - Version 1.1.0
+## - Added amount of topics shown to be changeable by admin
+## 2003-10-20 - Version 1.0.9
+## - Changed the if statment to fit the coding standards
+## 2003-10-15 - Version 1.0.8
+## - Changed to last post in the topic instead of the first when cliking the link
+## 2003-10-11 - Version 1.0.7
+## - Fixed hardcoded language bug
+## 2003-10-11 - Version 1.0.6
+## - Fixed a minor bug with locked topics
+## 2003-10-11 - Version 1.0.5
+## - Fixed linkage and some mod-db compliant stuff
+## 2003-08-24 - Version 1.0.4 
+## - Fixed the linkage 
+## 2003-08-23 - Version 1.0.3 
+## - Fixed the 10 windows issue (template problem) 
+## 2003-08-07 - Version 1.0.2 
+## - Fixed the parse error 
+## 2003-08-07 - Version 1.0.1 
+## - Fixed the bug that it didn't show the first post 
+## 2003-08-07 - Version 1.0.0 
+## - Initial release should work just fine 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+#
+#-----[ SQL ]------------------------------------------ 
+#
+INSERT INTO phpbb_config ( config_name, config_value ) VALUES ('topics_on_index', '10');
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+$lang['marquee_topic'] = 'Last %s Active Topics';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['Enable_prune'] = 'Enable Forum Pruning';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$lang['Topics_on_index'] = 'How many topics to show in recent active topics';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"L_ENABLE_PRUNE" => $lang['Enable_prune'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	"L_TOPICS_ON_INDEX" => $lang['Topics_on_index'], 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"PRUNE_NO" => $prune_no, 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	"TOPICS_ON_INDEX" => $new['topics_on_index'], 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+index.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	//
+	// Start output of page
+	//
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// 
+// Obtain new post information for marquee 
+// of new posts 
+// 
+// 
+// Get Viewable Forums 
+// 
+// function to merge two auth arrays to one 
+function array_merge_replace($array, $newValues)
+{ 
+	foreach ($newValues as $key => $value)
+		{ 
+		if ( is_array($value) )
+		{ 
+			if ( !isset($array[$key]) )
+			{ 
+				$array[$key] = array(); 
+			} 
+			$array[$key] = array_merge_replace($array[$key], $value); 
+		}
+		else
+		{ 
+			if ( isset($array[$key]) && is_array($array[$key]) )
+			{ 
+				$array[$key][0] = $value; 
+			}
+			else
+			{ 
+				if ( isset($array) && !is_array($array) )
+				{ 
+					$temp = $array; 
+					$array = array(); 
+					$array[0] = $temp; 
+				} 
+				$array[$key] = $value; 
+			} 
+		} 
+	} 
+	return $array; 
+} 
+$ary = array(); 
+$ary2 = array(); 
+$ary = auth(AUTH_VIEW, AUTH_LIST_ALL, $userdata, $forum_data); 
+$ary2 = auth(AUTH_READ, AUTH_LIST_ALL, $userdata, $forum_data); 
+$is_auth_ary = array_merge_replace($ary, $ary2); 
+$auth_view_forum_sql = ''; 
+for($i = 0; $i < $total_categories; $i++) 
+{ 
+	$cat_id = $category_rows[$i]['cat_id']; 
+	$display_forums = false; 
+	for($j = 0; $j < $total_forums; $j++) 
+	{ 
+		if ( $is_auth_ary[$forum_data[$j]['forum_id']]['auth_view'] && $is_auth_ary[$forum_data[$j]['forum_id']]['auth_read'] && $forum_data[$j]['cat_id'] == $cat_id ) 
+		{ 
+			$display_forums = true; 
+			$auth_view_forum_sql .= ($auth_view_forum_sql == '' ? '' : ', ' ) . $forum_data[$j]['forum_id']; 
+		} 
+	} 
+} 
+$auth_view_forum_sql = ($auth_view_forum_sql == '' ? '(0)' : '(' . $auth_view_forum_sql . ')'); 
+
+// 
+// Get The Data 
+// 
+$template->assign_vars(array(
+	'MARQUEE_TOPIC' => str_replace("%s",$board_config['topics_on_index'],$lang['marquee_topic']) ) 
+);
+
+$sql = "SELECT t.topic_id, t.topic_title, t.topic_last_post_id, t.forum_id, t.topic_type, t.topic_status, p.post_id, p.poster_id, 
+	p.post_time, u.user_id, u.username, u.user_lastvisit 
+	FROM " . TOPICS_TABLE . " t, " . FORUMS_TABLE . " f, " . POSTS_TABLE . " p, " . USERS_TABLE . " u 
+	WHERE t.forum_id IN " . $auth_view_forum_sql . " AND t.topic_id = p.topic_id 
+	AND f.forum_id = t.forum_id 
+	AND t.topic_status <> 2 
+	AND p.post_id = t.topic_last_post_id 
+	AND p.poster_id = u.user_id 
+	ORDER BY t.topic_last_post_id DESC"; 
+
+if ( !($result = $db->sql_query($sql)) ) 
+{ 
+	message_die(GENERAL_ERROR, 'Could not query recent posts marquee information', '', __LINE__, __FILE__, $sql); 
+} 
+
+if ($row = $db->sql_fetchrowset($result)) 
+{ 
+	$db->sql_freeresult($result); 
+} 
+
+if( count($row) <= $board_config['topics_on_index'] ) 
+{ 
+	$topics = count($row); 
+} 
+else 
+{ 
+	$topics = $board_config['topics_on_index']; 
+} 
+
+for($i = 0; $i < $topics; $i++) 
+{ 
+	$mar_title = $row[$i]["topic_title"]; 
+	$mar_url = $phpbb_root_path . 'viewtopic.'.$phpEx.'?'.POST_TOPIC_URL.'='.$row[$i]["topic_id"]; 
+	$mar_user = $row[$i]["username"]; 
+	if ( $row[$i]["topic_status"] == TOPIC_LOCKED )
+	{
+		if ( $row[$i]["post_time"] > $row[$i]["user_lastvisit"] )
+		{
+			$pic = $images['folder_locked_new'];
+		}
+		else
+		{
+			$pic = $images['folder_locked'];
+		}
+	}
+	else
+	{
+		if ( $row[$i]["topic_type"] == POST_GLOBAL_ANNOUNCE )
+		{
+			if ( $row[$i]["post_time"] > $row[$i]["user_lastvisit"] )
+			{
+				$pic = $images['folder_global_announce_new'];
+			}
+			else
+			{
+				$pic = $images['folder_global_announce'];
+			}
+		} 
+		else if ( $row[$i]["topic_type"] == POST_ANNOUNCE )
+		{
+			if ( $row[$i]["post_time"] > $row[$i]["user_lastvisit"] )
+			{
+				$pic = $images['folder_announce_new'];
+			}
+			else
+			{
+				$pic = $images['folder_announce'];
+			}
+		} 
+		else if ( $row[$i]["topic_type"] == POST_STICKY )
+		{
+			if ( $row[$i]["post_time"] > $row[$i]["user_lastvisit"] )
+			{
+				$pic = $images['folder_sticky_new'];
+			}
+			else
+			{
+			$pic = $images['folder_sticky'];
+			}
+		} 
+		else { if ( $row[$i]["post_time"] > $userdata['user_lastvisit'] )
+		{
+			$pic = $images['folder_new']; }else{ $pic = $images['folder'];
+		}
+	}
+}
+$template->assign_block_vars('marqueerow', array( 
+	'FOLD_URL' => $pic, 
+	'TOPIC_TITLE' => $row[$i]["topic_title"], 
+	'TOPIC_URL' => append_sid($phpbb_root_path . 'viewtopic.'.$phpEx.'?'.POST_TOPIC_URL.'='.$row[$i]["topic_id"]), 
+	'USERNAME' => $row[$i]["username"], 
+	'USER_PROF' => append_sid($phpbb_root_path . 'profile.'.$phpEx.'?mode=viewprofile$amp;u='.$row[$i]["user_id"]), 
+	'POST_DATE' => create_date($board_config['default_dateformat'], $row[$i]["post_time"], $board_config['board_timezone']))
+	); 
+} 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/index_body.tpl 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<!-- END switch_user_logged_out --> 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<table width="100%" cellpadding="3" cellspacing="1" border="0" class="forumline" height="100%"> 
+	<tr> 
+		<td class="catHead" height="28"><a name="login"></a><span class="cattitle">{MARQUEE_TOPIC}</span></td> 
+	</tr> 
+	<tr> 
+		<td class="row1" valign="top"><span class="gen"> 
+			<marquee id="recent_topics" behavior="scroll" direction="up" height="100" scrolldelay="100" scrollamount="2"> 
+			<table cellpadding="4" cellSpacing="1" width="100%"> 
+<!-- BEGIN marqueerow --> 
+			<tr valign="top"> 
+				<td class="row2" vAlign="center" align="middle" width="20"> 
+					<img src="{marqueerow.FOLD_URL}"> 
+				</td> 
+				<td class="row2" width="352"> 
+					<span class="forumlink"><a href="{marqueerow.TOPIC_URL}" onMouseOver="document.all.recent_topics.stop()" onMouseOut="document.all.recent_topics.start()">{marqueerow.TOPIC_TITLE}</a></span> 
+					<span class="gensmall"><br /></span> 
+				</td> 
+				<td class="row2" vAlign="center" align="middle" width="78"> 
+					<span class="gensmall"><a href="{marqueerow.USER_PROF}" onMouseOver="document.all.recent_topics.stop()" onMouseOut="document.all.recent_topics.start()">{marqueerow.USERNAME}</a></span> 
+				</td> 
+				<td class="row2" vAlign="center" noWrap align="middle" width="100"> 
+				<span class="gensmall">{marqueerow.POST_DATE}</span> 
+				</td> 
+			</tr> 
+<!-- END marqueerow --> 
+			</table> 
+			</marquee> 
+		</td> 
+	</tr> 
+	</table> 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td class="row2"><input type="radio" name="prune_enable" value="1" {PRUNE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="prune_enable" value="0" {PRUNE_NO} /> {L_NO}</td>
+	</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_TOPICS_ON_INDEX}</td>
+		<td class="row2"><input class="post" type="text" name="topics_on_index" size="3" maxlength="2" value="{TOPICS_ON_INDEX}" /></td>
+	</tr>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

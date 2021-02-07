@@ -1,0 +1,73 @@
+##############################################################
+## MOD Title: Disallow editing replied posts
+## MOD Author: markus_petrux < phpbb.mods@phpmix.com > (Markus) http://www.phpmix.com
+## MOD Description: Disallows editing replied posts, except for Admins and Moderators.
+## MOD Version: 1.0.0
+## MOD url: http://www.phpmix.com
+##
+## Installation Level: (Easy)
+## Installation Time: 3 Minutes
+## Files To Edit: 2
+##    posting.php
+##    language/lang_english/lang_main.php
+## Included Files: 0
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+##
+##############################################################
+## MOD History:
+##
+## 2004/09/09 - 1.0.0
+## - Just changed version number to submit to MODs Database.
+##
+## 2004/09/08 - Beta 0.0.1
+## - Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$post_data['poster_id'] = $post_info['poster_id'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//+MOD: Disallow editing replied posts
+		if( $userdata['user_level'] != ADMIN && $userdata['user_level'] != MOD )
+		{
+			if( $post_id != $post_data['last_post'] )
+			{
+				message_die(GENERAL_MESSAGE, $lang['Cannot_edit_replied']);
+			}
+		}
+//-MOD: Disallow editing replied posts
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Cannot_delete_replied']
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: Disallow editing replied posts
+$lang['Cannot_edit_replied'] = "Sorry, but you may not edit posts that have been replied to.";
+//-MOD: Disallow editing replied posts
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

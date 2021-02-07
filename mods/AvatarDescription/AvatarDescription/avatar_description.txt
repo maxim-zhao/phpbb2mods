@@ -1,0 +1,439 @@
+##############################################################
+## MOD Title: Avatar Description
+## MOD Author: Konnketed < N/A > (N/A) N/A
+## MOD Description: This mod adds avatar description (avatar tooltip) to your forum.
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit: language/lang_english/lang_main.php
+## 	viewtopic.php
+## 	includes/usercp_viewprofile.php
+## 	includes/usercp_register.php
+## 	includes/usercp_avatar.php
+## 	admin/admin_users.php
+## 	templates/subSilver/profile_add_body.tpl
+## 	templates/subSilver/admin/user_edit_body.tpl
+## 	Included Files: n/a
+##
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+## Designed for boards, where Avatars should have description (celebrity name, PC case name,
+## car model, etc.)
+##
+## This MOD will install using EasyMOD!
+##
+##############################################################
+## MOD History: 
+##
+##   2005-05-18 - Version 1.0.0
+##      - initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------------------------
+#
+# change prefix from phpbb_ to an appropriate one
+ALTER TABLE phpbb_users ADD user_avatar_description VARCHAR(80) AFTER user_avatar_type;
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['View_avatar_gallery']
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Avatar_Description'] = 'Avatar description';
+#
+#-----[ OPEN ]------------------------------------------
+#
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$postrow[$i]['user_avatar_type'] && $poster_id
+{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$avatar_alt = ( $userdata['user_allowavatar'] ) ? $userdata['user_avatar_description'] : '';
+#
+#-----[ FIND ]------------------------------------------
+#
+case USER_AVATAR_UPLOAD:
+$poster_avatar
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+alt="
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+' . $avatar_alt . '
+#
+#-----[ FIND ]------------------------------------------
+#
+case USER_AVATAR_REMOTE:
+$poster_avatar
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+alt="
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+' . $avatar_alt . '
+#
+#-----[ FIND ]------------------------------------------
+#
+case USER_AVATAR_GALLERY:
+$poster_avatar
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+alt="
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+' . $avatar_alt . '
+#
+#-----[ OPEN ]------------------------------------------
+#
+#
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------
+# around line 84
+if ( $profiledata['user_avatar_type']
+{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	$avatar_alt = $userdata['user_avatar_description'];
+#
+#-----[ FIND ]------------------------------------------
+# around line 88
+case USER_AVATAR_UPLOAD:
+$avatar_img 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+alt="
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+' . $avatar_alt . '
+#
+#-----[ FIND ]------------------------------------------
+# around line 91
+case USER_AVATAR_REMOTE:
+$avatar_img
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+alt="
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+' . $avatar_alt . '
+#
+#-----[ FIND ]------------------------------------------
+# around line 94
+case USER_AVATAR_GALLERY:
+$avatar_img
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+alt="
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+' . $avatar_alt . '
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+# around line 109
+$strip_var_list = array('username'
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'interests' => 'interests'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, 'description' => 'description'
+#
+#-----[ FIND ]------------------------------------------
+# around line 222
+$signature = stripslashes($signature);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$description = stripslashes($description);
+#
+#-----[ FIND ]------------------------------------------
+# around line 519
+$sql = "UPDATE " . USERS_TABLE . "
+SET " . $username_sql . $passwd_sql
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$interests) . "'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_avatar_description = '" . str_replace("\'", "''", $description) . "'
+#
+#-----[ FIND ]------------------------------------------
+# around line 583
+$sql = "INSERT INTO " . USERS_TABLE . "
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+user_avatar_type
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_avatar_description
+#
+#-----[ FIND ]------------------------------------------
+# around line 584
+VALUES ($user_id
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$avatar_sql
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, '" . str_replace("\'", "''", $description) . "'
+#
+#-----[ FIND ]------------------------------------------
+# around line 748
+$signature = ($signature_bbcode_uid
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	$description = stripslashes($description);
+#
+#-----[ FIND ]------------------------------------------
+# around line 772
+$signature = ($signature_bbcode_uid
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	$description = $userdata['user_avatar_description'];
+#
+#-----[ FIND ]------------------------------------------
+# around line 821
+display_avatar_gallery($mode, $avatar_category
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$avatar_category
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $description
+#
+#-----[ FIND ]------------------------------------------
+# around line 838
+	if ( $user_avatar_type )
+	{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$avatar_alt = ( $userdata['user_allowavatar'] ) ? $userdata['user_avatar_description'] : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+case USER_AVATAR_UPLOAD:
+$avatar_img 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+alt="
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+' . $avatar_alt . '
+#
+#-----[ FIND ]------------------------------------------
+#
+case USER_AVATAR_REMOTE:
+$avatar_img 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+alt="
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+' . $avatar_alt . '
+#
+#-----[ FIND ]------------------------------------------
+#
+case USER_AVATAR_GALLERY:
+$avatar_img 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+alt="
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+' . $avatar_alt . '
+#
+#-----[ FIND ]------------------------------------------
+# around line 1023
+'AVATAR_SIZE' => $board_config['avatar_filesize'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'AVATAR_DESCRIPTION' => $description,
+		'L_AVATAR_DESCRIPTION' => $lang['Avatar_Description'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+#
+includes/usercp_avatar.php
+#
+#-----[ FIND ]------------------------------------------
+# around line 257
+function display_avatar_gallery
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+&$category
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, &$description
+#
+#-----[ FIND ]------------------------------------------
+# around line 333
+$params = array('coppa', 'user_id'
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'signature'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, 'description'
+#
+#-----[ OPEN ]------------------------------------------
+#
+#
+admin/admin_users.php 
+#
+#-----[ FIND ]------------------------------------------
+# around line 266
+$user_avatar_type = ( empty($user_avatar_loc) ) ? $this_userdata['user_avatar_type'] : '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$description = ( !empty($HTTP_POST_VARS['description']) ) ? trim(strip_tags( $HTTP_POST_VARS['description'] ) ) : '';
+#
+#-----[ FIND ]------------------------------------------
+# around line 289
+$signature = htmlspecialchars(stripslashes($signature));
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			$description = htmlspecialchars(stripslashes($description));
+#
+#-----[ FIND ]------------------------------------------
+# around line 656
+$sql = "UPDATE " . USERS_TABLE . "
+SET " . $username_sql . $passwd_sql .
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$avatar_sql . "
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_avatar_description = '" . str_replace("\'", "''", $description) . "'
+#
+#-----[ FIND ]------------------------------------------
+# around line 723
+$signature = htmlspecialchars(stripslashes($signature));
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			$description = htmlspecialchars(stripslashes($description));
+#
+#-----[ FIND ]------------------------------------------
+# around line 782
+$user_avatar_type = $this_userdata['user_avatar_type'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$description = htmlspecialchars($this_userdata['user_avatar_description']);
+#
+#-----[ FIND ]------------------------------------------
+# around line 894
+$s_hidden_fields .= '<input type="hidden" name="signature"
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="description" value="' . str_replace("\"", "&quot;", $description) . '" />'; 
+#
+#-----[ FIND ]------------------------------------------
+# around line 1000
+'SIGNATURE' => str_replace('<br />', "\n", $signature),
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'AVATAR_DESCRIPTION' => $description,
+			'L_AVATAR_DESCRIPTION' => $lang['Avatar_Description'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- END switch_avatar_local_gallery -->
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_AVATAR_DESCRIPTION}:</span></td>
+	  <td class="row2"><input type="text" class="post" style="width: 200px" name="description" size="35" maxlength="80" value="{AVATAR_DESCRIPTION}" /> </td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- END avatar_local_gallery -->
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_AVATAR_DESCRIPTION}:</span></td>
+	  <td class="row2"><input type="text" class="post" style="width: 200px" name="description" size="35" maxlength="80" value="{AVATAR_DESCRIPTION}" /> </td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

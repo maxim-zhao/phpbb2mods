@@ -1,0 +1,1 @@
+This MOD is written primarily using XML. As of this writing easyMOD does not support this format. A version in the older text format has been included in the '/contrib' directory for use with easyMOD.

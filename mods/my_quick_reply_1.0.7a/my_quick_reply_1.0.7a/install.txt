@@ -1,0 +1,412 @@
+##############################################################
+## MOD Title: My Quick Reply
+## MOD Author: smitjel < autiger02@gmail.com > (Lee Smith) N/A
+## MOD Author: Smartor < smartor_xp@hotmail.com > (Hoang Ngoc Tu) http://smartor.is-root.com
+## MOD Description: This mod adds a quick reply form below every topic. User has the ability
+## to quote the last post and attach signature. Addons include the ability to lock or unlock
+## a topic with a quick reply post, use the post subject field, use the quick reply in a
+## static sense without the quick reply button and also to subscribe to the topic with a quick reply post.
+## MOD Version: 1.0.7a
+##
+## Installation Level: Easy
+## Installation Time: 5 Minutes
+## Files To Edit: 6
+##		viewtopic.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/viewtopic_body.tpl
+##		templates/subSilver/overall_header.tpl
+##		templates/subSilver/posting_smilies.tpl
+##		templates/subSilver/subSilver.cfg
+##
+## Included Files: quick_reply.gif
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## Features:
+##	- option to quote last post
+##	- option to attach signature
+##	- dhtml show/hide quick reply form
+##	- show smilies popup
+##
+## Addons included allow for the use of the post subject field, for
+## mods/admins to lock or unlock a topic with a quick reply post and to convert
+## the quick reply form into a static sense, without the show/hide functionality.  An addon to
+## allow members to subscribe to the topic as they post is also included.  Two lock/unlock
+## addons are included for use with the indicated mods.  Both addons look exactly the same
+## but obviously "add on" to different mods.  Choose only one to install, not both.
+##
+## Thanks to -=ET=- for the quick reply graphic.
+## http://www.golfexpert.net/phpbb/
+##
+## Thanks to Smartor for his original quick reply with quote mod:
+## http://smartor.is-root.com/viewtopic.php?t=1812
+##
+##############################################################
+## MOD History:
+##
+##   2007-09-05 - Version 1.0.7a
+##      - Quick reply form is now using POST_TOPIC_URL constant
+##      - Added labels to checkboxes in quick reply form for accessibility
+##
+##   2007-04-28 - Version 1.0.7
+##      - Corrected bug where quick reply broke watch topic status
+##      - Modified notify-reply addon for 1.0.7 compatibility
+##
+##   2006-06-27 - Version 1.0.6
+##      - Added notify on reply addon
+##      - Attach sig checkbox only appears for users logged in
+##      - Attach sig checkbox "state" reflects user profile "Always attach my signature" option
+##
+##   2006-04-15 - Version 1.0.5
+##      - Added lock/unlock addon for drathbuns's mod
+##      - Replaced alternate use notes with static quick reply form addon
+##      - Added Dutch translation
+##
+##   2006-03-23 - Version 1.0.4
+##      - Removed previous changes to smilies link on viewtopic.php
+##      - Added Romanian translation
+##
+##   2006-03-12 - Version 1.0.3
+##      - Corrected smilies link on viewtopic.php
+##      - Reworked some find statements in viewtopic_body.tpl
+##
+##   2006-02-20 - Version 1.0.2
+##      - Made mod more EM friendly
+##      - Added Spanish translation
+##
+##   2006-02-08 - Version 1.0.1 
+##      - Added post subject addon
+##
+##   2006-02-05 - Version 1.0.0 
+##      - Initial release
+##
+##   2006-02-05 - Version 0.7.1
+##      - Corrected lock/unlock template switches 
+##
+##   2006-02-03 - Version 0.7.0
+##      - Moved all HTML code to viewtopic_body template
+##      - Added ability for guests to see quick reply form if guests have reply privileges
+##      - Added notes for alternate use
+##
+##   2005-10-22 - Version 0.5.0
+##      - Reworked quick reply button into a template switch per mod team suggestions
+##
+##   2005-10-12 - Version 0.3.0
+##      - Added quick reply image to the subSilver.cfg
+##      - Added minor tweaks per MOD team suggestions
+##
+##   2005-09-13 - Version 0.1.0 
+##      - Initial development release.
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy quick_reply.gif to templates/subSilver/images/lang_english/quick_reply.gif
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// My Quick Reply mod
+$lang['Quick_Reply'] = 'Quick Reply';
+$lang['QR_Attach_Sig'] = 'Attach Signature';
+$lang['Show_Smilies'] = 'Show Smilies';
+$lang['Quote_Last_Post'] = 'Quote Last Post';
+// My Quick Reply mod
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+</head>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+<!-- My Quick Reply Mod -->
+<script language="javascript" type="text/javascript">
+function qr_show_hide() {
+	var id = 'qr_open';
+	var item = null;
+
+	if (document.getElementById) {
+		item = document.getElementById(id);
+	}
+	else if (document.all) {
+		item = document.all[id];
+	}
+	else if (document.layers) {
+		item = document.layers[id];
+	}
+
+	if (item && item.style) {
+		if (item.style.display == "none") {
+			item.style.display = "";
+		}
+		else {
+			item.style.display = "none";
+		}
+	}
+	else if (item) {
+		item.visibility = "show";
+	}
+}
+</script>
+<!-- My Quick Reply Mod -->
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/posting_smilies.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if (opener.document.forms['post'].message.createTextRange && opener.document.forms['post'].message.caretPos) {
+	
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	if (eval(opener.document.forms['post'].input)) {
+		if (opener.document.forms['post'].input.createTextRange && opener.document.forms['post'].input.caretPos) {
+			var caretPos = opener.document.forms['post'].input.caretPos;
+			caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text + ' ' : text;
+			opener.document.forms['post'].input.focus();
+		} else {
+		opener.document.forms['post'].input.value  += text;
+		opener.document.forms['post'].input.focus();
+		}
+	}
+	else {
+	
+#
+#-----[ FIND ]------------------------------------------
+#
+	opener.document.forms['post'].message.value  += text;
+	opener.document.forms['post'].message.focus();
+	}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+</table>
+
+<table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	<!-- BEGIN switch_my_quick_reply -->
+	<script type="text/javascript">
+	function checkForm() {
+		formErrors = false;
+		document.post.message.value = '';
+		if (document.post.input.value.length < 2) {
+			formErrors = '{MQR_EMPTY_MESSAGE}';
+		}
+		if (formErrors) {
+			alert(formErrors);
+			return false;
+		} else {
+			if (document.post.quick_quote.checked) {
+				document.post.message.value = document.post.last_msg.value;
+			}
+			document.post.message.value += document.post.input.value;
+			return true;
+		}
+	}
+	</script>
+	<form action="{MQR_FORM_ACTION}" method="post" name="post" onsubmit="return checkForm()">
+	<tbody id="qr_open" style="display:none; position:relative;">
+	<tr>
+		<th class="thLeft" height="26" nowrap="nowrap" width="150">{MQR_LANG_OPTIONS}</th>
+		<th class="thRight" nowrap="nowrap">{MQR_LANG_QUICK_REPLY}</th>
+	</tr>
+	<tr>
+		<td class="row1 gensmall" align="left" valign="middle" width="150">
+			<a href="{MQR_SMILIES_URL}" onclick="window.open('{MQR_SMILIES_URL}', '_phpbbsmilies', 'HEIGHT=300,resizable=yes,scrollbars=yes,WIDTH=250');return false;" target="_phpbbsmilies">{MQR_LANG_SHOW_SMILIES}</a><br /><br />
+			<input type="checkbox" name="quick_quote" id="quick_quote" /><label for="quick_quote">{MQR_QUOTE_LAST_POST}</label>
+			<!-- BEGIN switch_member_functions -->
+			<br /><input type="checkbox" name="attach_sig" id="attach_sig" {switch_my_quick_reply.switch_member_functions.MQR_ATTACH_SIG_STATUS} /><label for="attach_sig">{switch_my_quick_reply.switch_member_functions.MQR_ATTACH_SIG}</label>
+            <input type="hidden" name="notify" value="{switch_my_quick_reply.switch_member_functions.MQR_NOTIFY_STATUS}" />
+			<!-- END switch_member_functions -->
+		</td>
+		<input type="hidden" name="mode" value="reply" />
+		<input type="hidden" name="sid" value="{MQR_SESSION_ID}" />
+		<input type="hidden" name="{MQR_POST_TOPIC_URL}" value="{MQR_TOPIC_ID}" />
+		<input type="hidden" name="message" value="" />
+		<input type="hidden" name="last_msg" value='{MQR_LAST_MSG}' />
+		<td class="row1" valign="top">
+			<table width="100%" border="0" cellspacing="0" cellpadding="0">
+				<tr>
+					<td class="row1" valign="top">
+						<textarea name="input" cols="70" rows="7" wrap="virtual" style="width:100%" class="post"></textarea>
+						<table width="100%" border="0" cellspacing="0" cellpadding="0">
+							<tr align="center">
+							<td>
+								<input type="submit" name="preview" class="liteoption" value="{MQR_LANG_PREVIEW}" />&nbsp;<input type="submit" name="post" class="mainoption" value="{MQR_LANG_SUBMIT}" />
+							</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	</tbody>
+	</form>
+	<!-- END switch_my_quick_reply -->
+
+#
+#-----[ FIND ]------------------------------------------
+#	
+	<td align="left" valign="middle" nowrap="nowrap"><span class="nav"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" align="middle" /></a>&nbsp;&nbsp;&nbsp;<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" /></a></span></td>
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	<td align="left" valign="middle" nowrap="nowrap"><span class="nav"><a href="{U_POST_NEW_TOPIC}"><img src="{POST_IMG}" border="0" alt="{L_POST_NEW_TOPIC}" align="middle" /></a>&nbsp;&nbsp;&nbsp;<a href="{U_POST_REPLY_TOPIC}"><img src="{REPLY_IMG}" border="0" alt="{L_POST_REPLY_TOPIC}" align="middle" /></a>
+	<!-- BEGIN switch_my_quick_reply -->
+	&nbsp;&nbsp;<a href="javascript:qr_show_hide();"><img src="{QUICK_REPLY_IMG}" border="0" alt="{L_QUICK_REPLY}" align="middle" /></a>
+	<!-- END switch_my_quick_reply -->	
+	</span></td>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'REPLY_IMG' => $reply_img,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+    // My Quick Reply mod
+    'QUICK_REPLY_IMG' => $images['quick_reply'],
+    'L_QUICK_REPLY' => $lang['Quick_Reply'],
+    // My Quick Reply mod
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->pparse('body');
+
+include($phpbb_root_path . 'includes/page_tail.'.$phpEx);
+
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//
+// My Quick Reply Mod
+//
+if ((($is_auth['auth_reply']) && ($forum_topic_data['forum_status'] != FORUM_LOCKED) && ($forum_topic_data['topic_status'] != TOPIC_LOCKED)) || ($is_auth['auth_mod'])) {
+
+	$template->assign_block_vars('switch_my_quick_reply',array() );
+	
+	if ( $userdata['session_logged_in'] ) {
+
+        $attach_sig = $userdata['user_attachsig'] ? ' checked="checked"':'';
+		
+		if (($can_watch_topic && $is_watching_topic) || $userdata['user_notify']) {
+            $notify_user = 'checked';
+        }
+
+		$template->assign_block_vars('switch_my_quick_reply.switch_member_functions',array(
+			'MQR_ATTACH_SIG' => $lang['QR_Attach_Sig'],
+			'MQR_NOTIFY_STATUS' => $notify_user,
+			'MQR_ATTACH_SIG_STATUS' => $attach_sig)
+		);
+	}
+    
+	$bbcode_uid = $postrow[$total_posts - 1]['bbcode_uid'];
+	$last_poster = $postrow[$total_posts - 1]['username'];
+	$last_msg = $postrow[$total_posts - 1]['post_text'];
+	$last_msg = str_replace(":1:$bbcode_uid", "", $last_msg);
+	$last_msg = str_replace(":u:$bbcode_uid", "", $last_msg);
+	$last_msg = str_replace(":o:$bbcode_uid", "", $last_msg);
+	$last_msg = str_replace(":$bbcode_uid", "", $last_msg);
+	$last_msg = str_replace("'", "&#39;", $last_msg);
+	$last_msg = "[QUOTE=\"$last_poster\"]" . $last_msg . "[/QUOTE]";
+	
+	$smilies_link = append_sid("posting.$phpEx?mode=smilies");
+
+	$template->assign_vars(array(
+		'MQR_EMPTY_MESSAGE' => $lang['Empty_message'],
+		'MQR_FORM_ACTION' => append_sid("posting.$phpEx"),
+		'MQR_LANG_OPTIONS' => $lang['Options'],
+		'MQR_LANG_QUICK_REPLY' => $lang['Quick_Reply'],
+		'MQR_LANG_SHOW_SMILIES' => $lang['Show_Smilies'],
+		'MQR_QUOTE_LAST_POST' => $lang['Quote_Last_Post'],
+		'MQR_SESSION_ID' => $userdata['session_id'],
+        'MQR_POST_TOPIC_URL' => POST_TOPIC_URL,
+		'MQR_TOPIC_ID' => $topic_id,
+		'MQR_LAST_MSG' => $last_msg,
+		'MQR_SMILIES_URL' => $smilies_link,
+		'MQR_LANG_PREVIEW' => $lang['Preview'],
+		'MQR_LANG_SUBMIT' => $lang['Submit'])
+	);
+}
+//
+// My Quick Reply Mod
+//
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// My Quick Reply Mod
+$images['quick_reply'] = "$current_template_images/{LANG}/quick_reply.gif";
+// End My Quick Reply Mod
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

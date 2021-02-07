@@ -1,0 +1,95 @@
+##############################################################
+## MOD Title: Thanks for Posting
+## MOD Author: markus_petrux < phpbb.mods@phpmix.com > (Markus) http://www.phpmix.com
+## MOD Description: This MOD changes the message issued after posting on a forum without read access.
+##                  The user is sent to the forum index instead of to the login form.
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+## Files To Edit: 2
+##    posting.php
+##    language/lang_english/lang_main.php
+## Included Files: 0
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## This MOD might be useful for instance to create a Contact Us form.
+##
+## To do so:
+##
+## 1) Create a new forum, name it, for instance "Contact Us".
+##
+## 2) Set all permissions to MOD, but allow Post to Guests.
+##
+## At this point, annonymous users can post to this forum, but can't view/read it (it's hidden).
+##
+## 3) Finally, create a new link to allow them to post easilly:
+##
+##    <a href="http://www.example.com/forum/posting.php?mode=newtopic&f=xx">Contact Us</a>
+##
+## A guest can't see the forum, but will be able to post!
+##
+## When a guest uses this form to send a message to the hidden forum, it will be redirected
+## to the login form as (s)he is not allowed to view/read this hidden forum.
+##
+## However, with this MOD, it will be redirected to the forum index instead.
+##
+## Got it? :-)
+##
+##############################################################
+## MOD History:
+##
+## 2004/11/17 - 1.0.0
+## - Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ( $mode == 'newtopic' || $mode == 'reply' )
+		{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: Thanks for Posting MOD
+			if ( !$is_auth['auth_read'] )
+			{
+				$return_meta = '<meta http-equiv="refresh" content="5;url=' . append_sid("index.$phpEx") . '">';
+				$return_message = $lang['Thanks_for_posting'] . '<br /><br />' . sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a> ');
+			}
+//-MOD: Thanks for Posting MOD
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+#  NOTE --- Remember to do this for all installed languages
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['No_post_mode'] =
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//+MOD: Thanks for Posting MOD
+$lang['Thanks_for_posting'] = "Thanks for taking the time to drop us a note. We'll try to contact you as soon as possible.";
+//-MOD: Thanks for Posting MOD
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

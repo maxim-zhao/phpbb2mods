@@ -1,0 +1,737 @@
+############################################################## 
+## MOD Title:		Save posts as drafts (upgrade from 1.0.18a to 1.0.19)
+## MOD Author:		asinshesq < N/A > (Alan) N/A
+## MOD Description:	Allow users to save their posts or pms as drafts so they can begin a post or pm
+##			and finish it later. Since it is a draft, others will not see it until it is done.
+##
+## MOD Version:		upgrade from 1.0.18a to 1.0.19
+## 
+## Installation Level:	Easy
+## Installation Time:	5 Minutes ( 1 minute with easymod) 
+##
+## Files To Edit:	privmsg.php
+##			search.php
+##			includes/constants.php
+##			templates/subSilver/search_results_posts.tpl
+##			templates/subSilver/search_results_topics.tpl
+##
+## Included Files:	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:	This is an upgrade mod.  You must already have version 1.0.18a installed in order to use this mod.
+############################################################## 
+## MOD History:
+##
+##   2005-08-06	- Version 1.0.19
+##		  added capability to save pms as drafts;
+##
+##		  fixed error in search.php that sometimes created a 'warning' in the php error log;
+##
+##		  changed the font style for draft links from "gen" to 'topictitle' (to match with other search result links) 
+##
+##   2005-07-30	- Version 1.0.18a
+##		  small change to search_results templates to assure that you only see the "Your Posts" and 
+##		  the "Topics You Have Posted To" headings in egosearch and not in other searches
+##
+##   2005-07-23	- Version 1.0.18
+##		  adds new link on index page (and renames the old one) so that user can choose to see his drafts
+##		  and posts (listed by post) or see his drafts and the topics to which he has posted;
+##
+##		  shows user his drafts even if the user has no real posts;
+##		  
+##		  adds number of drafts to total number of search matches shown at the top of the results page;
+##
+##		  adds additional columns in drafts table showing for each draft: the name of the forum in which
+##		  the draft will be posted, the subject of the draft (or the topic title if no subject) and 
+##		  the time the draft was written or edited
+##
+##   2005-03-04	- Version 1.0.17c
+##		  made additional minor changes required for mod validation (no changes in functionality)
+##
+##   2005-02-19	- Version 1.0.17b
+##		  made additional minor changes required for mod validation (no changes in functionality)
+##
+##   2005-01-28	- Version 1.0.17a
+##		  made minor changes required for mod validation (no changes in functionality)
+##
+##   2005-01-10	- Version 1.0.17
+##		  added draft prune functions (note that auto prune will only work if you enable pruning in the ACP configuration page);
+##		  changed draft delete checkbox to draft delete button; added number of drafts and drafts per user to Forum stats in ACP;
+##		  fixed a post count and pagination error in search.php; fixed an error where if the user clicked to 
+##		  page 2 or higher in the draft and post list and then went back to page 1 the draft list would no longer be there;
+##		  changed it so that a guest who is not logged in will not see the save as drafts button; and
+##		  deleted a spurious reference to switch_not_save_a_draft_button that is no longer needed as a result of version 1.0.16 changes.
+##
+##   2004-11-15	- Version 1.0.16
+##		  fixed the treatment of polls in drafts so that they do not get lost when the draft is submitted as a real post;
+##		  corrected small error in prune.php that would result in pruning deleting drafts; and simplified posting_body.tpl so that
+##		  it no longer uses a <!-- END switch_not_save_as_draft_button --> concept (so that privmsg.php will not get messed up for people with PCP mod); as a result, got rid of all changes to privmsg.php 
+##
+##   2004-10-04	- Version 1.0.15
+##		  corrected small error in functions_admin.php that counted drafts as posts when it tries to sync a single topic.
+##
+##   2004-09-18	- Version 1.0.14
+##		  corrected small error in search.php that allowed it to count a draft as a new post when you click the new posts link on the index page;
+##		  also corrected problem in functions_admin.php that counted drafts as posts when it tries to sync a forum or topic (e.g. when you hit 'resync' in the forum management part of the ACP);
+##		  and modified things so that a user who isn't generally authorized to delete his own posts can now delete his own drafts
+##
+##   2004-09-05	- Version 1.0.13
+##		  no change in functionality...just changed method of inserting draft as a new post when you finally submit a draft (since method used in version 1.0.11 had some unnecessary steps in it); 
+##
+##   2004-09-02	- Version 1.0.12
+##		  broke up large find and replace blocks in mod to smaller bits as needed to get validation...no change in the coding from version 1.1.11; 
+##
+##   2004-08-29	- Version 1.0.11
+##		  changed mod so that it in effect creates a brand new post (with a new post_id and, if the post is a new topic, a brand new topic_id) when a draft finally gets submitted;
+##		  the old draft post (and topic if the draft is a new topic) get deleted when the new one is created;
+##		  since post_id now will always fall in same order as post_time, got rid of the changes that had been in prior drafts to places where sorts were done by post_id;
+##		  as a result, the order of post_id of all final posts is now the same as the order of post_time of all final posts (not critical but nice);
+##		  also fixed a minor error where a BEGIN_TRANSACTION statement did not have a corresponding END_TRANSACTION statement when the user saved the post as a draft (which
+##		  could have slowed up the board a bit when a user saves a draft)
+##
+##   2004-08-22	- Version 1.0.10
+##		  tweaked the mod so that post_id and topic_id get updated at the time the draft is finally submitted as real (so that there are never any 'sort' bugs)
+##
+##   2004-08-20	- Version 1.0.9
+##		  corrected the fix in 1.0.8
+##
+##   2004-08-20	- Version 1.0.8
+##		  fixed an error that prevented any regular users who are not moderators from deleting their own drafts
+##
+##   2004-08-06	- Version 1.0.7
+##		  fixed aditional errors in viewtopic that could have caused wrong displays when user hits newest or previous or next in a topic where there are unsubmitted drafts
+##
+##   2004-08-05	- Version 1.0.6
+##		  fixed an error in viewtopic that caused wrong pagination on occassion when there were umsubmitted drafts in a topic
+##
+##   2004-07-24	- Version 1.0.5
+##		  fixed a number of minor bugs and cleaned up code
+##
+##   2004-07-23	- Version 1.0.4
+##		  fixed privmsg.php so that submit and preview buttons show up on pm posts
+##
+##   2004-07-23	- Version 1.0.3
+##		  fixed minor problem where reply notifications didn't go out and post didn't get marked as new when you finally submit draft as a live post
+##
+##   2004-07-23	- Version 1.0.2
+##		  fixed minor problem where board stats didn't get updated after you finally submit a draft as a live post
+##
+##   2004-07-18	- Version 1.0.1
+##		  first release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$save = ( isset($HTTP_POST_VARS['save']) ) ? TRUE : 0;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts...check to see if this is a draft and set parameters accordingly
+if ( isset($HTTP_POST_VARS['save_as_draft']) )
+{
+	$save_as_draft = TRUE;
+	$submit = TRUE;
+}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$mode = htmlspecialchars($mode);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	// start mod save posts as drafts...check if this is a draft and if so set a flag ($was_a_draft) and set $mode to be 'edit'
+	if ( $mode == 'draft' )
+	{
+		$was_a_draft = TRUE;
+		$mode = 'edit';
+	}
+	// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+else if ( ( $delete && $mark_list ) || $delete_all )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...changed the next if statment to ensure that if the post is a draft being edited,
+// the user will be have a button to delete the draft
+else if ( ( $delete && $mark_list ) || ( $delete && $was_a_draft ) || $delete_all )
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( !$confirm )
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+	// start mod save posts as drafts...added teh folowing block of code to get the privmsgs_id if you are deleting a draft
+	if ( $was_a_draft )
+	{
+		if ( !empty($HTTP_POST_VARS[POST_POST_URL]) || !empty($HTTP_GET_VARS[POST_POST_URL]) )
+		{
+			$privmsgs_id = ( !empty($HTTP_POST_VARS[POST_POST_URL]) ) ? intval($HTTP_POST_VARS[POST_POST_URL]) : intval($HTTP_GET_VARS[POST_POST_URL]);
+		}
+		else
+		{
+			message_die(GENERAL_ERROR, $lang['No_post_id']);
+		}
+	}
+	// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		//
+		// Output confirmation page
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+		// start mod save posts as drafts ... added the following block of code to pass the draft info and privmsg_id 
+		// onto the confirmation template when deleteing a draft pm
+		if ( $was_a_draft )
+		{
+			$s_hidden_fields .= '<input type="hidden" name="mode" value="draft" />';
+			$s_hidden_fields .= '<input type="hidden" name="' . POST_POST_URL . '" value="' . $privmsgs_id . '" />';
+		}
+		// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$delete_sql_id = "AND privmsgs_id IN ($delete_sql_id)";
+		}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		// start mod savae posts as drafts ... added the following block of code to specify, when a draft is being finally submitted, that the
+		// pm was a draft and to specify the privmsg_id
+		// (note: also added a reference to case 'draft' in the enxt 'switch' and changed the $delete_type reference in that switch to 
+		// refer to $privmsgs_new_or_draft_mail rather than PRIVMSGS_NEW_MAIL)
+		if ( $was_a_draft )
+		{
+			$delete_sql_id = "AND privmsgs_id = $privmsgs_id ";
+			$folder = 'draft';
+			$privmsgs_new_or_draft_mail = PRIVMSGS_DRAFT_MAIL;
+		}
+		else
+		{
+			$privmsgs_new_or_draft_mail = PRIVMSGS_NEW_MAIL;
+		}
+		// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			case 'outbox':
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+			case 'draft':
+				// start mod save posts as drafts (and end mod too)...added case 'draft' above and changed PRIVMSGS_NEW_MAIL to $privmsgs_new_or_draft_mail below
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: actual line is longer
+				$delete_type = "privmsgs_from_userid = " . 
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+PRIVMSGS_NEW_MAIL
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+$privmsgs_new_or_draft_mail
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					$delete_sql .= "privmsgs_from_userid = " . $userdata['user_id'] . " AND (
+
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+				case 'draft':
+					// start mod save posts as drafts (and end mod too)...added case 'draft' above and changed PRIVMSGS_NEW_MAIL to $privmsgs_new_or_draft_mail below
+
+#
+#-----[ FIND ]------------------------------------------------
+# note:actual line is longer
+						privmsgs_type = " . PRIVMSGS_NEW_MAIL
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+PRIVMSGS_NEW_MAIL
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+$privmsgs_new_or_draft_mail
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			if ( !$db->sql_query($delete_text_sql, END_TRANSACTION) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete private message text', '', __LINE__, __FILE__, $delete_text_sql);
+			}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+			// start mod save posts as drafts ... added the next block of code to redirect to the index if this is a draft being deleted
+			if ( $was_a_draft )
+			{
+				$redirect = "index.$phpEx?";
+				redirect(append_sid($redirect, true));
+			}
+			// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if ( $mode != 'edit' )
+		{
+			//
+			// See if recipient is at their inbox limit
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		// start mod save posts as drafts
+
+		// add definition of privmsgs_new_or_draft_mail for use in two sql definitions appearing later on 
+		// (note that I do not have a comment in those two definitions
+		// saying that I have modified them so search for the new variable if you want to see where they are);
+		$privmsgs_new_or_draft_mail = ( $save_as_draft ) ? PRIVMSGS_DRAFT_MAIL : PRIVMSGS_NEW_MAIL;		
+
+		// changed the if statement below so that the check versus the recipient's inbox capacity
+		// will occur not only for a new pm ($mode != 'edit ) but also for an old pm that has been saved as
+		// draft and is only now being submitted as a live pm
+		if ( $mode != 'edit' || ( $was_a_draft && !$save_as_draft ) )
+		{
+			// start mod save posts as drafts (and end mod too) ...added the if clause to avoid executing the inbox limits code when this is being saved as draft
+			if ( !$save_as_draft )
+			{
+			//
+			// See if recipient is at their inbox limit
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: actual line is longer
+			$sql_info = "INSERT INTO " . PRIVMSGS_TABLE . " (privmsgs_type, 
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+			// start mod save posts as drafts (and end mod too)...added the close bracket that ties to the if statement added earlier by this mod
+			}
+			
+#
+#-----[ FIND ]------------------------------------------------
+# note: actual line is longer
+				VALUES (" . PRIVMSGS_NEW_MAIL . "
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+PRIVMSGS_NEW_MAIL
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+$privmsgs_new_or_draft_mail
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		else
+		{
+			$sql_info = "UPDATE " . PRIVMSGS_TABLE . "
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		// start mod save posts as drafts (and end mod too)...change the next line to test if $mode = 'edit') rather than 
+		// using an else statement since I changed the prior if statement to execute not only when $mode != 'edit' but also when the pm
+		// is an old draft that is now finally getting submitted as a live pm...in that case the sql definition below will
+		// simply overwrite the sql definition in the prior if clause so that the actual sql query will properly be an update rather than an insert
+		if ( $mode == 'edit' )
+		{
+			$sql_info = "UPDATE " . PRIVMSGS_TABLE . "
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: actual line is longer
+				SET privmsgs_type = " . PRIVMSGS_NEW_MAIL . "
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+PRIVMSGS_NEW_MAIL
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+$privmsgs_new_or_draft_mail
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+		if ( $mode != 'edit' )
+		{
+			//
+			// Add to the users new pm counter
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+# 
+		// start mod save posts as drafts (and end mod too)...changed the next line so that the counter will not be incremented
+		// when you save a pm as a draft but will in fact be incremented when you submit it
+		if ( ( $mode != 'edit' && !$save_as_draft ) || ( $was_a_draft && !$save_as_draft ) )
+		{
+			//
+			// Add to the users new pm counter
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+				$emailer->send();
+				$emailer->reset();
+			}
+		}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+# 
+		// start mod save posts as drafts ... added the following block of code to redirect to the index if the user is save a pm as a draft
+		if ( $save_as_draft )
+		{
+			$redirect = "index.$phpEx?";
+			redirect(append_sid($redirect, true));
+		}
+		// end mod save postgs as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: the acutal line is longer
+			$sql = "SELECT pm.*,
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+# 
+			// start mod save posts as drafts (and end mod too)...
+			// add definition of privmsgs_new_or_draft_mail for use in sql definition below
+			// (note that I do not have a comment in that definition saying that I have modified it) 
+			$privmsgs_new_or_draft_mail = ( $was_a_draft ) ? PRIVMSGS_DRAFT_MAIL : PRIVMSGS_NEW_MAIL;
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					AND ( pm.privmsgs_type = " . PRIVMSGS_NEW_MAIL . "
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+# 
+					AND ( pm.privmsgs_type = " . $privmsgs_new_or_draft_mail . "
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+
+		$s_hidden_fields .= '<input type="hidden" name="mode" value="' . $mode . '" />';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+# 
+		// start mod save posts as drafts...changed next block so that if this is a draft being edited and previewed
+		// it is treated differently (so that template keeps track of was_a_draft status
+		if ( $was_a_draft ) $s_hidden_fields .= '<input type="hidden" name="mode" value="draft" />';
+		else $s_hidden_fields .= '<input type="hidden" name="mode" value="' . $mode . '" />';
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+	$s_hidden_fields .= '<input type="hidden" name="mode" value="' . $mode . '" />';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+# 
+	// start mod save posts as drafts...changed next block so that if this is a draft being edited and previewed
+	// it is treated differently (so that template keeps track of was_a_draft status
+	if ( $was_a_draft ) $s_hidden_fields .= '<input type="hidden" name="mode" value="draft" />';
+	else $s_hidden_fields .= '<input type="hidden" name="mode" value="' . $mode . '" />';
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+	$privmsg_subject = str_replace('"', '&quot;', $privmsg_subject);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+# 
+	// start mod save posts as drafts...if a new pm or was_a_draft, allow to save as draft or to delete
+	if ( $mode == 'post' || $mode == 'reply' || $mode == 'quote' || $was_a_draft )
+	{
+		$template->assign_block_vars('switch_save_as_draft_button', array());
+	}
+	if ( $was_a_draft )
+	{
+		$template->assign_block_vars('switch_delete_button', array());
+	}
+	// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+		'L_SUBMIT' => $lang['Submit'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+# 
+		'L_DELETE' => $lang['Delete'],
+		'L_SAVE_AS_DRAFT' => $lang['Save_as_draft'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			if(!draft_on) message_die(GENERAL_MESSAGE, $lang['No_search_match']);
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+
+			if(!$draft_on) message_die(GENERAL_MESSAGE, $lang['No_search_match']);
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		// start mod save posts as drafts...show all drafts at the top of the search results page when a user searches for all of his or her posts (egosearch)...
+		if ( $draft_on && $start == 0 )
+		{
+			$sql = "SELECT p.post_id, p.post_time, pt.post_subject, t.topic_title, f.forum_name
+				FROM " . POSTS_TABLE . " p , " . POSTS_TEXT_TABLE . " pt, " . TOPICS_TABLE . " t, " . FORUMS_TABLE . " f
+				WHERE p.post_draft = 1
+				AND pt.post_id = p.post_id
+				AND p.poster_id = ".$userdata['user_id']."
+				AND p.topic_id = t.topic_id
+				AND f.forum_id = p.forum_id
+				ORDER BY p.post_time ";
+
+			$result = $db->sql_query($sql);
+
+			if( !$result )
+			{
+				message_die(GENERAL_ERROR, "Couldn't obtain draft posts from database", "", __LINE__, __FILE__, $sql);
+			}
+
+			$draft = $db->sql_fetchrowset($result);
+			$total_drafts = count($draft);
+			
+			// cut this all off if there are no regular search matches and no drafts
+			if( $search_results == '' && $total_drafts == 0 ) message_die(GENERAL_MESSAGE, $lang['No_search_match']);
+			
+			if ( $total_drafts > 0 )
+			{
+			$template->assign_block_vars('switch_show_drafts', array());
+			$template->assign_block_vars("draft", array());
+				for($i = 0; $i < $total_drafts; $i++)
+				{
+				$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+				$draft_post_date = create_date($board_config['default_dateformat'], $draft[$i]['post_time'], $board_config['board_timezone']);
+
+				$template->assign_block_vars("draft.draft_topics", array(
+					"ROW_CLASS" => $row_class,
+					"DRAFT_POST_TIME" =>  $draft_post_date,
+					"DRAFT_POST_SUBJECT" =>  ( $draft[$i]['post_subject'] ) ? $draft[$i]['post_subject'] : $draft[$i]['topic_title'],
+					"DRAFT_POST_TOPIC" =>  $draft[$i]['topic_title'],
+					"DRAFT_POST_FORUM" =>  $draft[$i]['forum_name'],
+					"DRAFT_POST_LOC" => append_sid("posting.$phpEx?mode=draft&amp;" . POST_POST_URL . "=".$draft[$i]['post_id'].""))
+				);
+				}
+			}
+		}
+		// end mod save posts as drafts
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		// start mod save posts as drafts...show all drafts at the top of the search results page when a user searches for all of his or her posts (egosearch)...
+		if ( $draft_on && $start == 0 )
+		{
+			$sql = "SELECT p.post_id, p.post_time, pt.post_subject, t.topic_title, f.forum_name
+				FROM " . POSTS_TABLE . " p , " . POSTS_TEXT_TABLE . " pt, " . TOPICS_TABLE . " t, " . FORUMS_TABLE . " f
+				WHERE p.post_draft = 1
+				AND pt.post_id = p.post_id
+				AND p.poster_id = ".$userdata['user_id']."
+				AND p.topic_id = t.topic_id
+				AND f.forum_id = p.forum_id
+				ORDER BY p.post_time";
+
+			$result = $db->sql_query($sql);
+
+			if( !$result )
+			{
+				message_die(GENERAL_ERROR, "Couldn't obtain draft posts from database", "", __LINE__, __FILE__, $sql);
+			}
+
+			$draft_posts = $db->sql_fetchrowset($result);
+			$db->sql_freeresult($result);
+			$total_draft_posts = count($draft_posts);
+			
+			// ok, done collecting all draft posts...now let's find the draft pms
+			$sql = "SELECT privmsgs_id, privmsgs_subject, privmsgs_date
+				FROM " . PRIVMSGS_TABLE . "
+				WHERE privmsgs_type = " . PRIVMSGS_DRAFT_MAIL . "
+				AND privmsgs_from_userid = ".$userdata['user_id']."
+				ORDER BY privmsgs_date";
+
+			$result = $db->sql_query($sql);
+
+			if( !$result )
+			{
+				message_die(GENERAL_ERROR, "Couldn't obtain draft posts from database", "", __LINE__, __FILE__, $sql);
+			}
+
+			$draft_pms = $db->sql_fetchrowset($result);	
+			$db->sql_freeresult($result);
+			
+			if ( !$draft_posts || !$draft_pms )
+			{
+				$drafts = ( $draft_posts ) ? $draft_posts : $draft_pms;
+			}
+			else
+			{
+				$drafts = array_merge($draft_posts,$draft_pms);
+			}
+			
+			$total_drafts = count($drafts);
+			
+			// cut this all off if there are no regular search matches and no drafts
+			if( $search_results == '' && $total_drafts == 0 ) message_die(GENERAL_MESSAGE, $lang['No_search_match']);
+			
+			if ( $total_drafts > 0 )
+			{
+			$template->assign_block_vars('switch_show_drafts', array());
+			$template->assign_block_vars("draft", array());
+				for($i = 0; $i < $total_drafts; $i++)
+				{
+					$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+					// now set variables, but variables are different depending on if draft post or draft pm so treat differently...
+					if ( $i < $total_draft_posts )
+					{
+						$draft_time = create_date($board_config['default_dateformat'], $drafts[$i]['post_time'], $board_config['board_timezone']);
+						$draft_subject = ( $drafts[$i]['post_subject'] ) ? $drafts[$i]['post_subject'] : $drafts[$i]['topic_title'];
+						$draft_topic = $drafts[$i]['topic_title'];
+						$draft_forum = $drafts[$i]['forum_name'];
+						$draft_url = append_sid("posting.$phpEx?mode=draft&amp;" . POST_POST_URL . "=".$drafts[$i]['post_id']."");
+					}
+					else
+					{
+						$draft_time = create_date($board_config['default_dateformat'], $drafts[$i]['privmsgs_date'], $board_config['board_timezone']);
+						$draft_subject = $drafts[$i]['privmsgs_subject'];
+						$draft_topic = $drafts[$i]['privmsgs_subject'];
+						$draft_forum = $lang['Private_Messages'];
+						$draft_url = append_sid("privmsg.$phpEx?mode=draft&amp;" . POST_POST_URL . "=".$drafts[$i]['privmsgs_id']."");
+
+					}
+				$template->assign_block_vars("draft.draft_topics", array(
+					"ROW_CLASS" => $row_class,
+					"DRAFT_POST_TIME" =>  $draft_time,
+					"DRAFT_POST_SUBJECT" =>  $draft_subject,
+					"DRAFT_POST_TOPIC" =>  $draft_topic,
+					"DRAFT_POST_FORUM" =>  $draft_forum,
+					"DRAFT_POST_LOC" => $draft_url)
+				);
+				}
+			}
+		}
+		// end mod save posts as drafts
+
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('PRIVMSGS_UNREAD_MAIL', 5);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+define('PRIVMSGS_DRAFT_MAIL', 6);
+// start mod save posts as drafts (and end mod too) ... added the privmsgs_draft_mail definition in the preceding line
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/search_results_posts.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+  	<td class="row1"<span class="gen"><a href="{draft.draft_topics.DRAFT_POST_LOC}">{draft.draft_topics.DRAFT_POST_SUBJECT}</a></span></td>
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+  	<td class="row1"<span class="topictitle"><a href="{draft.draft_topics.DRAFT_POST_LOC}" class="topictitle">{draft.draft_topics.DRAFT_POST_SUBJECT}</a></span></td>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/search_results_topics.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+  	<td class="row1"<span class="gen"><a href="{draft.draft_topics.DRAFT_POST_LOC}">{draft.draft_topics.DRAFT_POST_SUBJECT}</a></span></td>
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+  	<td class="row1"<span class="topictitle"><a href="{draft.draft_topics.DRAFT_POST_LOC}" class="topictitle">{draft.draft_topics.DRAFT_POST_SUBJECT}</a></span></td>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM
+

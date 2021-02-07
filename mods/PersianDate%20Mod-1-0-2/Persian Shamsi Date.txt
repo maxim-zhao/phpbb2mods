@@ -1,0 +1,335 @@
+﻿############################################################## 
+## MOD Title: Persian Shamsi Date
+## MOD Author: MajidOnline < info@majidonline.com > (Majid Alavizadeh) http://www.majidonline.com
+## MOD Description: with this module , you can show date in persian calender (which is Shamsi) in your forums.
+## MOD Version: 1.0.2 
+## 
+## Installation Level: Easy
+## Installation Time: 10 Minutes 
+## Files To Edit: 6 Files
+##                   includes/functions.php ,
+##                   includes/usercp_viewprofile.php ,
+##                   viewtopic.php ,
+##                   memberlist.php , 
+##                   templates/subSilver/profile_add_body.tpl ,
+##                   language/lang_english/lang_main.php 
+##
+## Included Files: n/a 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes : 
+## 		Thank you for use our MOD ...
+##		visit www.majidonline.com for more Persian MOD
+## 
+## 		.:... .. .  Have a Nice Time .. . ... . .:.: ..
+##		             Majid Alavizadeh
+##
+################################################################ 
+## MOD History: 
+## 
+##   2003-11-22 - Version 1.0.2
+##      - MOD Template Fixed for better MOD compatibility
+## 
+##   2003-11-05 - Version 1.0.1
+##      - Bug Fixed
+##      - First Realese (Persian Hijri Date)
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+## Demo/Tech-Support :     http://forum.majidonline.com
+##	      Direct Link :     http://forum.majidonline.com/viewtopic.php?p=26529
+################################################################# 
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+ 
+// Hijri Date Calculation
+// Special ThanX to www.iranphp.net for this Function
+
+function gregorian_to_jalali($g_y, $g_m, $g_d)
+{
+
+   global $g_days_in_month;
+   global $j_days_in_month;
+
+   $g_days_in_month = array(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31);
+   $j_days_in_month = array(31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29);
+
+
+   $div = create_function('$a,$b','return (int) ($a / $b);');
+
+   $gy = $g_y-1600;
+   $gm = $g_m-1;
+   $gd = $g_d-1;
+
+   $g_day_no = 365*$gy+$div($gy+3,4)-$div($gy+99,100)+$div($gy+399,400);
+
+   for ($i=0; $i < $gm; ++$i)
+      $g_day_no += $g_days_in_month[$i];
+   if ($gm>1 && (($gy%4==0 && $gy%100!=0) || ($gy%400==0)))
+      /* leap and after Feb */
+      $g_day_no++;
+   $g_day_no += $gd;
+
+   $j_day_no = $g_day_no-79;
+
+   $j_np = $div($j_day_no, 12053); /* 12053 = 365*33 + 32/4 */
+   $j_day_no = $j_day_no % 12053;
+
+   $jy = 979+33*$j_np+4*$div($j_day_no,1461); /* 1461 = 365*4 + 4/4 */
+
+   $j_day_no %= 1461;
+
+   if ($j_day_no >= 366) {
+      $jy += $div($j_day_no-1, 365);
+      $j_day_no = ($j_day_no-1)%365;
+   }
+
+   for ($i = 0; $i < 11 && $j_day_no >= $j_days_in_month[$i]; ++$i)
+      $j_day_no -= $j_days_in_month[$i];
+   $jm = $i+1;
+   $jd = $j_day_no+1;
+
+   return array($jy, $jm, $jd);
+
+ }
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+	return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+
+	$format = 'Y-m-d-D-H-i-s'; 
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+
+	return
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+
+	$date = 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# on the next line
+#
+
+	list($year, $month, $day, $day2, $hour, $min, $sec) = preg_split ('/-/', $date);
+	list( $jyear, $jmonth, $jday ) = gregorian_to_jalali($year, $month, $day);
+
+	$jdate = $jday."/".$jmonth."/".$jyear;
+	$jmonth = $jmonth-1;
+	$monthnum = array ( $lang['Farvardin'], $lang['Ordibehesht'], $lang['Khordad'],$lang['Tir'],$lang['Mordad'],$lang['Shahrivar'],$lang['Mehr'],$lang['Aban'],$lang['Azar'],$lang['Dey'],$lang['Bahman'],$lang['Esfand']);
+
+	$jdate = $day2." ".$jday." ".$monthnum[$jmonth]." ".$jyear ." - ". $hour .":". $min ;
+
+	return $jdate;
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# on the next line
+#
+
+//
+// Create date/time from timezone in Persian Format
+//
+
+function user_date_hijri ($format, $gmepoch, $tz){
+
+    $format = 'Y-m-d-D';
+
+    global $board_config, $lang;
+    static $translate;
+
+    if ( empty($translate) && $board_config['default_lang'] != 'english' )
+    {
+        @reset($lang['datetime']);
+        while ( list($match, $replace) = @each($lang['datetime']) )
+        {
+            $translate[$match] = $replace;
+        }
+    }
+    	
+    	$date = ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
+
+
+      	    list($year, $month, $day, $day2, $hour, $min, $sec) = preg_split ('/-/', $date);
+
+    	    list( $jyear, $jmonth, $jday ) = gregorian_to_jalali($year, $month, $day);
+
+
+	$jmonth = $jmonth-1;
+
+	$monthnum = array ( $lang['Farvardin'], $lang['Ordibehesht'], $lang['Khordad'],$lang['Tir'],$lang['Mordad'],$lang['Shahrivar'],$lang['Mehr'],$lang['Aban'],$lang['Azar'],$lang['Dey'],$lang['Bahman'],$lang['Esfand']);
+	$daynum = array ($lang['Yekshanbeh'], $lang['Doshanbeh'], $lang['Seshanbeh'], $lang['Chaharshanbeh'], $lang['Panjshanbeh'], $lang['Jomeh'], $lang['Shanbeh']);
+
+	$jdate = $day2." ".$jday." ".$monthnum[$jmonth]. " " . $jyear;
+
+
+
+    return $jdate;
+
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_viewprofile.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'JOINED' => create_date($lang['DATE_FORMAT'], $profiledata['user_regdate'], $board_config['board_timezone']),
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+	create_date
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+	user_date_hijri
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+memberlist.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$joined = create_date($lang['DATE_FORMAT'], $row['user_regdate'], $board_config['board_timezone']);
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+	create_date
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+	user_date_hijri
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+viewtopic.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$poster_joined = ( $postrow[$i]['user_id'] != ANONYMOUS ) ? $lang['Joined'] . ': ' . create_date($lang['DATE_FORMAT'], $postrow[$i]['user_regdate'], $board_config['board_timezone']) : '';
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+	create_date
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+	user_date_hijri
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# you should do this for all styles you have
+
+templates/subSilver/profile_add_body.tpl
+
+#
+#-----[ FIND ]-------------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_DATE_FORMAT}:</span><br />
+		<span class="gensmall">{L_DATE_FORMAT_EXPLAIN}</span></td>
+	  <td class="row2"> 
+		<input type="text" name="dateformat" value="{DATE_FORMAT}" maxlength="14" class="post" />
+	  </td>
+	</tr>
+
+#
+#-----[ REPLACE WITH ]-------------------------------------
+#
+#
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  We recommend Download phpBB Farsi
+#  if so, use language/lang_farsi/lang_main.php
+#
+
+language/lang_english/lang_main.php 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+//
+// That's all Folks!
+// -------------------------------------------------
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+
+// Hijri Date Mod
+$lang['Shanbeh'] = 'شنبه';
+$lang['Yekshanbeh'] = 'يكشنبه';
+$lang['Doshanbeh'] = 'دوشنبه';
+$lang['Seshanbeh'] = 'سه شنبه';
+$lang['Chaharshanbeh'] = 'چهارشنبه';
+$lang['Panjshanbeh'] = 'پنج شنبه';
+$lang['Jomeh'] = 'جمعه';
+
+$lang['Farvardin'] = 'فروردين';
+$lang['Ordibehesht'] = 'ارديبهشت';
+$lang['Khordad'] = 'خرداد';
+$lang['Tir'] = 'تير';
+$lang['Mordad'] = 'مرداد';
+$lang['Shahrivar'] = 'شهريور';
+$lang['Mehr'] = 'مهر';
+$lang['Aban'] = 'آبان';
+$lang['Azar'] = 'آذر';
+$lang['Dey'] = 'دي';
+$lang['Bahman'] = 'بهمن';
+$lang['Esfand'] = 'اسفند';
+
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

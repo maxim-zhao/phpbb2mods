@@ -1,0 +1,173 @@
+##############################################################
+## MOD Title: Gender Memberlist addon
+## MOD Author: eviL3 < evil@phpbbmodders.net > (Igor Wiedler) http://phpbbmodders.net
+## MOD Description: Adds the gender to the memberlist
+##
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+##
+## Files To Edit: memberlist.php,
+##                templates/subSilver/memberlist_body.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## This is an addon for my Gender MOD.
+## So that MOD is gonna be required ;)
+##
+##############################################################
+## MOD History:
+##
+##   2006-09-23 - Version 1.0.0
+##      - Release for the gender MOD 0.1.0
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+memberlist.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$mode_types_text
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+,  $lang['Sort_Website']
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+,  $lang['gender']
+#
+#-----[ FIND ]------------------------------------------
+#
+$mode_types
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, 'website'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, 'gender'
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->assign_vars(array(
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_PM' => $lang['Private_Message'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Gender MOD ------------------------------------------------------------
+//-- add
+    'L_GENDER' => $lang['gender'],
+//-- fin mod : Gender MOD --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+switch( $mode )
+#
+#-----[ FIND ]------------------------------------------
+#
+	case 'topten':
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//-- mod : Gender MOD ------------------------------------------------------------
+//-- add
+	case 'gender':
+		$order_by = 'user_gender ' . $sort_order . ' LIMIT 10';
+	break;
+//-- fin mod : Gender MOD --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT username,
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_allowavatar
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_gender
+#
+#-----[ FIND ]------------------------------------------
+#
+		$www = ( $row['user_website'] ) ? '<a href="' 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : Gender MOD ------------------------------------------------------------
+//-- add
+        switch ( $row['user_gender'] )
+        {
+            case GENDER_M:
+                $user_gender_img =    $images['gender_m'];
+                $l_user_gender =      $lang['gender_m'];
+            break;
+
+            case GENDER_F:
+                $user_gender_img =    $images['gender_f'];
+                $l_user_gender =      $lang['gender_f'];
+            break;
+
+            default:
+                $user_gender_img =    $images['gender_x'];
+                $l_user_gender =      $lang['gender_x'];
+        }
+
+        $gender = '<img src="' . $user_gender_img . '" alt="' . $l_user_gender . '" title="' . $l_user_gender . '" border="0" />';
+//-- fin mod : Gender MOD --------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$template->assign_block_vars('memberrow', array(
+#
+#-----[ FIND ]------------------------------------------
+#
+			'YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Gender MOD ------------------------------------------------------------
+//-- add
+			'GENDER' => $gender,
+//-- fin mod : Gender MOD --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/memberlist_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="{memberrow.ROW_CLASS}" align="center"><span class="gen"><a href="{memberrow.U_VIEWPROFILE}" class="gen">{memberrow.USERNAME}</a></span></td>
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+{memberrow.USERNAME}</a>
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+&nbsp;{memberrow.GENDER}
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

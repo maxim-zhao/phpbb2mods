@@ -1,0 +1,819 @@
+############################################################## 
+## MOD Title:		Post Icons : icons for topics and posts - part 1
+## MOD Author:		Ptirhiik < ptirhiik@clanmckeen.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description:
+##			This mod will allow to add an icon in front of each topic title.
+##			This part is common to all board setup.
+##
+## MOD Version:		1.0.1
+## 
+## Installation Level:	Easy
+## Installation Time:	15 Minutes
+## Files To Edit:
+##			posting.php
+##			viewtopic.php
+##
+##			includes/functions.php
+##			includes/functions_post.php
+##			includes/topic_review.php
+##
+##			templates/subSilver/posting_body.tpl
+##			templates/subSilver/subSilver.cfg
+##
+## Included Files:
+##			icon/*.*
+##
+##			def_icons.php
+##			icons_def_icons.tpl
+##			lang_extend_post_icons.php
+##			mod_post_icons.php
+##
+##			admin_icons.php
+##			admin_icons_body.tpl
+##			admin_icons_delete_body.tpl
+##			admin_icons_edit_body.tpl
+##
+##			mod-mods_settings/admin_board_extend.php
+##			mod-mods_settings/board_config_extend_body.tpl
+##			mod-mods_settings/functions_mods_settings.php
+##			mod-mods_settings/lang_extend_mods_settings.php
+##
+##			lang_settings/lang_extend_mac.php
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##
+##	You have to CHMOD to 666 includes/def_icons.php in order to be able to edit it
+##	in the ACP.
+##
+############################################################## 
+## MOD History:
+##
+##   2003-10-28 - Version 1.0.1
+##      - fix usage of image key entry in the configuration
+##	- add the lang settings
+##
+##   2003-09-14 - Version 1.0.0
+##	- no change regarding 0.0.3
+##
+##   2003-09-07 - Version 0.0.3 (beta)
+##	- add the admin part
+##	- split the mod in two part for further add (split topic type v2)
+##
+##   2003-08-01 - Version 0.0.2 (alpha)
+##	- add the function get_icon_title() in functions.php
+##
+##   2003-08-01 - Version 0.0.1 (alpha)
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_topics ADD topic_icon TINYINT(2);
+ALTER TABLE phpbb_posts ADD post_icon TINYINT(2);
+ALTER TABLE phpbb_posts ADD INDEX (post_icon);
+#
+#-----[ COPY ]------------------------------------------------
+#
+# icons
+#
+copy icon/*.* to images/icon/*.*
+#
+#-----[ COPY ]------------------------------------------------
+#
+# map definition
+#
+copy def_icons.php to includes/def_icons.php
+copy mod_post_icons.php to includes/mods_settings/mod_post_icons.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+# admin part
+#
+copy admin_icons.php to admin/admin_icons.php
+copy admin_icons_body.tpl to templates/subSilver/admin/admin_icons_body.tpl
+copy admin_icons_delete_body.tpl to templates/subSilver/admin/admin_icons_delete_body.tpl
+copy admin_icons_edit_body.tpl to templates/subSilver/admin/admin_icons_edit_body.tpl
+copy icons_def_icons.tpl to templates/subSilver/admin/icons_def_icons.tpl
+#
+#-----[ COPY ]------------------------------------------------
+#
+# Mods settings
+#
+copy mod-mods_settings/lang_extend_mods_settings.php to language/lang_english/lang_extend_mods_settings.php
+copy mod-mods_settings/functions_mods_settings.php to includes/functions_mods_settings.php
+copy mod-mods_settings/admin_board_extend.php to admin/admin_board_extend.php
+copy mod-mods_settings/board_config_extend_body.tpl to templates/subSilver/admin/board_config_extend_body.tpl
+#
+#-----[ COPY ]------------------------------------------------
+#
+# Lang settings
+#
+copy lang_settings/lang_extend_mac.php to includes/lang_extend_mac.php
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+include($phpbb_root_path . 'includes/functions_post.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+include($phpbb_root_path . 'includes/def_icons.'.$phpEx);
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$refresh = $preview || $poll_add || $poll_edit || $poll_delete;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+$post_icon = isset($HTTP_POST_VARS['post_icon']) ? intval($HTTP_POST_VARS['post_icon']) : 0;
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+		$select_sql = ( !$submit ) ? ", t.topic_title,
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+// here we added
+//	, t.topic_icon
+//	, p.post_icon
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+t.topic_title
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, t.topic_icon
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+pt.post_subject
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, p.post_icon
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$post_data['topic_type'] = $post_info['topic_type'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+		$post_data['post_icon'] = $post_info['post_icon'];
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full-line is longer
+				submit_post($mode, $post_data, 
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+// here we added
+//	, post_icon
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, $post_icon
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$message = ( !empty($HTTP_POST_VARS['message']) ) ? htmlspecialchars(trim(stripslashes($HTTP_POST_VARS['message']))) : '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+	$post_icon = ( !empty($HTTP_POST_VARS['post_icon']) ) ? intval($HTTP_POST_VARS['post_icon']) : 0;
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			'preview' => 'posting_preview.tpl')
+		);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+		$preview_subject = get_icon_title($post_icon) . '&nbsp;' . $preview_subject;
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$poll_length = '';
+		$subject = '';
+		$message = '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+		$post_icon = 0;
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$username = ( $userdata['session_logged_in'] ) ? $userdata['username'] : '';
+		$subject = '';
+		$message = '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+		$post_icon = 0;
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$message = $post_info['post_text'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+		$post_icon = ( $post_data['first_post'] ) ? $post_info['topic_icon'] : $post_info['post_icon'];
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Poll entry switch/output
+//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+// get the number of icon per row from config
+$icon_per_row = isset($board_config['icon_per_row']) ? intval($board_config['icon_per_row']) : 10;
+if ($icon_per_row <= 1)
+{
+	$icon_per_row = 10;
+}
+
+// get the list of icon available to the user
+$icones_sort = array();
+for ($i = 0; $i < count($icones); $i++)
+{
+	switch ($icones[$i]['auth'])
+	{
+		case AUTH_ADMIN:
+			if ( $userdata['user_level'] == ADMIN )
+			{
+				$icones_sort[] = $i;
+			}
+			break;
+		case AUTH_MOD:
+			if ( $is_auth['auth_mod'] )
+			{
+				$icones_sort[] = $i;
+			}
+			break;
+		case AUTH_REG:
+			if ( $userdata['session_logged_in'] )
+			{
+				$icones_sort[] = $i;
+			}
+			break;
+		default:
+			$icones_sort[] = $i;
+			break;
+	}
+}
+
+// check if the icon exists
+$found = false;
+for ($i=0; ( ($i < count($icones_sort)) && !$found );$i++)
+{
+	$found = ($icones[ $icones_sort[$i] ]['ind'] == $post_icon);
+}
+if (!$found) $post_icon = 0;
+
+// send to template
+$template->assign_block_vars('switch_icon_checkbox', array());
+$template->assign_vars(array(
+	'L_ICON_TITLE' => $lang['post_icon_title'],
+	)
+);
+
+// display the icons
+$nb_row = intval( (count($icones_sort)-1) / $icon_per_row )+1;
+$offset = 0;
+for ($i=0; $i < $nb_row; $i++)
+{
+	$template->assign_block_vars('switch_icon_checkbox.row',array());
+	for ($j=0; ( ($j < $icon_per_row) && ($offset < count($icones_sort)) ); $j++)
+	{
+		$icon_id  = $icones_sort[$offset];
+
+		// send to cell or cell_none
+		$template->assign_block_vars('switch_icon_checkbox.row.cell', array(
+			'ICON_ID'		=> $icones[$icon_id]['ind'],
+			'ICON_CHECKED'	=> ($post_icon == $icones[$icon_id]['ind']) ? ' checked="checked"' : '',
+			'ICON_IMG'		=> get_icon_title($icones[$icon_id]['ind'], 2),
+			)
+		);
+		$offset++;
+	}
+}
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+include($phpbb_root_path . 'includes/bbcode.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+include($phpbb_root_path . 'includes/def_icons.'. $phpEx);
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Again this will be handled by the templating
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+	$post_subject = get_icon_title($postrow[$i]['post_icon']) . '&nbsp;' . $post_subject;
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- mod : post icon -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+function get_db_stat($mode)
+{
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+function get_icon_title($icon, $empty=0, $topic_type=-1, $admin=false)
+{
+	global $lang, $images, $phpEx, $phpbb_root_path;
+
+	// get icons parameters
+	include($phpbb_root_path . './includes/def_icons.' . $phpEx);
+
+	// admin path
+	$admin_path = ($admin) ? '../' : './';
+
+	// alignment
+	switch ($empty)
+	{
+		case 1:
+			$align= 'middle';
+			break;
+		case 2:
+			$align= 'bottom';
+			break;
+		default:
+			$align = 'absbottom';
+			break;
+	}
+
+	// find the icon
+	$found = false;
+	$icon_map = -1;
+	for ($i=0; ($i < count($icones)) && !$found; $i++)
+	{
+		if ($icones[$i]['ind'] == $icon)
+		{
+			$found = true;
+			$icon_map = $i;
+		}
+	}
+
+	// icon not found : try a default value
+	if (!$found || ($found && empty($icones[$icon_map]['img'])))
+	{
+		$change = true;
+		switch($topic_type)
+		{
+			case POST_NORMAL:
+				$icon = $icon_defined_special['POST_NORMAL']['icon'];
+				break;
+			case POST_STICKY:
+				$icon = $icon_defined_special['POST_STICKY']['icon'];
+				break;
+			case POST_ANNOUNCE:
+				$icon = $icon_defined_special['POST_ANNOUNCE']['icon'];
+				break;
+			case POST_GLOBAL_ANNOUNCE:
+				$icon = $icon_defined_special['POST_GLOBAL_ANNOUNCE']['icon'];
+				break;
+			case POST_BIRTHDAY:
+				$icon = $icon_defined_special['POST_BIRTHDAY']['icon'];
+				break;
+			case POST_CALENDAR:
+				$icon = $icon_defined_special['POST_CALENDAR']['icon'];
+				break;
+			case POST_PICTURE:
+				$icon = $icon_defined_special['POST_PICTURE']['icon'];
+				break;
+			case POST_ATTACHMENT:
+				$icon = $icon_defined_special['POST_ATTACHEMENT']['icon'];
+				break;
+			default:
+				$change=false;
+				break;
+		}
+
+		// a default icon has been sat
+		if ($change)
+		{
+			// find the icon
+			$found = false;
+			$icon_map = -1;
+			for ($i=0; ($i < count($icones)) && !$found; $i++)
+			{
+				if ($icones[$i]['ind'] == $icon)
+				{
+					$found = true;
+					$icon_map = $i;
+				}
+			}
+		}
+	}
+
+	// build the icon image
+	if (!$found || ($found && empty($icones[$icon_map]['img'])))
+	{
+		switch ($empty)
+		{
+			case 0:
+				$res = '';
+				break;
+			case 1:
+				$res = '<img width="20" align="' . $align . '" src="' . $admin_path . $images['spacer'] . '" alt="" border="0">';
+				break;
+			case 2:
+				$res = isset($lang[ $icones[$icon_map]['alt'] ]) ? $lang[ $icones[$icon_map]['alt'] ] : $icones[$icon_map]['alt'];
+				break;
+		}
+	}
+	else
+	{
+		$res = '<img align="' . $align . '" src="' . ( isset($images[ $icones[$icon_map]['img'] ]) ? $admin_path . $images[ $icones[$icon_map]['img'] ] : $admin_path . $icones[$icon_map]['img'] ) . '" alt="' . ( isset($lang[ $icones[$icon_map]['alt'] ]) ? $lang[ $icones[$icon_map]['alt'] ] : $icones[$icon_map]['alt'] ) . '" border="0">';
+	}
+
+	return $res;
+}
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( $userdata['user_id'] != ANONYMOUS )
+	{
+		if ( !empty($userdata['user_lang']))
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+	global $db, $mods, $list_yes_no, $userdata;
+
+	//	get all the mods settings
+	$dir = @opendir($phpbb_root_path . 'includes/mods_settings');
+	while( $file = @readdir($dir) )
+	{
+		if( preg_match("/^mod_.*?\." . $phpEx . "$/", $file) )
+		{
+			include_once($phpbb_root_path . 'includes/mods_settings/' . $file);
+		}
+	}
+	@closedir($dir);
+//-- fin mod : mods settings -----------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Set up style
+	//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+	include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		}
+
+		if ( empty($template) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+			include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+function submit_post($mode, &$post_data
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+// here we added
+//	, $post_icon = 0
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+)
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, $post_icon = 0
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+		$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+// here we added
+//	, topic_icon
+//	, $post_icon
+//
+// and
+//	, topic_icon = $post_icon
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+topic_status, topic_type
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, topic_icon
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+" . TOPIC_UNLOCKED . ", $topic_type
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, $post_icon
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, topic_type = $topic_type
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, topic_icon=$post_icon
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+	$sql = ($mode != "editpost") ? "INSERT INTO " . POSTS_TABLE
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+// here we added
+// , post_icon
+// , $post_icon
+//
+// and
+//  , post_icon = $post_icon
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+enable_smilies, enable_sig
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, post_icon
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+$smilies_on, $attach_sig
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, $post_icon
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, enable_sig = $attach_sig
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, post_icon = $post_icon
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/topic_review.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	global $starttime;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+	global $icones;
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			//
+			// Again this will be handled by the templating
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+			$post_subject = get_icon_title($row['post_icon']) . '&nbsp;' . $post_subject;
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+<script language="JavaScript" type="text/javascript">
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- mod : post icon -->
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr> 
+	  <td class="row1" valign="top"> 
+		<table width="100%" border="0" cellspacing="0" cellpadding="1">
+		  <tr> 
+			<td><span class="gen"><b>{L_MESSAGE_BODY}</b></span> </td>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<!-- BEGIN switch_icon_checkbox -->
+	<tr>
+		<td valign="top" class="row1"><span class="gen"><b>{L_ICON_TITLE}</b></td>
+		<td class="row2">
+			<table width="100%" border="0" cellspacing="0" cellpadding="2">
+			<!-- BEGIN row -->
+			<tr>
+				<td nowrap="nowrap">
+					<span class="gen">
+						<!-- BEGIN cell -->
+						<input type="radio" name="post_icon" value="{switch_icon_checkbox.row.cell.ICON_ID}"{switch_icon_checkbox.row.cell.ICON_CHECKED}>&nbsp;{switch_icon_checkbox.row.cell.ICON_IMG}&nbsp;&nbsp;
+						<!-- END cell -->
+					</span>
+				</td>
+			</tr>
+			<!-- END row -->
+			</table>
+		</td>
+	</tr>
+	<!-- END switch_icon_checkbox -->
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+$images['spacer'] = "$current_template_images/spacer.gif";
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

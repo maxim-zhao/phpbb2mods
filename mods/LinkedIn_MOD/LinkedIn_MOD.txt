@@ -1,0 +1,561 @@
+########################################################
+## MOD Title: LinkedIn MOD
+## MOD Author: bduncan < bduncan@linkedin.com > (Brandon Duncan) http://www.linkedin.com/in/dudcat 
+## MOD Description: This mod adds a button for users with public profiles on LinkedIn (http://www.linkedin.com/static?key=customer_service_profile)
+## MOD Version: 1.0.0
+## 
+## Installation Level:	Intermediate 
+## Installation Time:	15 Minutes 
+## Files To Edit:
+##		admin/admin_users.php
+##		includes/functions_validate.php
+##		includes/usercp_avatar.php
+##		includes/usercp_register.php
+##		includes/usercp_viewprofile.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/admin/user_edit_body.tpl
+##		templates/subSilver/privmsgs_read_body.tpl
+##		templates/subSilver/profile_add_body.tpl
+##		templates/subSilver/profile_view_body.tpl
+##		templates/subSilver/subSilver.cfg
+##		templates/subSilver/viewtopic_body.tpl
+##		privmsg.php
+##		viewtopic.php
+##
+## Included Files:	icon_linkedin.gif
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 
+##		This MOD is sponsered by http://www.linkedin.com/
+##		LinkedIn is a trademark of LinkedIn Corporation, ¬c 2003-2007. All Rights Reserved.
+## 
+############################################################## 
+## MOD History: 
+##    01/25/2007 - v. 1.0.0
+##		 This is the original version
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+ALTER TABLE `phpbb_users` ADD `user_linkedin` VARCHAR( 255 ) ;
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy icon_linkedin.gif to templates/subSilver/images/lang_english/icon_linkedin.gif
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+admin/admin_users.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$yim = ( !empty($HTTP_POST_VARS['yim']) ) ? trim(strip_tags( $HTTP_POST_VARS['yim'] ) ) : '';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$linkedin = ( !empty($HTTP_POST_VARS['linkedin']) ) ? trim(strip_tags( $HTTP_POST_VARS['linkedin'] ) ) : '';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+validate_optional_fields($icq,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, $yim
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, $linkedin
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$yim = htmlspecialchars(stripslashes($yim));
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$linkedin = htmlspecialchars(stripslashes($linkedin));
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, user_msnm = '" . str_replace("\'", "''", $msn) . "'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, user_linkedin = '" . str_replace("\'", "''", $linkedin) . "'
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$yim = htmlspecialchars(stripslashes($yim));
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$linkedin = htmlspecialchars(stripslashes($linkedin));
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$yim = htmlspecialchars($this_userdata['user_yim']);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$linkedin = htmlspecialchars($this_userdata['user_linkedin']);
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="yim" value="' . str_replace("\"", "&quot;", $yim) . '" />';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="linkedin" value="' . str_replace("\"", "&quot;", $linkedin) . '" />';
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'AIM' => $aim,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'LINKEDIN' => $linkedin,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'L_AIM' => $lang['AIM'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'L_LINKEDIN' => sprintf($lang['LINKEDIN'], '<a href="http://www.linkedin.com/" target="_blank">', '</a>'), 
+			'L_LINKEDIN_EXPLAIN' => $lang['LINKEDIN_explain'],
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions_validate.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+function validate_optional_fields(&$icq,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, &$yim
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, &$linkedin
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$check_var_length = array('aim'
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, 'yim'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, 'linkedin'
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_avatar.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+function display_avatar_gallery($mode, &$category,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, &$yim
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, &$linkedin
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$params = array('coppa', 'user_id', 'username',
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, 'yim'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, 'linkedin'
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_register.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$strip_var_list = array('email' => 'email'
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, 'yim' => 'yim'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, 'linkedin' => 'linkedin'
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+validate_optional_fields($icq,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, $yim
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, $linkedin
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		$yim = stripslashes($yim);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$linkedin = stripslashes($linkedin);
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, user_msnm = '" . str_replace("\'", "''", $msn) . "'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, user_linkedin = '" . str_replace("\'", "''", $linkedin) . "'
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "INSERT INTO " . USERS_TABLE . "	(user_id, username
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, user_msnm
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, user_linkedin
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+VALUES ($user_id, '" . str_replace("\'", "''", $username)
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, '" . str_replace("\'", "''", $msn) . "'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, '" . str_replace("\'", "''", $linkedin) . "'
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+					'MSN' => $msn,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+					'LINKEDIN' => $linkedin,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$yim = stripslashes($yim);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$linkedin = stripslashes($linkedin);
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$yim = $userdata['user_yim'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$linkedin = $userdata['user_linkedin'];
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+display_avatar_gallery($mode, $avatar_category,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, $yim
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, $linkedin
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'AIM' => $aim,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'LINKEDIN' => $linkedin,
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'L_AIM' => $lang['AIM'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'L_LINKEDIN' => sprintf($lang['LINKEDIN'], '<a href="http://www.linkedin.com/" target="_blank">', '</a>'), 
+		'L_LINKEDIN_EXPLAIN' => $lang['LINKEDIN_explain'],
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_viewprofile.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+# NOTE: the full line to look for is: 
+#$yim = ( $profiledata['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $profiledata['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+# 
+$yim = ( $profiledata['user_yim'] ) ?
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$linkedin_img = ( $profiledata['user_linkedin'] ) ? '<a href="http://www.linkedin.com/' . $profiledata['user_linkedin'] . '?trk=phpbb_profile" target="_blank"><img src="' . $images['icon_linkedin'] . '" alt="' . sprintf($lang['LINKEDIN'], '', '') . '" title="' . sprintf($lang['LINKEDIN'], '', '') . '" border="0" /></a>' : '';
+$linkedin = ( $profiledata['user_linkedin'] ) ? '<a href="http://www.linkedin.com/' . $profiledata['user_linkedin'] . '?trk=phpbb_profile" target="_blank">' . sprintf($lang['LINKEDIN'], '', '') . '</a>' : '';
+#
+#-----[ FIND ]------------------------------------------
+#
+	'YIM_IMG' => $yim_img,
+	'YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'LINKEDIN_IMG' => $linkedin_img,
+	'LINKEDIN' => $linkedin,
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_MESSENGER' => $lang['MSNM'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'L_LINKEDIN' => sprintf($lang['LINKEDIN'], '<a href="http://www.linkedin.com/" target="_blank">', '</a>'),
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE: the full line to look for is:
+#$lang['YIM'] = 'Yahoo Messenger';
+#
+$lang['YIM'] =
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['LINKEDIN'] = 'LinkedIn Public Profile';
+$lang['LINKEDIN_explain'] = 'http://www.linkedin.com/in/';
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_YAHOO}</span></td>
+	  <td class="row2">
+		<input class="post" type="text" name="yim" size="20" maxlength="255" value="{YIM}" />
+	  </td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_LINKEDIN}</span></td>
+	  <td class="row2">
+		<span class="gen">{L_LINKEDIN_EXPLAIN}</span><input class="post" type="text" name="linkedin" size="20" maxlength="255" value="{LINKEDIN}" />
+	  </td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/privmsgs_read_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+                        <td valign="middle" nowrap="nowrap">{PROFILE_IMG} {PM_IMG} {EMAIL_IMG}
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+{PROFILE_IMG}
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ {LINKEDIN_IMG}
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_YAHOO}:</span></td>
+	  <td class="row2">
+		<input type="text" class="post" style="width: 150px"  name="yim" size="20" maxlength="255" value="{YIM}" />
+	  </td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_LINKEDIN}:</span></td>
+	  <td class="row2">
+		<span class="gen">{L_LINKEDIN_EXPLAIN}</span><input class="post" type="text" name="linkedin" size="20" maxlength="255" value="{LINKEDIN}" />
+	  </td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+        <td class="row1" valign="top"><table width="100%" border="0" cellspacing="1" cellpadding="3">
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<tr>
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_LINKEDIN}:</span></td>
+		  <td class="row1" valign="middle"><span class="gen">{LINKEDIN_IMG}</span></td>
+		</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------
+#
+$images['icon_yim'] = "$current_template_images/{LANG}/icon_yim.gif";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$images['icon_linkedin'] = "$current_template_images/{LANG}/icon_linkedin.gif";
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+<td valign="middle" nowrap="nowrap">{postrow.PROFILE_IMG}
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+{postrow.PROFILE_IMG}
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ {postrow.LINKEDIN_IMG}
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	$sql = "SELECT u.username AS username_1,
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, u.user_yim
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_linkedin
+#
+#-----[ FIND ]------------------------------------------
+#
+	$yim = ( $privmsg['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $privmsg['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$linkedin_img = ( $privmsg['user_linkedin'] ) ? '<a href="http://www.linkedin.com/' . $privmsg['user_linkedin'] . '?trk=phpbb_pm" target="_blank"><img src="' . $images['icon_linkedin'] . '" alt="' . sprintf($lang['LINKEDIN'], '', '') . '" title="' . sprintf($lang['LINKEDIN'], '', '') . '" border="0" /></a>' : '';
+$linkedin = ( $privmsg['user_linkedin'] ) ? '<a href="http://www.linkedin.com/' . $privmsg['user_linkedin'] . '?trk=phpbb_pm" target="_blank">' . sprintf($lang['LINKEDIN'], '', '') . '</a>' : '';
+#
+#-----[ FIND ]------------------------------------------
+#
+		'MSN_IMG' => $msn_img,
+		'MSN' => $msn,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'LINKEDIN_IMG' => $linkedin_img,
+		'LINKEDIN' => $linkedin,
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT u.username, u.user_id,
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, u.user_yim
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_linkedin
+#
+#-----[ FIND ]------------------------------------------
+#
+		$yim = ( $postrow[$i]['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $postrow[$i]['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$linkedin_img = ( $postrow[$i]['user_linkedin'] ) ? '<a href="http://www.linkedin.com/' . $postrow[$i]['user_linkedin'] . '?trk=phpbb_post" target="_blank"><img src="' . $images['icon_linkedin'] . '" alt="' . sprintf($lang['LINKEDIN'], '', '') . '" title="' . sprintf($lang['LINKEDIN'], '', '') . '" border="0" /></a>' : '';
+$linkedin = ( $postrow[$i]['user_linkedin'] ) ? '<a href="http://www.linkedin.com/' . $postrow[$i]['user_linkedin'] . '?trk=phpbb_post" target="_blank">' . sprintf($lang['LINKEDIN'], '', '') . '</a>' : '';
+#
+#-----[ FIND ]------------------------------------------
+#
+		$yim_img = '';
+		$yim = '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$linkedin_img = '';
+		$linkedin = '';
+#
+#-----[ FIND ]------------------------------------------
+#
+		'YIM_IMG' => $yim_img,
+		'YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'LINKEDIN_IMG' => $linkedin_img,
+		'LINKEDIN' => $linkedin,
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

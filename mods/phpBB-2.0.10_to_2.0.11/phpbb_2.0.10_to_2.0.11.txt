@@ -1,0 +1,789 @@
+################################################################# 
+## MOD Title: phpBB 2.0.10 to phpBB 2.0.11 Code Changes
+## MOD Author: Acyd Burn < N/A > (Meik Sievertsen) N/A 
+## MOD Description: These are the Changes from phpBB 2.0.10 to phpBB 2.0.11 summed up into a little Mod.
+##		    This might be very helpful if you want to update your Board and have installed a 
+##		    bunch of Mods. Then it's normally easier to apply the Code Changes than to install
+##		    all Mods again.
+## MOD Version: 1.0.0 
+## 
+## Installation Level: Intermediate
+## Installation Time: 10-20 Minutes 
+## Files To Edit: 
+##		admin/admin_board.php
+##		common.php
+##		groupcp.php
+##		includes/constants.php
+##		includes/functions.php
+##		includes/functions_post.php
+##		includes/functions_search.php
+##		includes/topic_review.php
+##		includes/usercp_register.php
+##		includes/usercp_sendpasswd.php
+##		includes/usercp_viewprofile.php
+##		login.php
+##		privmsg.php
+##		profile.php
+##		search.php
+##		templates/subSilver/admin/board_config_body.tpl
+##		viewtopic.php
+##
+## Included Files: update_to_2011.php, includes/usercp_confirm.php
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##	When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.
+##	When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.
+##	When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in 	the 'REPLACE WITH'-Statement.
+##	When you find a 'DELETE'-Statement, the Code have to be deleted.
+##	
+##	After you have finished this tutorial, you have to upload the update_to_210.php file (found within every phpBB Package), execute it and then delete it from your webspace.
+##
+##	From phpBB 2.0.10 to 2.0.11 there were no database changes, except the version number increment.
+##	
+############################################################## 
+## MOD History: 
+## 
+##   2004-11-17 - Version 1.0.0 
+##      - first release 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+
+#
+#-----[ COPY ]---------------------------
+# Since phpBB 2.0.11 the file usercp_confirm.php exist
+
+copy usercp_confirm.php						to includes/usercp_confirm.php
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+admin/admin_board.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 100
+$activation_user = ( $new['require_activation'] == USER_ACTIVATION_SELF ) ? "checked=\"checked\"" : "";
+$activation_admin = ( $new['require_activation'] == USER_ACTIVATION_ADMIN ) ? "checked=\"checked\"" : "";
+  
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+$confirm_yes = ($new['enable_confirm']) ? 'checked="checked"' : '';
+$confirm_no = (!$new['enable_confirm']) ? 'checked="checked"' : '';
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 166
+	"L_NONE" => $lang['Acc_None'], 
+	"L_USER" => $lang['Acc_User'], 
+	"L_ADMIN" => $lang['Acc_Admin'], 
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	"L_VISUAL_CONFIRM" => $lang['Visual_confirm'], 
+	"L_VISUAL_CONFIRM_EXPLAIN" => $lang['Visual_confirm_explain'], 
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+common.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 28
+function unset_vars(&$var)
+{
+	while (list($var_name, $null) = @each($var))
+	{
+		unset($GLOBALS[$var_name]);
+	}
+	return;
+}
+
+//
+error_reporting  (E_ERROR | E_WARNING | E_PARSE); // This will NOT report uninitialized variables
+set_magic_quotes_runtime(0); // Disable magic_quotes_runtime
+
+$ini_val = (@phpversion() >= '4.0.0') ? 'ini_get' : 'get_cfg_var';
+
+// Unset globally registered vars - PHP5 ... hhmmm
+if (@$ini_val('register_globals') == '1' || strtolower(@$ini_val('register_globals')) == 'on')
+{
+	$var_prefix = 'HTTP';
+	$var_suffix = '_VARS';
+	
+	$test = array('_GET', '_POST', '_SERVER', '_COOKIE', '_ENV');
+
+	foreach ($test as $var)
+	{
+		if (is_array(${$var_prefix . $var . $var_suffix}))
+		{
+			unset_vars(${$var_prefix . $var . $var_suffix});
+			@reset(${$var_prefix . $var . $var_suffix});
+		}
+
+		if (is_array(${$var}))
+		{
+			unset_vars(${$var});
+			@reset(${$var});
+		}
+	}
+
+	if (is_array(${'_FILES'}))
+	{
+		unset_vars(${'_FILES'});
+		@reset(${'_FILES'});
+	}
+
+	if (is_array(${'HTTP_POST_FILES'}))
+	{
+		unset_vars(${'HTTP_POST_FILES'});
+		@reset(${'HTTP_POST_FILES'});
+	}
+}
+
+// PHP5 with register_long_arrays off?
+if (!isset($HTTP_POST_VARS) && isset($_POST))
+{
+	$HTTP_POST_VARS = $_POST;
+	$HTTP_GET_VARS = $_GET;
+	$HTTP_SERVER_VARS = $_SERVER;
+	$HTTP_COOKIE_VARS = $_COOKIE;
+	$HTTP_ENV_VARS = $_ENV;
+	$HTTP_POST_FILES = $_FILES;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+error_reporting  (E_ERROR | E_WARNING | E_PARSE); // This will NOT report uninitialized variables
+set_magic_quotes_runtime(0); // Disable magic_quotes_runtime
+
+// The following code (unsetting globals) was contributed by Matt Kavanagh
+
+// PHP5 with register_long_arrays off?
+if (!isset($HTTP_POST_VARS) && isset($_POST))
+{
+	$HTTP_POST_VARS = $_POST;
+	$HTTP_GET_VARS = $_GET;
+	$HTTP_SERVER_VARS = $_SERVER;
+	$HTTP_COOKIE_VARS = $_COOKIE;
+	$HTTP_ENV_VARS = $_ENV;
+	$HTTP_POST_FILES = $_FILES;
+
+	// _SESSION is the only superglobal which is conditionally set
+	if (isset($_SESSION))
+	{
+		$HTTP_SESSION_VARS = $_SESSION;
+	}
+}
+
+if (@phpversion() < '4.0.0')
+{
+	// PHP3 path; in PHP3, globals are _always_ registered
+	
+	// We 'flip' the array of variables to test like this so that
+	// we can validate later with isset($test[$var]) (no in_array())
+	$test = array('HTTP_GET_VARS' => NULL, 'HTTP_POST_VARS' => NULL, 'HTTP_COOKIE_VARS' => NULL, 'HTTP_SERVER_VARS' => NULL, 'HTTP_ENV_VARS' => NULL, 'HTTP_POST_FILES' => NULL);
+
+	// Loop through each input array
+	@reset($test);
+	while (list($input,) = @each($test))
+	{
+		while (list($var,) = @each($$input))
+		{
+			// Validate the variable to be unset
+			if (!isset($test[$var]) && $var != 'test' && $var != 'input')
+			{
+				unset($$var);
+			}
+		}
+	}
+}
+else if (@ini_get('register_globals') == '1' || strtolower(@ini_get('register_globals')) == 'on')
+{
+	// PHP4+ path
+	
+	// Not only will array_merge give a warning if a parameter
+	// is not an array, it will actually fail. So we check if
+	// HTTP_SESSION_VARS has been initialised.
+	if (!isset($HTTP_SESSION_VARS))
+	{
+		$HTTP_SESSION_VARS = array();
+	}
+
+	// Merge all into one extremely huge array; unset
+	// this later
+	$input = array_merge($HTTP_GET_VARS, $HTTP_POST_VARS, $HTTP_COOKIE_VARS, $HTTP_SERVER_VARS, $HTTP_SESSION_VARS, $HTTP_ENV_VARS, $HTTP_POST_FILES);
+
+	unset($input['input']);
+	
+	while (list($var,) = @each($input))
+	{
+		unset($$var);
+	}
+   
+	unset($input);
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+groupcp.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 475
+				$username = ( isset($HTTP_POST_VARS['username']) ) ? htmlspecialchars($HTTP_POST_VARS['username']) : '';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+				$username = ( isset($HTTP_POST_VARS['username']) ) ? phpbb_clean_username($HTTP_POST_VARS['username']) : '';
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/constants.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 151
+
+
+// Table names
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+define('CONFIRM_TABLE', $table_prefix.'confirm');
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/functions.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 80
+//
+// Get Userdata, $user can be username or user_id. If force_str is true, the username will be forced.
+//
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+# 
+// added at phpBB 2.0.11 to properly format the username
+function phpbb_clean_username($username)
+{
+	$username = htmlspecialchars(rtrim(trim($username), "\\"));
+	$username = substr(str_replace("\\'", "'", $username), 0, 25);
+	$username = str_replace("'", "\\'", $username);
+
+	return $username;
+}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 96
+		$user = trim(htmlspecialchars($user));
+		$user = substr(str_replace("\\'", "'", $user), 0, 25);
+		$user = str_replace("'", "\\'", $user);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		$user = phpbb_clean_username($user);
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/functions_post.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 131
+		$username = trim(strip_tags($username));
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		$username = phpbb_clean_username($username);
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/functions_search.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 438
+		$username_search = preg_replace('/\*/', '%', trim(strip_tags($search_match)));
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		$username_search = preg_replace('/\*/', '%', phpbb_clean_username($search_match));
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 472
+		'USERNAME' => ( !empty($search_match) ) ? strip_tags($search_match) : '', 
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		'USERNAME' => (!empty($search_match)) ? phpbb_clean_username($search_match) : '', 
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/topic_review.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 33
+		if ( !isset($topic_id) )
+		{
+			message_die(GENERAL_MESSAGE, 'Topic_not_exist');
+		}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		if ( !isset($topic_id) || !$topic_id)
+		{
+			message_die(GENERAL_MESSAGE, 'Topic_post_not_exist');
+		}
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/usercp_register.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 24
+ *
+ ***************************************************************************/
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+/*
+
+	This code has been modified from its original form by psoTFX @ phpbb.com
+	Changes introduce the back-ported phpBB 2.2 visual confirmation code. 
+
+	NOTE: Anyone using the modified code contained within this script MUST include
+	a relevant message such as this in usercp_register.php ... failure to do so 
+	will affect a breach of Section 2a of the GPL and our copyright
+
+	png visual confirmation system : (c) phpBB Group, 2003 : All Rights Reserved
+
+*/
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 112
+	$strip_var_list = array('username' => 'username', 'email' => 'email', 'icq' => 'icq', 'aim' => 'aim', 'msn' => 'msn', 'yim' => 'yim', 'website' => 'website', 'location' => 'location', 'occupation' => 'occupation', 'interests' => 'interests');
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	$strip_var_list['confirm_code'] = 'confirm_code';
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 269
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+		}
+	}
+  
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	if ($board_config['enable_confirm'] && $mode == 'register')
+	{
+		if (empty($HTTP_POST_VARS['confirm_id']))
+		{
+			$error = TRUE;
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Confirm_code_wrong'];
+		}
+		else
+		{
+			$confirm_id = htmlspecialchars($HTTP_POST_VARS['confirm_id']);
+			if (!preg_match('/^[A-Za-z0-9]+$/', $confirm_id))
+			{
+				$confirm_id = '';
+			}
+			
+			$sql = 'SELECT code 
+				FROM ' . CONFIRM_TABLE . " 
+				WHERE confirm_id = '$confirm_id' 
+					AND session_id = '" . $userdata['session_id'] . "'";
+			if (!($result = $db->sql_query($sql)))
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain confirmation code', __LINE__, __FILE__, $sql);
+			}
+
+			if ($row = $db->sql_fetchrow($result))
+			{
+				if ($row['code'] != $confirm_code)
+				{
+					$error = TRUE;
+					$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Confirm_code_wrong'];
+				}
+				else
+				{
+					$sql = 'DELETE FROM ' . CONFIRM_TABLE . " 
+						WHERE confirm_id = '$confirm_id' 
+							AND session_id = '" . $userdata['session_id'] . "'";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Could not delete confirmation code', __LINE__, __FILE__, $sql);
+					}
+				}
+			}
+			else
+			{		
+				$error = TRUE;
+				$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Confirm_code_wrong'];
+			}
+			$db->sql_freeresult($result);
+		}
+	}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 903
+		$template->assign_block_vars('switch_namechange_disallowed', array());
+	}
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+
+	// Visual Confirmation
+	$confirm_image = '';
+	if (!empty($board_config['enable_confirm']) && $mode == 'register')
+	{
+		$sql = 'SELECT session_id 
+			FROM ' . SESSIONS_TABLE; 
+		if (!($result = $db->sql_query($sql)))
+		{
+			message_die(GENERAL_ERROR, 'Could not select session data', '', __LINE__, __FILE__, $sql);
+		}
+
+		if ($row = $db->sql_fetchrow($result))
+		{
+			$confirm_sql = '';
+			do
+			{
+				$confirm_sql .= (($confirm_sql != '') ? ', ' : '') . "'" . $row['session_id'] . "'";
+			}
+			while ($row = $db->sql_fetchrow($result));
+		
+			$sql = 'DELETE FROM ' .  CONFIRM_TABLE . " 
+				WHERE session_id NOT IN ($confirm_sql)";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Could not delete stale confirm data', '', __LINE__, __FILE__, $sql);
+			}
+		}
+		$db->sql_freeresult($result);
+
+		$sql = 'SELECT COUNT(session_id) AS attempts 
+			FROM ' . CONFIRM_TABLE . " 
+			WHERE session_id = '" . $userdata['session_id'] . "'";
+		if (!($result = $db->sql_query($sql)))
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain confirm code count', '', __LINE__, __FILE__, $sql);
+		}
+
+		if ($row = $db->sql_fetchrow($result))
+		{
+			if ($row['attempts'] > 3)
+			{
+				message_die(GENERAL_MESSAGE, $lang['Too_many_registers']);
+			}
+		}
+		$db->sql_freeresult($result);
+		
+		$confirm_chars = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',  'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',  'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9');
+
+		list($usec, $sec) = explode(' ', microtime()); 
+		mt_srand($sec * $usec); 
+
+		$max_chars = count($confirm_chars) - 1;
+		$code = '';
+		for ($i = 0; $i < 6; $i++)
+		{
+			$code .= $confirm_chars[mt_rand(0, $max_chars)];
+		}
+
+		$confirm_id = md5(uniqid($user_ip));
+
+		$sql = 'INSERT INTO ' . CONFIRM_TABLE . " (confirm_id, session_id, code) 
+			VALUES ('$confirm_id', '". $userdata['session_id'] . "', '$code')";
+		if (!$db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, 'Could not insert new confirm code information', '', __LINE__, __FILE__, $sql);
+		}
+
+		unset($code);
+		
+		$confirm_image = (@extension_loaded('zlib')) ? '<img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id") . '" alt="" title="" />' : '<img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id&amp;c=1") . '" alt="" title="" /><img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id&amp;c=2") . '" alt="" title="" /><img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id&amp;c=3") . '" alt="" title="" /><img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id&amp;c=4") . '" alt="" title="" /><img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id&amp;c=5") . '" alt="" title="" /><img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id&amp;c=6") . '" alt="" title="" />';
+		$s_hidden_fields .= '<input type="hidden" name="confirm_id" value="' . $confirm_id . '" />';
+
+		$template->assign_block_vars('switch_confirm', array());
+	}
+
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 993
+		'NEW_PASSWORD' => $new_password,
+		'PASSWORD_CONFIRM' => $password_confirm,
+		'EMAIL' => $email,
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+		'CONFIRM_IMG' => $confirm_image, 
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1087
+		'L_PROFILE_INFO' => $lang['Profile_info'],
+		'L_PROFILE_INFO_NOTICE' => $lang['Profile_info_warn'],
+		'L_EMAIL_ADDRESS' => $lang['Email_address'],
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+
+		'L_CONFIRM_CODE_IMPAIRED'	=> sprintf($lang['Confirm_code_impaired'], '<a href="mailto:' . $board_config['board_email'] . '">', '</a>'), 
+		'L_CONFIRM_CODE'			=> $lang['Confirm_code'], 
+		'L_CONFIRM_CODE_EXPLAIN'	=> $lang['Confirm_code_explain'], 
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/usercp_sendpasswd.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 32
+	$username = ( !empty($HTTP_POST_VARS['username']) ) ? trim(strip_tags($HTTP_POST_VARS['username'])) : '';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	$username = ( !empty($HTTP_POST_VARS['username']) ) ? phpbb_clean_username($HTTP_POST_VARS['username']) : '';
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 172
+$page_title = $lang['Viewing_profile'];
+include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+  
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+if (function_exists('get_html_translation_table'))
+{
+	$u_search_author = urlencode(strtr($profiledata['username'], array_flip(get_html_translation_table(HTML_ENTITIES))));
+}
+else
+{
+	$u_search_author = urlencode(str_replace(array('&amp;', '&#039;', '&quot;', '&lt;', '&gt;'), array('&', "'", '"', '<', '>'), $profiledata['username']));
+}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 235
+	'U_SEARCH_USER' => append_sid("search.$phpEx?search_author=" . urlencode($profiledata['username'])),
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	'U_SEARCH_USER' => append_sid("search.$phpEx?search_author=" . $u_search_author),
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+login.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 57
+		$username = isset($HTTP_POST_VARS['username']) ? trim(htmlspecialchars($HTTP_POST_VARS['username'])) : '';
+		$username = substr(str_replace("\\'", "'", $username), 0, 25);
+		$username = str_replace("'", "\\'", $username);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		$username = isset($HTTP_POST_VARS['username']) ? phpbb_clean_username($HTTP_POST_VARS['username']) : '';
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+privmsg.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1135
+			$to_username = $HTTP_POST_VARS['username'];
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+			$to_username = phpbb_clean_username($HTTP_POST_VARS['username']);
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1340
+		$to_username = ( isset($HTTP_POST_VARS['username']) ) ? trim(strip_tags(stripslashes($HTTP_POST_VARS['username']))) : '';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		$to_username = (isset($HTTP_POST_VARS['username']) ) ? trim(htmlspecialchars(stripslashes($HTTP_POST_VARS['username']))) : '';
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1711
+		'USERNAME' => preg_replace($html_entities_match, $html_entities_replace, $to_username),
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		'USERNAME' => $to_username,
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+profile.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 103
+		include($phpbb_root_path . 'includes/usercp_register.'.$phpEx);
+ 		exit;
+ 	}
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	else if ( $mode == 'confirm' )
+	{
+		// Visual Confirmation
+		if ( $userdata['session_logged_in'] )
+		{
+			exit;
+		}
+
+		include($phpbb_root_path . 'includes/usercp_confirm.'.$phpEx);
+ 		exit;
+ 	}
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+search.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 63
+	$search_author = htmlspecialchars($search_author);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	$search_author = phpbb_clean_username($search_author);
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 38
+ 	<tr>
+		<td class="row2"><input type="radio" name="require_activation" value="{ACTIVATION_NONE}" {ACTIVATION_NONE_CHECKED} />{L_NONE}&nbsp; &nbsp;<input type="radio" name="require_activation" value="{ACTIVATION_USER}" {ACTIVATION_USER_CHECKED} />{L_USER}&nbsp; &nbsp;<input type="radio" name="require_activation" value="{ACTIVATION_ADMIN}" {ACTIVATION_ADMIN_CHECKED} />{L_ADMIN}</td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	<tr>
+		<td class="row1">{L_VISUAL_CONFIRM}<br /><span class="gensmall">{L_VISUAL_CONFIRM_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="enable_confirm" value="1" {CONFIRM_ENABLE} />{L_YES}&nbsp; &nbsp;<input type="radio" name="enable_confirm" value="0" {CONFIRM_DISABLE} />{L_NO}</td>
+	</tr>
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+viewtopic.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 486
+	$words = explode(' ', trim(htmlspecialchars(urldecode($HTTP_GET_VARS['highlight']))));
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	$words = explode(' ', trim(htmlspecialchars($HTTP_GET_VARS['highlight'])));
+  
+
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+
+# EoM

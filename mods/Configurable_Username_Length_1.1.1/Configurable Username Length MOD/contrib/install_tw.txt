@@ -1,0 +1,174 @@
+######################################################## 
+## 外掛名稱: 可設定會員名稱長度 (1.1.0 -> 1.1.1 升級檔)
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 這是 Configurable Username Length MOD v1.1.0 版專用的更新檔
+## 外掛版本: 1.0.0
+## 
+## 安裝難度: 簡單
+## 安裝時間: 5 分鐘 
+##
+## 需要編輯的檔案: 7
+##	admin/admin_board.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	includes/page_header.php
+##	includes/usercp_register.php
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/login_body.tpl
+##	templates/subSilver/posting_body.tpl
+##
+## 附加的檔案: 0
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+## 	這是 Configurable Username Length MOD v1.1.0 版專用的更新檔
+##
+############################################################## 
+## 版本歷史: 
+##
+##   2006-07-16 - 版本 1.0.0
+##      - 首次發佈
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_admin.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$lang['Limit_username_max_length'] = 'Maximum Username Length';
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+$lang['username_max_min_error'] = 'Maximum username length is smaller than the minimum length';
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+admin/admin_board.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	while( $row = $db->sql_fetchrow($result) )
+	{
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+	// Configurable Username Length MOD
+	if( isset($HTTP_POST_VARS['submit']) )
+	{
+		if ($HTTP_POST_VARS['limit_username_max_length'] < $HTTP_POST_VARS['limit_username_min_length'])
+		{
+			message_die(GENERAL_MESSAGE, 'username_max_min_error');
+		}
+	}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+		// Configurable Username Length MOD
+		if ($config_name == 'limit_username_min_length' && $config_value < 2)
+		{
+			$new['limit_username_min_length'] = 2;
+		}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+		else if ($config_name == 'limit_username_max_length' && $config_value < 2)
+		{
+			$new['limit_username_max_length'] = 25;
+		}
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/page_header.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'PRIVMSG_IMG' => $icon_pm,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	'LIMIT_USERNAME_MAX_LENGTH' => $board_config['limit_username_max_length'],	// Configurable Username Length MOD
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+includes/usercp_register.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+		'LIMIT_USERNAME_MAX_LENGTH' => $board_config['limit_username_max_length'],	// Configurable Username Length MOD
+#
+#-----[ 取代為 ]---------------------------------------------
+# 直接刪除上一個動作找到的代碼
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MIN_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MIN_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_min_length" value="{LIMIT_USERNAME_MIN_LENGTH}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MAX_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MAX_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_max_length" value="{LIMIT_USERNAME_MAX_LENGTH}" /></td>
+	</tr>
+# 
+#-----[ 取代為 ]------------------------------------------ 
+# Order changed
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MAX_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MAX_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_max_length" value="{LIMIT_USERNAME_MAX_LENGTH}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MIN_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MIN_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_min_length" value="{LIMIT_USERNAME_MIN_LENGTH}" /></td>
+	</tr>
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/login_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+			  <input type="text" class="post" name="username" size="25" maxlength="40" value="{USERNAME}" />
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+maxlength="40"
+# 
+#-----[ 把該行取代為 ]------------------------------------------ 
+# 
+maxlength="{LIMIT_USERNAME_MAX_LENGTH}"
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/posting_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# switch_privmsg
+		<td class="row2"><span class="genmed"><input type="text"  class="post" name="username" maxlength="25" size="25" tabindex="1" value="{USERNAME}" />
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+maxlength="25"
+# 
+#-----[ 把該行取代為 ]------------------------------------------ 
+# 
+maxlength="{LIMIT_USERNAME_MAX_LENGTH}"
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

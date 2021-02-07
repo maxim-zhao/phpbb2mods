@@ -1,0 +1,199 @@
+##############################################################
+## MOD Title: Forum Meta Tags
+## MOD Author: -SV- < esizemore05@gmail.com > (Eric Sizemore) N/A
+## MOD Description: Adds configurable Meta Tags to your phpBB forum.
+##                  Adds the description, keywords, robots, rating, revisit,
+##                  language, and author tags.
+##
+## MOD Version: 1.0.2
+##
+## Installation Level: Easy
+## Installation Time: ~10 Minutes
+## Files To Edit: includes/page_header.php
+##                language/lang_english/lang_admin.php
+##                admin/page_header_admin.php
+##                admin/admin_board.php
+##                templates/subSilver/overall_header.tpl
+##                templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files: N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## - Adds the description, keywords, robots, rating, revisit,
+##   language, and author meta tags to your forum.
+## - More tags are planned for a future release.
+##
+## - This is the upgrade file, to upgrade from version 1.0.1
+##   to 1.0.2. For a fresh install, please see install.txt
+##
+##############################################################
+## MOD History:
+##
+##   2006-05-08 - Version 1.0.2
+##              - Added the language and author tags.
+##
+##   2006-02-03 - Version 1.0.1
+##              - Denied. Fixed & Resubmitted.
+##
+##   2006-01-22 - Version 1.0.0
+##              - Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]-------------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('meta_language', 'en');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('meta_author', 'Forum Meta Tags v1.0.2');
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+    'META_KEYWORDS' => $board_config['meta_keywords'],
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+    'META_LANGUAGE' => $board_config['meta_language'],
+    'META_AUTHOR' => $board_config['meta_author'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['Meta_Tags'] = 'Forum Meta Tags';
+$lang['Meta_Tags_Explain'] = 'Use the below to add meta tags to all of your forum pages. Meta tags are used by search engines. You can learn more about meta tags <a target="_blank" href="http://searchenginewatch.com/webmasters/article.php/2167931">here</a>.';
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+$lang['Meta_Language'] = 'Board Language:';
+$lang['Meta_Language_Explain'] = 'Your board\'s language. To learn more, and supported languages click <a target="_blank" href="http://www.submitcorner.com/Guide/Meta/language.shtml">here</a>.';
+$lang['Meta_Author'] = 'Author:';
+$lang['Meta_Author_Explain'] = 'Author of the document being read (your forum). To learn more click <a target="_blank" href="http://www.submitcorner.com/Guide/Meta/author.shtml">here</a>.';
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/page_header_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+    'META_KEYWORDS' => $board_config['meta_keywords'],
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+    'META_LANGUAGE' => $board_config['meta_language'],
+    'META_AUTHOR' => $board_config['meta_author'],
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+    'L_META_TAGS' => $lang['Meta_Tags'],
+    'L_META_TAGS_EXPLAIN' => $lang['Meta_Tags_Explain'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+    'L_META_LANGUAGE' => $lang['Meta_Language'],
+    'L_META_LANGUAGE_EXPLAIN' => $lang['Meta_Language_Explain'],
+    'L_META_AUTHOR' => $lang['Meta_Author'],
+    'L_META_AUTHOR_EXPLAIN' => $lang['Meta_Author_Explain'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+        "L_META_TAGS" => $lang['Meta_Tags'],
+        "L_META_TAGS_EXPLAIN" => $lang['Meta_Tags_Explain'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+        "L_META_LANGUAGE" => $lang['Meta_Language'],
+        "L_META_LANGUAGE_EXPLAIN" => $lang['Meta_Language_Explain'],
+        "L_META_AUTHOR" => $lang['Meta_Author'],
+        "L_META_AUTHOR_EXPLAIN" => $lang['Meta_Author_Explain'],
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"META_KEYWORDS" => $new['meta_keywords'],
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+    "META_LANGUAGE" => $new['meta_language'],
+    "META_AUTHOR" => $new['meta_author'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<meta name="keywords" content="{META_KEYWORDS}" />
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<meta http-equiv="Content-Language" content="{META_LANGUAGE}" />
+<meta name="author" content="{META_AUTHOR}" />
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="row2" colspan="2"><span class="gensmall">{L_META_TAGS_EXPLAIN}</span></td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+	<tr>
+		<td class="row1">{L_META_LANGUAGE}<br /><span class="gensmall">{L_META_LANGUAGE_EXPLAIN}</span></td>
+		<td class="row2"><input type="text" name="meta_language" value="{META_LANGUAGE}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_META_AUTHOR}<br /><span class="gensmall">{L_META_AUTHOR_EXPLAIN}</span></td>
+		<td class="row2"><input type="text" name="meta_author" value="{META_AUTHOR}" /></td>
+	</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

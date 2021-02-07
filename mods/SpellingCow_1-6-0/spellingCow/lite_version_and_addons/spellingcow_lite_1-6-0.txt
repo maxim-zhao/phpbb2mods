@@ -1,0 +1,162 @@
+## easymod compliant
+############################################################## 
+## MOD Title:    SpellingCow Spell Check (Lite Version)
+## MOD Author:   Nuttzy99 < nospam@blizzhackers.com > (Craig Nuttall) http://www.spellingcow.com
+##
+## MOD Description:  This MOD will allow your users to use the FREE SpellingCow spell checking
+##    service.  There are many advanatages including an easy installation, portable dictionaries,
+##    and support for over 75 languages.  Some ads are displayed on theunlicensed version.
+## MOD Version:  1.6.0
+## 
+## Installation Level:  EASY
+## Installation Time:   2 minutes
+## Files To Edit:       templates/subSilver/posting_body.tpl
+##                      templates/subSilver/overall_footer.tpl
+## Included Files:      spell-gw.php
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+############################################################## 
+##
+## Author Notes:
+##     + use update_to_1-6-0.txt if you already have SpellingCow installed
+##     + Does NOT install the auto checking feature, but it can be added at any time with 
+##         the included spellingcow_auto_1-6-0.txt
+##     + As terms of service, SpellingCow.com does require appropriate link backs (this is
+##         a condition of the SpellingCow service, not this GPL'd MOD).
+##     + Don't forget to follow the directions at the end of the MOD to set yourself as
+##         admin and establish your site-wide dictionary!
+##     + Should work with all versions phpBB
+##     + installable with EasyMOD
+##
+############################################################## 
+##
+## MOD History:
+##    2005-03-12 - Version 1.6.0
+##         + getting the spell-gw version caught up to the server version ;-)
+##         + can set default language, 75+ to choose from!
+##         + can enable/disable auto checking right from the gw file (if the auto MOD installed)
+##         + fixes connectivity issues on some servers not liking empty params sent
+##         + small clean up to page scraper
+##    2004-07-05 - Version 1.0.2
+##         + made this lite version
+##    2004-06-21 - Version 1.0.0
+##         + initial release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+
+#
+#-----[ COPY ]---------------------------------
+#
+# NOTE: this means place the spell-gw.php file in your phpBB root directory
+#
+copy spell-gw.php to spell-gw.php
+
+
+#
+#-----[ OPEN ]---------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+
+#
+#-----[ FIND ]---------------------------------
+#
+#   NOTE - the complete lines to find are:
+#		  <tr>
+#			<td colspan="9"><span class="gen">
+#			  <textarea name="message" rows="15" cols="35" wrap="virtual" style="width:450px" tabindex="3" class="post" onselect="storeCaret(this);" onclick="storeCaret(this);" onkeyup="storeCaret(this);">{MESSAGE}</textarea>
+#			  </span></td>
+#		  </tr>
+#
+{MESSAGE}
+</td>
+</tr>
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+# NOTE: for a standard install, you won't need to modify these lines at all
+#
+
+		<!-- =======================================================================
+			Adjust the spellcheck_data line to use SpellingCow with ANY form and 
+			ANY textarea or textbox.  Simply adjust the "value" data as follows:
+				form:   Enter the form name to check.  Enter only one form name.
+				source: Enter the form item to be checked.  Later versions will
+						allow more than one item to be checked!
+				button: Enter the name of the submit button for the form
+				type:   phpBB, vB, IPB, or other - not used yet, but perhaps
+						will be in the near future
+
+			The following is optimized for a standard phpBB install but you can
+				make any changes desired regarding style or to accommodate MODs
+		     =======================================================================  -->
+<!-- SPELL CHECKER -->
+		  <tr align="center">
+			<td colspan="4">
+				<input type="hidden" name="auto_spell_check" value="{AUTO_SPELL}">
+				<input type="button" name="spellcheck" class="liteoption" value="Spell Check" 
+					onClick="window.open('spell-gw.php?mode=load&form=post&source=message&button=post&type=phpBB', '_spellcheck', 'HEIGHT=484,resizable=yes,scrollbars=yes,WIDTH=595');"><br>
+
+				<style type="text/css"><!-- .spellcow, a.spellcow { font-size : 8px; color : #FFFFFF; } --></style>
+				<!-- Removal of the following line may result in suspension of the service by SpellingCow.  Come on, linking back to us is not asking much but means a lot to us.  Thanks! ;-) -->
+				<span class="spellcow">by <a href="http://www.spellingcow.com" target="_blank" class="spellcow">SpellingCow.com</a><a href="spell-gw.php" target="_blank" class="spellcow">.</a><br>
+			</td>
+		  </tr>
+<!-- SPELL CHECKER -->
+
+#
+# The follow is optional, but would be very much appreciated.  It would really help support the project!
+#
+
+#
+#-----[ OPEN ]---------------------------------
+#
+templates/subSilver/overall_footer.tpl
+
+
+#
+#-----[ FIND ]---------------------------------
+#
+#   adding this is optional but would be appreciated by SpellingCow ;-)
+#   NOTE - the complete line to find is:
+# Powered by <a href="http://www.phpbb.com/" target="_phpbb" class="copyright">phpBB</a> &copy; 2001, 2005 phpBB Group<br />{TRANSLATION_INFO}</span></div>
+#
+href="http://www.phpbb.com/"
+
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+phpBB Group
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+ :: Spelling by <a href="http://www.spellingcow.com/" target="_phpbb" class="copyright">SpellingCow</a><a href="spell-gw.php" target="_phpbb" class="copyright">.</a>
+
+
+#
+# All installed!  Now go ahead and set yourself as Admin so that you can setup your site-wide dictionary!  The site-wide
+#   dictionary will prevent your users from being bothered with the lingo common to your site.
+#
+# To control the site-wide dictionary, a SpellingCow.com account must be set as the designated admin account. Once you have
+#   registered a SpellingCow.com account, edit the spell-gw.php file you installed on your site. Find the line that reads
+#   "define('ADMIN_USERNAME', 'insert-admin-username') ;" and change "insert-admin-username" to whatever your
+#   SpellingCow.com account name is. After logging in, you will then be known as the admin for your site. You may also 
+#   modify this entry at any time to designate a different account to act as admin.  Enjoy!
+#
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]---------------------------------
+#
+# EoM

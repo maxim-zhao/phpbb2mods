@@ -1,0 +1,272 @@
+##############################################################
+## MOD Title:		Run stats (vanilia edition)
+## MOD Author:		Ptirhiik < please.use.board@ptifo.clanmckeen.com > (Pierre) http://ptifo.clanmckeen.com
+## MOD Description:	Gives stats and details about page time generation, sql requests, indexes used, etc.
+##
+## MOD Version:		1.0.2
+##
+## Installation Level:	Easy
+## Installation Time:	15 Minutes
+## Files To Edit:
+##			common.php
+##			admin/page_footer_admin.php
+##			includes/db.php
+##			includes/page_tail.php
+##			language/lang_english/lang_main.php
+##			templates/subSilver/overall_footer.tpl
+##			templates/subSilver/admin/page_footer.tpl
+##
+## Included Files:
+##			includes/class_db.php
+##			templates/subSilver/run_stats_box.tpl
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##	This mod is basicaly a backport of functions introduced in Categories Hierarchy 2.1.x
+##
+##	You can restrict the stats displayed with commented out the define('DEBUG_... at top of includes/class_db.php.
+##	I strongly recommand to do so at least for the "define('DEBUG_SQL', true);" line when you are not in a debug or tweaking process.
+##	Note that only administrators will however see the details of the requests.
+##
+##	Functions implemented by the mod at debug purpose, but not used by the run stats functionality :
+##	-----------------------------------------------------------------------------------------------
+##	- function _dump() can be used place to place to display var contents in your scripts,
+##	- functions _marker_start() & _marker_stop() are usefull to track the duration of a particular range of code.
+##		Remember if you invoke them in a nested context (so within a function ie) to declare at top of this parent level :
+##		global $trc_loc_start, $trc_loc_end;
+##
+##############################################################
+## MOD History:
+##
+##   2005-11-30 - Version 1.0.2
+##      - descro : fix a find in includes/page_tail.php
+##
+##   2005-11-23 - Version 1.0.0
+##      - first edition
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ COPY ]------------------------------------------------
+#
+COPY root/*.* TO *.*
+#
+#-----[ OPEN ]------------------------------------------------
+#
+common.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : run stats -----------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+if ( !defined('IN_PHPBB') )
+{
+	die("Hacking attempt");
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : run stats -----------------------------------------------------------
+//-- add
+$starttime = microtime();
+$trc_loc_start = $trc_loc_end = 0;
+//-- fin mod : run stats -------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/page_footer_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : run stats -----------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full lines are longer
+#
+$template->assign_vars(array(
+	'PHPBB_VERSION' =>
+	'TRANSLATION_INFO' =>
+);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : run stats -----------------------------------------------------------
+//-- add
+if ( ($HTTP_GET_VARS['pane'] != 'left') && defined('DEBUG') && defined('DEBUG_SQL_ADMIN') )
+{
+	// send run stat (page generation, sql time, requests dump...)
+	$stat_run = new stat_run_class(microtime());
+	$stat_run->display();
+}
+//-- fin mod : run stats -------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/db.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : run stats -----------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$db = new sql_db($dbhost, $dbuser, $dbpasswd, $dbname, false);
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+# here we surrond the line found to comment it out
+#
+//-- mod : run stats -----------------------------------------------------------
+//-- delete
+/*
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+*/
+//-- add
+include_once($phpbb_root_path . 'includes/class_db.' . $phpEx);
+$db = new db_class($dbhost, $dbuser, $dbpasswd, $dbname, false);
+//-- fin mod : run stats -------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_tail.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : run stats -----------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full lines are longer
+#
+$template->assign_vars(array(
+	'TRANSLATION_INFO' =>
+	'ADMIN_LINK' =>
+);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : run stats -----------------------------------------------------------
+//-- add
+if ( empty($gen_simple_header) && defined('DEBUG') )
+{
+	// send run stat (page generation, sql time, requests dump...)
+	$stat_run = new stat_run_class(microtime());
+	$stat_run->display();
+}
+//-- fin mod : run stats -------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : run stats -----------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+//-- mod : run stats -----------------------------------------------------------
+//-- add
+// run stats
+$lang['Stat_surround'] = '[ %s ]';
+$lang['Stat_sep'] = ' - ';
+$lang['Stat_page_duration'] = 'Time: %.4fs';
+$lang['Stat_local_duration'] = 'local trace: %.4fs';
+$lang['Stat_part_php'] = 'PHP: %.2d%%';
+$lang['Stat_part_sql'] = 'SQL: %.2d%%';
+$lang['Stat_queries'] = 'Queries: %2d (%.4fs)';
+$lang['Stat_gzip_enable'] = 'GZIP on';
+$lang['Stat_debug_enable'] = 'Debug on';
+$lang['Stat_request'] = 'Request';
+$lang['Stat_line'] = 'Line:&nbsp;%d';
+$lang['Stat_cache'] = 'cache:&nbsp;%.4fs';
+$lang['Stat_dur'] = 'dur.:&nbsp;%.4fs';
+$lang['Stat_table'] = 'Table';
+$lang['Stat_type'] = 'Type';
+$lang['Stat_possible_keys'] = 'Possible keys';
+$lang['Stat_key'] = 'Used key';
+$lang['Stat_key_len'] = 'Key length';
+$lang['Stat_ref'] = 'Ref.';
+$lang['Stat_rows'] = 'Rows';
+$lang['Stat_Extra'] = 'Comment';
+$lang['Stat_Comment'] = 'Comment';
+$lang['Stat_id'] = 'Id';
+$lang['Stat_select_type'] = 'Select type';
+
+// debug
+$lang['dbg_line'] = 'Line: %s';
+$lang['dbg_file'] = 'File: %s';
+$lang['dbg_empty'] = 'Empty';
+//-- fin mod : run stats -------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/overall_footer.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+</body>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+{RUN_STATS_BOX}
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/page_footer.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+</body>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+{RUN_STATS_BOX}
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

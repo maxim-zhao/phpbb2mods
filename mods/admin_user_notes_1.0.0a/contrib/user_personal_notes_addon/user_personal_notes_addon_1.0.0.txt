@@ -1,0 +1,325 @@
+##############################################################
+## MOD Title: User Personal notes Addon
+## MOD Author: eviL3 < evil@phpbbmodders.com > (Igor Wiedler) http://phpbbmodders.com/
+## MOD Description: This Addon for Admin Uesr Notes will add a Personal Notepad
+##                  for Users in the profile, where they can store their own
+##                  Notes for personal use. Admins can edit them. Basicly they're
+##                  the same as admin notes, but the user can also edit them. And
+##                  they're not displayed in viewprofile.
+##
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit: admin/admin_users.php
+##                includes/usercp_register.php
+##                language/lang_english/lang_admin.php
+##                language/lang_english/lang_main.php
+##                templates/subSilver/profile_add_body.tpl
+##                templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files: n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+#############################################################
+## Author Notes:
+## This Addon does NOT require Admin User Notes
+##
+##############################################################
+## MOD History:
+##
+##   2006-07-22 - Version 0.1.0
+##      - First Release
+##
+##   2006-08-06 - Version 1.0.0
+##      - Updated version number for submission
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------------------------
+#
+ALTER TABLE phpbb_users ADD user_pers_notes TEXT NOT NULL;
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$signature = ( !empty($HTTP_POST_VARS['signature']) ) ? trim(str_replace('<br />', "\n", $HTTP_POST_VARS['signature'] ) ) : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$user_pers_notes = ( !empty($HTTP_POST_VARS['user_pers_notes']) ) ? trim(str_replace('<br />', "\n", $HTTP_POST_VARS['user_pers_notes'] ) ) : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+      $signature = htmlspecialchars(stripslashes($signature));
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+      $user_pers_notes = htmlspecialchars(stripslashes($user_pers_notes));
+
+#
+#-----[ FIND ]------------------------------------------
+#
+         $sql = "UPDATE " . USERS_TABLE . "
+            SET
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_sig = '" . str_replace("\'", "''", $signature) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_pers_notes = '" . str_replace("\'", "''", $user_pers_notes) . "'
+
+#
+#-----[ FIND ]------------------------------------------
+#
+      $user_allowpm = $this_userdata['user_allow_pm'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+      $user_notes = $this_userdata['user_pers_notes'];
+
+#
+#-----[ FIND ]------------------------------------------
+#
+         $s_hidden_fields .= '<input type="hidden" name="user_allowpm" value="' . $user_allowpm . '" />';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+         $s_hidden_fields .= '<input type="hidden" name="user_admin_notes" value="' . $user_pers_notes . '" />';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+         'RANK_SELECT_BOX' => $rank_select_box,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'USER_NOTES' => $user_notes,
+			'L_USER_NOTES' =>  $lang['User_pers_notes'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$trim_var_list = array('cur_password' =>
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, 'signature' => 'signature'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, 'user_pers_notes' => 'user_pers_notes'
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$signature = (isset($signature)) ? str_replace('<br />', "\n", $signature) : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$user_pers_notes = (isset($user_pers_notes)) ? str_replace('<br />', "\n", $user_pers_notes) : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$signature = htmlspecialchars(stripslashes($signature));
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$user_pers_notes = htmlspecialchars(stripslashes($user_pers_notes));
+
+#
+#-----[ FIND ]------------------------------------------
+#
+SET " . $username_sql . $passwd_sql
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_sig = '" . str_replace("\'", "''", $signature) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_pers_notes = '" . str_replace("\'", "''", $user_pers_notes) . "'
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "INSERT INTO " . USERS_TABLE
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_pers_notes
+
+#
+#-----[ FIND ]------------------------------------------
+#
+VALUES ($user_id, '" . str_replace("\'", "''", $username)
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, '" . str_replace("\'", "''", $signature) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, '" . str_replace("\'", "''", $user_pers_notes) . "'
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$signature = stripslashes($signature);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$user_pers_notes = stripslashes($user_pers_notes);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+else if ( $mode == 'editprofile' && !isset($HTTP_POST_VARS['avatargallery'])
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$signature = ($signature_bbcode_uid != '')
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$user_pers_notes = $userdata['user_pers_notes'];
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'SIGNATURE' => str_replace('<br />', "\n", $signature),
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'USER_PERS_NOTES' => str_replace('<br />', "\n", $user_pers_notes),
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_SIGNATURE' => $lang['Signature'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'L_USER_PERS_NOTES' => $lang['User_pers_notes'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all, Folks!
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+$lang['User_pers_notes'] = 'Personal Notes';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE: you will need to do this for all your templates!
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_SIGNATURE}:</span><br /><span class="gensmall">{L_SIGNATURE_EXPLAIN}<br /><br />{HTML_STATUS}<br />{BBCODE_STATUS}<br />{SMILIES_STATUS}</span></td>
+	  <td class="row2">
+		<textarea name="signature" style="width: 300px" rows="6" cols="30" class="post">{SIGNATURE}</textarea>
+	  </td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+<!-- BEGIN switch_user_logged_in -->
+	<tr>
+	  <td class="row1"><span class="gen">{L_USER_PERS_NOTES}:</span></td>
+	  <td class="row2">
+		<textarea name="user_pers_notes" style="width: 300px" rows="6" cols="30" class="post">{USER_PERS_NOTES}</textarea>
+	  </td>
+	</tr>
+<!-- END switch_user_logged_in -->
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE: you will need to do this for all your templates!
+#
+		<textarea class="post" name="signature" rows="6" cols="45">{SIGNATURE}</textarea>
+	  </td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+   <tr>
+      <td class="row1"><span class="gen">{L_USER_NOTES}</span></td>
+      <td class="row2">
+      <textarea class="post" name="user_pers_notes" rows="6" cols="45">{USER_NOTES}</textarea>
+	  </td>
+   </tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

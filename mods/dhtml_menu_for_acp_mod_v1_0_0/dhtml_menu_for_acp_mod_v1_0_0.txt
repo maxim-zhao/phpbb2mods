@@ -1,0 +1,414 @@
+##############################################################
+## MOD Title: DHTML Slide Menu for ACP
+## MOD Author: markus_petrux < phpbb.mods@phpmix.com > (Markus) http://www.phpmix.com
+## MOD Description: This MOD turns your ACP left pane into a Dynamic HTML Slide Menu (roll-in/roll-out effects),
+##     making it easier to navigate. It should work on latests versions of all major browsers, and is supposed
+##     to degrade correctly on non-supported browsers (ie: all categories remain open). It also uses cookies to
+##     remind previous menu state. Really useful if you have many MODs installed. :-)
+## MOD Version: 1.0.0
+##
+## Installation Level: (Easy)
+## Installation Time: 5 Minutes
+## Files To Edit: 2
+##    admin/index.php
+##    templates/subSilver/admin/index_navigate.tpl
+## Included Files: 0
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## phpBB related:
+## - Tested with phpBB 2.0.10
+## - This MOD is EasyMOD (0.0.11a3) friendly.
+##
+## DHTML related:
+## - It's based on the onclick event for TD tag and style.display attribute.
+## - It should work on latests versions of all major browsers.
+##
+##############################################################
+## MOD History:
+##
+## 2004/08/11 - 1.0.0
+## - This is same as 0.0.5 Beta. Just changed the version number to upload
+##   to the phpBB MODs database, as well as a couple of MOD header fields.
+##
+## 2004/08/09 - 0.0.5 Beta
+## - Fixed cursor pointer for non-IE browsers (cursor:pointer;cursor:hand;).
+##   Now, it should work on: IE4+, IE5Mac, Mozilla, Opera6+ and Safari 1.2+.
+##   It doesn't on: NS4, iCab and OmniWeb.
+##
+## 2004/08/08 - 0.0.4 Beta
+## - Fixed a couple of problems with cookie functions.
+## - Fixed a javascript error in displayObj() if x.style is undefined (NS4).
+## - Added ability to close the opened category.
+## - Added ability to use a shorter interval to hide the menus at onload event.
+## - Initial display, now works with 0 miliseconds interval, much faster.
+##   Note setTimeout is used to allow the browser to show the roll-out effect.
+## - So now, initial display closes all categories much faster, and it only leaves
+##   one opened, if one was active last time the ACP was used.
+##
+## 2004/08/07 - 0.0.3 Beta
+## - Fixed a small bug: First time the script is executed, no categories are open.
+##   Now, it opens first category by default.
+## - Also changed initial display behaviour. Now all categories are initially displayed as
+##   open. Then, at onload event time, they are closed (applying the roll-out effect).
+##   This one solves an issue with legacy versions of Netscape, Opera and OmniWeb browsers
+##   which does NOT support changing the display attribute.
+##
+## 2004/08/06 - 0.0.2 Beta
+## - Re-written almost all javascript code to implement the roll-in/roll-out behaviour
+##   when opening/closing menu categories (aka. slide menu).
+##
+## 2004/08/05 - 0.0.1 Beta
+## - Initial Beta release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/index.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE --- the whole line to look for should be similar to this:
+#		"U_ADMIN_INDEX" => append_sid("index.$phpEx?pane=right"),
+#
+U_ADMIN_INDEX
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: DHTML Menu for ACP
+		'COOKIE_NAME'	=> $board_config['cookie_name'],
+		'COOKIE_PATH'	=> $board_config['cookie_path'],
+		'COOKIE_DOMAIN'	=> $board_config['cookie_domain'],
+		'COOKIE_SECURE'	=> $board_config['cookie_secure'],
+//-MOD: DHTML Menu for ACP
+#
+#-----[ FIND ]------------------------------------------
+#
+	ksort($module);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: DHTML Menu for ACP
+	$menu_cat_id = 0;
+//-MOD: DHTML Menu for ACP
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE --- the whole line to look for should be similar to this:
+#		$template->assign_block_vars("catrow", array(
+#
+"catrow"
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: DHTML Menu for ACP
+			'MENU_CAT_ID' => $menu_cat_id,
+			'MENU_CAT_ROWS' => count($action_array),
+//-MOD: DHTML Menu for ACP
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE --- the whole line to look for should be similar to this:
+#			$template->assign_block_vars("catrow.modulerow", array(
+#
+"catrow.modulerow"
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE --- the whole line to look for should be similar to this:
+#				"ROW_CLASS" => $row_class, 
+#
+ROW_CLASS
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: DHTML Menu for ACP
+				'ROW_COUNT' => $row_count,
+//-MOD: DHTML Menu for ACP
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE --- This is the closing statements of the while loop related to $action_array
+#
+			$row_count++;
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//+MOD: DHTML Menu for ACP
+		$menu_cat_id++;
+//-MOD: DHTML Menu for ACP
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/index_navigate.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE --- the whole line to look for should be similar to this:
+#<table width="100%" cellpadding="4" cellspacing="0" border="0" align="center">
+#
+<table
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+<script language="javascript" type="text/javascript">
+<!--
+
+var menuVersion = "Slide Menu v1.0.0";
+
+/*************************************************************
+ *	DHTML Slide Menu for ACP MOD
+ *
+ *	Copyright (C) 2004, Markus (phpMiX)
+ *	This script is released under GPL License.
+ *	Feel free to use this script (or part of it) wherever you need
+ *	it ...but please, give credit to original author. Thank you. :-)
+ *	We will also appreciate any links you could give us.
+ *
+ *	Enjoy! ;-)
+ *************************************************************/
+
+menuVersion += ' &copy; 2004<br />by <a href="http://www.phpmix.com/" target="_blank" class="copyright">phpMiX</a>';
+
+function getCookie(name)
+{
+	var cookies = document.cookie;
+	var start = cookies.indexOf(name + '=');
+	if( start < 0 ) return null;
+	var len = start + name.length + 1;
+	var end = cookies.indexOf(';', len);
+	if( end < 0 ) end = cookies.length;
+	return unescape(cookies.substring(len, end));
+}
+function setCookie(name, value, expires, path, domain, secure)
+{
+	document.cookie = name + '=' + escape (value) +
+		((expires) ? '; expires=' + ( (expires == 'never') ? 'Thu, 31-Dec-2099 23:59:59 GMT' : expires.toGMTString() ) : '') +
+		((path)    ? '; path='    + path    : '') +
+		((domain)  ? '; domain='  + domain  : '') +
+		((secure)  ? '; secure' : '');
+}
+function delCookie(name, path, domain)
+{
+	if( getCookie(name) )
+	{
+		document.cookie = name + '=;expires=Thu, 01-Jan-1970 00:00:01 GMT' +
+			((path)    ? '; path='    + path    : '') +
+			((domain)  ? '; domain='  + domain  : '');
+	}
+}
+
+function menuCat(id, rows)
+{
+	this.cat_id = id;
+	this.cat_rows = rows;
+	this.status = 'block';
+}
+var menuCats = new Array();
+<!-- BEGIN catrow -->
+menuCats['menuCat_{catrow.MENU_CAT_ID}'] = new menuCat('{catrow.MENU_CAT_ID}', {catrow.MENU_CAT_ROWS});
+<!-- END catrow -->
+
+function getObj(obj)
+{
+	return ( document.getElementById ? document.getElementById(obj) : ( document.all ? document.all[obj] : null ) );
+}
+function displayObj(obj, status)
+{
+	var x = getObj(obj);
+	if( x && x.style ) x.style.display = status;
+}
+
+var queueInterval = 20;		// milliseconds between queued steps.
+var execInterval = 0;
+var queuedSteps;
+var currentStep;
+
+function queueStep(o, s)
+{
+	this.obj = o;
+	this.status = s;
+}
+function execQueue()
+{
+	if( currentStep < queuedSteps.length )
+	{
+		var obj = queuedSteps[currentStep].obj;
+		var status = queuedSteps[currentStep].status;
+		displayObj(obj, status);
+		if( menuCats[obj] ) menuCats[obj].status = status;
+		currentStep++;
+		setTimeout("execQueue();", execInterval);
+	}
+	else
+	{
+		execInterval = queueInterval;
+	}
+}
+function onMenuCatClick(cat_id)
+{
+	var currentCat, currentStatus;
+
+	currentCat = 'menuCat_'+cat_id;
+	currentStatus = menuCats[currentCat].status;
+
+	queuedSteps = new Array();
+	currentStep = 0;
+
+	for( var catName in menuCats )
+	{
+		if( menuCats[catName].status == 'none' ) continue;
+
+		for( var i=(menuCats[catName].cat_rows-1); i >= 0; i-- )
+		{
+			queuedSteps[currentStep++] = new queueStep(catName+'_'+i, 'none');
+		}
+		queuedSteps[currentStep++] = new queueStep(catName, 'none');
+	}
+
+	if( currentStatus == 'none' )
+	{
+		queuedSteps[currentStep++] = new queueStep(currentCat, 'block');
+		for( var i=0; i < menuCats[currentCat].cat_rows; i++ )
+		{
+			queuedSteps[currentStep++] = new queueStep(currentCat+'_'+i, 'block');
+		}
+		var	expdate = new Date();		// 72 Hours from now
+		expdate.setTime(expdate.getTime() + (72 * 60 * 60 * 1000));
+		setCookie('{COOKIE_NAME}_menu_cat_id', cat_id, expdate,
+				('{COOKIE_PATH}'   == '') ? null : '{COOKIE_PATH}',
+				('{COOKIE_DOMAIN}' == '') ? null : '{COOKIE_DOMAIN}',
+				('{COOKIE_SECURE}' == '0') ? false : true);
+	}
+	else
+	{
+		delCookie('{COOKIE_NAME}_menu_cat_id',
+				('{COOKIE_PATH}'   == '') ? null : '{COOKIE_PATH}',
+				('{COOKIE_DOMAIN}' == '') ? null : '{COOKIE_DOMAIN}');
+	}
+
+	currentStep = 0;
+	setTimeout("execQueue();", execInterval);
+}
+
+function doOnLoadMenuACP()
+{
+	var cat_id;
+
+	if( getObj('menuCat_0') )
+	{
+		cat_id = getCookie('{COOKIE_NAME}_menu_cat_id');
+		if( !menuCats['menuCat_'+cat_id] )
+		{
+			cat_id = 0;
+		}
+		else
+		{
+			menuCats['menuCat_'+cat_id].status = 'none';
+		}
+		onMenuCatClick(cat_id);
+	}
+	if( oldOnLoadMenuACP )
+	{
+		oldOnLoadMenuACP();
+	}
+}
+var	oldOnLoadMenuACP = window.onload;
+window.onload = doOnLoadMenuACP;
+
+// -->
+</script>
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE --- the whole line to look for should be similar to this:
+#		  <td height="28" class="catSides"><span class="cattitle">{catrow.ADMIN_CATEGORY}</span></td>
+#
+catrow.ADMIN_CATEGORY
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+>
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+ style="cursor:pointer;cursor:hand;" onclick="onMenuCatClick('{catrow.MENU_CAT_ID}');"
+#
+# NOTE --- so the result should look something like this:
+#		  <td height="28" class="catSides" style="cursor:pointer;cursor:hand;" onclick="onMenuCatClick('{catrow.MENU_CAT_ID}');"><span class="cattitle">{catrow.ADMIN_CATEGORY}</span></td>
+#
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		<!-- BEGIN modulerow -->
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+		<tr> 
+			<td class="row1">
+				<div id="menuCat_{catrow.MENU_CAT_ID}" style="display:block;">
+					<table width="100%" cellpadding="4" cellspacing="1" border="0" class="bodyline">
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE --- the whole line to look for should be similar to this:
+#		  <td class="row1"><span class="genmed"><a href="{catrow.modulerow.U_ADMIN_MODULE}"  target="main" class="genmed">{catrow.modulerow.ADMIN_MODULE}</a></span> 
+#
+<td
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+<span
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+<div id="menuCat_{catrow.MENU_CAT_ID}_{catrow.modulerow.ROW_COUNT}" style="display:block;"
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+</span> 
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+</div>
+#
+#-----[ FIND ]------------------------------------------
+#
+		<!-- END modulerow -->
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					</table>
+				</div>
+			</td>
+		</tr>
+#
+#-----[ FIND ]------------------------------------------
+#
+<br />
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+<div align="center"><span class="copyright">
+<script language="javascript" type="text/javascript">
+<!--
+	document.write(menuVersion);
+// -->
+</script>
+</span></div>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

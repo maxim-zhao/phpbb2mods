@@ -1,0 +1,258 @@
+######################################################## 
+## MOD Title: Admin Email notification on New Registration
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: With this MOD, email notification will be sent to a ACP-configured user (preferably administrator)
+## MOD Version:	1.0.5
+## 
+## Installation Level: Easy
+## Installation Time: 5 Minutes 
+##
+## Files To Edit: 5
+##	includes/usercp_register.php
+##	language/lang_english/lang_main.php
+##	language/lang_english/lang_admin.php
+##	admin/admin_board.php
+##	templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files: 1
+##	root/language/lang_english/email/notify_admin_new_reg.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.20. Can be installed using EasyMOD 0.3.0
+## 
+############################################################## 
+## MOD History: 
+##
+##   2005-09-27 - Version 1.0.0
+##      - Initial Release
+##
+##   2005-09-29 - Version 1.0.1
+##      - Fix a small bug with extra ")" symbol
+##
+##   2005-10-01 - Version 1.0.2
+##      - Fix a small bug with capitalisation of a word
+##	- Added an add-on: "Send Email Notification to Multiple users on New Registration"
+##
+##   2005-10-04 - Version 1.0.3
+##      - Remove extra "has" from English notify_admin_new_reg.tpl
+##
+##   2006-04-03 - Version 1.0.4
+##      - Inlcude user's email address in the notification
+##
+##   2006-04-16 - Version 1.0.5
+##      - Fix a small bug with extra ")" symbol (Thanks to TerraFrost)
+##      - Updated for phpBB 2.0.20
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+INSERT INTO `phpbb_config` ( `config_name` , `config_value` ) VALUES ( 'notify_admin_new_reg', '1' );
+INSERT INTO `phpbb_config` ( `config_name` , `config_value` ) VALUES ( 'notify_admin_new_reg_userid', '2' );
+
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy root/language/lang_english/email/notify_admin_new_reg.tpl to language/lang_english/email/notify_admin_new_reg.tpl
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Admin Email notification on New Registration MOD
+$lang['Administrator'] = 'administrator';
+$lang['Notify_admin_new_reg'] = 'A new user has registered!';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Admin Email notification on New Registration MOD
+$lang['Enable_notify_admin_new_reg_title'] = 'Admin Notification on New Registration';
+$lang['Enable_notify_admin_new_reg'] = 'Enable Admin Notification';
+$lang['Enable_notify_admin_new_reg_explain'] = 'Enable admin notification when a new user register at the forum';
+$lang['Enable_notify_admin_new_reg_userid'] = 'Admin Userid';
+$lang['Enable_notify_admin_new_reg_userid_explain'] = 'Enter the userid of the person that will receive the notification';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_register.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# Should look like:
+#				//
+#				// The users account has been deactivated, send them an email with a new activation key
+#				//
+#				include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+				include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+include
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+include_once
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			if ( !($result = $db->sql_query($sql, BEGIN_TRANSACTION)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not insert data into users table', '', __LINE__, __FILE__, $sql);
+			}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			if ( $board_config['notify_admin_new_reg'] )
+			{
+				$admin_profile = array();
+				$admin_profile = get_userdata($board_config['notify_admin_new_reg_userid']);
+
+				$use_template = (empty($admin_profile)) ? $board_config['default_lang'] : $admin_profile['user_lang'];
+				$email_address = (empty($admin_profile)) ? $board_config['board_email'] : $admin_profile['user_email'];
+				$admin_name = (empty($admin_profile)) ? $lang['Administrator'] : $admin_profile['username'];
+				
+				include_once($phpbb_root_path . 'includes/emailer.'.$phpEx);
+				$emailer = new emailer($board_config['smtp_delivery']);
+
+				$emailer->from($board_config['board_email']);
+				$emailer->replyto($board_config['board_email']);
+
+				$emailer->use_template('notify_admin_new_reg', stripslashes($use_template));
+				$emailer->email_address($email_address);
+				$emailer->set_subject($lang['Notify_admin_new_reg']);
+
+				$emailer->assign_vars(array(
+					'ADMIN_NAME' => $admin_name,
+					'SITENAME' => $board_config['sitename'],
+					'USER_NAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+					'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
+					'USER_PROFILE' => $server_url . '?mode=viewprofile&' . POST_USERS_URL . '=' . $user_id,
+					'USER_EMAIL' => $email)
+				);
+				$emailer->send();
+				$emailer->reset();
+			}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# Should look like:
+#				$email_template = 'user_welcome';
+#			}
+#
+#			include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+			include($phpbb_root_path . 'includes/emailer.'.$phpEx);
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+include
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+include_once
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$smtp_no = ( !$new['smtp_delivery'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Admin Email notification on New Registration MOD
+$notify_admin_new_reg_yes = ( $new['notify_admin_new_reg'] ) ? "checked=\"checked\"" : "";
+$notify_admin_new_reg_no = ( !$new['notify_admin_new_reg'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"SMTP_NO" => $smtp_no,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Admin Email notification on New Registration MOD
+	"L_ENABLE_NOTIFY_ADMIN_NEW_REG_TITLE" => $lang['Enable_notify_admin_new_reg_title'],
+	"L_ENABLE_NOTIFY_ADMIN_NEW_REG" => $lang['Enable_notify_admin_new_reg'],
+	"L_ENABLE_NOTIFY_ADMIN_NEW_REG_EXPLAIN" => $lang['Enable_notify_admin_new_reg_explain'],
+	"L_ENABLE_NOTIFY_ADMIN_NEW_REG_USERID" => $lang['Enable_notify_admin_new_reg_userid'],
+	"L_ENABLE_NOTIFY_ADMIN_NEW_REG_USERID_EXPLAIN" => $lang['Enable_notify_admin_new_reg_userid_explain'],
+	"NOTIFY_ADMIN_NEW_REG_YES" => $notify_admin_new_reg_yes,
+	"NOTIFY_ADMIN_NEW_REG_NO" => $notify_admin_new_reg_no,
+	"NOTIFY_ADMIN_NEW_REG_USERID" => $new['notify_admin_new_reg_userid'],
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_COOKIE_SETTINGS}</th>
+	</tr>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_ENABLE_NOTIFY_ADMIN_NEW_REG_TITLE}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_ENABLE_NOTIFY_ADMIN_NEW_REG}<br /><span class="gensmall">{L_ENABLE_NOTIFY_ADMIN_NEW_REG_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="notify_admin_new_reg" value="1" {NOTIFY_ADMIN_NEW_REG_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="notify_admin_new_reg" value="0" {NOTIFY_ADMIN_NEW_REG_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ENABLE_NOTIFY_ADMIN_NEW_REG_USERID}<br /><span class="gensmall">{L_ENABLE_NOTIFY_ADMIN_NEW_REG_USERID_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" maxlength="255" name="notify_admin_new_reg_userid" value="{NOTIFY_ADMIN_NEW_REG_USERID}" /></td>
+	</tr>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

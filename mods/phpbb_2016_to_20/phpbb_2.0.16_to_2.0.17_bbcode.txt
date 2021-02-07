@@ -1,0 +1,472 @@
+[size=18]phpBB 2.0.16 to phpBB 2.0.17 Code Changes[/size]
+
+
+
+These are the Changes from phpBB 2.0.16 to phpBB 2.0.17 summed up into a little Mod. This might be very helpful if you want to update your Board and have installed a bunch of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.
+
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in the 'REPLACE WITH'-Statement.
+
+After you have finished this tutorial, you have to upload the install/update_to_latest.php file, execute it and then delete it from your webspace.
+
+[size=18][color=blue][list][*]admin/admin_ug_auth.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 417[/color]
+[code]
+
+			FROM " . AUTH_ACCESS_TABLE . " aa, " . USER_GROUP_TABLE . " ug, " . USERS_TABLE . " u  
+			WHERE ug.group_id = aa.group_id 
+				AND u.user_id = ug.user_id 
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+				AND ug.user_pending = 0
+[/code]
+
+[*]
+[color=blue]FIND - Line 572[/color]
+[code]
+
+	$sql = "SELECT * 
+		FROM " . FORUMS_TABLE . " f
+		ORDER BY forum_order";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$sql = "SELECT f.* 
+		FROM " . FORUMS_TABLE . " f, " . CATEGORIES_TABLE . " c
+		WHERE f.cat_id = c.cat_id
+		ORDER BY c.cat_order, f.forum_order ASC";
+[/code]
+
+[*]
+[color=blue]FIND - Line 608[/color]
+[code]
+
+	$sql = "SELECT u.user_id, u.username, u.user_level, g.group_id, g.group_name, g.group_single_user FROM " . USERS_TABLE . " u, " . GROUPS_TABLE . " g, " . USER_GROUP_TABLE . " ug WHERE ";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$sql = "SELECT u.user_id, u.username, u.user_level, g.group_id, g.group_name, g.group_single_user, ug.user_pending FROM " . USERS_TABLE . " u, " . GROUPS_TABLE . " g, " . USER_GROUP_TABLE . " ug WHERE ";
+[/code]
+
+[*]
+[color=blue]FIND - Line 836[/color]
+[code]
+
+		$t_usergroup_list = '';
+		for($i = 0; $i < count($ug_info); $i++)
+		{
+			$ug = ( $mode == 'user' ) ? 'group&amp;' . POST_GROUPS_URL : 'user&amp;' . POST_USERS_URL;
+
+			$t_usergroup_list .= ( ( $t_usergroup_list != '' ) ? ', ' : '' ) . '<a href="' . append_sid("admin_ug_auth.$phpEx?mode=$ug=" . $id[$i]) . '">' . $name[$i] . '</a>';
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		$t_usergroup_list = $t_pending_list = '';
+		for($i = 0; $i < count($ug_info); $i++)
+		{
+			$ug = ( $mode == 'user' ) ? 'group&amp;' . POST_GROUPS_URL : 'user&amp;' . POST_USERS_URL;
+
+			if (!$ug_info[$i]['user_pending'])
+			{
+				$t_usergroup_list .= ( ( $t_usergroup_list != '' ) ? ', ' : '' ) . '<a href="' . append_sid("admin_ug_auth.$phpEx?mode=$ug=" . $id[$i]) . '">' . $name[$i] . '</a>';
+			}
+			else
+			{
+				$t_pending_list .= ( ( $t_pending_list != '' ) ? ', ' : '' ) . '<a href="' . append_sid("admin_ug_auth.$phpEx?mode=$ug=" . $id[$i]) . '">' . $name[$i] . '</a>';
+			}
+[/code]
+
+[*]
+[color=blue]FIND - Line 911[/color]
+[code]
+
+			'GROUP_MEMBERSHIP' => $lang['Usergroup_members'] . ' : ' . $t_usergroup_list)
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			'GROUP_MEMBERSHIP' => $lang['Usergroup_members'] . ' : ' . $t_usergroup_list . '<br />' . $lang['Pending_members'] . ' : ' . $t_pending_list)
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_users.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 89[/color]
+[code]
+
+				SET poster_id = " . DELETED . ", post_username = '$username' 
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+				SET poster_id = " . DELETED . ", post_username = '" . str_replace("\\'", "''", addslashes($this_userdata['username'])) . "' 
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/bbcode.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 203[/color]
+[code]
+
+	$patterns[] = "#\[url\]([\w]+?://[^ \"\n\r\t<]*?)\[/url\]#is";
+	$replacements[] = $bbcode_tpl['url1'];
+
+	// [url]www.phpbb.com[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url\]((www|ftp)\.[^ \"\n\r\t<]*?)\[/url\]#is";
+	$replacements[] = $bbcode_tpl['url2'];
+
+	// [url=xxxx://www.phpbb.com]phpBB[/url] code..
+	$patterns[] = "#\[url=([\w]+?://[^ \"\n\r\t<]*?)\]([^?\n\r\t].*?)\[/url\]#is";
+	$replacements[] = $bbcode_tpl['url3'];
+
+	// [url=www.phpbb.com]phpBB[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url=((www|ftp)\.[^ \"\n\r\t<]*?)\]([^?\n\r\t].*?)\[/url\]#is";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$patterns[] = "#\[url\]([\w]+?://[\w\#$%&~/.\-;:=,?@\[\]+]*?)\[/url\]#is";
+	$replacements[] = $bbcode_tpl['url1'];
+
+	// [url]www.phpbb.com[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url\]((www|ftp)\.[\w\#$%&~/.\-;:=,?@\[\]+]*?)\[/url\]#is";
+	$replacements[] = $bbcode_tpl['url2'];
+
+	// [url=xxxx://www.phpbb.com]phpBB[/url] code..
+	$patterns[] = "#\[url=([\w]+?://[\w\#$%&~/.\-;:=,?@\[\]+]*?)\]([^?\n\r\t].*?)\[/url\]#is";
+	$replacements[] = $bbcode_tpl['url3'];
+
+	// [url=www.phpbb.com]phpBB[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url=((www|ftp)\.[\w\#$%&~/.\-;:=,?@\[\]+]*?)\]([^?\n\r\t].*?)\[/url\]#is";
+[/code]
+
+[*]
+[color=blue]FIND - Line 627[/color]
+[code]
+
+	$ret = preg_replace("#(^|[\n ])([\w]+?://[^ \"\n\r\t<]*)#is", "\\1<a href=\"\\2\" target=\"_blank\">\\2</a>", $ret);
+
+	// matches a "www|ftp.xxxx.yyyy[/zzzz]" kinda lazy URL thing
+	// Must contain at least 2 dots. xxxx contains either alphanum, or "-"
+	// zzzz is optional.. will contain everything up to the first space, newline, 
+	// comma, double quote or <.
+	$ret = preg_replace("#(^|[\n ])((www|ftp)\.[^ \"\t\n\r<]*)#is", "\\1<a href=\"http://\\2\" target=\"_blank\">\\2</a>", $ret);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$ret = preg_replace("#(^|[\n ])([\w]+?://[\w\#$%&~/.\-;:=,?@\[\]+]*)#is", "\\1<a href=\"\\2\" target=\"_blank\">\\2</a>", $ret);
+
+	// matches a "www|ftp.xxxx.yyyy[/zzzz]" kinda lazy URL thing
+	// Must contain at least 2 dots. xxxx contains either alphanum, or "-"
+	// zzzz is optional.. will contain everything up to the first space, newline, 
+	// comma, double quote or <.
+	$ret = preg_replace("#(^|[\n ])((www|ftp)\.[\w\#$%&~/.\-;:=,?@\[\]+]*)#is", "\\1<a href=\"http://\\2\" target=\"_blank\">\\2</a>", $ret);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/functions.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 120[/color]
+[code]
+
+	if (intval($user) == 0 || $force_str)
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	if (!is_numeric($user) || $force_str)
+[/code]
+
+[*]
+[color=blue]FIND - Line 581[/color]
+[code]
+
+	define(HAS_DIED, 1);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	define('HAS_DIED', 1);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/functions_validate.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 33[/color]
+[code]
+
+	$username = preg_replace('#\s+#', ' ', $username); 
+	// Limit username length
+	$username = substr(str_replace("\'", "'", $username), 0, 25);
+	$username = str_replace("'", "''", $username);
+
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$username = preg_replace('#\s+#', ' ', trim($username)); 
+	$username = phpbb_clean_username($username);
+	
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_activate.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 50[/color]
+[code]
+
+	}
+	else if ((trim($row['user_actkey']) == trim($HTTP_GET_VARS['act_key'])) && (trim($row['user_actkey']) != ''))
+	{
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+		if (intval($board_config['require_activation']) == USER_ACTIVATION_ADMIN && $userdata['user_level'] != ADMIN)
+		{
+			message_die(GENERAL_MESSAGE, $lang['Not_Authorised']);
+		}
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_avatar.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 89[/color]
+[code]
+
+
+function user_avatar_url($mode, &$error, &$error_msg, $avatar_filename)
+{
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	global $lang;
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_viewprofile.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 168[/color]
+[code]
+
+$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . $lang['Search_user_posts'] . '" title="' . $lang['Search_user_posts'] . '" border="0" /></a>';
+$search = '<a href="' . $temp_url . '">' . $lang['Search_user_posts'] . '</a>';
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . $lang['Search_user_posts'] . '" title="' . sprintf($lang['Search_user_posts'], $profiledata['username']) . '" border="0" /></a>';
+$search = '<a href="' . $temp_url . '">' . sprintf($lang['Search_user_posts'], $profiledata['username']) . '</a>';
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]privmsg.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 701[/color]
+[code]
+
+		if ( $delete_all )
+		{
+			switch($folder)
+			{
+				case 'inbox':
+					$delete_type = "privmsgs_to_userid = " . $userdata['user_id'] . " AND (
+					privmsgs_type = " . PRIVMSGS_READ_MAIL . " OR privmsgs_type = " . PRIVMSGS_NEW_MAIL . " OR privmsgs_type = " . PRIVMSGS_UNREAD_MAIL . " )";
+					break;
+
+				case 'outbox':
+					$delete_type = "privmsgs_from_userid = " . $userdata['user_id'] . " AND ( privmsgs_type = " . PRIVMSGS_NEW_MAIL . " OR privmsgs_type = " . PRIVMSGS_UNREAD_MAIL . " )";
+					break;
+
+				case 'sentbox':
+					$delete_type = "privmsgs_from_userid = " . $userdata['user_id'] . " AND privmsgs_type = " . PRIVMSGS_SENT_MAIL;
+					break;
+
+				case 'savebox':
+					$delete_type = "( ( privmsgs_from_userid = " . $userdata['user_id'] . " 
+						AND privmsgs_type = " . PRIVMSGS_SAVED_OUT_MAIL . " ) 
+					OR ( privmsgs_to_userid = " . $userdata['user_id'] . " 
+						AND privmsgs_type = " . PRIVMSGS_SAVED_IN_MAIL . " ) )";
+					break;
+			}
+
+			$sql = "SELECT privmsgs_id
+				FROM " . PRIVMSGS_TABLE . "
+				WHERE $delete_type";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain id list to delete all messages', '', __LINE__, __FILE__, $sql);
+			}
+
+			while ( $row = $db->sql_fetchrow($result) )
+			{
+				$mark_list[] = $row['privmsgs_id'];
+			}
+
+			unset($delete_type);
+		}
+
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		$delete_sql_id = '';
+
+		if (!$delete_all)
+		{
+			for ($i = 0; $i < count($mark_list); $i++)
+			{
+				$delete_sql_id .= (($delete_sql_id != '') ? ', ' : '') . intval($mark_list[$i]);
+			}
+			$delete_sql_id = "AND privmsgs_id IN ($delete_sql_id)";
+		}
+
+		switch($folder)
+		{
+			case 'inbox':
+				$delete_type = "privmsgs_to_userid = " . $userdata['user_id'] . " AND (
+				privmsgs_type = " . PRIVMSGS_READ_MAIL . " OR privmsgs_type = " . PRIVMSGS_NEW_MAIL . " OR privmsgs_type = " . PRIVMSGS_UNREAD_MAIL . " )";
+				break;
+
+			case 'outbox':
+				$delete_type = "privmsgs_from_userid = " . $userdata['user_id'] . " AND ( privmsgs_type = " . PRIVMSGS_NEW_MAIL . " OR privmsgs_type = " . PRIVMSGS_UNREAD_MAIL . " )";
+				break;
+
+			case 'sentbox':
+				$delete_type = "privmsgs_from_userid = " . $userdata['user_id'] . " AND privmsgs_type = " . PRIVMSGS_SENT_MAIL;
+				break;
+
+			case 'savebox':
+				$delete_type = "( ( privmsgs_from_userid = " . $userdata['user_id'] . " 
+					AND privmsgs_type = " . PRIVMSGS_SAVED_OUT_MAIL . " ) 
+				OR ( privmsgs_to_userid = " . $userdata['user_id'] . " 
+					AND privmsgs_type = " . PRIVMSGS_SAVED_IN_MAIL . " ) )";
+				break;
+		}
+
+		$sql = "SELECT privmsgs_id
+			FROM " . PRIVMSGS_TABLE . "
+			WHERE $delete_type $delete_sql_id";
+
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain id list to delete messages', '', __LINE__, __FILE__, $sql);
+		}
+
+		$mark_list = array();
+		while ( $row = $db->sql_fetchrow($result) )
+		{
+			$mark_list[] = $row['privmsgs_id'];
+		}
+
+		unset($delete_type);
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 1507[/color]
+[code]
+
+				$mode = 'reply';
+			}
+		}
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+		else
+		{
+			$privmsg_subject = $privmsg_message = '';
+		}
+[/code]
+
+[*]
+[color=blue]FIND - Line 2036[/color]
+[code]
+
+			$l_box_size_status = '';
+			break;
+	}
+}
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+else
+{
+	$inbox_limit_img_length = $inbox_limit_pct = $l_box_size_status = '';
+}
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]templates/subSilver/faq_body.tpl[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 37[/color]
+[code]
+
+		<td class="{faq_block.faq_row.ROW_CLASS}" align="left" valign="top"><span class="postbody"><a name="{faq_block.faq_row.U_FAQ_ID}"></a><b>{faq_block.faq_row.FAQ_QUESTION}</b></span><br /><span class="postbody">{faq_block.faq_row.FAQ_ANSWER}<br /><a class="postlink" href="#Top">{L_BACK_TO_TOP}</a></span></td>
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		<td class="{faq_block.faq_row.ROW_CLASS}" align="left" valign="top"><span class="postbody"><a name="{faq_block.faq_row.U_FAQ_ID}"></a><b>{faq_block.faq_row.FAQ_QUESTION}</b></span><br /><span class="postbody">{faq_block.faq_row.FAQ_ANSWER}<br /><a class="postlink" href="#top">{L_BACK_TO_TOP}</a></span></td>
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]viewtopic.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 992[/color]
+[code]
+
+	$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . $lang['Search_user_posts'] . '" title="' . $lang['Search_user_posts'] . '" border="0" /></a>';
+	$search = '<a href="' . $temp_url . '">' . $lang['Search_user_posts'] . '</a>';
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . $lang['Search_user_posts'] . '" title="' . sprintf($lang['Search_user_posts'], $postrow[$i]['username']) . '" border="0" /></a>';
+	$search = '<a href="' . $temp_url . '">' . sprintf($lang['Search_user_posts'], $postrow[$i]['username']) . '</a>';
+[/code]
+
+[/list]

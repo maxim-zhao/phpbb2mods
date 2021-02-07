@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en-gb">Agreement on Index MOD</title>
+		<description lang="en-gb"><![CDATA[Adds an agreement on the index, that is trigged when the user is coming from an outside site. The agreement can be set in the ACP.]]></description>
+		<author-notes><![CDATA[]]></author-notes>
+		<author-group>
+			<author>
+				<realname>Chris Bridges</realname>
+				<email>chris.j.bridges@gmail.com</email>
+				<username>christhatsme</username>
+				<homepage>http://chris.laxforums.co.uk</homepage>
+				<contributions />
+			</author>
+		</author-group>
+		<mod-version>
+			<major>1</major>
+			<minor>0</minor>
+			<revision>1</revision>
+		</mod-version>
+		<installation>
+			<level>Easy</level>
+			<time>480</time>
+			<target-version>
+				<target-primary>2.0</target-primary>
+				<target-major allow="exact">2</target-major>
+				<target-minor allow="exact">0</target-minor>
+			</target-version>
+		</installation>
+		<history>
+			<entry>
+				<date>2006-05-31</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>1</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> bug fixes</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-02-19</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Cookies now used to determine if a user did not agree</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-02-18</date>
+				<rev-version>
+					<major>0</major>
+					<minor>6</minor>
+					<revision>1</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Fixed minor bug on agreement template file</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-02-18</date>
+				<rev-version>
+					<major>0</major>
+					<minor>6</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>First Public Release</change>
+				</changelog>
+			</entry>
+		</history>
+	</header>
+	<action-group>
+		<copy>
+			<file from="root/db_update.php"  to="db_update.php" />
+			<file from="root/agreement.php"  to="agreement.php" />
+			<file from="root/templates/subSilver/index_agreement_body.tpl"  to="templates/subSilver/index_agreement_body.tpl" />
+			<file from="root/admin/admin_agreement.php"  to="admin/admin_agreement.php" />
+			<file from="root/templates/subSilver/admin/agreement_edit.tpl"  to="templates/subSilver/admin/agreement_edit.tpl" />
+		</copy>
+		<open src="index.php">
+			<edit>
+				<find><![CDATA[//
+// End session management
+//]]></find>
+				<action type="after-add"><![CDATA[
+//
+// function to obtain the forum script path
+//
+
+    function get_script_path()
+   {
+	  global $board_config;
+      $server_name = $board_config['server_name'];
+      $script_path = $board_config['script_path'];
+      $script_path = $server_name . $script_path;
+      return $script_path;
+   }
+   
+if( isset($HTTP_GET_VARS['agreed']) || isset($HTTP_POST_VARS['agreed']) )
+{
+	$agreed = ( isset($HTTP_GET_VARS['agreed']) ) ? $HTTP_GET_VARS['agreed'] : $HTTP_POST_VARS['agreed'];
+	$agreed = htmlspecialchars($agreed);
+}
+else 
+{
+	$agreed = "";
+}
+
+switch( $agreed )
+	{
+		//
+		// Function to save agreement to the database
+		//
+		case "true":
+setcookie("agree_not", "not_agreed", time()-36000, $board_config['script_path'], $board_config['server_name']);	]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[include($phpbb_root_path . 'includes/page_tail.'.$phpEx);]]></find>
+				<action type="after-add"><![CDATA[	break;
+// if the user doesn't agree, tell them to get lost
+	case "false":
+	setcookie("agree_not", "not_agreed", time()+36000, $board_config['script_path'], $board_config['server_name']);
+	message_die(GENERAL_MESSAGE, $lang['index_must_agree']);
+		break;
+// set the default page they will come to
+	default:
+		if (isset($HTTP_COOKIE_VARS["agree_not"]))
+		{
+			redirect(append_sid("agreement.$phpEx", true));
+		} 
+		
+// if the user is from your script path, let them through	
+		if (strpos($HTTP_SERVER_VARS['HTTP_REFERER'], get_script_path())!=0)
+			{
+				redirect(append_sid('index.'.$phpEx.'?agreed=true', true));
+			}
+// if they have come from outside your root, send them off the the agreement
+		else
+			{
+				redirect(append_sid("agreement.$phpEx", true));
+			}
+		break;
+// end the switch
+}]]></action>
+			</edit>
+		</open>
+		<open src="includes/constants.php">
+			<edit>
+				<find><![CDATA[define('AUTH_ACCESS_TABLE', $table_prefix.'auth_access');]]></find>
+				<action type="after-add"><![CDATA[//
+// BEGIN Agreement on Index MOD by christhatsme
+//
+define('AGREEMENT_TABLE', $table_prefix.'agreement');
+//
+// END Agreement on Index MOD by christhatsme
+//]]></action>
+			</edit>
+		</open>
+		<open src="language/lang_english/lang_main.php">
+			<edit>
+				<find><![CDATA[?>]]></find>
+				<action type="before-add"><![CDATA[
+//
+// BEGIN agreement on index MOD by christhatsme
+//
+$lang['index_terms'] = 'Terms of Use';
+$lang['index_agree'] = 'I agree to these terms';
+$lang['index_do_not_agree'] = 'I do not agree to these terms';
+$lang['index_must_agree'] = 'You must agree to our terms for use of this board';
+//
+// END agreement on index MOD by christhatsme
+//
+]]></action>
+			</edit>
+		</open>
+		<open src="language/lang_english/lang_admin.php">
+			<edit>
+				<find><![CDATA[?>]]></find>
+				<action type="before-add"><![CDATA[
+//
+// BEGIN agreement on index MOD by christhatsme
+//
+$lang['index_agreement'] = 'Index Agreement';
+$lang['no_agreement'] = 'You did not enter an agreement';
+$lang['agreement_edit_success'] = 'The agreement was successfully updated.';
+$lang['click_return_agreement'] = 'Click %sHere%s to return to agreement administration';
+$lang['save_agreement'] = 'Save Agreement';
+$lang['agreement_edit_header'] = 'Edit Index Agreement';
+$lang['agreement_edit_explain'] = 'Here you can edit the Index agreement text. Note that html must be used for formatting (including line breaks)';
+//
+// END agreement on index MOD by christhatsme
+//
+]]></action>
+			</edit>
+		</open>
+		<diy-instructions><![CDATA[You must run the db_update.php file to update your db for this mod to work]]></diy-instructions>
+	</action-group>
+</mod>

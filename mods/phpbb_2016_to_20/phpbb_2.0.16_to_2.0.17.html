@@ -1,0 +1,793 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html dir="ltr">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<title>phpBB 2.0.16 to phpBB 2.0.17 Code Changes</title>
+
+<style type="text/css">
+<!--
+/* General page style. The scroll bar colours only visible in IE5.5+ */
+body {
+	background-color: #E5E5E5;
+	scrollbar-face-color: #DEE3E7;
+	scrollbar-highlight-color: #FFFFFF;
+	scrollbar-shadow-color: #DEE3E7;
+	scrollbar-3dlight-color: #D1D7DC;
+	scrollbar-arrow-color:  #006699;
+	scrollbar-track-color: #EFEFEF;
+	scrollbar-darkshadow-color: #98AAB1;
+}
+
+/* General font families for common tags */
+font,th,td,p { font-family: Verdana, Arial, Helvetica, sans-serif }
+a:link,a:active,a:visited { color : #006699; }
+a:hover		{ text-decoration: underline; color : #DD6900; }
+hr	{ height: 0px; border: solid #D1D7DC 0px; border-top-width: 1px;}
+
+/* This is the border line & background colour round the entire page */
+.bodyline	{ background-color: #FFFFFF; border: 1px #98AAB1 solid; }
+
+/* This is the outline round the main forum tables */
+.forumline	{ background-color: #FFFFFF; border: 2px #006699 solid; }
+
+/* Main table cell colours and backgrounds */
+td.row1	{ background-color: #EFEFEF; }
+td.row2	{ background-color: #DEE3E7; }
+td.row3	{ background-color: #D1D7DC; }
+
+/*
+  This is for the table cell above the Topics, Post & Last posts on the index.php page
+  By default this is the fading out gradiated silver background.
+  However, you could replace this with a bitmap specific for each forum
+*/
+td.rowpic {
+		background-color: #FFFFFF;
+		background-image: url(templates/subSilver/images/cellpic2.jpg);
+		background-repeat: repeat-y;
+}
+
+/* Header cells - the blue and silver gradient backgrounds */
+th	{
+	color: #FFA34F; font-size: 11px; font-weight : bold;
+	background-color: #006699; height: 25px;
+	background-image: url(templates/subSilver/images/cellpic3.gif);
+}
+
+td.cat,td.catHead,td.catSides,td.catLeft,td.catRight,td.catBottom {
+			background-image: url(templates/subSilver/images/cellpic1.gif);
+			background-color:#D1D7DC; border: #FFFFFF; border-style: solid; height: 28px;
+}
+
+/*
+  Setting additional nice inner borders for the main table cells.
+  The names indicate which sides the border will be on.
+  Don't worry if you don't understand this, just ignore it :-)
+*/
+td.cat,td.catHead,td.catBottom {
+	height: 29px;
+	border-width: 0px 0px 0px 0px;
+}
+th.thHead,th.thSides,th.thTop,th.thLeft,th.thRight,th.thBottom,th.thCornerL,th.thCornerR {
+	font-weight: bold; border: #FFFFFF; border-style: solid; height: 28px;
+}
+td.row3Right,td.spaceRow {
+	background-color: #D1D7DC; border: #FFFFFF; border-style: solid;
+}
+
+th.thHead,td.catHead { font-size: 12px; border-width: 1px 1px 0px 1px; }
+th.thSides,td.catSides,td.spaceRow	 { border-width: 0px 1px 0px 1px; }
+th.thRight,td.catRight,td.row3Right	 { border-width: 0px 1px 0px 0px; }
+th.thLeft,td.catLeft	  { border-width: 0px 0px 0px 1px; }
+th.thBottom,td.catBottom  { border-width: 0px 1px 1px 1px; }
+th.thTop	 { border-width: 1px 0px 0px 0px; }
+th.thCornerL { border-width: 1px 0px 0px 1px; }
+th.thCornerR { border-width: 1px 1px 0px 0px; }
+
+/* The largest text used in the index page title and toptic title etc. */
+.maintitle	{
+	font-weight: bold; font-size: 22px; font-family: "Trebuchet MS",Verdana, Arial, Helvetica, sans-serif;
+	text-decoration: none; line-height : 120%; color : #000000;
+}
+
+/* General text */
+.gen { font-size : 12px; }
+.genmed { font-size : 11px; }
+.gensmall { font-size : 10px; }
+.gen,.genmed,.gensmall { color : #000000; }
+a.gen,a.genmed,a.gensmall { color: #006699; text-decoration: none; }
+a.gen:hover,a.genmed:hover,a.gensmall:hover	{ color: #DD6900; text-decoration: underline; }
+
+/* The register, login, search etc links at the top of the page */
+.mainmenu		{ font-size : 11px; color : #000000 }
+a.mainmenu		{ text-decoration: none; color : #006699;  }
+a.mainmenu:hover{ text-decoration: underline; color : #DD6900; }
+
+/* Forum category titles */
+.cattitle		{ font-weight: bold; font-size: 12px ; letter-spacing: 1px; color : #006699}
+a.cattitle		{ text-decoration: none; color : #006699; }
+a.cattitle:hover{ text-decoration: underline; }
+
+/* Forum title: Text and link to the forums used in: index.php */
+.forumlink		{ font-weight: bold; font-size: 12px; color : #006699; }
+a.forumlink 	{ text-decoration: none; color : #006699; }
+a.forumlink:hover{ text-decoration: underline; color : #DD6900; }
+
+/* Used for the navigation text, (Page 1,2,3 etc) and the navigation bar when in a forum */
+.nav			{ font-weight: bold; font-size: 11px; color : #000000;}
+a.nav			{ text-decoration: none; color : #006699; }
+a.nav:hover		{ text-decoration: underline; }
+
+/* titles for the topics: could specify viewed link colour too */
+.topictitle,h1,h2	{ font-weight: bold; font-size: 11px; color : #000000; }
+a.topictitle:link   { text-decoration: none; color : #006699; }
+a.topictitle:visited { text-decoration: none; color : #5493B4; }
+a.topictitle:hover	{ text-decoration: underline; color : #DD6900; }
+
+/* Name of poster in viewmsg.php and viewtopic.php and other places */
+.name			{ font-size : 11px; color : #000000;}
+
+/* Location, number of posts, post date etc */
+.postdetails		{ font-size : 10px; color : #000000; }
+
+/* The content of the posts (body of text) */
+.postbody { font-size : 12px; line-height: 18px}
+a.postlink:link	{ text-decoration: none; color : #006699 }
+a.postlink:visited { text-decoration: none; color : #5493B4; }
+a.postlink:hover { text-decoration: underline; color : #DD6900}
+
+/* Quote & Code blocks */
+.code {
+	font-family: Courier, 'Courier New', sans-serif; font-size: 11px; color: #006600;
+	background-color: #FAFAFA; border: #D1D7DC; border-style: solid;
+	border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px
+}
+
+.quote {
+	font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; color: #444444; line-height: 125%;
+	background-color: #FAFAFA; border: #D1D7DC; border-style: solid;
+	border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px
+}
+
+/* Copyright and bottom info */
+.copyright		{ font-size: 10px; font-family: Verdana, Arial, Helvetica, sans-serif; color: #444444; letter-spacing: -1px;}
+a.copyright		{ color: #444444; text-decoration: none;}
+a.copyright:hover { color: #000000; text-decoration: underline;}
+
+/* Form elements */
+input,textarea, select {
+	color : #000000;
+	font: normal 11px Verdana, Arial, Helvetica, sans-serif;
+	border-color : #000000;
+}
+
+/* The text input fields background colour */
+input.post, textarea.post, select {
+	background-color : #FFFFFF;
+}
+
+input { text-indent : 2px; }
+
+/* The buttons used for bbCode styling in message post */
+input.button {
+	background-color : #EFEFEF;
+	color : #000000;
+	font-size: 11px; font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
+/* The main submit button option */
+input.mainoption {
+	background-color : #FAFAFA;
+	font-weight : bold;
+}
+
+/* None-bold submit button */
+input.liteoption {
+	background-color : #FAFAFA;
+	font-weight : normal;
+}
+
+/* This is the line in the posting page which shows the rollover
+  help line. This is actually a text box, but if set to be the same
+  colour as the background no one will know ;)
+*/
+.helpline { background-color: #DEE3E7; border-style: none; }
+
+-->
+</style>
+</head>
+<body bgcolor="#E5E5E5" text="#000000" link="#006699" vlink="#5493B4">
+
+<table class="forumline" width="100%" cellspacing="1" cellpadding="4" border="0">
+	<tr>
+		<td class="row1"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td>
+<span class="postbody"><span style="font-size: 18px; line-height: normal">phpBB 2.0.16 to phpBB 2.0.17 Code Changes</span>
+<br /><br /><br />
+<br />
+These are the Changes from phpBB 2.0.16 to phpBB 2.0.17 summed up into a little Mod. This might be very helpful if you want to update your Board and have installed a bunch of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.<br />
+<br />
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.<br />
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.<br />
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in the 'REPLACE WITH'-Statement.<br />
+<br />
+After you have finished this tutorial, you have to upload the install/update_to_latest.php file, execute it and then delete it from your webspace.<br />
+<br />
+<span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>admin/admin_ug_auth.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 417</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;FROM &quot; . AUTH_ACCESS_TABLE . &quot; aa, &quot; . USER_GROUP_TABLE . &quot; ug, &quot; . USERS_TABLE . &quot; u&nbsp; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;WHERE ug.group_id = aa.group_id <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;AND u.user_id = ug.user_id <br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;AND ug.user_pending = 0<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 572</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$sql = &quot;SELECT * <br />
+&nbsp; &nbsp;&nbsp; &nbsp;FROM &quot; . FORUMS_TABLE . &quot; f<br />
+&nbsp; &nbsp;&nbsp; &nbsp;ORDER BY forum_order&quot;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$sql = &quot;SELECT f.* <br />
+&nbsp; &nbsp;&nbsp; &nbsp;FROM &quot; . FORUMS_TABLE . &quot; f, &quot; . CATEGORIES_TABLE . &quot; c<br />
+&nbsp; &nbsp;&nbsp; &nbsp;WHERE f.cat_id = c.cat_id<br />
+&nbsp; &nbsp;&nbsp; &nbsp;ORDER BY c.cat_order, f.forum_order ASC&quot;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 608</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$sql = &quot;SELECT u.user_id, u.username, u.user_level, g.group_id, g.group_name, g.group_single_user FROM &quot; . USERS_TABLE . &quot; u, &quot; . GROUPS_TABLE . &quot; g, &quot; . USER_GROUP_TABLE . &quot; ug WHERE &quot;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$sql = &quot;SELECT u.user_id, u.username, u.user_level, g.group_id, g.group_name, g.group_single_user, ug.user_pending FROM &quot; . USERS_TABLE . &quot; u, &quot; . GROUPS_TABLE . &quot; g, &quot; . USER_GROUP_TABLE . &quot; ug WHERE &quot;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 836</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$t_usergroup_list = '';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;for&#40;$i = 0; $i &lt; count&#40;$ug_info&#41;; $i++&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$ug = &#40; $mode == 'user' &#41; ? 'group&amp;amp;' . POST_GROUPS_URL &#58; 'user&amp;amp;' . POST_USERS_URL;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$t_usergroup_list .= &#40; &#40; $t_usergroup_list != '' &#41; ? ', ' &#58; '' &#41; . '&lt;a href=&quot;' . append_sid&#40;&quot;admin_ug_auth.$phpEx?mode=$ug=&quot; . $id&#91;$i&#93;&#41; . '&quot;&gt;' . $name&#91;$i&#93; . '&lt;/a&gt;';<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$t_usergroup_list = $t_pending_list = '';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;for&#40;$i = 0; $i &lt; count&#40;$ug_info&#41;; $i++&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$ug = &#40; $mode == 'user' &#41; ? 'group&amp;amp;' . POST_GROUPS_URL &#58; 'user&amp;amp;' . POST_USERS_URL;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!$ug_info&#91;$i&#93;&#91;'user_pending'&#93;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$t_usergroup_list .= &#40; &#40; $t_usergroup_list != '' &#41; ? ', ' &#58; '' &#41; . '&lt;a href=&quot;' . append_sid&#40;&quot;admin_ug_auth.$phpEx?mode=$ug=&quot; . $id&#91;$i&#93;&#41; . '&quot;&gt;' . $name&#91;$i&#93; . '&lt;/a&gt;';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;else<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$t_pending_list .= &#40; &#40; $t_pending_list != '' &#41; ? ', ' &#58; '' &#41; . '&lt;a href=&quot;' . append_sid&#40;&quot;admin_ug_auth.$phpEx?mode=$ug=&quot; . $id&#91;$i&#93;&#41; . '&quot;&gt;' . $name&#91;$i&#93; . '&lt;/a&gt;';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 911</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;'GROUP_MEMBERSHIP' =&gt; $lang&#91;'Usergroup_members'&#93; . ' &#58; ' . $t_usergroup_list&#41;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;'GROUP_MEMBERSHIP' =&gt; $lang&#91;'Usergroup_members'&#93; . ' &#58; ' . $t_usergroup_list . '&lt;br /&gt;' . $lang&#91;'Pending_members'&#93; . ' &#58; ' . $t_pending_list&#41;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>admin/admin_users.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 89</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;SET poster_id = &quot; . DELETED . &quot;, post_username = '$username' <br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;SET poster_id = &quot; . DELETED . &quot;, post_username = '&quot; . str_replace&#40;&quot;\\'&quot;, &quot;''&quot;, addslashes&#40;$this_userdata&#91;'username'&#93;&#41;&#41; . &quot;' <br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/bbcode.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 203</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$patterns&#91;&#93; = &quot;#\&#91;url\&#93;&#40;&#91;\w&#93;+?&#58;//&#91;^ \&quot;\n\r\t&lt;&#93;*?&#41;\&#91;/url\&#93;#is&quot;;<br />
+&nbsp; &nbsp;$replacements&#91;&#93; = $bbcode_tpl&#91;'url1'&#93;;<br />
+<br />
+&nbsp; &nbsp;// &#91;url&#93;www.phpbb.com&#91;/url&#93; code.. &#40;no xxxx&#58;// prefix&#41;.<br />
+&nbsp; &nbsp;$patterns&#91;&#93; = &quot;#\&#91;url\&#93;&#40;&#40;www|ftp&#41;\.&#91;^ \&quot;\n\r\t&lt;&#93;*?&#41;\&#91;/url\&#93;#is&quot;;<br />
+&nbsp; &nbsp;$replacements&#91;&#93; = $bbcode_tpl&#91;'url2'&#93;;<br />
+<br />
+&nbsp; &nbsp;// &#91;url=xxxx&#58;//www.phpbb.com&#93;phpBB&#91;/url&#93; code..<br />
+&nbsp; &nbsp;$patterns&#91;&#93; = &quot;#\&#91;url=&#40;&#91;\w&#93;+?&#58;//&#91;^ \&quot;\n\r\t&lt;&#93;*?&#41;\&#93;&#40;&#91;^?\n\r\t&#93;.*?&#41;\&#91;/url\&#93;#is&quot;;<br />
+&nbsp; &nbsp;$replacements&#91;&#93; = $bbcode_tpl&#91;'url3'&#93;;<br />
+<br />
+&nbsp; &nbsp;// &#91;url=www.phpbb.com&#93;phpBB&#91;/url&#93; code.. &#40;no xxxx&#58;// prefix&#41;.<br />
+&nbsp; &nbsp;$patterns&#91;&#93; = &quot;#\&#91;url=&#40;&#40;www|ftp&#41;\.&#91;^ \&quot;\n\r\t&lt;&#93;*?&#41;\&#93;&#40;&#91;^?\n\r\t&#93;.*?&#41;\&#91;/url\&#93;#is&quot;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$patterns&#91;&#93; = &quot;#\&#91;url\&#93;&#40;&#91;\w&#93;+?&#58;//&#91;\w\#$%&amp;~/.\-;&#58;=,?@\&#91;\&#93;+&#93;*?&#41;\&#91;/url\&#93;#is&quot;;<br />
+&nbsp; &nbsp;$replacements&#91;&#93; = $bbcode_tpl&#91;'url1'&#93;;<br />
+<br />
+&nbsp; &nbsp;// &#91;url&#93;www.phpbb.com&#91;/url&#93; code.. &#40;no xxxx&#58;// prefix&#41;.<br />
+&nbsp; &nbsp;$patterns&#91;&#93; = &quot;#\&#91;url\&#93;&#40;&#40;www|ftp&#41;\.&#91;\w\#$%&amp;~/.\-;&#58;=,?@\&#91;\&#93;+&#93;*?&#41;\&#91;/url\&#93;#is&quot;;<br />
+&nbsp; &nbsp;$replacements&#91;&#93; = $bbcode_tpl&#91;'url2'&#93;;<br />
+<br />
+&nbsp; &nbsp;// &#91;url=xxxx&#58;//www.phpbb.com&#93;phpBB&#91;/url&#93; code..<br />
+&nbsp; &nbsp;$patterns&#91;&#93; = &quot;#\&#91;url=&#40;&#91;\w&#93;+?&#58;//&#91;\w\#$%&amp;~/.\-;&#58;=,?@\&#91;\&#93;+&#93;*?&#41;\&#93;&#40;&#91;^?\n\r\t&#93;.*?&#41;\&#91;/url\&#93;#is&quot;;<br />
+&nbsp; &nbsp;$replacements&#91;&#93; = $bbcode_tpl&#91;'url3'&#93;;<br />
+<br />
+&nbsp; &nbsp;// &#91;url=www.phpbb.com&#93;phpBB&#91;/url&#93; code.. &#40;no xxxx&#58;// prefix&#41;.<br />
+&nbsp; &nbsp;$patterns&#91;&#93; = &quot;#\&#91;url=&#40;&#40;www|ftp&#41;\.&#91;\w\#$%&amp;~/.\-;&#58;=,?@\&#91;\&#93;+&#93;*?&#41;\&#93;&#40;&#91;^?\n\r\t&#93;.*?&#41;\&#91;/url\&#93;#is&quot;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 627</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$ret = preg_replace&#40;&quot;#&#40;^|&#91;\n &#93;&#41;&#40;&#91;\w&#93;+?&#58;//&#91;^ \&quot;\n\r\t&lt;&#93;*&#41;#is&quot;, &quot;\\1&lt;a href=\&quot;\\2\&quot; target=\&quot;_blank\&quot;&gt;\\2&lt;/a&gt;&quot;, $ret&#41;;<br />
+<br />
+&nbsp; &nbsp;// matches a &quot;www|ftp.xxxx.yyyy&#91;/zzzz&#93;&quot; kinda lazy URL thing<br />
+&nbsp; &nbsp;// Must contain at least 2 dots. xxxx contains either alphanum, or &quot;-&quot;<br />
+&nbsp; &nbsp;// zzzz is optional.. will contain everything up to the first space, newline, <br />
+&nbsp; &nbsp;// comma, double quote or &lt;.<br />
+&nbsp; &nbsp;$ret = preg_replace&#40;&quot;#&#40;^|&#91;\n &#93;&#41;&#40;&#40;www|ftp&#41;\.&#91;^ \&quot;\t\n\r&lt;&#93;*&#41;#is&quot;, &quot;\\1&lt;a href=\&quot;http&#58;//\\2\&quot; target=\&quot;_blank\&quot;&gt;\\2&lt;/a&gt;&quot;, $ret&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$ret = preg_replace&#40;&quot;#&#40;^|&#91;\n &#93;&#41;&#40;&#91;\w&#93;+?&#58;//&#91;\w\#$%&amp;~/.\-;&#58;=,?@\&#91;\&#93;+&#93;*&#41;#is&quot;, &quot;\\1&lt;a href=\&quot;\\2\&quot; target=\&quot;_blank\&quot;&gt;\\2&lt;/a&gt;&quot;, $ret&#41;;<br />
+<br />
+&nbsp; &nbsp;// matches a &quot;www|ftp.xxxx.yyyy&#91;/zzzz&#93;&quot; kinda lazy URL thing<br />
+&nbsp; &nbsp;// Must contain at least 2 dots. xxxx contains either alphanum, or &quot;-&quot;<br />
+&nbsp; &nbsp;// zzzz is optional.. will contain everything up to the first space, newline, <br />
+&nbsp; &nbsp;// comma, double quote or &lt;.<br />
+&nbsp; &nbsp;$ret = preg_replace&#40;&quot;#&#40;^|&#91;\n &#93;&#41;&#40;&#40;www|ftp&#41;\.&#91;\w\#$%&amp;~/.\-;&#58;=,?@\&#91;\&#93;+&#93;*&#41;#is&quot;, &quot;\\1&lt;a href=\&quot;http&#58;//\\2\&quot; target=\&quot;_blank\&quot;&gt;\\2&lt;/a&gt;&quot;, $ret&#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/functions.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 120</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;if &#40;intval&#40;$user&#41; == 0 || $force_str&#41;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;if &#40;!is_numeric&#40;$user&#41; || $force_str&#41;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 581</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;define&#40;HAS_DIED, 1&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;define&#40;'HAS_DIED', 1&#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/functions_validate.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 33</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$username = preg_replace&#40;'#\s+#', ' ', $username&#41;; <br />
+&nbsp; &nbsp;// Limit username length<br />
+&nbsp; &nbsp;$username = substr&#40;str_replace&#40;&quot;\'&quot;, &quot;'&quot;, $username&#41;, 0, 25&#41;;<br />
+&nbsp; &nbsp;$username = str_replace&#40;&quot;'&quot;, &quot;''&quot;, $username&#41;;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$username = preg_replace&#40;'#\s+#', ' ', trim&#40;$username&#41;&#41;; <br />
+&nbsp; &nbsp;$username = phpbb_clean_username&#40;$username&#41;;<br />
+&nbsp; &nbsp;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/usercp_activate.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 50</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;else if &#40;&#40;trim&#40;$row&#91;'user_actkey'&#93;&#41; == trim&#40;$HTTP_GET_VARS&#91;'act_key'&#93;&#41;&#41; &amp;&amp; &#40;trim&#40;$row&#91;'user_actkey'&#93;&#41; != ''&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;intval&#40;$board_config&#91;'require_activation'&#93;&#41; == USER_ACTIVATION_ADMIN &amp;&amp; $userdata&#91;'user_level'&#93; != ADMIN&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_MESSAGE, $lang&#91;'Not_Authorised'&#93;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/usercp_avatar.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 89</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+<br />
+function user_avatar_url&#40;$mode, &amp;$error, &amp;$error_msg, $avatar_filename&#41;<br />
+&#123;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;global $lang;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/usercp_viewprofile.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 168</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+$search_img = '&lt;a href=&quot;' . $temp_url . '&quot;&gt;&lt;img src=&quot;' . $images&#91;'icon_search'&#93; . '&quot; alt=&quot;' . $lang&#91;'Search_user_posts'&#93; . '&quot; title=&quot;' . $lang&#91;'Search_user_posts'&#93; . '&quot; border=&quot;0&quot; /&gt;&lt;/a&gt;';<br />
+$search = '&lt;a href=&quot;' . $temp_url . '&quot;&gt;' . $lang&#91;'Search_user_posts'&#93; . '&lt;/a&gt;';<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+$search_img = '&lt;a href=&quot;' . $temp_url . '&quot;&gt;&lt;img src=&quot;' . $images&#91;'icon_search'&#93; . '&quot; alt=&quot;' . $lang&#91;'Search_user_posts'&#93; . '&quot; title=&quot;' . sprintf&#40;$lang&#91;'Search_user_posts'&#93;, $profiledata&#91;'username'&#93;&#41; . '&quot; border=&quot;0&quot; /&gt;&lt;/a&gt;';<br />
+$search = '&lt;a href=&quot;' . $temp_url . '&quot;&gt;' . sprintf&#40;$lang&#91;'Search_user_posts'&#93;, $profiledata&#91;'username'&#93;&#41; . '&lt;/a&gt;';<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>privmsg.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 701</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40; $delete_all &#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;switch&#40;$folder&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;case 'inbox'&#58;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$delete_type = &quot;privmsgs_to_userid = &quot; . $userdata&#91;'user_id'&#93; . &quot; AND &#40;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;privmsgs_type = &quot; . PRIVMSGS_READ_MAIL . &quot; OR privmsgs_type = &quot; . PRIVMSGS_NEW_MAIL . &quot; OR privmsgs_type = &quot; . PRIVMSGS_UNREAD_MAIL . &quot; &#41;&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;break;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;case 'outbox'&#58;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$delete_type = &quot;privmsgs_from_userid = &quot; . $userdata&#91;'user_id'&#93; . &quot; AND &#40; privmsgs_type = &quot; . PRIVMSGS_NEW_MAIL . &quot; OR privmsgs_type = &quot; . PRIVMSGS_UNREAD_MAIL . &quot; &#41;&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;break;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;case 'sentbox'&#58;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$delete_type = &quot;privmsgs_from_userid = &quot; . $userdata&#91;'user_id'&#93; . &quot; AND privmsgs_type = &quot; . PRIVMSGS_SENT_MAIL;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;break;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;case 'savebox'&#58;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$delete_type = &quot;&#40; &#40; privmsgs_from_userid = &quot; . $userdata&#91;'user_id'&#93; . &quot; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;AND privmsgs_type = &quot; . PRIVMSGS_SAVED_OUT_MAIL . &quot; &#41; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;OR &#40; privmsgs_to_userid = &quot; . $userdata&#91;'user_id'&#93; . &quot; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;AND privmsgs_type = &quot; . PRIVMSGS_SAVED_IN_MAIL . &quot; &#41; &#41;&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;break;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$sql = &quot;SELECT privmsgs_id<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;FROM &quot; . PRIVMSGS_TABLE . &quot;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;WHERE $delete_type&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40; !&#40;$result = $db-&gt;sql_query&#40;$sql&#41;&#41; &#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_ERROR, 'Could not obtain id list to delete all messages', '', __LINE__, __FILE__, $sql&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;while &#40; $row = $db-&gt;sql_fetchrow&#40;$result&#41; &#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$mark_list&#91;&#93; = $row&#91;'privmsgs_id'&#93;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;unset&#40;$delete_type&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$delete_sql_id = '';<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!$delete_all&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;for &#40;$i = 0; $i &lt; count&#40;$mark_list&#41;; $i++&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$delete_sql_id .= &#40;&#40;$delete_sql_id != ''&#41; ? ', ' &#58; ''&#41; . intval&#40;$mark_list&#91;$i&#93;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$delete_sql_id = &quot;AND privmsgs_id IN &#40;$delete_sql_id&#41;&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;switch&#40;$folder&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;case 'inbox'&#58;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$delete_type = &quot;privmsgs_to_userid = &quot; . $userdata&#91;'user_id'&#93; . &quot; AND &#40;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;privmsgs_type = &quot; . PRIVMSGS_READ_MAIL . &quot; OR privmsgs_type = &quot; . PRIVMSGS_NEW_MAIL . &quot; OR privmsgs_type = &quot; . PRIVMSGS_UNREAD_MAIL . &quot; &#41;&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;break;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;case 'outbox'&#58;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$delete_type = &quot;privmsgs_from_userid = &quot; . $userdata&#91;'user_id'&#93; . &quot; AND &#40; privmsgs_type = &quot; . PRIVMSGS_NEW_MAIL . &quot; OR privmsgs_type = &quot; . PRIVMSGS_UNREAD_MAIL . &quot; &#41;&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;break;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;case 'sentbox'&#58;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$delete_type = &quot;privmsgs_from_userid = &quot; . $userdata&#91;'user_id'&#93; . &quot; AND privmsgs_type = &quot; . PRIVMSGS_SENT_MAIL;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;break;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;case 'savebox'&#58;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$delete_type = &quot;&#40; &#40; privmsgs_from_userid = &quot; . $userdata&#91;'user_id'&#93; . &quot; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;AND privmsgs_type = &quot; . PRIVMSGS_SAVED_OUT_MAIL . &quot; &#41; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;OR &#40; privmsgs_to_userid = &quot; . $userdata&#91;'user_id'&#93; . &quot; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;AND privmsgs_type = &quot; . PRIVMSGS_SAVED_IN_MAIL . &quot; &#41; &#41;&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;break;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$sql = &quot;SELECT privmsgs_id<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;FROM &quot; . PRIVMSGS_TABLE . &quot;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;WHERE $delete_type $delete_sql_id&quot;;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40; !&#40;$result = $db-&gt;sql_query&#40;$sql&#41;&#41; &#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_ERROR, 'Could not obtain id list to delete messages', '', __LINE__, __FILE__, $sql&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$mark_list = array&#40;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;while &#40; $row = $db-&gt;sql_fetchrow&#40;$result&#41; &#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$mark_list&#91;&#93; = $row&#91;'privmsgs_id'&#93;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;unset&#40;$delete_type&#41;;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 1507</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$mode = 'reply';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;else<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$privmsg_subject = $privmsg_message = '';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 2036</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$l_box_size_status = '';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;break;<br />
+&nbsp; &nbsp;&#125;<br />
+&#125;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+else<br />
+&#123;<br />
+&nbsp; &nbsp;$inbox_limit_img_length = $inbox_limit_pct = $l_box_size_status = '';<br />
+&#125;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>templates/subSilver/faq_body.tpl</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 37</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&lt;td class=&quot;&#123;faq_block.faq_row.ROW_CLASS&#125;&quot; align=&quot;left&quot; valign=&quot;top&quot;&gt;&lt;span class=&quot;postbody&quot;&gt;&lt;a name=&quot;&#123;faq_block.faq_row.U_FAQ_ID&#125;&quot;&gt;&lt;/a&gt;&lt;b&gt;&#123;faq_block.faq_row.FAQ_QUESTION&#125;&lt;/b&gt;&lt;/span&gt;&lt;br /&gt;&lt;span class=&quot;postbody&quot;&gt;&#123;faq_block.faq_row.FAQ_ANSWER&#125;&lt;br /&gt;&lt;a class=&quot;postlink&quot; href=&quot;#Top&quot;&gt;&#123;L_BACK_TO_TOP&#125;&lt;/a&gt;&lt;/span&gt;&lt;/td&gt;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&lt;td class=&quot;&#123;faq_block.faq_row.ROW_CLASS&#125;&quot; align=&quot;left&quot; valign=&quot;top&quot;&gt;&lt;span class=&quot;postbody&quot;&gt;&lt;a name=&quot;&#123;faq_block.faq_row.U_FAQ_ID&#125;&quot;&gt;&lt;/a&gt;&lt;b&gt;&#123;faq_block.faq_row.FAQ_QUESTION&#125;&lt;/b&gt;&lt;/span&gt;&lt;br /&gt;&lt;span class=&quot;postbody&quot;&gt;&#123;faq_block.faq_row.FAQ_ANSWER&#125;&lt;br /&gt;&lt;a class=&quot;postlink&quot; href=&quot;#top&quot;&gt;&#123;L_BACK_TO_TOP&#125;&lt;/a&gt;&lt;/span&gt;&lt;/td&gt;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>viewtopic.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 992</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.16 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$search_img = '&lt;a href=&quot;' . $temp_url . '&quot;&gt;&lt;img src=&quot;' . $images&#91;'icon_search'&#93; . '&quot; alt=&quot;' . $lang&#91;'Search_user_posts'&#93; . '&quot; title=&quot;' . $lang&#91;'Search_user_posts'&#93; . '&quot; border=&quot;0&quot; /&gt;&lt;/a&gt;';<br />
+&nbsp; &nbsp;$search = '&lt;a href=&quot;' . $temp_url . '&quot;&gt;' . $lang&#91;'Search_user_posts'&#93; . '&lt;/a&gt;';<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.17 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$search_img = '&lt;a href=&quot;' . $temp_url . '&quot;&gt;&lt;img src=&quot;' . $images&#91;'icon_search'&#93; . '&quot; alt=&quot;' . $lang&#91;'Search_user_posts'&#93; . '&quot; title=&quot;' . sprintf&#40;$lang&#91;'Search_user_posts'&#93;, $postrow&#91;$i&#93;&#91;'username'&#93;&#41; . '&quot; border=&quot;0&quot; /&gt;&lt;/a&gt;';<br />
+&nbsp; &nbsp;$search = '&lt;a href=&quot;' . $temp_url . '&quot;&gt;' . sprintf&#40;$lang&#91;'Search_user_posts'&#93;, $postrow&#91;$i&#93;&#91;'username'&#93;&#41; . '&lt;/a&gt;';<br />
+
+<br /></td>  	</tr></table><br /><br /></ol>					</td>
+			</tr>
+		</table></td>
+	</tr>
+</table></html>

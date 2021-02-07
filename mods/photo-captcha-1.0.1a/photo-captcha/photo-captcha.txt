@@ -1,0 +1,481 @@
+##############################################################
+## MOD Title: Photo Visual Confirmation
+## MOD Author: Josh Yelon < jyelon@gmail.com > (Josh Yelon) N/A
+## MOD Description:
+##     This patch to phpbb2 adds a new kind of Visual Confirmation,
+##     also known as a CAPTCHA.  The person registering for an account must
+##     look at photographs and determine if they are photographs of animals
+##     or not.
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 5 Minutes
+## Files To Edit: admin/admin_board.php,
+##      includes/constants.php,
+##      includes/usercp_confirm.php,
+##      includes/usercp_register.php,
+##      language/lang_english/lang_admin.php,
+##      language/lang_english/lang_main.php,
+##      templates/subSilver/admin/board_config_body.tpl,
+##      templates/subSilver/profile_add_body.tpl
+## Included Files: captcha-images/*.*
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## This patch to phpbb2 adds a new kind of Visual Confirmation,
+## also known as a CAPTCHA.  The person registering for an account must
+## look at photographs and determine if they are photographs of animals
+## or not.
+## 
+## The captcha can be broken by a bot that has a copy of the photos.  To
+## do this, the bot must compare the presented images to the photos in
+## the distribution.  To make this a little harder, the mod randomly
+## tweaks the gamma and randomly crops the images before presenting them
+## to the user.  Therefore, comparison requires more than a simple
+## bit-for-bit equality test.  This isn't a very strong protection,
+## but it's better than nothing.
+##
+## The real strength of the captcha, however, is the fact that it's so
+## easy for the board admin to replace the photos.  A bot that doesn't
+## have a copy of the photo library is at an almost crippling
+## disadvantage. Once the photos have been replaced, this captcha is
+## almost unbreakable.
+##
+## I have made it as easy as possible to drop in new photos.  As you
+## can see, there are two directories containing photos: 
+## 
+##    images/captcha/animal
+##    images/captcha/non
+##
+## Which contain, respectively, animals and non-animals.  All of the
+## supplied images are 256x192 --- this is the optimal size.  However,
+## you can use images that are somewhat smaller or larger.  All images
+## must be jpegs.  The filenames do not matter, although the extension
+## must be jpg.  It is recommended that the board admin delete all
+## the supplied photos, and replace them with photos of his own.
+##
+## The supplied photos are kittens and cars.  I intentionally didn't
+## use a mix of different types of animals, or different types of
+## non-animals.  I feel that using two clear categories makes it
+## easier for the human --- it is very easy to visually scan for
+## kittens, but much harder to visually scan for animals-in-general.
+##
+## To enable the mod, you must browse to the board configuration
+## page (admin_board.php), find the entry for "Visual Confirmation,"
+## and select "Photos."
+##
+## This captcha requires the php GD extension.  If you install this
+## MOD without installing GD, the board configuration page will
+## display the message "If you were to install the php GD extension,
+## a photo-recognition mode would become available here."
+##
+## The code is quite small, and this mod integrates the new CAPTCHA
+## cleanly into the phpbb2 2.0.21 codebase.  It is my hope that the phpbb2
+## developers will eventually include this mod with the distribution.
+##
+## This software is actually in the public domain, but the format of
+## the license field above doesn't provide any means to specify that.
+## Long story short, you can do anything at all with it.
+## 
+##############################################################
+## MOD History:
+##
+##   YYYY-MM-DD - Version x.x.x
+##      - version notes go here
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+
+#
+#-----[ COPY ]--------------------------------------
+#
+
+copy captcha-images/*.* to images/captcha/*.*
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+$confirm_yes = ($new['enable_confirm']) ? 'checked="checked"' : '';
+$confirm_no = (!$new['enable_confirm']) ? 'checked="checked"' : '';
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+$confirm_photos = ($new['enable_confirm'] == VISUAL_CONFIRM_PHOTOS) ? 'checked="checked"' : '';
+$confirm_digits = ($new['enable_confirm'] == VISUAL_CONFIRM_DIGITS) ? 'checked="checked"' : '';
+$confirm_disable = ($new['enable_confirm'] == VISUAL_CONFIRM_DISABLE) ? 'checked="checked"' : '';
+
+if (!extension_loaded("gd")) {
+	$visual_explain = $lang['Visual_confirm_explain_nogd'];
+} else {
+	$visual_explain = $lang['Visual_confirm_explain'];
+	$template->assign_block_vars('switch_enable_photos', array());
+}
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+	"L_VISUAL_CONFIRM_EXPLAIN" => $lang['Visual_confirm_explain'], 
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+	"L_VISUAL_CONFIRM_EXPLAIN" => $visual_explain,
+	"L_VISUAL_CONFIRM_PHOTOS" => $lang['Visual_confirm_photos'],
+	"L_VISUAL_CONFIRM_DIGITS" => $lang['Visual_confirm_digits'],
+	"L_VISUAL_CONFIRM_DISABLE" => $lang['Visual_confirm_disable'],
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+	"CONFIRM_ENABLE" => $confirm_yes,
+	"CONFIRM_DISABLE" => $confirm_no,
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+	"CONFIRM_PHOTOS" => $confirm_photos,
+	"CONFIRM_DIGITS" => $confirm_digits,
+	"CONFIRM_DISABLE" => $confirm_disable,
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+define('USER_AVATAR_NONE', 0);
+
+#
+#-----[ BEFORE, ADD ]--------------------------------------
+#
+
+define('VISUAL_CONFIRM_DISABLE', 0);
+define('VISUAL_CONFIRM_DIGITS', 1);
+define('VISUAL_CONFIRM_PHOTOS', 2);
+
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+includes/usercp_confirm.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+// We can we will generate a single filtered png 
+// Thanks to DavidMJ for emulating zlib within the code :)
+
+#
+#-----[ BEFORE, ADD ]--------------------------------------
+#
+
+if ($board_config['enable_confirm'] == VISUAL_CONFIRM_PHOTOS) {
+
+	if(!extension_loaded("gd")){
+		exit;
+	}
+
+	$idx = intval($HTTP_GET_VARS['idx']);
+	$code = substr(base_convert($code, 16, 2), $idx, 1);
+
+	if ($code == "0") {
+		$directory = $phpbb_root_path . "/images/captcha/non";
+	} else {
+		$directory = $phpbb_root_path . "/images/captcha/animal";
+	}
+	$options = array();
+	$dirlist = opendir($directory);
+	while( ($jpg = readdir($dirlist)) !== false) {
+		if(!is_dir($jpg)) {
+			if (strtolower(substr($jpg,-4,4)) == ".jpg") {
+				$options[] = $jpg;
+			}
+		}
+	}
+	closedir($dirlist);
+	if (empty($options)) {
+		exit;
+	}
+	$selindex = intval(base_convert(substr(dss_rand(), 0, 7), 16, 10));
+	$selindex = $selindex % count($options);
+	$fullpath = $directory . "/" . $options[$selindex];
+
+	$image = @imagecreatefromjpeg($fullpath);
+	if (!$image) {
+		exit;
+	}
+
+	$resultx = 112;
+	$resulty = 84;
+
+	mt_srand();
+	$targetx = @imagesx($image);
+	$targety = @imagesy($image);
+	$sourcex = mt_rand(($targetx * 7)/10, ($targetx * 9)/10);
+	$sourcey = mt_rand(($targety * 7)/10, ($targety * 9)/10);
+	$offx = mt_rand(0, $targetx - $sourcex);
+	$offy = mt_rand(0, $targety - $sourcey);
+	$sub = imagecreatetruecolor($resultx, $resulty);
+	@imagecopyresampled($sub, $image, 0, 0, $offx, $offy, $resultx, $resulty, $sourcex, $sourcey);
+	$image = $sub;
+	@imagegammacorrect($image, 1.0, (0.5 + mt_rand(0,1200)*0.001));
+
+	header('Content-Type: image/jpg');
+	header('Cache-control: no-cache, no-store');
+	@imagepng($image);
+	exit;
+}
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+includes/usercp_register.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+				if ($row['code'] != $confirm_code)
+				{
+					$error = TRUE;
+					$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Confirm_code_wrong'];
+
+#
+#-----[ BEFORE, ADD ]--------------------------------------
+#
+
+
+				if ($board_config['enable_confirm'] == VISUAL_CONFIRM_PHOTOS) {
+					$confirm_code = '';
+					for ($box=0; $box<20; $box++) {
+						if ($HTTP_POST_VARS["captchabox$box"] == "on") {
+							$confirm_code .= "1";
+						} else {
+							$confirm_code .= "0";
+						}
+					}
+					$row['code'] = substr(base_convert($row['code'], 16, 2), 0, 20);
+				}
+
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+		// NB 0 (zero) could get confused with O (the letter) so we make change it
+		$code = dss_rand();
+		$code = substr(str_replace('0', 'Z', strtoupper(base_convert($code, 16, 35))), 2, 6);
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+		if ($board_config['enable_confirm'] == VISUAL_CONFIRM_DIGITS) {
+			// NB 0 (zero) could get confused with O (the letter) so we make change it
+			$code = dss_rand();
+			$code = substr(str_replace('0', 'Z', strtoupper(base_convert($code, 16, 35))), 2, 6);
+		}
+
+		if ($board_config['enable_confirm'] == VISUAL_CONFIRM_PHOTOS) {
+			// Each one in the code indicates 'animal', each zero 'non-animal'.
+			$code = dss_rand();
+			$code = substr($code, 0, 6);
+		}
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+		$confirm_image = '<img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id") . '" alt="" title="" />';
+		$s_hidden_fields .= '<input type="hidden" name="confirm_id" value="' . $confirm_id . '" />';
+
+		$template->assign_block_vars('switch_confirm', array());
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+		$s_hidden_fields .= '<input type="hidden" name="confirm_id" value="' . $confirm_id . '" />';
+
+		if ($board_config['enable_confirm'] == VISUAL_CONFIRM_DIGITS) {
+			 $confirm_image = '<img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id") . '" alt="" title="" />';
+			 $template->assign_block_vars('switch_confirm_digits', array());
+		}
+
+		if ($board_config['enable_confirm'] == VISUAL_CONFIRM_PHOTOS) {
+			if (extension_loaded("gd")) {
+				$confirm_image = '<table>';
+				for ($tablerow=0; $tablerow<5; $tablerow++) {
+					$confirm_image .= '<tr>';
+					for ($tablecol=0; $tablecol<4; $tablecol++) {
+						$idx = $tablerow*4 + $tablecol;
+						$confirm_image .= '<td><img src="' . append_sid("profile.$phpEx?mode=confirm&amp;id=$confirm_id&amp;idx=$idx") . '" alt="" title="" /></td>';
+						$confirm_image .= '<td><input type="checkbox" name="captchabox' . "$idx" . '" /></td>';
+						$confirm_image .= '<td width=50></td>';
+					}
+					$confirm_image .= '</tr>';
+				}
+				$confirm_image .= '</table>';
+			}
+			$template->assign_block_vars('switch_confirm_photos', array());
+		}
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+		'L_CONFIRM_CODE_EXPLAIN'	=> $lang['Confirm_code_explain'], 
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+		'L_CONFIRM_CODE_EXPLAIN_DIGITS'	=> $lang['Confirm_code_explain_digits'], 
+		'L_CONFIRM_CODE_EXPLAIN_PHOTOS'	=> (extension_loaded("gd") ? $lang['Confirm_code_explain_photos'] : $lang['Confirm_code_missing_gd']),
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+$lang['Visual_confirm_explain'] = 'Requires users enter a code defined by an image when registering.';
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+$lang['Visual_confirm_explain'] = 'Requires registering users to either recognize objects in photos, or recognize digits in an image.';
+$lang['Visual_confirm_explain_nogd'] = 'Requires registering users to recognize digits in an image.  If you were to install the php GD extension, a photo-recognition mode would become available here.';
+$lang['Visual_confirm_photos'] = 'Photos';
+$lang['Visual_confirm_digits'] = 'Digits';
+$lang['Visual_confirm_disable'] = 'None';
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+$lang['Confirm_code_explain'] = 'Enter the code exactly as you see it. The code is case sensitive and zero has a diagonal line through it.';
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+$lang['Confirm_code_explain_digits'] = 'Enter the code exactly as you see it. The code is case sensitive and zero has a diagonal line through it.';
+$lang['Confirm_code_explain_photos'] = 'Put a check mark next to all photographs of animals. (This is a spam prevention mechanism).';
+$lang['Confirm_code_missing_gd'] = 'Error: photo confirmation requires the PHP GD extension, which is not currently installed.';
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+		<td class="row2"><input type="radio" name="enable_confirm" value="1" {CONFIRM_ENABLE} />{L_YES}&nbsp; &nbsp;<input type="radio" name="enable_confirm" value="0" {CONFIRM_DISABLE} />{L_NO}</td>
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+		<td class="row2">
+			<!-- BEGIN switch_enable_photos -->
+			<input type="radio" name="enable_confirm" value="2" {CONFIRM_PHOTOS} />{L_VISUAL_CONFIRM_PHOTOS}&nbsp;
+			<!-- END switch_enable_photos -->
+			<input type="radio" name="enable_confirm" value="1" {CONFIRM_DIGITS} />{L_VISUAL_CONFIRM_DIGITS}&nbsp;
+                        <input type="radio" name="enable_confirm" value="0" {CONFIRM_DISABLE} />{L_VISUAL_CONFIRM_DISABLE}
+		</td>
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+	<!-- Visual Confirmation -->
+	<!-- BEGIN switch_confirm -->
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+	<!-- Visual Confirmation, Digits  -->
+	<!-- BEGIN switch_confirm_digits -->
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+	  <td class="row1"><span class="gen">{L_CONFIRM_CODE}: * </span><br /><span class="gensmall">{L_CONFIRM_CODE_EXPLAIN}</span></td>
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+	  <td class="row1"><span class="gen">{L_CONFIRM_CODE}: * </span><br /><span class="gensmall">{L_CONFIRM_CODE_EXPLAIN_DIGITS}</span></td>
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+	<!-- END switch_confirm -->
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+	<!-- END switch_confirm_digits -->
+	<!-- Visual Confirmation, Photos -->
+	<!-- BEGIN switch_confirm_photos -->
+	<tr>
+		<td class="row1" colspan="2" align="center">
+		<span class="gensmall">{L_CONFIRM_CODE_IMPAIRED}</span><br /><br />
+		<span class="gen">{L_CONFIRM_CODE_EXPLAIN_PHOTOS}</span><br /><br />
+		{CONFIRM_IMG}<br /><br />
+		</td>
+	</tr>
+	<!-- END switch_confirm_photos -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

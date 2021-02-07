@@ -1,0 +1,235 @@
+################################################################################################# 
+## MOD Title: Subscript and Superscript BBCode 
+## MOD Author: HCP < hermitcrabsrule2004@yahoo.com.au > (Wai) N/A
+## MOD Description: Adds subscript and superscript BBCode to your forum.
+## MOD Version: 1.0.1
+## 
+## Installation Level: (Easy) 
+## Installation Time: 5 Minutes
+## Files To Edit: - includes/bbcode.php
+##                - langugage/lang_english/lang_main.php
+##                - templates/subSilver/bbcode.tpl
+##                - templates/subSilver/posting_body.tpl
+## Included Files: n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+################################################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/
+#################################################################################################
+## Author Notes: 
+##
+## IMPORTANT: You MUST first have already installed the Multiple BBCode MOD 1.4.0 +
+#################################################################################################
+## MOD History: 
+##    - 2006/01/09 
+##       + Version 1.0.0 completed
+##    - 2006/01/15 
+##       + Version 1.0.1 completed
+##       + Minor code fixes
+##
+#################################################################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+#################################################################################################
+
+#
+#-----[ OPEN ]------------------------------------------------ 
+#
+
+includes/bbcode.php
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: the actual lines may be longer if you have installed other BBCode MODs
+#
+
+   $EMBB_widths = array(''
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+
+array(''
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+
+,'40','40'
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+   $EMBB_values = array(''
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+
+$EMBB_values = array(''
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+
+,'Sub','Sup'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+	// [i] and [/i] for italicizing text.
+	$text = str_replace("[i:$uid]", $bbcode_tpl['i_open'], $text);
+	$text = str_replace("[/i:$uid]", $bbcode_tpl['i_close'], $text);
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	// [sub] and [/sub] for subscript text.
+	$text = str_replace("[sub:$uid]", $bbcode_tpl['sub_open'], $text);
+	$text = str_replace("[/sub:$uid]", $bbcode_tpl['sub_close'], $text);
+
+	// [sup] and [/sup] for superscript text.
+	$text = str_replace("[sup:$uid]", $bbcode_tpl['sup_open'], $text);
+	$text = str_replace("[/sup:$uid]", $bbcode_tpl['sup_close'], $text);
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+	// [i] and [/i] for italicizing text.
+	$text = preg_replace("#\[i\](.*?)\[/i\]#si", "[i:$uid]\\1[/i:$uid]", $text);
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	// [sub] and [/sub] for subscript text.
+	$text = preg_replace("#\[sub\](.*?)\[/sub\]#si", "[sub:$uid]\\1[/sub:$uid]", $text);
+
+	// [sup] and [/sup] for superscript text.
+	$text = preg_replace("#\[sup\](.*?)\[/sup\]#si", "[sup:$uid]\\1[/sup:$uid]", $text);
+
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+language/lang_english/lang_bbcode.php
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$faq[] = array("Can I combine formatting tags?", "Yes, of course you can; for example to get someones attention you may write:<br /><br /><b>[size=18][color=red][b]</b>LOOK AT ME!<b>[/b][/color][/size]</b><br /><br />this would output <span style=\"color:red;font-size:18px\"><b>LOOK AT ME!</b></span><br /><br />We don't recommend you output lots of text that looks like this, though! Remember that it is up to you, the poster, to ensure that tags are closed correctly. For example, the following is incorrect:<br /><br /><b>[b][u]</b>This is wrong<b>[/b][/u]</b>");
+
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+$faq[] = array("What does the Sub BBCode do?", "The [sub] [/sub] tags will make subscript text. For example using:<ul><li>This [sub]text[/sub] is subscript!<br /><br />will display as:<br /><br />This <sub>text</sub> is subscript!</li></ul>");
+$faq[] = array("What does the Sup BBCode do?", "The [sup] [/sup] tags will make superscript text. For example using:<ul><li>This [sup]text[/sup] is superscript!<br /><br />will display as:<br /><br />This <sup>text</sup> is superscript!</li></ul>");
+
+
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+language/lang_english/lang_main.php
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# Note: This text will appear twice in the code. Make sure you have the one that is NOT a comment
+# Full Line is like: $lang['bbcode_f_help'] = "Font size: [size=x-small]small text[/size]";
+#
+
+$lang['bbcode_f_help'] =
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+$lang['bbcode_help']['sub'] = 'Subscript text: [sub]text[/sub] (alt+%s)';
+$lang['bbcode_help']['sup'] = 'Superscript text: [sup]text[/sup] (alt+%s)';
+
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+templates/subSilver/bbcode.tpl
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+<!-- BEGIN i_open --><span style="font-style: italic"><!-- END i_open -->
+<!-- BEGIN i_close --></span><!-- END i_close -->
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+<!-- BEGIN sub_open --><sub><!-- END sub_open -->
+<!-- BEGIN sub_close --></sub><!-- END sub_close -->
+
+<!-- BEGIN sup_open --><sup><!-- END sup_open -->
+<!-- BEGIN sup_close --></sup><!-- END sup_close -->
+
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+templates/subSilver/posting_body.tpl
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: the actual line to find is MUCH longer, containing all the bbcode tags
+#
+
+bbtags = new Array(
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+'[url]','[/url]'
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+
+,'[sub]','[/sub]','[sup]','[/sup]'
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

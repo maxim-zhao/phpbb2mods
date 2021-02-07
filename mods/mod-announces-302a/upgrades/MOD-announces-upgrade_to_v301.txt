@@ -1,0 +1,231 @@
+############################################################## 
+## MOD Title:		Announces Suite - upgrade from v 3.0.0 to v 3.0.1
+## MOD Author:		Ptirhiik < ptirhiik@clanmckeen.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description:	This mod is to upgrade Announces suite from v 3.0.0 to v 3.0.1
+##
+## MOD Version:		3.0.1
+## 
+## Installation Level:	Easy
+## Installation Time:	10 Minutes
+## Files To Edit:
+##			includes/functions.php
+##			includes/page_header.php
+##
+##			language/lang_english/lang_admin.php
+##			language/lang_english/lang_main.php
+##
+## Included Files:
+##			lang_extend_announces.php
+##			mod_announces.php
+##
+##			mod-lang_settings/lang_extend_mac.php
+##
+##			mod-mods_settings/functions_mods_settings.php
+##			mod-mods_settings/admin_board_extend.php
+##			mod-mods_settings/board_config_extend_body.tpl
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##	if you have installed the mods_settings users preferences part, 
+##	please copy also :
+##		mod-mods_settings/profile_options.php to profile_options.php
+##		mod-mods_settings/profile_options_body.tpl to templates/subSilver/profile_options_body.tpl
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2003-10-28 - Version 3.0.1
+##      - upgrade the mods_settings tool,
+##	- add the lang_settings tool
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy lang_extend_announces.php to language/lang_english/lang_extend_announces.php
+copy mod_announces.php to includes/mods_settings/mod_announces.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+#  lang settings
+#
+copy mod-lang_settings/lang_extend_mac.php to includes/lang_extend_mac.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+#  mods settings
+#
+copy mod-mods_settings/functions_mods_settings.php to includes/functions_mods_settings.php
+copy mod-mods_settings/admin_board_extend.php to admin/admin_board_extend.php
+copy mod-mods_settings/board_config_extend_body.tpl to templates/subSilver/admin/board_config_extend_body.tpl
+#
+#-----[ OPEN ]------------------------------------------------
+#
+# Note : this part can already exists. If so, just skip it.
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- mod : mods settings ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( $userdata['user_id'] != ANONYMOUS )
+	{
+		if ( !empty($userdata['user_lang']))
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+	global $db, $mods, $list_yes_no, $userdata;
+
+	//	get all the mods settings
+	$dir = @opendir($phpbb_root_path . 'includes/mods_settings');
+	while( $file = @readdir($dir) )
+	{
+		if( preg_match("/^mod_.*?\." . $phpEx . "$/", $file) )
+		{
+			include_once($phpbb_root_path . 'includes/mods_settings/' . $file);
+		}
+	}
+	@closedir($dir);
+//-- fin mod : mods settings -----------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Set up style
+	//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+	include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		}
+
+		if ( empty($template) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+			include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/mods_settings/mod_announces.' . $phpEx);
+//-- fin mod : announces ---------------------------------------------------------------------------
+$template->pparse('overall_header');
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+$template->pparse('overall_header');
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : mods settings ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+$lang['Configuration_extend']	= 'Configuration +';
+$lang['Override_user_choices']	= 'Override user choices';
+//-- end of mod : mods settings --------------------------------------------------------------------
+?>
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+?>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+$lang['Board_announcement']						= 'Board Announcements';
+$lang['announcement_duration']					= 'Announcement duration';
+$lang['announcement_duration_explain']			= 'This is the number of days an announcement remains. Use -1 in order to set it permanent';
+$lang['Announce_settings']						= 'Announcements';
+$lang['announcement_date_display']				= 'Display announcement dates';
+$lang['announcement_display']					= 'Display board announcements on index';
+$lang['announcement_display_forum']				= 'Display board announcements on forums';
+$lang['announcement_split']						= 'Split announcement type in the board announcement box';
+$lang['announcement_forum']						= 'Display the forum name under the announcement title in the board announcement box';
+$lang['announcement_prune_strategy']			= 'Announcement prune strategy';
+$lang['announcement_prune_strategy_explain']	= 'This is what will be the type of the announcement topic after being pruned';
+
+$lang['Global_announce']						= 'Global announce';
+$lang['Sorry_auth_global_announce']				= 'Sorry, but only %s can post global announcements in this forum.';
+$lang['Post_Global_Announcement']				= 'Global Announcement';
+$lang['Topic_Global_Announcement']				= '<b>Global Announcement:</b>';
+
+$lang['Announces_from_to']						= '(from %s to %s)';
+//-- fin mod : announces ---------------------------------------------------------------------------
+?>
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+?>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

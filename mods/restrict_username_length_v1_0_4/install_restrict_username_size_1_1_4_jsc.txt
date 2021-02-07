@@ -1,0 +1,764 @@
+##############################################################
+## MOD Title: [2.0.19] Restrict Username Size
+## MOD Author: Wo1f < N/A > (J. C. Woof) N/A
+## MOD Description: Allows the administrator to set through the ACP, a minimum and maximun value for the number of characters allowed in a user name.  
+## MOD Version: 1.1.4
+##
+## Installation Level: Easy
+## Installation Time: ~ 15 Minutes
+## Files To Edit: admin/admin_board.php,
+##      admin/admin_users.php,
+##      admin/page_header_admin.php,
+##      includes/functions.php,
+##      includes/functions_post.php,
+##      includes/page_header.php,
+##      includes/usercp_register.php,
+##      language/lang_english/lang_admin.php,
+##      language/lang_english/lang_main.php,
+##      templates/subSilver/groupcp_info_body.tpl,
+##      templates/subSilver/index_body.tpl,
+##      templates/subSilver/login_body.tpl,
+##      templates/subSilver/posting_body.tpl,
+##      templates/subSilver/profile_add_body.tpl,
+##      templates/subSilver/profile_send_pass.tpl,
+##      templates/subSilver/search_username.tpl,
+##      templates/subSilver/admin/board_config_body.tpl,
+##      templates/subSilver/admin/disallow_body,
+##      templates/subSilver/admin/group_edit_body.tpl,
+##      templates/subSilver/admin/user_ban_body.tpl,
+##      templates/subSilver/admin/user_edit_body.tpl,
+##      templates/subSilver/admin/user_select_body.tpl.
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##      - Restriction is also applied when "Allow Username changes" is enabled in the ACP.
+##      - Restriction is also applied to "Anomymous" (Guest posting), in the event forum permissions allow it.
+##      - Username text field "maxlenght" value (across the board) is now governed by the "maximum" value specified in the ACP.
+##      - Released for, and tested on, phpBB2 v2.0.19 [subSilver].
+##      - Tested on FF 1.5, Opera 8.5 and IE 6.
+##      - Numerous installations with EasyMOD version 0.3.0 were successful and took on average less than 1 minute.
+##      - The username character counter is based on " Underhill's " efficient & lightweight javascript code. Used by permission. Ty! :)
+##         http://www.underhill.de/
+##      - Support is offered through this mod's support thread at phpbb.com.
+##      - IMPORTANT --> Failure to update the "config" table will result in members being unable to login.
+##      - Thanks to the best bunch of BETA testers around:
+##         Dicky, Nux, Bullmax, Mark and Yawner.
+##############################################################
+## MOD History:
+##
+##   2006-02-09 Version 1.0.4
+##      - Relocated username length check in admin/admin_users.php which was stopping an admin. username change to be transferred to the db.
+##   2006-02-03 Version 1.1.3
+##      - Added javascript "remaining character" counter to profile_add_body.tpl.
+##   2006-02-03 Version 1.0.3
+##      - Added size restriction to functions_post.php to apply to guest posting when allowed.
+##      - Moved common template variable to page_header_admin.php to reduce code & instructions load.
+##      - Added maxlength="{TOTAL_UN}" to username input field in various TPL's.
+##      - Edited $lang['Username_min_char_xplain'] to make it less confusing.
+##      - Edited $lang['User_length_error'] to make it less confusing.
+##      - Miscellaneous minor adjustments.
+##   2006-02-02 Version 1.0.2
+##      - Replaced maxlength="25/40/50" for maxlength="{TOTAL_UN}" in various TPL's.
+##      - Moved common template variable to page_header.php to reduce code & instructions load.
+##   2006-02-02 Version 1.0.1
+##      - Removed hard-coded username maximun length.
+##      - Changed initial default min. and max. values.
+##   2006-01-31 Version 1.0.0
+##      - Initial Release.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix specified below, if your board does not use " phpbb_ ". 
+#
+INSERT INTO `phpbb_config` (`config_name`, `config_value`) VALUES ('username_min_char', '4'), ('username_max_char', '25');
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+"L_RESET" => $lang['Reset'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+	"L_USERNAME_MIN_CHAR" => $lang['Username_min_char'],
+	'L_USERNAME_MIN_CHAR_XPLAIN' => $lang['Username_min_char_xplain'],
+	"L_USERNAME_MAX_CHAR" => $lang['Username_max_char'],
+	'L_USERNAME_MAX_CHAR_XPLAIN' => $lang['Username_max_char_xplain'],
+
+	"USERNAME_MIN_CHAR" => $new['username_min_char'],
+	"USERNAME_MAX_CHAR" => $new['username_max_char'],
+// Restrict username size mod - end
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Username_taken'];
+				}
+			}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+			if (strlen($username) < $un_min || strlen($username) > $un_max)
+			{
+				$error = TRUE;
+				$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . sprintf($lang['User_length_error'], $un_min, $un_max);
+			}
+// Restrict username size mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/page_header_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// Format Timezone. We are unable to use array_pop here, because of PHP3 compatibility
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+	$un_min = $board_config['username_min_char'];
+	$un_max = $board_config['username_max_char'];
+// Restrict username size mod - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_FAQ' => $lang['FAQ'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+	'TOTAL_UN' => $un_max,
+// Restrict username size mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+function phpbb_clean_username($username)
+{
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+	global $board_config;
+	$un_min = $board_config['username_min_char'];
+	$un_max = $board_config['username_max_char'];
+// Restrict username size mod - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$username = substr(htmlspecialchars(str_replace("\'", "'", trim($username))), 0, 25);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+25
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$un_max
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	// Check username
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+	$un_min = $board_config['username_min_char'];
+	$un_max = $board_config['username_max_char'];
+// Restrict username size mod - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		if (!$userdata['session_logged_in'] || ($userdata['session_logged_in'] && $username != $userdata['username']))
+		{
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+			if (strlen($username) < $un_min || strlen($username) > $un_max)
+			{
+				$error = TRUE;
+				$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . sprintf($lang['User_length_error'], $un_min, $un_max);
+// Restrict username size mod - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				$error_msg .= (!empty($error_msg)) ? '<br />' . $result['error_msg'] : $result['error_msg'];
+				}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+			}
+// Restrict username size mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// Format Timezone. We are unable to use array_pop here, because of PHP3 compatibility
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+	$un_min = $board_config['username_min_char'];
+	$un_max = $board_config['username_max_char'];
+// Restrict username size mod - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'PRIVMSG_IMG' => $icon_pm,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+	'TOTAL_UN' => $un_max,
+// Restrict username size mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$username_sql = '';
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+	$un_min = $board_config['username_min_char'];
+	$un_max = $board_config['username_max_char'];
+// Restrict username size mod - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		else if ( $username != $userdata['username'] || $mode == 'register')
+		{
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+			if (strlen($username) < $un_min || strlen($username) > $un_max)
+			{
+				$error = TRUE;
+				$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . sprintf($lang['User_length_error'], $un_min, $un_max);
+// Restrict username size mod - end
+
+#
+#-----[ FIND ]------------------------------------------
+#				
+						$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $result['error_msg'];
+					}
+				}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+			}
+// Restrict username size mod - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 566 - 1st instance
+#
+ 						'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+25
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$un_max
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 595 - 2nd instance
+#
+ 							'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+25
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$un_max
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 709 - 3rd instance
+#
+					'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+25
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$un_max
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 731 - 4th instance
+#
+					'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+25
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$un_max
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# around line 763 - 5th instance
+#
+						'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+25
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$un_max
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'SMILIES_STATUS' => $smilies_status,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+		'STATE_UN' => $un_max - strlen($username),
+		'L_REMAINING_CHAR' => $lang['Remaining_char'],
+// Restrict username size mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# near the end of file
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+$lang['Username_min_char'] = 'Minimum Username length';
+$lang['Username_min_char_xplain'] = 'Minimum number of characters allowed in username. (A value of no less than 4 is strongly recommended)';
+$lang['Username_max_char'] = 'Maximum Username length';
+$lang['Username_max_char_xplain'] = 'Maximum number of characters allowed in username';
+// Restrict username size mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# near the end of file
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Restrict username size mod - start
+$lang['User_length_error'] = 'Your username must contain a minimum of %s characters and is restricted to a maximum of %s.';
+$lang['Remaining_char'] = ' remaining character(s)';
+// Restrict username size mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/groupcp_info_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input type="text"  class="post" name="username" maxlength="50" size="20" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+50
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+{TOTAL_UN}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/index_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input class="post" type="text" name="username" size="10" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+size="10"
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+# Include the space preceding the code
+#
+ maxlength="{TOTAL_UN}"
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/login_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input type="text" class="post" name="username" size="25" maxlength="40" value="{USERNAME}" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+40
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+{TOTAL_UN}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input type="text" class="post" tabindex="1" name="username" size="25" maxlength="25" value="{USERNAME}" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+maxlength="25"
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+maxlength="{TOTAL_UN}"
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input type="text"  class="post" name="username" maxlength="25" size="25" tabindex="1" value="{USERNAME}" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+25
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+{TOTAL_UN}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<td class="row2"><input type="text" class="post" style="width:200px" name="username" size="25" maxlength="25" value="{USERNAME}" /></td>
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			<td class="row2">
+				<script language="javascript" type="text/javascript">
+					<!--
+					// Username remaining character counter
+						function username_counter(field, countfield, max)
+						{
+							if (field.value.length > max)
+							{
+								field.value = field.value.substring(0, max);
+							}
+							else
+							{
+								countfield.value = max - field.value.length;
+							}
+						}
+					//-->
+				</script>
+				<input type="text" class="post" style="width:200px" name="username" size="25" maxlength="{TOTAL_UN}" value="{USERNAME}" onkeydown="username_counter(this.form.username, this.form.usernamelen, {TOTAL_UN});" onkeyup="username_counter(this.form.username, this.form.usernamelen, {TOTAL_UN});" />
+				<input class="post" readonly="readonly" type="text" name="usernamelen" size="2" maxlength="2" value="{STATE_UN}" style="border:1px solid #000;text-align:center;text-indent:0.0em;background-color:#efefef" />
+					<span class="gensmall">{L_REMAINING_CHAR}</span>
+			</td>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_send_pass.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input type="text" class="post" style="width: 200px" name="username" size="25" maxlength="40" value="{USERNAME}" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+40
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+{TOTAL_UN}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/search_username.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input type="text" name="search_username" value="{USERNAME}" class="post" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+name="search_username"
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+# Include the space preceding the code
+#
+ maxlength="{TOTAL_UN}"
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		<td class="row2"><input type="radio" name="allow_namechange" value="1" {NAMECHANGE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_namechange" value="0" {NAMECHANGE_NO} /> {L_NO}</td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_USERNAME_MIN_CHAR}<br />{L_USERNAME_MIN_CHAR_XPLAIN}</td>
+		<td class="row2"><input class="post" type="text" name="username_min_char" size="4" maxlength="2" value="{USERNAME_MIN_CHAR}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_USERNAME_MAX_CHAR}<br />{L_USERNAME_MAX_CHAR_XPLAIN}</td>
+		<td class="row2"><input class="post" type="text" name="username_max_char" size="4" maxlength="2" value="{USERNAME_MAX_CHAR}" /></td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/disallow_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input class="post" type="text" name="disallowed_user" size="30" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+size="30"
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+# Include the space preceding the code
+#
+ maxlength="{TOTAL_UN}"
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/group_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input class="post" type="text" class="post" name="username" maxlength="50" size="20" value="{GROUP_MODERATOR}" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+50
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+{TOTAL_UN}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_ban_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input class="post" type="text" class="post" name="username" maxlength="50" size="20" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+50
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+{TOTAL_UN}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input class="post" type="text" name="username" size="35" maxlength="40" value="{USERNAME}" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+40
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+{TOTAL_UN}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_select_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<input type="text" class="post" name="username" maxlength="50" size="20" />
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+50
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+{TOTAL_UN}
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

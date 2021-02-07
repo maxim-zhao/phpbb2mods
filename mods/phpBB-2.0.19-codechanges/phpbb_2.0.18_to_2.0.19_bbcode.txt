@@ -1,0 +1,631 @@
+[size=18]phpBB 2.0.18 to phpBB 2.0.19 Code Changes[/size]
+
+
+
+These are the Changes from phpBB 2.0.18 to phpBB 2.0.19 summed up into a little Mod. This might be very helpful if you want to update your Board and have installed a bunch of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.
+
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in the 'REPLACE WITH'-Statement.
+
+After you have finished this tutorial, you have to upload the install/update_to_latest.php file, execute it and then delete it from your webspace.
+
+[size=18][color=blue][list][*]admin/admin_board.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 19[/color]
+[code]
+
+	$module['General']['Configuration'] = "$file";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$module['General']['Configuration'] = $file;
+[/code]
+
+[*]
+[color=blue]FIND - Line 194[/color]
+[code]
+
+	"L_MAX_POLL_OPTIONS" => $lang['Max_poll_options'],
+	"L_FLOOD_INTERVAL" => $lang['Flood_Interval'],
+	"L_FLOOD_INTERVAL_EXPLAIN" => $lang['Flood_Interval_explain'], 
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+
+	'L_MAX_LOGIN_ATTEMPTS'			=> $lang['Max_login_attempts'],
+	'L_MAX_LOGIN_ATTEMPTS_EXPLAIN'	=> $lang['Max_login_attempts_explain'],
+	'L_LOGIN_RESET_TIME'			=> $lang['Login_reset_time'],
+	'L_LOGIN_RESET_TIME_EXPLAIN'	=> $lang['Login_reset_time_explain'],
+	'MAX_LOGIN_ATTEMPTS'			=> $new['max_login_attempts'],
+	'LOGIN_RESET_TIME'				=> $new['login_reset_time'],
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_db_utilities.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 696[/color]
+[code]
+
+			$tables = array('auth_access', 'banlist', 'categories', 'config', 'disallow', 'forums', 'forum_prune', 'groups', 'posts', 'posts_text', 'privmsgs', 'privmsgs_text', 'ranks', 'search_results', 'search_wordlist', 'search_wordmatch', 'sessions', 'smilies', 'themes', 'themes_name', 'topics', 'topics_watch', 'user_group', 'users', 'vote_desc', 'vote_results', 'vote_voters', 'words', 'confirm');
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			$tables = array('auth_access', 'banlist', 'categories', 'config', 'disallow', 'forums', 'forum_prune', 'groups', 'posts', 'posts_text', 'privmsgs', 'privmsgs_text', 'ranks', 'search_results', 'search_wordlist', 'search_wordmatch', 'sessions', 'smilies', 'themes', 'themes_name', 'topics', 'topics_watch', 'user_group', 'users', 'vote_desc', 'vote_results', 'vote_voters', 'words', 'confirm', 'sessions_keys');
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_disallow.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 28[/color]
+[code]
+
+	$module['Users']['Disallow'] = append_sid($filename);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$module['Users']['Disallow'] = $filename;
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_ranks.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 27[/color]
+[code]
+
+	$module['Users']['Ranks'] = "$file";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$module['Users']['Ranks'] = $file;
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_styles.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 30[/color]
+[code]
+
+	$module['Styles']['Manage'] = "$file";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$module['Styles']['Manage'] = $file;
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_users.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 180[/color]
+[code]
+
+				message_die(GENERAL_ERROR, 'Could not delete user from banlist table', '', __LINE__, __FILE__, $sql);
+			}
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+			$sql = "DELETE FROM " . SESSIONS_TABLE . "
+				WHERE session_user_id = $user_id";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete sessions for this user', '', __LINE__, __FILE__, $sql);
+			}
+			
+			$sql = "DELETE FROM " . SESSIONS_KEYS_TABLE . "
+				WHERE user_id = $user_id";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete auto-login keys for this user', '', __LINE__, __FILE__, $sql);
+			}
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 234[/color]
+[code]
+
+		$username = ( !empty($HTTP_POST_VARS['username']) ) ? trim(strip_tags(htmlspecialchars($HTTP_POST_VARS['username']))) : '';
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		$username = ( !empty($HTTP_POST_VARS['username']) ) ? phpbb_clean_username($HTTP_POST_VARS['username']) : '';
+[/code]
+
+[*]
+[color=blue]FIND - Line 407[/color]
+[code]
+
+				if( @file_exists(@phpbb_realpath("./" . $board_config['avatar_path'] . "/" . $this_userdata['user_avatar'])) )
+				{
+					@unlink("./" . $board_config['avatar_path'] . "/" . $this_userdata['user_avatar']);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+				if( @file_exists(@phpbb_realpath('./../' . $board_config['avatar_path'] . "/" . $this_userdata['user_avatar'])) )
+				{
+					@unlink('./../' . $board_config['avatar_path'] . "/" . $this_userdata['user_avatar']);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_words.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 28[/color]
+[code]
+
+	$module['General']['Word_Censor'] = "$file";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$module['General']['Word_Censor'] = $file;
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/index.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 63[/color]
+[code]
+
+			include($file);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			include('./' . $file);
+[/code]
+
+[*]
+[color=blue]FIND - Line 237[/color]
+[code]
+
+			if( preg_match("/^(3\.23|4\.)/", $version) )
+			{
+				$db_name = ( preg_match("/^(3\.23\.[6-9])|(3\.23\.[1-9][1-9])|(4\.)/", $version) ) ? "`$dbname`" : $dbname;
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			if( preg_match("/^(3\.23|4\.|5\.)/", $version) )
+			{
+				$db_name = ( preg_match("/^(3\.23\.[6-9])|(3\.23\.[1-9][1-9])|(4\.)|(5\.)/", $version) ) ? "`$dbname`" : $dbname;
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/bbcode.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 203[/color]
+[code]
+
+	$patterns[] = "#\[url\]([\w]+?://[\w\#$%&~/.\-;:=,?@\[\]+]*?)\[/url\]#is";
+	$replacements[] = $bbcode_tpl['url1'];
+
+	// [url]www.phpbb.com[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url\]((www|ftp)\.[\w\#$%&~/.\-;:=,?@\[\]+]*?)\[/url\]#is";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$patterns[] = "#\[url\]([\w]+?://([\w\#$%&~/.\-;:=,?@\]+]|\[(?!url=))*?)\[/url\]#is";
+	$replacements[] = $bbcode_tpl['url1'];
+
+	// [url]www.phpbb.com[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url\]((www|ftp)\.([\w\#$%&~/.\-;:=,?@\]+]|\[(?!url=))*?)\[/url\]#is";
+[/code]
+
+[*]
+[color=blue]FIND - Line 255[/color]
+[code]
+
+	$text = bbencode_first_pass_pda($text, $uid, '/\[quote=(\\\".*?\\\")\]/is', '[/quote]', '', false, '', "[quote:$uid=\\1]");
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$text = bbencode_first_pass_pda($text, $uid, '/\[quote=\\\\&quot;(.*?)\\\\&quot;\]/is', '[/quote]', '', false, '', "[quote:$uid=\\\"\\1\\\"]");
+[/code]
+
+[*]
+[color=blue]FIND - Line 392[/color]
+[code]
+
+				if( preg_match('#\[quote=\\\"#si', $possible_start, $match) && !preg_match('#\[quote=\\\"(.*?)\\\"\]#si', $possible_start) )
+				{
+					// OK we are in a quote tag that probably contains a ] bracket.
+					// Grab a bit more of the string to hopefully get all of it..
+					if ($close_pos = strpos($text, '"]', $curr_pos + 9))
+					{
+						if (strpos(substr($text, $curr_pos + 9, $close_pos - ($curr_pos + 9)), '[quote') === false)
+						{
+							$possible_start = substr($text, $curr_pos, $close_pos - $curr_pos + 2);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+				if( preg_match('#\[quote=\\\&quot;#si', $possible_start, $match) && !preg_match('#\[quote=\\\&quot;(.*?)\\\&quot;\]#si', $possible_start) )
+				{
+					// OK we are in a quote tag that probably contains a ] bracket.
+					// Grab a bit more of the string to hopefully get all of it..
+					if ($close_pos = strpos($text, '&quot;]', $curr_pos + 14))
+					{
+						if (strpos(substr($text, $curr_pos + 14, $close_pos - ($curr_pos + 14)), '[quote') === false)
+						{
+							$possible_start = substr($text, $curr_pos, $close_pos - $curr_pos + 7);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]common.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 223[/color]
+[code]
+
+	message_die(GENERAL_MESSAGE, 'Please ensure both the install/ and contrib/ directories are deleted');
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	message_die(GENERAL_MESSAGE, 'Please_remove_install_contrib');
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/functions.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 161[/color]
+[code]
+
+	$sql .= ( ( is_integer($user) ) ? "user_id = $user" : "username = '" .  $user . "'" ) . " AND user_id <> " . ANONYMOUS;
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$sql .= ( ( is_integer($user) ) ? "user_id = $user" : "username = '" .  str_replace("\'", "''", $user) . "'" ) . " AND user_id <> " . ANONYMOUS;
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/functions_post.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 28[/color]
+[code]
+
+$html_entities_match = array('#&(?!(\#[0-9]+;))#', '#<#', '#>#');
+$html_entities_replace = array('&amp;', '&lt;', '&gt;');
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+$html_entities_match = array('#&(?!(\#[0-9]+;))#', '#<#', '#>#', '#"#');
+$html_entities_replace = array('&amp;', '&lt;', '&gt;', '&quot;');
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_confirm.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 156[/color]
+[code]
+
+	if (!empty($HTTP_GET_VARS['c']))
+	{
+		$_png = define_raw_pngs();
+
+		$char = substr($code, intval($HTTP_GET_VARS['c']) - 1, 1);
+		header('Content-Type: image/png');
+		header('Cache-control: no-cache, no-store');
+		echo base64_decode($_png[$char]);
+
+		unset($_png);
+		exit;
+	}
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$_png = define_raw_pngs();
+
+	$char = substr($code, -1);
+	header('Content-Type: image/png');
+	header('Cache-control: no-cache, no-store');
+	echo base64_decode($_png[$char]);
+
+	unset($_png);
+	exit;
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_register.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 110[/color]
+[code]
+
+	$strip_var_list = array('username' => 'username', 'email' => 'email', 'icq' => 'icq', 'aim' => 'aim', 'msn' => 'msn', 'yim' => 'yim', 'website' => 'website', 'location' => 'location', 'occupation' => 'occupation', 'interests' => 'interests');
+	$strip_var_list['confirm_code'] = 'confirm_code';
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$strip_var_list = array('email' => 'email', 'icq' => 'icq', 'aim' => 'aim', 'msn' => 'msn', 'yim' => 'yim', 'website' => 'website', 'location' => 'location', 'occupation' => 'occupation', 'interests' => 'interests', 'confirm_code' => 'confirm_code');
+[/code]
+
+[*]
+[color=blue]FIND - Line 126[/color]
+[code]
+
+	$trim_var_list = array('cur_password' => 'cur_password', 'new_password' => 'new_password', 'password_confirm' => 'password_confirm', 'signature' => 'signature');
+[/code]
+
+[color=blue]BEFORE, ADD[/color]
+[code]
+
+	$username = ( !empty($HTTP_POST_VARS['username']) ) ? phpbb_clean_username($HTTP_POST_VARS['username']) : '';
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 301[/color]
+[code]
+
+				if ($row['code'] != $confirm_code)
+[/code]
+
+[color=blue]BEFORE, ADD[/color]
+[code]
+
+				// Only compare one char if the zlib-extension is not loaded
+				if (!@extension_loaded('zlib'))
+				{
+					$row['code'] = substr($row['code'], -1);
+				}
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]language/lang_english/lang_admin.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 749[/color]
+[code]
+
+//
+// That's all Folks!
+[/code]
+
+[color=blue]BEFORE, ADD[/color]
+[code]
+
+//
+// Login attempts configuration
+//
+$lang['Max_login_attempts'] = 'Allowed login attempts';
+$lang['Max_login_attempts_explain'] = 'The number of allowed board login attempts.';
+$lang['Login_reset_time'] = 'Login lock time';
+$lang['Login_reset_time_explain'] = 'Time in minutes the user have to wait until he is allowed to login again after exceeding the number of allowed login attempts.';
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]language/lang_english/lang_main.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 1021[/color]
+[code]
+
+//
+// That's all, Folks!
+[/code]
+
+[color=blue]BEFORE, ADD[/color]
+[code]
+
+$lang['Login_attempts_exceeded'] = 'The maximum number of %s login attempts has been exceeded. You are not allowed to login for the next %s minutes.';
+$lang['Please_remove_install_contrib'] = 'Please ensure both the install/ and contrib/ directories are deleted';
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]login.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 60[/color]
+[code]
+
+		$sql = "SELECT user_id, username, user_password, user_active, user_level
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		$sql = "SELECT user_id, username, user_password, user_active, user_level, user_login_tries, user_last_login_try
+[/code]
+
+[*]
+[color=blue]FIND - Line 79[/color]
+[code]
+
+				if( md5($password) == $row['user_password'] && $row['user_active'] )
+[/code]
+
+[color=blue]BEFORE, ADD[/color]
+[code]
+
+				// If the last login is more than x minutes ago, then reset the login tries/time
+				if ($row['user_last_login_try'] && $board_config['login_reset_time'] && $row['user_last_login_try'] < (time() - ($board_config['login_reset_time'] * 60)))
+				{
+					$db->sql_query('UPDATE ' . USERS_TABLE . ' SET user_login_tries = 0, user_last_login_try = 0 WHERE user_id = ' . $row['user_id']);
+					$row['user_last_login_try'] = $row['user_login_tries'] = 0;
+				}
+				
+				// Check to see if user is allowed to login again... if his tries are exceeded
+				if ($row['user_last_login_try'] && $board_config['login_reset_time'] && $board_config['max_login_attempts'] && 
+					$row['user_last_login_try'] >= (time() - ($board_config['login_reset_time'] * 60)) && $row['user_login_tries'] >= $board_config['max_login_attempts'])
+				{
+					message_die(GENERAL_MESSAGE, sprintf($lang['Login_attempts_exceeded'], $board_config['max_login_attempts'], $board_config['login_reset_time']));
+				}
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 97[/color]
+[code]
+
+					$admin = (isset($HTTP_POST_VARS['admin'])) ? 1 : 0;
+					$session_id = session_begin($row['user_id'], $user_ip, PAGE_INDEX, FALSE, $autologin, $admin);
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+					// Reset login tries
+					$db->sql_query('UPDATE ' . USERS_TABLE . ' SET user_login_tries = 0, user_last_login_try = 0 WHERE user_id = ' . $row['user_id']);
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 115[/color]
+[code]
+
+					$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : '';
+					$redirect = str_replace('?', '&', $redirect);
+[/code]
+
+[color=blue]BEFORE, ADD[/color]
+[code]
+
+					// Save login tries and last login
+					if ($row['user_id'] != ANONYMOUS)
+					{
+						$sql = 'UPDATE ' . USERS_TABLE . '
+							SET user_login_tries = user_login_tries + 1, user_last_login_try = ' . time() . '
+							WHERE user_id = ' . $row['user_id'];
+						$db->sql_query($sql);
+					}
+					
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]privmsg.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 38[/color]
+[code]
+
+$html_entities_match = array('#&(?!(\#[0-9]+;))#', '#<#', '#>#');
+$html_entities_replace = array('&amp;', '&lt;', '&gt;');
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+$html_entities_match = array('#&(?!(\#[0-9]+;))#', '#<#', '#>#', '#"#');
+$html_entities_replace = array('&amp;', '&lt;', '&gt;', '&quot;');
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]templates/subSilver/admin/board_config_body.tpl[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 59[/color]
+[code]
+
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="flood_interval" value="{FLOOD_INTERVAL}" /></td>
+	</tr>
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	<tr>
+		<td class="row1">{L_MAX_LOGIN_ATTEMPTS}<br /><span class="gensmall">{L_MAX_LOGIN_ATTEMPTS_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="max_login_attempts" value="{MAX_LOGIN_ATTEMPTS}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LOGIN_RESET_TIME}<br /><span class="gensmall">{L_LOGIN_RESET_TIME_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="login_reset_time" value="{LOGIN_RESET_TIME}" /></td>
+	</tr>
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]templates/subSilver/admin/index_body.tpl[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 46[/color]
+[code]
+
+	<td class="row2"><b>{GZIP_COMPRESSION}</b></td>
+  </tr>
+</table>
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+
+<h1>{L_VERSION_INFORMATION}</h1>
+
+{VERSION_INFO}
+
+<br />
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 87[/color]
+[code]
+
+
+<h1>{L_VERSION_INFORMATION}</h1>
+
+{VERSION_INFO}
+
+<br />
+[/code]
+
+[color=blue]REPLACE WITH (just remove the lines)[/color]
+[code]
+
+[/code]
+
+[/list]

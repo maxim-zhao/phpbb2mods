@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en-gb">phpBB.com Profile Link</title>
+		<description lang="en-gb">Allows users to enter their phpBB.com user id, so you can easily link to it. This MOD will be easy to customize, so it works with other boards :)
+</description>
+		<author-notes lang="en-gb">This is really useful for phpBB-related Boards, as lots of the members will also be members at phpBB.com, possibly with an other name.
+
+If you don't know how to run the SQL, look here: http://phpbbmodders.net/viewtopic.php?t=108
+
+Or copy db_update.php from the /contrb/ folder into your phpBB root folder, and run it from there. Just visit the page in your browser, for example: http://yoursite.com/phpBB2/db_update.php
+Then follow the instructions.
+
+I only offer support at phpBB.com and phpBBModders.net.</author-notes>
+		<author-group>
+			<author>
+				<realname>Igor Wiedler</realname>
+				<email>evil@phpbbmodders.net</email>
+				<username>eviL&lt;3</username>
+				<homepage>http://phpbbmodders.net</homepage>
+				<contributions />
+			</author>
+		</author-group>
+		<mod-version>
+			<major>1</major>
+			<minor>0</minor>
+			<revision>2</revision>
+		</mod-version>
+		<installation>
+			<level>intermediate</level>
+			<time>900</time>
+			<target-version>
+				<target-primary>2.0</target-primary>
+				<target-major allow="exact">2</target-major>
+				<target-minor allow="exact">0</target-minor>
+			</target-version>
+		</installation>
+		<history>
+			<entry>
+				<date>2006-11-06</date>
+				<rev-version>
+					<major>0</major>
+					<minor>1</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Initial release</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-11-11</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Submitted to MODDB</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-11-19</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>1</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Fixed little errors :)</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2007-02-25</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>2</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>MODx'd, slightly cleaned up</change>
+					<change>Moved url generation to a function</change>
+					<change>Added phpBB3 support (phpbb.com gone live)</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2007-06-30</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>3</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Some small fixing once again, thanks terrafrost and instadeny</change>
+				</changelog>
+			</entry>
+		</history>
+		<meta name="generator" content="Phpbb.ModTeam.Tools (c#)" />
+	</header>
+	<action-group>
+		<sql>ALTER TABLE phpbb_users ADD user_phpbbcom VARCHAR( 25 ) NULL DEFAULT NULL;</sql>
+		<copy>
+			<file from="root/templates/subSilver/images/lang_english/icon_profile_phpbb.gif" to="templates/subSilver/images/lang_english/icon_profile_phpbb.gif" />
+		</copy>
+		<open src="viewtopic.php">
+			<edit>
+				<find>$sql = "SELECT u.username, u.user_id, </find>
+				<inline-edit>
+					<inline-find>, u.user_msnm</inline-find>
+					<inline-action type="after-add">, u.user_phpbbcom</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>		$yim = ( $postrow[$i]['user_yim'] ) </find>
+				<action type="after-add"><![CDATA[
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		$phpbbcom_img	= ( $postrow[$i]['user_phpbbcom'] ) ? '<a href="' . phpbbcom_profile_url ($postrow[$i]['user_phpbbcom']) . '"><img src="' . $images['icon_phpbbcom'] . '" alt="' . $lang['Profile_phpbbcom'] . '" title="' . $lang['Profile_phpbbcom'] . '" border="0" /></a>' : '';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+]]></action>
+			</edit>
+			<edit>
+				<find>		$yim = '';</find>
+				<action type="after-add">//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		$phpbbcom_img = '';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find><![CDATA[		'YIM' => $yim,]]></find>
+				<action type="after-add"><![CDATA[//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		'PHPBBCOM_IMG' => $phpbbcom_img,
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------]]></action>
+			</edit>
+		</open>
+		<open src="admin/admin_users.php">
+			<edit>
+				<find>		$yim = ( !empty($HTTP_POST_VARS['yim']) ) ? trim(strip_tags( $HTTP_POST_VARS['yim'] ) ) : '';</find>
+				<action type="after-add">//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		$phpbbcom = ( !empty($HTTP_POST_VARS['phpbbcom']) ) ? trim( $HTTP_POST_VARS['phpbbcom'] ) : '';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find>			$yim = htmlspecialchars(stripslashes($yim));</find>
+				<action type="after-add">//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+			$phpbbcom = htmlspecialchars( stripslashes( $phpbbcom ) );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find>		if ($signature != '')
+		{</find>
+				<action type="before-add">
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		if ( $phpbbcom != '' )
+		{
+			$phpbbcom = urlencode( $phpbbcom );
+		}
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+</action>
+			</edit>
+			<edit>
+				<find>				SET " . $username_sql . $passwd_sql . </find>
+				<inline-edit>
+					<inline-find>, user_yim = '" . str_replace("\'", "''", $yim) . "'</inline-find>
+					<inline-action type="after-add">, user_phpbbcom = '" . str_replace("\'", "''", $phpbbcom) . "'</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>			$yim = htmlspecialchars(stripslashes($yim));</find>
+				<action type="after-add">//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+			$phpbbcom = htmlspecialchars( stripslashes( $phpbbcom ) );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find>		$yim = htmlspecialchars($this_userdata['user_yim']);</find>
+				<action type="after-add">//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		$phpbbcom = htmlspecialchars( urldecode( $this_userdata['user_phpbbcom'] ) );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find><![CDATA[			$s_hidden_fields .= '<input type="hidden" name="yim" value="' . str_replace("\"", "&quot;", $yim) . '" />';]]></find>
+				<action type="after-add"><![CDATA[//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+			$s_hidden_fields .= '<input type="hidden" name="phpbbcom" value="' . str_replace("\"", "&quot;", $phpbbcom) . '" />';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[			'YIM' => $yim,]]></find>
+				<action type="after-add"><![CDATA[//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+			'PHPBBCOM' => $phpbbcom,
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[			'L_YAHOO' => $lang['YIM'],]]></find>
+				<action type="after-add"><![CDATA[//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+			'L_PHPBBCOM'			=> $lang['Profile_phpbbcom'],
+			'L_PHPBBCOM_EXPLAIN'	=> $lang['Profile_phpbbcom_explain'],
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------]]></action>
+			</edit>
+		</open>
+		<open src="includes/usercp_avatar.php">
+			<edit>
+				<find>function display_avatar_gallery(</find>
+				<inline-edit>
+					<inline-find><![CDATA[, &$yim]]></inline-find>
+					<inline-action type="after-add"><![CDATA[, &$phpbbcom]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>	$params = array(</find>
+				<inline-edit>
+					<inline-find>, 'yim'</inline-find>
+					<inline-action type="after-add">, 'phpbbcom'</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="includes/functions.php">
+			<edit>
+				<find><![CDATA[?>]]></find>
+				<action type="before-add"><![CDATA[
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+/**
+ * Returns the URL to a users phpBB profile
+ * User id is either the users id, or his username
+ *
+ * @author	eviL3 <evil@phpbbmodders.net>
+ * @version	1.0.3
+ * @param	mixed $user_id
+ * @return	string URL to Profile
+ */
+function phpbbcom_profile_url ($user_id)
+{
+//	return ( $user_id ) ? 'http://www.phpbb.com/phpBB/profile.php?mode=viewprofile&amp;' . POST_USERS_URL . '=' . $user_id : '';
+	return ( $user_id ) ? 'http://www.phpbb.com/community/memberlist.php?mode=viewprofile&amp;' . ((is_numeric($user_id)) ? 'u' : 'un') . '=' . $user_id : '';
+}
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+]]></action>
+			</edit>
+		</open>
+		<open src="includes/usercp_register.php">
+			<edit>
+				<find><![CDATA[	$strip_var_list = array('email' => 'email',]]></find>
+				<action type="after-add"><![CDATA[//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	$phpbbcom = ( isset($HTTP_POST_VARS['phpbbcom']) && !empty($HTTP_POST_VARS['phpbbcom']) ) ? $HTTP_POST_VARS['phpbbcom'] : '';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------]]></action>
+			</edit>
+			<edit>
+				<find>		$yim = stripslashes($yim);</find>
+				<action type="after-add">//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		$phpbbcom = stripslashes( $phpbbcom );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find>	if ( $website != '' )
+	{
+		rawurlencode($website);
+	}</find>
+				<action type="after-add">
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	if ( $phpbbcom != '' )
+	{
+		$phpbbcom = urlencode( $phpbbcom );
+	}
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+</action>
+			</edit>
+			<edit>
+				<find>				SET " . $username_sql . $passwd_sql</find>
+				<inline-edit>
+					<inline-find>, user_yim = '" . str_replace("\'", "''", $yim) . "'</inline-find>
+					<inline-action type="after-add">, user_phpbbcom = '" . str_replace("\'", "''", $phpbbcom) . "'</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>			$sql = "INSERT INTO " . USERS_TABLE . "	</find>
+				<inline-edit>
+					<inline-find>, user_yim</inline-find>
+					<inline-action type="after-add">, user_phpbbcom</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>				VALUES ($user_id, '" . str_replace("\'", "''", $username)</find>
+				<inline-edit>
+					<inline-find>, '" . str_replace("\'", "''", $yim) . "'</inline-find>
+					<inline-action type="after-add">, '" . str_replace("\'", "''", $phpbbcom) . "'</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[					'YIM' => $yim,]]></find>
+				<action type="after-add"><![CDATA[//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+					'PHPBBCOM' => $phpbbcom,
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------]]></action>
+			</edit>
+			<edit>
+				<find>	$yim = stripslashes($yim);</find>
+				<action type="after-add">//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	$phpbbcom = stripslashes ( $phpbbcom );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find>	$yim = $userdata['user_yim'];</find>
+				<action type="after-add">//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	$phpbbcom = htmlspecialchars( urldecode( $userdata['user_phpbbcom'] ) );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find>	display_avatar_gallery(</find>
+				<inline-edit>
+					<inline-find>, $yim</inline-find>
+					<inline-action type="after-add">, $phpbbcom</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[		'YIM' => $yim,]]></find>
+				<action type="after-add"><![CDATA[//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		'PHPBBCOM' => $phpbbcom,
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[		'L_YAHOO' => $lang['YIM'],]]></find>
+				<action type="after-add"><![CDATA[//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		'L_PHPBBCOM'			=> $lang['Profile_phpbbcom'],
+		'L_PHPBBCOM_EXPLAIN'	=> $lang['Profile_phpbbcom_explain'],
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------]]></action>
+			</edit>
+		</open>
+		<open src="includes/usercp_viewprofile.php">
+			<edit>
+				<find>$yim = ( $profiledata['user_yim'] )</find>
+				<action type="after-add"><![CDATA[
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+$phpbbcom_img	= ( $profiledata['user_phpbbcom'] ) ? '<a href="' . phpbbcom_profile_url ($profiledata['user_phpbbcom']) . '"><img src="' . $images['icon_phpbbcom'] . '" alt="' . $lang['Profile_phpbbcom'] . '" title="' . $lang['Profile_phpbbcom'] . '" border="0" /></a>' : '';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[	'YIM' => $yim,]]></find>
+				<action type="after-add"><![CDATA[//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	'PHPBBCOM_IMG' => $phpbbcom_img,
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[	'L_YAHOO' => $lang['YIM'],]]></find>
+				<action type="after-add"><![CDATA[//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	'L_PHPBBCOM' => $lang['Profile_phpbbcom'],
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------]]></action>
+			</edit>
+		</open>
+		<open src="language/lang_english/lang_main.php">
+			<edit>
+				<find><![CDATA[?>]]></find>
+				<action type="before-add"><![CDATA[
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+$lang += array(
+	'Profile_phpbbcom'			=> 'phpBB.com Profile',
+	'Profile_phpbbcom_explain'	=> 'Enter your user id or your username from phpBB.com',
+);
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/profile_add_body.tpl">
+			<edit>
+				<find><![CDATA[		<input type="text" class="post" style="width: 200px"	name="interests" size="35" maxlength="150" value="{INTERESTS}" />
+		</td>
+	</tr>]]></find>
+				<action type="after-add"><![CDATA[<!-- phpBB.com Profile Link -->
+	<tr> 
+		<td class="row1">
+			<span class="gen">
+				<label for="phpbbcom">{L_PHPBBCOM}</label>:
+			</span>
+			<br />
+			<span class="gensmall">{L_PHPBBCOM_EXPLAIN}</span>
+		</td>
+		<td class="row2"> 
+			<input type="text" class="post" style="width: 200px"	id="phpbbcom" name="phpbbcom" size="35" maxlength="150" value="{PHPBBCOM}" />
+		</td>
+	</tr>
+<!-- phpBB.com Profile Link -->]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/profile_view_body.tpl">
+			<edit>
+				<find><![CDATA[			<td class="row1" valign="middle"><b><span class="gen">{PM_IMG}</span></b></td>
+		</tr>]]></find>
+				<action type="after-add"><![CDATA[<!-- phpBB.com Profile Link -->
+		<tr> 
+			<td valign="middle" nowrap="nowrap" align="right">
+				<span class="gen">{L_PHPBBCOM}:</span>
+			</td>
+			<td class="row1" valign="middle">
+				<b><span class="gen">{PHPBBCOM_IMG}</span></b>
+			</td>
+		</tr>
+<!-- phpBB.com Profile Link -->]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/subSilver.cfg">
+			<edit>
+				<find><![CDATA[?>]]></find>
+				<action type="before-add">
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+$images['icon_phpbbcom'] = "$current_template_images/{LANG}/icon_profile_phpbb.gif";
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+</action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/viewtopic_body.tpl">
+			<edit>
+				<find><![CDATA[<noscript>{postrow.ICQ_IMG}</noscript>]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[</td>]]></inline-find>
+					<inline-action type="before-add"> {postrow.PHPBBCOM_IMG}</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="templates/subSilver/admin/user_edit_body.tpl">
+			<edit>
+				<find><![CDATA[		<input class="post" type="text" name="interests" size="35" maxlength="150" value="{INTERESTS}" />
+		</td>
+	</tr>]]></find>
+				<action type="after-add"><![CDATA[<!-- phpBB.com Profile Link -->
+	<tr> 
+		<td class="row1">
+			<span class="gen">
+				<label for="phpbbcom">{L_PHPBBCOM}</label>:
+			</span>
+			<br />
+			<span class="gensmall">{L_PHPBBCOM_EXPLAIN}</span>
+		</td>
+		<td class="row2"> 
+			<input type="text" class="post" style="width: 200px"	id="phpbbcom" name="phpbbcom" size="35" maxlength="150" value="{PHPBBCOM}" />
+		</td>
+	</tr>
+<!-- phpBB.com Profile Link -->]]></action>
+			</edit>
+		</open>
+	</action-group>
+</mod>

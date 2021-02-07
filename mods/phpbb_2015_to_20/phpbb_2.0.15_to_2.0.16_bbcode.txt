@@ -1,0 +1,189 @@
+[size=18]phpBB 2.0.15 to phpBB 2.0.16 Code Changes[/size]
+
+
+
+These are the Changes from phpBB 2.0.15 to phpBB 2.0.16 summed up into a little Mod. This might be very helpful if you want to update your Board and have installed a bunch of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.
+
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in the 'REPLACE WITH'-Statement.
+
+After you have finished this tutorial, you have to upload the install/update_to_latest.php file, execute it and then delete it from your webspace.
+
+[size=18][color=blue][list][*]admin/admin_ug_auth.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 809[/color]
+[code]
+
+	@reset($auth_user);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+//	@reset($auth_user);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/pagestart.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 43[/color]
+[code]
+
+	redirect(append_sid("login.$phpEx?redirect=admin/", true));
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	redirect(append_sid("login.$phpEx?redirect=admin/index.$phpEx", true));
+[/code]
+
+[*]
+[color=blue]FIND - Line 64[/color]
+[code]
+
+	redirect(append_sid("login.$phpEx?redirect=admin/&admin=1", true));
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	redirect(append_sid("login.$phpEx?redirect=admin/index.$phpEx&admin=1", true));
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/bbcode.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 211[/color]
+[code]
+
+	$patterns[] = "#\[url=([\w]+?://[^ \"\n\r\t<]*?)\]([^?].*?)\[/url\]#i";
+	$replacements[] = $bbcode_tpl['url3'];
+  
+	// [url=www.phpbb.com]phpBB[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url=((www|ftp)\.[^ \"\n\r\t<]*?)\]([^?].*?)\[/url\]#i";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$patterns[] = "#\[url=([\w]+?://[^ \"\n\r\t<]*?)\]([^?\n\r\t].*?)\[/url\]#is";
+	$replacements[] = $bbcode_tpl['url3'];
+
+	// [url=www.phpbb.com]phpBB[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url=((www|ftp)\.[^ \"\n\r\t<]*?)\]([^?\n\r\t].*?)\[/url\]#is";
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_avatar.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 202[/color]
+[code]
+
+	if ( $width <= $board_config['avatar_max_width'] && $height <= $board_config['avatar_max_height'] )
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	if ( $width > 0 && $height > 0 && $width <= $board_config['avatar_max_width'] && $height <= $board_config['avatar_max_height'] )
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_register.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 455[/color]
+[code]
+
+		$avatar_sql = user_avatar_delete($userdata['user_avatar_type'], $userdata['user_avatar']);
+	}
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	else
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]modcp.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 466[/color]
+[code]
+
+			$new_forum_id = intval($HTTP_POST_VARS['new_forum']);
+			$old_forum_id = $forum_id;
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+			$sql = 'SELECT forum_id FROM ' . FORUMS_TABLE . '
+				WHERE forum_id = ' . $new_forum_id;
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not select from forums table', '', __LINE__, __FILE__, $sql);
+			}
+			
+			if (!$db->sql_fetchrow($result))
+			{
+				message_die(GENERAL_MESSAGE, 'New forum does not exist');
+			}
+
+			$db->sql_freeresult($result);
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 773[/color]
+[code]
+
+				$new_forum_id = intval($HTTP_POST_VARS['new_forum_id']);
+				$topic_time = time();
+				
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+				$sql = 'SELECT forum_id FROM ' . FORUMS_TABLE . '
+					WHERE forum_id = ' . $new_forum_id;
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select from forums table', '', __LINE__, __FILE__, $sql);
+				}
+			
+				if (!$db->sql_fetchrow($result))
+				{
+					message_die(GENERAL_MESSAGE, 'New forum does not exist');
+				}
+
+				$db->sql_freeresult($result);
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]viewtopic.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 1110[/color]
+[code]
+
+		$message = str_replace('\"', '"', substr(@preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "@preg_replace('#\b(" . str_replace('\\', '\\\\', $highlight_match) . ")\b#i', '<span style=\"color:#" . $theme['fontcolor3'] . "\"><b>\\\\1</b></span>', '\\0')", '>' . $message . '<'), 1, -1));
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		$message = str_replace('\"', '"', substr(@preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "@preg_replace('#\b(" . str_replace('\\', '\\\\', addslashes($highlight_match)) . ")\b#i', '<span style=\"color:#" . $theme['fontcolor3'] . "\"><b>\\\\1</b></span>', '\\0')", '>' . $message . '<'), 1, -1));
+[/code]
+
+[/list]

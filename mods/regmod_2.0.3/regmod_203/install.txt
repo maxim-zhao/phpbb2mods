@@ -1,0 +1,1817 @@
+##############################################################
+## MOD Title: Event Registration
+## MOD Author: NetizenKane < info@clancodes.com > (N/A) http://regmod.clancodes.com
+## MOD Description: The Event registration adds a new function to postings which provides
+##		up to three clickable options at the top of a thread. By clicking an
+##		option you register for it with your username and the registration
+##		date. Registrations can be customized, limited by users and can have
+##		an expiry date. This can be used as a registration for an event,
+##		a poll with visible usernames etc.
+## MOD Version: 2.0.3
+##
+## Installation Level: Intermediate
+## Installation Time: ~45 Minutes
+## Files To Edit:
+##		 modcp.php
+##		 posting.php
+##		 search.php
+##		 viewforum.php
+##		 viewtopic.php
+##		 admin/admin_forumauth.php
+##		 admin/admin_ug_auth.php
+##		 includes/auth.php
+##		 includes/constants.php
+##		 includes/functions_post.php
+##		 includes/prune.php
+##		 language/lang_english/lang_main.php
+##		 templates/subSilver/overall_header.tpl
+##		 templates/subSilver/posting_body.tpl
+##		 templates/subSilver/search_results_topics.tpl
+##		 templates/subSilver/subSilver.css
+##		 templates/subSilver/viewforum_body.tpl
+##		 templates/subSilver/viewtopic_body.tpl
+##
+##
+## Included Files:
+##		 includes/functions_regmod.php
+##		 includes/regmod_viewtopic.php
+##		 templates/subSilver/posting_reg_body.tpl
+##		 templates/subSilver/viewtopic_registration.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##     + This mod was made in teamwork by Kugelfutter (chris@wolfhh.de), Scrat (scrat@fragthe.net) and
+##	 Sturmklinge (sturmklinge@fragthe.net).
+##     + The css definitions were set in the .css-file and overall_header.tpl due to different
+##	 usage possibilities.
+##     + Many Thanks to JohnJ for the review of the english language files.
+##     + Should work with all versions phpBB > 2.0.19
+##     + We recommend to use EasyMod for installation
+##     + Due to our lack of time we can no longer support premodded phpbb versions
+##############################################################
+## MOD History:
+##
+##
+##   2006-03-28
+##	- fixed error with redirecting before login on registration topics
+##   2006-03-15
+##	- fixed error with confirming a registration when maximum slots are reached
+##	- IN_PHPBB and phpbb_root_path added to functions_regmod.php
+##	- phpbb_root_path added to regmod_viewtopic.php
+##	- type definitions for table types removed from SQL orders
+##   2005-11-14
+##	- fixed AUTH constant to prevent clashing with other mods
+##	- including code to viewtopic.php instead of a direct implementation
+##	- install script updated with partial finds
+##   2005-10-31
+##	- fixed install script indenting
+##	- EasyMod line at top of install script deleted
+##	- License line and security disclaimer updated
+##   2005-10-18
+##	- fixed bug with registration display in viewforum.php
+##   2005-10-17
+##	- confirmation is now available for all three options
+##	- fixed bug with presenting search results
+##	- fixed bug when editing replies (registration box is now hidden)
+##	- fixed bug with column settings in registration box
+##   2005-10-07
+##	- Language reviewed and corrected
+##	- possibility to set duration for the registration
+##	- fixed bug with deleted replies (which also deletes all registrations)
+##	- dot images (red, blue, green, white) were replaced by ASCII dots
+##	- code clean up
+##   2005-07-01
+##	- possibility to unregister completely from an event
+##	- setting a maximum registration count per option
+##	- open slots per option viewable
+##	- fixed bug with post preview. Entered option data are now persistent
+##	- fixed bug with labelling of the green option button. "confirmation" will now only be shown
+##	  for the correct users
+##   2005-06-20
+##	- fixed a bug in the install script - thanks to Rustyrek for help
+##   2005-05-30
+##	- showing regmod topics in search results with short statistics like in viewforum.php
+##	  Thanks to Marmotte from phpbb.com forum for the idea
+##   2005-05-24
+##	- changed button label at confirmation
+##   2005-05-23
+##	- reset function added
+##	- fixed bug with displaying announcement and sticky texts in viewforum.php
+##	- fixed default language labeling of registration buttons
+##   2005-05-12 - Version 1.1.0
+##	- changed RegMod from topic type to poll-like behaviour
+##	- function for user-defined button labels added
+##      - starting the beta phase for the recoded RegMod
+##   2005-03-09 - Version 1.0.5
+##      - deletion of rows in registration table after deleting the topic by hand or by pruning
+##   2005-03-09 - Version 1.0.4
+##      - deletion of rows in registration table after changing the topic type - thanks to Southsidedevil
+##   2005-01-31 - Version 1.0.3
+##      - different permission types bug corrected
+##   2005-01-18 - Version 1.0.2
+##      - easy mod compatibility assured
+##	- install script for category hierarchy forums added
+##   2005-01-10 - Version 1.0.1
+##      - copy bug in install script removed
+##   2005-01-02 - Version 1.0.0
+##      - prerelease
+##   2004-12-30 - Version 0.9.0
+##      - starting the beta phase
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+
+CREATE TABLE phpbb_registration (
+  topic_id mediumint(8) unsigned NOT NULL default '0',
+  registration_user_id mediumint(8) NOT NULL default '0',
+  registration_user_ip varchar(8) NOT NULL default '',
+  registration_time int(11) NOT NULL default '0',
+  registration_confirm_time varchar(50) default '',
+  registration_status tinyint(1) NOT NULL default '0',
+  KEY topic_id (topic_id),
+  KEY registration_user_id (registration_user_id),
+  KEY registration_user_ip (registration_user_ip)
+);
+
+CREATE TABLE phpbb_registration_desc (
+  reg_id mediumint(8) unsigned NOT NULL auto_increment,
+  topic_id mediumint(8) unsigned NOT NULL default '0',
+  reg_active tinyint(1) NOT NULL default '0',
+  reg_option1 varchar(30) NOT NULL default '',
+  reg_option2 varchar(30) NOT NULL default '',
+  reg_option3 varchar(30) NOT NULL default '',
+  reg_max_option1 smallint(5) unsigned NOT NULL default '0',
+  reg_max_option2 smallint(5) unsigned NOT NULL default '0',
+  reg_max_option3 smallint(5) unsigned NOT NULL default '0',
+  reg_start int(11) NOT NULL default '0',
+  reg_length int(11) NOT NULL default '0',
+  PRIMARY KEY  (reg_id),
+  KEY `topic_id` (topic_id)
+);
+
+ALTER TABLE phpbb_auth_access ADD auth_reg TINYINT( 1 ) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_forums ADD auth_reg TINYINT( 1 ) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_topics ADD topic_reg TINYINT(1) DEFAULT '0' NOT NULL;
+
+
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy root/includes/functions_regmod.php to includes/functions_regmod.php
+copy root/includes/regmod_viewtopic.php to includes/regmod_viewtopic.php
+copy root/templates/subSilver/posting_reg_body.tpl to templates/subSilver/posting_reg_body.tpl
+copy root/templates/subSilver/viewtopic_registration.tpl to templates/subSilver/viewtopic_registration.tpl
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+modcp.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				message_die(GENERAL_ERROR, 'Could not delete topics', '', __LINE__, __FILE__, $sql);
+			}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+			$sql = "DELETE FROM " . REGISTRATION_TABLE . "
+				WHERE topic_id IN ($topic_id_sql)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete registration data from table', '', __LINE__, __FILE__, $sql);
+			}
+			
+			$sql = "DELETE FROM " . REGISTRATION_DESC_TABLE . "
+					WHERE topic_id IN ($topic_id_sql)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete registration data from table', '', __LINE__, __FILE__, $sql);
+			}
+// Event Registration End
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+include($phpbb_root_path . 'includes/functions_post.'.$phpEx);
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+include($phpbb_root_path . 'includes/functions_regmod.'.$phpEx);
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	case 'vote':
+		$is_auth_type = 'auth_vote';
+		break;
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+	case 'register':
+	$is_auth_type = 'auth_reg';
+		break;
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	case 'reply':
+	case 'vote':
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+	case 'register':
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$sql = "SELECT f.*, t.topic_id, t.topic_status
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, t.topic_vote
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, t.topic_reg
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$post_data['has_poll'] = ( $post_info['topic_vote'] ) ? true : false;
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$post_data['has_reg'] = ( $post_info['topic_reg'] ) ? true : false;
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		{
+			message_die(GENERAL_MESSAGE, $lang['Cannot_delete_poll']);
+		}
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+	if ( $post_data['first_post'] && $post_data['has_reg'] )
+	{
+		$sql = "SELECT *
+			FROM " . REGISTRATION_DESC_TABLE . " rd
+			WHERE rd.topic_id = $topic_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain registration data for this topic', '', __LINE__, __FILE__, $sql);
+		}
+	
+		if ( $row = $db->sql_fetchrow($result) )
+		{
+			$reg_active     = ( $row['reg_active'] == 1) ? 'checked="checked"' : '';
+			$reg_option1    = (!empty($row['reg_option1'])) ? $row['reg_option1'] : '';
+			$reg_option2    = (!empty($row['reg_option2'])) ? $row['reg_option2'] : '';
+			$reg_option3    = (!empty($row['reg_option3'])) ? $row['reg_option3'] : '';
+			$reg_max_option1 = (!empty($row['reg_max_option1'])) ? $row['reg_max_option1'] : '';
+			$reg_max_option2 = (!empty($row['reg_max_option2'])) ? $row['reg_max_option2'] : '';
+			$reg_max_option3 = (!empty($row['reg_max_option3'])) ? $row['reg_max_option3'] : '';
+	
+			$reg_length     = (!empty($row['reg_length'])) ? ($row['reg_length']/86400) : '';
+		}
+		$db->sql_freeresult($result);
+	}
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+if ( !$is_auth[$is_auth_type] )
+{
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+	$reg_number_clicked = ( !empty($HTTP_POST_VARS['register']) ) ? intval($HTTP_POST_VARS[$param]) : intval($HTTP_GET_VARS['register']);
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		case 'editpost':
+			$redirect = "mode=quote&" . POST_POST_URL ."=" . $post_id;
+			break;			
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+		case 'register':
+			$redirect = "mode=register&register=" . $reg_number_clicked . "&" . POST_TOPIC_URL . "=" . $topic_id;
+			break;
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	{
+		redirect(append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id", true));
+	}
+}
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+else if ( $mode == 'register' )
+{
+	//
+	// Register for an event
+	//
+	if ( !empty($HTTP_GET_VARS['register']) )
+	{
+		$new_regstate = intval($HTTP_GET_VARS['register']);
+		$user_id = $userdata['user_id'];
+		$zeit = time();
+
+		$sql = "SELECT registration_status FROM " . REGISTRATION_TABLE . "
+				WHERE topic_id = $topic_id AND registration_user_id = $user_id";
+
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain registration data for this topic', '', __LINE__, __FILE__, $sql);
+		}
+
+		if ( $reg_info = $db->sql_fetchrow($result))
+		{
+			if ($new_regstate == 4) // cancel registration
+			{
+				$sql = "DELETE FROM " . REGISTRATION_TABLE . "
+				WHERE topic_id = $topic_id
+				AND registration_user_id = $user_id";
+
+				if ( !$db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not remove registration', '', __LINE__, __FILE__, $sql);
+				}
+				$message = $lang['Reg_Unregister'];
+			}
+			else
+			{
+				$old_regstate = $reg_info['registration_status'];
+
+				if( $new_regstate != $old_regstate )
+				{
+					if (false === check_max_registration($topic_id,$new_regstate))
+					{
+						$message = $lang['Reg_Max_Registrations'];
+					}
+					else
+					{
+						$sql = "UPDATE " . REGISTRATION_TABLE . "
+							SET registration_user_ip = '$user_ip', registration_time = $zeit, registration_confirm_time = '', registration_status = $new_regstate
+							WHERE topic_id = $topic_id
+							AND registration_user_id = $user_id";
+	
+						if ( !$db->sql_query($sql) )
+						{
+							message_die(GENERAL_ERROR, 'Could not update registration', '', __LINE__, __FILE__, $sql);
+						}
+						$message = $lang['Reg_Change'];
+					}
+				}
+				else
+				{
+					$sql = "UPDATE " . REGISTRATION_TABLE . "
+						SET registration_confirm_time = $zeit
+						WHERE topic_id = $topic_id
+						AND registration_user_id = $user_id";
+	
+					if ( !$db->sql_query($sql) )
+					{
+						message_die(GENERAL_ERROR, 'Could not update registration', '', __LINE__, __FILE__, $sql);
+					}
+					$message = $lang['Reg_Confirm'];
+				}
+			}
+		}
+		else
+		{
+			if (false === check_max_registration($topic_id,$new_regstate))
+			{
+				$message = sprintf($lang['Reg_Max_Registrations'],$num_max_reg);
+			}
+			else
+			{
+				$sql = "INSERT INTO " . REGISTRATION_TABLE . " (topic_id,registration_user_id, registration_user_ip,registration_time,registration_confirm_time,registration_status)
+					VALUES ($topic_id,$user_id,'$user_ip',$zeit,'',$new_regstate)";
+	
+				if ( !$db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, "Could not insert user_id for registration", "", __LINE__, __FILE__, $sql);
+				}	
+				$message = $lang['Reg_Insert'];
+			}
+		}
+
+		$template->assign_vars(array('META' => '<meta http-equiv="refresh" content="3;url=' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id") . '">'));
+		$message .= '<br /><br />' . sprintf($lang['Click_view_message'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id") . '">', '</a>');
+		message_die(GENERAL_MESSAGE, $message);
+	}
+	else
+	{
+		message_die(GENERAL_ERROR, "Missing information for registration", "", __LINE__, __FILE__);
+	}
+}
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$poll_length = ( isset($HTTP_POST_VARS['poll_length']) && $is_auth['auth_pollcreate'] ) ? $HTTP_POST_VARS['poll_length'] : '';
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+			$reg_active      = ( isset($HTTP_POST_VARS['start_registration']) && $is_auth['auth_reg'] ) ? $HTTP_POST_VARS['start_registration'] : '';
+			$reg_reset       = ( isset($HTTP_POST_VARS['reset_registration']) && $is_auth['auth_reg'] ) ? $HTTP_POST_VARS['reset_registration'] : '';
+			$reg_option1     = ( !empty($HTTP_POST_VARS['reg_option1']) && $is_auth['auth_reg'] ) ? $HTTP_POST_VARS['reg_option1'] : '';
+			$reg_option2     = ( !empty($HTTP_POST_VARS['reg_option2']) && $is_auth['auth_reg'] ) ? $HTTP_POST_VARS['reg_option2'] : '';
+			$reg_option3     = ( !empty($HTTP_POST_VARS['reg_option3']) && $is_auth['auth_reg'] ) ? $HTTP_POST_VARS['reg_option3'] : '';
+			$reg_max_option1 = ( !empty($HTTP_POST_VARS['reg_max_option1']) && $is_auth['auth_reg'] ) ? $HTTP_POST_VARS['reg_max_option1'] : '';
+			$reg_max_option2 = ( !empty($HTTP_POST_VARS['reg_max_option2']) && $is_auth['auth_reg'] ) ? $HTTP_POST_VARS['reg_max_option2'] : '';
+			$reg_max_option3 = ( !empty($HTTP_POST_VARS['reg_max_option3']) && $is_auth['auth_reg'] ) ? $HTTP_POST_VARS['reg_max_option3'] : '';
+			$reg_length      = ( isset($HTTP_POST_VARS['reg_length']) && $is_auth['auth_reg'] ) ? $HTTP_POST_VARS['reg_length'] : '';
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			prepare_post($mode, $post_data,
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, $poll_length
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, $reg_active, $reg_reset, $reg_option1, $reg_option2, $reg_option3, $reg_max_option1, $reg_max_option2, $reg_max_option3, $reg_length
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+submit_post($mode, $post_data,
+
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, $poll_length
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, $reg_active, $reg_reset, str_replace("\'", "''", $reg_option1), str_replace("\'", "''", $reg_option2), str_replace("\'", "''", $reg_option3), $reg_max_option1, $reg_max_option2, $reg_max_option3, $reg_length
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$poll_length = ( isset($HTTP_POST_VARS['poll_length']) ) ? max(0, intval($HTTP_POST_VARS['poll_length'])) : 0;
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+	$reg_active     = ( isset($HTTP_POST_VARS['start_registration']) && $is_auth['auth_reg'] ) ? 'checked="checked"' : '';
+	$reg_reset      = ( isset($HTTP_POST_VARS['reset_registration']) && $is_auth['auth_reg'] ) ? 'checked="checked"' : '';
+	$reg_option1    = ( !empty($HTTP_POST_VARS['reg_option1']) && $is_auth['auth_reg'] ) ? htmlspecialchars(trim(stripslashes($HTTP_POST_VARS['reg_option1']))) : '';
+	$reg_option2    = ( !empty($HTTP_POST_VARS['reg_option2']) && $is_auth['auth_reg'] ) ? htmlspecialchars(trim(stripslashes($HTTP_POST_VARS['reg_option2']))) : '';
+	$reg_option3    = ( !empty($HTTP_POST_VARS['reg_option3']) && $is_auth['auth_reg'] ) ? htmlspecialchars(trim(stripslashes($HTTP_POST_VARS['reg_option3']))) : '';
+	$reg_max_option1= ( !empty($HTTP_POST_VARS['reg_max_option1']) && $is_auth['auth_reg'] ) ? max(0, $HTTP_POST_VARS['reg_max_option1']) : '';
+	$reg_max_option2= ( !empty($HTTP_POST_VARS['reg_max_option2']) && $is_auth['auth_reg'] ) ? max(0, $HTTP_POST_VARS['reg_max_option2']) : '';
+	$reg_max_option3= ( !empty($HTTP_POST_VARS['reg_max_option3']) && $is_auth['auth_reg'] ) ? max(0, $HTTP_POST_VARS['reg_max_option3']) : '';
+	$reg_length     = ( isset($HTTP_POST_VARS['reg_length']) && $is_auth['auth_reg'] ) ? max(0, $HTTP_POST_VARS['reg_length']) : '';
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'pollbody' => 'posting_poll_body.tpl',
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+    'regbody' => 'posting_reg_body.tpl',
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$template->assign_var_from_handle('POLLBOX', 'pollbody');
+}
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+//
+// Registration entry switch/output
+//
+if( ( $mode == 'newtopic' || ( $mode == 'editpost' && $post_data['first_post']) ) && $is_auth['auth_reg'] )
+{
+
+	if( $preview )
+	{
+		$reg_active	 = ( $HTTP_POST_VARS['start_registration'] == 1) ? 'checked="checked"' : '';
+		$reg_option1	= (!empty($HTTP_POST_VARS['reg_option1'])) ? $HTTP_POST_VARS['reg_option1'] : '';
+		$reg_option2	= (!empty($HTTP_POST_VARS['reg_option2'])) ? $HTTP_POST_VARS['reg_option2'] : '';
+		$reg_option3	= (!empty($HTTP_POST_VARS['reg_option3'])) ? $HTTP_POST_VARS['reg_option3'] : '';
+	
+		$reg_max_option1    = (!empty($HTTP_POST_VARS['reg_max_option1'])) ? $HTTP_POST_VARS['reg_max_option1'] : '';
+		$reg_max_option2    = (!empty($HTTP_POST_VARS['reg_max_option2'])) ? $HTTP_POST_VARS['reg_max_option2'] : '';
+		$reg_max_option3    = (!empty($HTTP_POST_VARS['reg_max_option3'])) ? $HTTP_POST_VARS['reg_max_option3'] : '';
+	
+		$reg_length	 = (!empty($HTTP_POST_VARS['reg_length'])) ? $HTTP_POST_VARS['reg_length'] : '';
+	}
+	
+	// secure integer-values
+	$reg_max_option1 = (!empty($reg_max_option1)) ? max(0, intval($reg_max_option1)) : '';
+	$reg_max_option2 = (!empty($reg_max_option2)) ? max(0, intval($reg_max_option2)) : '';
+	$reg_max_option3 = (!empty($reg_max_option3)) ? max(0, intval($reg_max_option3)) : '';
+	$reg_length = (isset($reg_length)) ? max(0, intval($reg_length)) : 0;
+
+	$template->assign_vars(array(
+	'REG_ACTIVE' => $reg_active,
+
+	'L_REG_TITLE' => $lang['Reg_Title'],
+	'L_ADD_REGISTRATION' => $lang['Add_registration'],
+	'L_ADD_REG_EXPLAIN' => $lang['Add_reg_explain'],
+	'L_REG_ACTIVATE' => $lang['reg_activate'],
+	'L_REG_RESET' => $lang['reg_reset'],
+	'L_REG_OPTION1' => $reg_option1,
+	'L_REG_OPTION2' => $reg_option2,
+	'L_REG_OPTION3' => $reg_option3,
+
+	'L_REG_MAX_OPTION1' => $reg_max_option1,
+	'L_REG_MAX_OPTION2' => $reg_max_option2,
+	'L_REG_MAX_OPTION3' => $reg_max_option3,
+
+	'L_REG_MAX_REGISTRATIONS' => $lang['Reg_Value_Max_Registrations'],
+	'L_REG_MAX_REGISTRATIONS_NOTE' => $lang['Reg_Value_Max_Registrations_Note'],
+
+	'REG_LENGTH' => $reg_length,
+
+	'L_REG_LENGTH' => $lang['Reg_for'],
+	'L_REG_LENGTH_EXPLAIN' => $lang['Reg_for_explain'],
+	'L_REG_DAYS' => $lang['Days'])
+	);
+
+	$template->assign_var_from_handle('REGBOX', 'regbody');
+}
+// Event Registration End
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+search.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+include($phpbb_root_path . 'includes/functions_search.'.$phpEx);
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+include($phpbb_root_path . 'includes/functions_regmod.'.$phpEx);
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				{
+					$topic_type = '';
+				}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+				if( ( $searchset[$i]['topic_reg']) && check_reg_active($topic_id) )
+				{
+					$regoption_array = array();
+					if( $userdata['user_id'] )
+					{
+						$sql = "SELECT registration_status FROM ".REGISTRATION_TABLE." WHERE topic_id = $topic_id AND registration_user_id =".$userdata['user_id'];
+						if ( !($result = $db->sql_query($sql)) )
+						{
+							message_die(GENERAL_ERROR, 'Could not obtain forums information', '', __LINE__, __FILE__, $sql);
+						}
+		
+						if( $regrow = $db->sql_fetchrow($result) )
+						{
+							$status = $regrow['registration_status'];
+							if( $status == REG_OPTION1 )
+							{
+								$topic_type .= '<span class="genoption1">&#149;</span>' . ' ';
+							}
+							else if( $status == REG_OPTION2 )
+							{
+								$topic_type .= '<span class="genoption2">&#149;</span>' . ' ';
+							}
+							else if( $status == REG_OPTION3 )
+							{
+								$topic_type .= '<span class="genoption3">&#149;</span>' . ' ';
+							}
+							else
+							{
+								$topic_type .= '<span class="genoption0">&#149;</span>' . ' ';
+							}
+						}
+						else if( empty($regrow) && $searchset[$i]['topic_reg'] )
+						{
+							$topic_type .= '<span class="genoption0">&#149;</span>' . ' ';
+						}
+						else
+						{
+							$topic_type .= '';
+						}
+		
+						$db->sql_freeresult($result);
+					}
+					else
+					{
+						$topic_type .= $lang['Topic_RegLogin'] . ' ';
+					}
+		
+					$sql = "SELECT u.username, u.user_id, r.registration_time, r.registration_confirm_time, r.registration_status FROM ".REGISTRATION_TABLE." r, ".USERS_TABLE." u WHERE r.topic_id=$topic_id AND r.registration_user_id = u.user_id ORDER BY registration_status,registration_time";
+		
+					if ( !($result = $db->sql_query($sql)) )
+					{
+						message_die(GENERAL_ERROR, "Could not obtain registration data for this topic", '', __LINE__, __FILE__, $sql);
+					}
+					$reg_info = $db->sql_fetchrowset($result);
+		
+					$db->sql_freeresult($result);
+					$numregs = count($reg_info);
+					$option1_count = 0;
+					$option2_count = 0;
+					$option3_count = 0;
+		
+					for( $u = 0; $u < $numregs; $u ++ )
+					{
+						if( $reg_info[$u]['registration_status'] == REG_OPTION1 )
+						{
+							$option1_count ++;
+						}
+						else if( $reg_info[$u]['registration_status'] == REG_OPTION2 )
+						{
+							$option2_count++;
+						}
+						else if( $reg_info[$u]['registration_status'] == REG_OPTION3 )
+						{
+							$option3_count ++;
+						}
+					}
+		
+					if (true === check_option_exists($topic_id,1))
+					{
+						$option1_count = '<span class="genoption1">'.(0+$option1_count).'</span>';
+						array_push($regoption_array, $option1_count);
+					}
+					if (true === check_option_exists($topic_id,2))
+					{
+						$option2_count = '<span class="genoption2">'.(0+$option2_count).'</span>';
+						array_push($regoption_array, $option2_count);
+					}
+					if (true === check_option_exists($topic_id,3))
+					{
+						$option3_count = '<span class="genoption3">'.(0+$option3_count).'</span>';
+						array_push($regoption_array, $option3_count);
+					}
+					$regoptions_count = count($regoption_array);
+		
+					$v = 0;
+					$regoptions = '';
+					while ( $v < $regoptions_count-1 )
+					{
+						$regoptions .= $regoption_array[$v].'-';
+						$v++;
+					}
+					$regoptions .= array_pop($regoption_array);
+				}
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					'TOPIC_TYPE' => $topic_type,
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+			 		'REG_OPTIONS' => $regoptions,
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					'U_VIEW_TOPIC' => $topic_url)
+				);
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+			if( ( $searchset[$i]['topic_reg'] ) && check_reg_active($topic_id) )
+			{
+				$template->assign_block_vars('searchresults.display_reg', array());
+			}
+// Event Registration End
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewforum.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+include($phpbb_root_path . 'common.'.$phpEx);
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+include($phpbb_root_path . 'includes/functions_regmod.'.$phpEx);
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		{
+			$topic_type = '';
+		}
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+		if( $topic_rowset[$i]['topic_reg'] && check_reg_active($topic_id) )
+		{
+			$regoption_array = array();
+			$regoptions = '';
+			if( $userdata['user_id'] )
+			{
+				$sql = "SELECT registration_status FROM ".REGISTRATION_TABLE." WHERE topic_id = $topic_id AND registration_user_id =".$userdata['user_id'];
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain forums information', '', __LINE__, __FILE__, $sql);
+				}
+
+				if( $regrow = $db->sql_fetchrow($result) )
+				{
+					$status = $regrow['registration_status'];
+				if( $status == REG_OPTION1 )
+				{
+					$topic_type .= '<span class="genoption1">&#149;</span>' . ' ';
+				}
+					else if( $status == REG_OPTION2 )
+				{
+					$topic_type .= '<span class="genoption2">&#149;</span>' . ' ';
+				}
+				else if( $status == REG_OPTION3 )
+				{
+					$topic_type .= '<span class="genoption3">&#149;</span>' . ' ';
+				}
+				else
+				{
+					$topic_type .= '<span class="genoption0">&#149;</span>' . ' ';
+				}
+			}
+			else if( empty($regrow) && $topic_rowset[$i]['topic_reg'] )
+			{
+				$topic_type .= '<span class="genoption0">&#149;</span>' . ' ';
+			}
+			else
+			{
+				$topic_type .= '';
+			}
+
+			$db->sql_freeresult($result);
+		}
+		else
+		{
+			$topic_type .= $lang['Topic_RegLogin'] . ' ';
+		}
+
+		$sql = "SELECT u.username, u.user_id, r.registration_time, r.registration_confirm_time, r.registration_status
+			FROM ".REGISTRATION_TABLE." r, ".USERS_TABLE." u
+			WHERE r.topic_id=$topic_id
+			AND r.registration_user_id = u.user_id
+			ORDER BY registration_status,registration_time";
+
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, "Could not obtain registration data for this topic", '', __LINE__, __FILE__, $sql);
+		}
+		$reg_info = $db->sql_fetchrowset($result);
+
+		$db->sql_freeresult($result);
+		$numregs = count($reg_info);
+		$option1_count = 0;
+		$option2_count = 0;
+		$option3_count = 0;
+
+		for( $u = 0; $u < $numregs; $u ++ )
+		{
+			if( $reg_info[$u]['registration_status'] == REG_OPTION1 )
+			{
+				$option1_count++;
+			}
+			else if( $reg_info[$u]['registration_status'] == REG_OPTION2 )
+			{
+				$option2_count++;
+			}
+			else if( $reg_info[$u]['registration_status'] == REG_OPTION3 )
+			{
+				$option3_count++;
+			}
+		}
+
+		if (true === check_option_exists($topic_id,1))
+		{
+			$option1_count = '<span class="genoption1">'.(0+$option1_count).'</span>';
+			array_push($regoption_array, $option1_count);
+		}
+		if (true === check_option_exists($topic_id,2))
+		{
+			$option2_count = '<span class="genoption2">'.(0+$option2_count).'</span>';
+			array_push($regoption_array, $option2_count);
+		}
+		if (true === check_option_exists($topic_id,3))
+		{
+			$option3_count = '<span class="genoption3">'.(0+$option3_count).'</span>';
+			array_push($regoption_array, $option3_count);
+		}
+		$regoptions_count = count($regoption_array);
+
+		$v = 0;
+		while ( $v < $regoptions_count-1 )
+		{
+			$regoptions .= $regoption_array[$v].'-';
+			$v++;
+		}
+		$regoptions .= array_pop($regoption_array);
+	}
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'TOPIC_TYPE' => $topic_type,
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+			'REG_OPTIONS' => $regoptions,
+// Event Registration End
+
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'U_VIEW_TOPIC' => $view_topic_url)
+		);
+
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+		if( ( $topic_rowset[$i]['topic_reg'] ) && check_reg_active($topic_id) )
+		{
+			$template->assign_block_vars('topicrow.display_reg', array());
+		}
+// Event Registration End
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+include($phpbb_root_path . 'common.'.$phpEx);
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+include($phpbb_root_path . 'includes/functions_regmod.'.$phpEx);
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT t.topic_id, t.topic_title,
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, t.topic_vote
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, t.topic_reg
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$template->assign_var_from_handle('POLL_DISPLAY', 'pollbox');
+	}
+}
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Event Registration Begin
+include($phpbb_root_path . 'includes/regmod_viewtopic.' . $phpEx); 
+// Event Registration End
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_forumauth.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//                View      Read      Post      Reply     Edit     Delete    Sticky   Announce    Vote      Poll
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+Poll
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+      Registration
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this (same for 0-6):
+#	0  => array(AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_MOD, AUTH_MOD, AUTH_REG, AUTH_REG),
+#
+	0  => array(AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_MOD, AUTH_MOD, AUTH_REG, AUTH_REG),
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, AUTH_MOD, AUTH_REG, AUTH_REG
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, AUTH_MOD
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	1  => array(AUTH_ALL,
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, AUTH_MOD, AUTH_REG, AUTH_REG
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, AUTH_MOD
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	2  => array(AUTH_REG,
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, AUTH_MOD, AUTH_REG, AUTH_REG
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, AUTH_MOD
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	3  => array(AUTH_ALL,
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, AUTH_MOD, AUTH_ACL, AUTH_ACL
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, AUTH_ACL
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	4  => array(AUTH_ACL,
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, AUTH_MOD, AUTH_ACL, AUTH_ACL
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, AUTH_ACL
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	5  => array(AUTH_ALL,
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, AUTH_MOD
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	6  => array(AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD),
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+	6  => array(AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, AUTH_MOD
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$forum_auth_fields = array('auth_view', 'auth_read', 'auth_post', 'auth_reply', 'auth_edit', 'auth_delete', 'auth_sticky', 'auth_announce', 'auth_vote', 'auth_pollcreate');
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, 'auth_pollcreate'
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, 'auth_reg'
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'auth_pollcreate' => $lang['Pollcreate']);
+
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	'auth_pollcreate' => $lang['Pollcreate'],
+// Event Registration Begin
+	'auth_reg' => $lang['Reg_Title']);
+// Event Registration End
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_ug_auth.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$forum_auth_fields = array('auth_view'
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, 'auth_pollcreate'
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, 'auth_reg'
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'auth_pollcreate' => AUTH_POLLCREATE);
+
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	'auth_pollcreate' => AUTH_POLLCREATE,
+// Event Registration Begin
+	'auth_reg' => AUTH_REGISTRATION);
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'auth_pollcreate' => $lang['Pollcreate']);
+
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	'auth_pollcreate' => $lang['Pollcreate'],
+// Event Registration Begin
+	'auth_reg' => $lang['Reg_Title']);
+// Event Registration End
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/auth.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$a_sql = 'a.auth_view, a.auth_read
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, a.auth_pollcreate
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, a.auth_reg
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$auth_fields = array('auth_view', 'auth_read'
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, 'auth_pollcreate'
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, 'auth_reg'
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		case AUTH_VOTE:
+			$a_sql = 'a.auth_vote';
+			$auth_fields = array('auth_vote');
+			break;
+
+
+#
+#-----[ AFTER, ADD ]----------------------------
+#
+// Event Registration Begin
+		case AUTH_REGISTRATION:
+			$a_sql = 'a.auth_reg';
+			$auth_fields = array('auth_reg');
+			break;
+// Event Registration End
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+define('POST_GLOBAL_ANNOUNCE', 3);
+
+
+#
+#-----[ AFTER, ADD ]----------------------------
+#
+// Event Registration Begin
+// Registration types
+define('REG_OPTION1', 1);
+define('REG_OPTION2', 2);
+define('REG_OPTION3', 3);
+define('REG_UNREGISTER', 4);
+// Event Registration End
+
+#
+#-----[ FIND ]------------------------------------------
+#
+define('AUTH_ATTACH', 11);
+
+
+#
+#-----[ AFTER, ADD ]----------------------------
+#
+define('AUTH_REGISTRATION', 120);
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+
+
+#
+#-----[ AFTER, ADD ]----------------------------
+#
+define('REGISTRATION_TABLE', $table_prefix.'registration');
+define('REGISTRATION_DESC_TABLE', $table_prefix.'registration_desc');
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_post.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+function prepare_post(&$mode, &$post_data
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, &$poll_length
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, &$reg_active, &$reg_reset, &$reg_option1, &$reg_option2, &$reg_option3, &$reg_max_option1, &$reg_max_option2, &$reg_max_option3, &$reg_length
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			else if ($poll_title == '')
+			{
+				$error_msg .= (!empty($error_msg)) ? '<br />' . $lang['Empty_poll_title'] : $lang['Empty_poll_title'];
+			}
+		}
+
+
+#
+#-----[ AFTER, ADD ]----------------------------
+#
+// Event Registration Begin
+	if (1 == $reg_active && true === empty($reg_option1) && true === empty($reg_option2) && true === empty($reg_option3))
+	{
+	    $error_msg .= (!empty($error_msg)) ? '<br />' . $lang['Reg_no_options_specified'] : $lang['Reg_no_options_specified'];
+	}
+
+	if (!empty($reg_option1))
+	{
+		$reg_option1 = htmlspecialchars(trim($reg_option1));
+	}
+	if (!empty($reg_option2))
+	{
+		$reg_option2 = htmlspecialchars(trim($reg_option2));
+	}
+	if (!empty($reg_option3))
+	{
+		$reg_option3 = htmlspecialchars(trim($reg_option3));
+	}
+
+	$reg_active      = (isset($reg_active)) ? max(0, intval($reg_active)) : 0;
+	$reg_max_option1 = (isset($reg_max_option1)) ? max(0, intval($reg_max_option1)) : 0;
+	$reg_max_option2 = (isset($reg_max_option2)) ? max(0, intval($reg_max_option2)) : 0;
+	$reg_max_option3 = (isset($reg_max_option3)) ? max(0, intval($reg_max_option3)) : 0;
+	$reg_length      = (isset($reg_length)) ? max(0, intval($reg_length)) : 0;
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+function submit_post($mode, &$post_data
+
+
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+, &$poll_length
+
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+, &$reg_active, &$reg_reset, &$reg_option1, &$reg_option2, &$reg_option3, &$reg_max_option1, &$reg_max_option2, &$reg_max_option3, &$reg_length
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE . " (topic_title, topic_poster
+
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+// Event Registration Begin
+	$topic_reg = 0;
+	if (!empty($reg_option1) || !empty($reg_option2) || !empty($reg_option3)) {
+	    $topic_reg = 1;
+	}
+	$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE . " (topic_title, topic_poster, topic_time, forum_id, topic_status, topic_type, topic_vote, topic_reg) VALUES ('$post_subject', " . $userdata['user_id'] . ", $current_time, $forum_id, " . TOPIC_UNLOCKED . ", $topic_type, $topic_vote, $topic_reg)" : "UPDATE " . TOPICS_TABLE . " SET topic_title = '$post_subject', topic_type = $topic_type " . (($post_data['edit_vote'] || !empty($poll_title)) ? ", topic_vote = " . $topic_vote : "") . ", topic_reg = " . $topic_reg . " WHERE topic_id = $topic_id";
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ($mode == 'newtopic')
+		{
+			$topic_id = $db->sql_nextid();
+		}
+	}
+
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+		if ($mode == 'newtopic')
+		{
+			$topic_id = $db->sql_nextid();
+		}
+
+// Event Registration Begin
+	if (empty($reg_option1)) {
+		if (!$db->sql_query("DELETE FROM " . REGISTRATION_TABLE . "
+					WHERE registration_status = 1 AND topic_id = $topic_id") )
+		{
+		message_die(GENERAL_ERROR, 'Could not clean up registration data from unused options', '', __LINE__, __FILE__, $sql);
+		}
+	}
+	if (empty($reg_option2)) {
+		if (!$db->sql_query("DELETE FROM " . REGISTRATION_TABLE . "
+					WHERE registration_status = 2 AND topic_id = $topic_id") )
+		{
+		message_die(GENERAL_ERROR, 'Could not clean up registration data from unused options', '', __LINE__, __FILE__, $sql);
+		}
+	}
+	if (empty($reg_option3)) {
+		if (!$db->sql_query("DELETE FROM " . REGISTRATION_TABLE . "
+				    WHERE registration_status = 3 AND topic_id = $topic_id") )
+		{
+		message_die(GENERAL_ERROR, 'Could not clean up registration data from unused options', '', __LINE__, __FILE__, $sql);
+		}
+	}
+
+	if ($reg_reset)
+	{
+		$sql = "DELETE FROM " . REGISTRATION_TABLE . "
+			WHERE topic_id = $topic_id";
+
+		if ( !$db->sql_query($sql) )
+		{
+		message_die(GENERAL_ERROR, 'Could not delete registration data from table', '', __LINE__, __FILE__, $sql);
+	    }
+	}
+
+	}
+
+	if (($mode == 'newtopic' || $mode == 'editpost') && $topic_reg == 1)
+	{
+	if ($mode == "editpost")
+	{
+		$sql = "SELECT count(1) chk_reg FROM " . REGISTRATION_DESC_TABLE . " WHERE topic_id = $topic_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+		message_die(GENERAL_ERROR, 'Could not check registration data for this topic', '', __LINE__, __FILE__, $sql);
+		}
+		$chk_reg = ($db->sql_fetchfield('chk_reg',0,$result) != 0) ? true : false;
+	}
+
+	$sql = ($mode != "editpost" || ($mode == "editpost" && $chk_reg == false)) ? "INSERT INTO " . REGISTRATION_DESC_TABLE . " (topic_id, reg_active, reg_option1 , reg_option2, reg_option3, reg_max_option1, reg_max_option2, reg_max_option3, reg_start, reg_length) VALUES ($topic_id, $reg_active, '$reg_option1', '$reg_option2', '$reg_option3', $reg_max_option1, $reg_max_option2, $reg_max_option3, $current_time, ".($reg_length * 86400).")" : "UPDATE " . REGISTRATION_DESC_TABLE . " SET reg_active = $reg_active, reg_option1 = '$reg_option1', reg_option2 = '$reg_option2', reg_option3 = '$reg_option3', reg_max_option1 = $reg_max_option1, reg_max_option2 = $reg_max_option2, reg_max_option3 = $reg_max_option3, reg_length = ".($reg_length * 86400)." WHERE topic_id = $topic_id";
+	if ( !$db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, 'Could not store registration data', '', __LINE__, __FILE__, $sql);
+	}
+	}
+// Event Registration End
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$sql = "DELETE FROM " . POSTS_TABLE . "
+			WHERE post_id = $post_id";
+		if (!$db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, 'Error in deleting post', '', __LINE__, __FILE__, $sql);
+		}
+
+
+
+#
+#-----[ AFTER, ADD ]----------------------------
+#
+// Event Registration Begin
+	if ($post_data['first_post']) {
+			$sql = "DELETE FROM " . REGISTRATION_TABLE . "
+			WHERE topic_id = $topic_id";
+		if ( !$db->sql_query($sql) )
+		{
+		message_die(GENERAL_ERROR, 'Could not delete registration entries from table', '', __LINE__, __FILE__, $sql);
+		}
+
+		$sql = "DELETE FROM " . REGISTRATION_DESC_TABLE . "
+			WHERE topic_id = $topic_id";
+		if ( !$db->sql_query($sql) )
+		{
+		message_die(GENERAL_ERROR, 'Could not delete registration data from table', '', __LINE__, __FILE__, $sql);
+		}
+	}
+// Event Registration End
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/prune.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete topics during prune', '', __LINE__, __FILE__, $sql);
+			}
+
+
+#
+#-----[ AFTER, ADD ]----------------------------
+#
+// Event Registration Begin
+			 $sql = "DELETE FROM " . REGISTRATION_TABLE . "
+					WHERE topic_id IN ($sql_topics)";
+				if ( !$db->sql_query($sql) )
+				{
+				message_die(GENERAL_ERROR, 'Could not delete registration data from table during prune', '', __LINE__, __FILE__, $sql);
+				}
+// Event Registration End
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all, Folks!
+// -------------------------------------------------
+
+
+#
+#-----[ BEFORE, ADD ]----------------------------
+#
+// Event Registration Begin
+$lang['Reg_Title'] = 'Registration';
+$lang['Post_Registration'] = 'Registration';
+$lang['Add_registration'] = 'Add a Registration';
+$lang['Add_reg_explain'] = '- Check <i>Activate</i> to show a registration form with this post. Uncheck to hide it.<br />- Check <i>Reset</i> to delete all current registrations for this form.<br />- Enter a short label for each registration option. Blank options will not be displayed.<br />- Enter a number in <i>Slots</i> to limit registrations for an option. "0" or empty = unlimited.';$lang['reg_activate'] = 'Activate';
+$lang['reg_activate'] = 'Activate';
+$lang['reg_reset'] = 'Reset';
+$lang['Reg_Insert'] = 'You registered for an event.';
+$lang['Reg_Change'] = 'Registration changed.';
+$lang['Reg_Confirm'] = 'Registration confirmed.';
+$lang['Reg_Unregister'] = 'Registration cancelled.';
+$lang['Reg_Max_Registrations'] = 'The maximum of registrations for this option is reached. No more registrations will be accepted.';
+$lang['Reg_No_Slots_Left'] = 'No slots left to register.';
+$lang['Reg_One_Slot_Left'] = 'One slot left to register.';
+$lang['Reg_Slots_Left'] = '%s slots left to register.';
+$lang['Reg_Self_Unregister'] = 'Unregister';
+$lang['Reg_Own_Confirmation'] = 'Confirmation';
+$lang['Reg_Own_Confirmed'] = 'confirmed';
+$lang['Reg_Green_Option'] = 'Green Option';
+$lang['Reg_Blue_Option'] = 'Blue Option';
+$lang['Reg_Red_Option'] = 'Red Option';
+$lang['Reg_Value_Max_Registrations'] = 'Slots';
+$lang['Reg_Do'] = 'Sign Up';
+$lang['Reg_Maybe'] = 'Not sure';
+$lang['Reg_Dont'] = 'Not This Time';
+$lang['Reg_Head_Username'] = 'User';
+$lang['Reg_Head_Time'] = 'Registered';
+$lang['Reg_Head_Confirm'] = 'Confirmed';
+$lang['Reg_for'] = 'Run registration for';
+$lang['Reg_for_explain'] = '[ Enter 0 or leave blank for a never-ending registration ]';
+$lang['Reg_no_options_specified'] = 'You have to specify at least one option to register for.';
+// Event Registration End
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+a.topictitle:hover	{ text-decoration: underline; color : {T_BODY_HLINK}; }
+
+
+#
+#-----[ AFTER, ADD ]----------------------------
+#
+/* Event Registration Begin */
+.genoption1 { font-size : 12px; font-weight : bold; color : #008000; text-decoration:none; }
+a.genoption1 { font-size : 12px; font-weight : bold; color : #008000; text-decoration:none; }
+.genoption2 { font-size : 12px; font-weight : bold; color : #0000ff; text-decoration:none; }
+a.genoption2 { font-size : 12px; font-weight : bold; color : #0000ff; text-decoration:none; }
+.genoption3 { font-size : 12px; font-weight : bold; color : #ff0000; text-decoration:none; }
+a.genoption3 { font-size : 12px; font-weight : bold; color : #ff0000; text-decoration:none; }
+/* Event Registration End */
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	{POLLBOX}
+
+
+#
+#-----[ AFTER, ADD ]----------------------------
+#
+	{REGBOX}
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/search_results_topics.tpl
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<td class="row2"><span class="topictitle">{searchresults.NEWEST_POST_IMG}{searchresults.TOPIC_TYPE}<a href="{searchresults.U_VIEW_TOPIC}" class="topictitle">{searchresults.TOPIC_TITLE}</a></span><br /><span class="gensmall">{searchresults.GOTO_PAGE}</span></td>
+
+
+#
+#-----[ REPLACE WITH ]----------------------------
+#
+	<td class="row2"><span class="topictitle">{searchresults.NEWEST_POST_IMG}{searchresults.TOPIC_TYPE}<a href="{searchresults.U_VIEW_TOPIC}" class="topictitle">{searchresults.TOPIC_TITLE}</a></span>
+	 <!-- BEGIN display_reg -->
+		 [{searchresults.REG_OPTIONS}]
+	<!-- END display_reg -->
+	 <br /><span class="gensmall">{searchresults.GOTO_PAGE}</span></td>
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/subSilver.css
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+a.gen:hover,a.genmed:hover,a.gensmall:hover	{ color: #DD6900; text-decoration: underline; }
+
+
+#
+#-----[ AFTER, ADD ]----------------------------
+#
+/* Event Registration Begin */
+.genoption0 { font-size : 12px; font-weight : bold; color : #CCCCCC; text-decoration:none; }
+a.genoption00 { font-size : 12px; font-weight : bold; color : #CCCCCC; text-decoration:none; }
+.genoption1 { font-size : 12px; font-weight : bold; color : #008000; text-decoration:none; }
+a.genoption1 { font-size : 12px; font-weight : bold; color : #008000; text-decoration:none; }
+.genoption2 { font-size : 12px; font-weight : bold; color : #0000ff; text-decoration:none; }
+a.genoption2 { font-size : 12px; font-weight : bold; color : #0000ff; text-decoration:none; }
+.genoption3 { font-size : 12px; font-weight : bold; color : #ff0000; text-decoration:none; }
+a.genoption3 { font-size : 12px; font-weight : bold; color : #ff0000; text-decoration:none; }
+/* Event Registration End */
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<td class="row1" width="100%"><span class="topictitle">{topicrow.NEWEST_POST_IMG}{topicrow.TOPIC_TYPE}<a href="{topicrow.U_VIEW_TOPIC}" class="topictitle">{topicrow.TOPIC_TITLE}</a></span><span class="gensmall"><br />
+
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	<td class="row1" width="100%"><span class="topictitle">{topicrow.NEWEST_POST_IMG}{topicrow.TOPIC_TYPE}<a href="{topicrow.U_VIEW_TOPIC}" class="topictitle">{topicrow.TOPIC_TITLE}</a></span>
+		<!-- BEGIN display_reg -->
+		[{topicrow.REG_OPTIONS}]
+		<!-- END display_reg -->
+		<span class="gensmall"><br />
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	{POLL_DISPLAY}
+
+
+#
+#-----[ AFTER, ADD ]----------------------------
+#
+	{REG_DISPLAY}
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

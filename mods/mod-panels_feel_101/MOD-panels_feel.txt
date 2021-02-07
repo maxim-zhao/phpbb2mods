@@ -1,0 +1,730 @@
+##############################################################
+## MOD Title:		Panels feel
+## MOD Author:		Ptirhiik < ptirhiik@clanmckeen.com > (Pierre) http://ptifo.clanmckeen.com
+## MOD Description:	Give the profile and ACP/configuration menus a panels feel
+##
+## MOD Version:		1.0.1
+##
+## Installation Level:	Easy
+## Installation Time:	10 Minutes
+## Files To Edit:
+##			templates/subSilver/profile_add_body.tpl
+##			templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files:	n/a
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##	You will find the modified templates in contrib/templates/
+##
+##############################################################
+## MOD History:
+##
+##   2005-07-23 - Version 1.0.1
+##      - add the admin config tpl instructions
+##
+##   2005-06-26 - Version 1.0.0
+##      - first publication as a mod
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# We want to insert the code at top of the file, before the first line
+# this is a partial search, the full line is longer
+#
+<form
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<script language="JavaScript" type="text/javascript">
+<!--//
+function _dom_menu()
+{
+	return this;
+}
+	_dom_menu.prototype.objref = function(id)
+	{
+		return document.getElementById ? document.getElementById(id) : (document.all ? document.all[id] : (document.layers ? document.layers[id] : null));
+	}
+	_dom_menu.prototype.cancel_event = function()
+	{
+		if ( window.event )
+		{
+			window.event.cancelBubble = true;
+		}
+	}
+
+	_dom_menu.prototype.set = function(menu) {
+		var menus = new Array(
+			'reginfo',
+			'profileinfo',
+<!-- BEGIN switch_avatar_block -->
+			'avatarinfo',
+<!-- END switch_avatar_block -->
+			'prefinfo'
+		);
+		var object;
+		var opt;
+		var flag;
+		for (i=0; i < menus.length; i++)
+		{
+			cur_menu = menus[i];
+			object = this.objref(cur_menu);
+			if ( object && object.style )
+			{
+				object.style.display = (cur_menu == menu) ? '' : 'none';
+			}
+			opt = this.objref(cur_menu + '_opt');
+			if ( opt && opt.style )
+			{
+				opt.style.fontWeight = (cur_menu == menu) ? 'bold' : '';
+			}
+			flag = this.objref(cur_menu + '_flag');
+			if ( flag && flag.style )
+			{
+				flag.style.fontWeight = (cur_menu == menu) ? 'bold' : '';
+			}
+		}
+<!-- BEGIN switch_avatar_block -->
+		pic = this.objref('avatarinfo_cur');
+		if ( pic && pic.style )
+		{
+			pic.style.display = ( menu == 'avatarinfo' ) ? '' : 'none';
+		}
+<!-- END switch_avatar_block -->
+		this.cancel_event();
+	}
+
+// instantiate
+dom_menu = new _dom_menu();
+//-->
+</script>
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# create a new main table, with 2 column. Set the navigation the first line of this table
+#
+<table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
+	<tr> 
+		<td align="left"><span class="nav"><a href="{U_INDEX}" class="nav">{L_INDEX}</a></span></td>
+	</tr>
+</table>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+cellpadding="2"
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+cellpadding="0"
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td align="left"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="100%" colspan="2" valign="top"
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+</table>
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<tr><td width="200" valign="top">
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# Let's add now the menu itsef
+#
+<table cellpadding="4" cellspacing="1" border="0" class="forumline" width="200">
+<tr>
+	<th class="thHead">{L_PROFILE}</th>
+</tr>
+<tr>
+	<td height="25" class="row1">
+		<span class="gensmall"><b>{L_PROFILE}</b></span><hr />
+		<table cellspacing="0" cellpadding="2" border="0" width="100%">
+		<tr>
+			<td width="10" align="right"><div id="reginfo_flag" class="gensmall" style="font-weight: bold;">&raquo;</div></td>
+			<td nowrap="nowrap" onMouseOver="this.style.cursor='pointer'; this.style.fontWeight='bold';" onMouseOut="this.style.cursor='pointer'; this.style.fontWeight='normal';" onClick="dom_menu.set('reginfo'); return false;"><div id="reginfo_opt" class="gensmall" style="font-weight: bold;">{L_REGISTRATION_INFO}</div></td>
+		</tr>
+		<tr>
+			<td width="10" align="right"><div id="profileinfo_flag" class="gensmall">&raquo;</div></td>
+			<td nowrap="nowrap" onMouseOver="this.style.cursor='pointer'; this.style.fontWeight='bold';" onMouseOut="this.style.cursor='pointer'; this.style.fontWeight='normal';" onClick="dom_menu.set('profileinfo'); return false;"><div id="profileinfo_opt" class="gensmall">{L_PROFILE_INFO}</div></td>
+		</tr>
+		<!-- BEGIN switch_avatar_block -->
+		<tr>
+			<td width="10" align="right"><div id="avatarinfo_flag" class="gensmall">&raquo;</div></td>
+			<td nowrap="nowrap" onMouseOver="this.style.cursor='pointer'; this.style.fontWeight='bold';" onMouseOut="this.style.cursor='pointer'; this.style.fontWeight='normal';" onClick="dom_menu.set('avatarinfo'); return false;"><div id="avatarinfo_opt" class="gensmall">{L_AVATAR_PANEL}</div></td>
+		</tr>
+		<!-- END switch_avatar_block -->
+		<tr>
+			<td width="10" align="right"><div id="prefinfo_flag" class="gensmall">&raquo;</div></td>
+			<td nowrap="nowrap" onMouseOver="this.style.cursor='pointer'; this.style.fontWeight='bold';" onMouseOut="this.style.cursor='pointer'; this.style.fontWeight='normal';" onClick="dom_menu.set('prefinfo'); return false;"><div id="prefinfo_opt" class="gensmall">{L_PREFERENCES}</div></td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+<br style="font-size: 3px" />
+
+<table id="avatarinfo_cur" style="display:none" cellpadding="4" cellspacing="1" border="0" class="forumline" width="100%">
+<tr>
+	<th class="thHead">{L_CURRENT_IMAGE}</th>
+</tr>
+<tr>
+	<td class="row1" align="center">{AVATAR}<span class="gensmall"><br /><input type="checkbox" name="avatardel" />&nbsp;{L_DELETE_AVATAR}
+	</span></td>
+</tr>
+</table>
+
+</td><td valign="top" width="100%">
+#
+#-----[ FIND ]------------------------------------------------
+#
+# We are going now to break the whole table in smaller tables, displayed or not
+#
+<table border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<table
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ id="reginfo"
+#
+#-----[ FIND ]------------------------------------------------
+#
+# Let's close now the table, and open a new one for the next section
+#
+	<tr> 
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_PROFILE_INFO}</th>
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+<tr>
+	<td class="catBottom" colspan="2" align="center" height="28"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" name="reset" class="liteoption" />
+	</td>
+</tr>
+</table>
+
+<table id="profileinfo" style="display:none" border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
+<tr>
+	<th class="thHead" colspan="2" height="25" valign="middle">{L_PROFILE_INFO}</th>
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_ICQ_NUMBER}:</span></td>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+# Find the end of the profileinfo section, close the table and open a new one
+#
+	<tr> 
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_PREFERENCES}</th>
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+<tr>
+	<td class="catBottom" colspan="2" align="center" height="28"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" name="reset" class="liteoption" />
+	</td>
+</tr>
+</table>
+
+<table id="prefinfo" style="display:none" border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
+<tr>
+	<th class="thHead" colspan="2" height="25" valign="middle">{L_PREFERENCES}</th>
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_PUBLIC_VIEW_EMAIL}:</span></td>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+# Find the end of the preferences section, close the table and open a new one
+# Also remove the current avatar pic as it stands now under the menu
+#
+	<!-- BEGIN switch_avatar_block -->
+	<tr> 
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+	<tr> 
+	  <th class="thSides" colspan="2" height="12" valign="middle">{L_AVATAR_PANEL}</th>
+	</tr>
+	<tr> 
+		<td class="row1" colspan="2"><table width="70%" cellspacing="2" cellpadding="0" border="0" align="center">
+			<tr> 
+				<td width="65%"><span class="gensmall">{L_AVATAR_EXPLAIN}</span></td>
+				<td align="center"><span class="gensmall">{L_CURRENT_IMAGE}</span><br />{AVATAR}<br /><input type="checkbox" name="avatardel" />&nbsp;<span class="gensmall">{L_DELETE_AVATAR}</span></td>
+			</tr>
+		</table></td>
+	</tr>
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+<tr>
+	<td class="catBottom" colspan="2" align="center" height="28"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" name="reset" class="liteoption" />
+	</td>
+</tr>
+</table>
+<!-- BEGIN switch_avatar_block -->
+<table id="avatarinfo" style="display:none" border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
+<tr>
+	<th class="thHead" colspan="2" height="12" valign="middle">{L_AVATAR_PANEL}</th>
+</tr>
+<tr>
+	<td class="row2" colspan="2"><span class="gensmall">{L_AVATAR_EXPLAIN}
+	</span></td>
+</tr>
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr> 
+		<td class="row1"><span class="gen">{L_UPLOAD_AVATAR_FILE}:</span></td>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+	<tr> 
+		<td class="row1"><span class="gen">{L_UPLOAD_AVATAR_URL}:</span>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+	<tr> 
+		<td class="row1"><span class="gen">{L_LINK_REMOTE_AVATAR}:</span>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr> 
+		<td class="row1"><span class="gen">{L_AVATAR_GALLERY}:</span></td>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+# Find the end of the avatar section ... oh well I think you've got it now :)
+#
+	<!-- END switch_avatar_block -->
+	<tr>
+		<td class="catBottom" colspan="2" align="center" height="28">{S_HIDDEN_FIELDS}<input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" name="reset" class="liteoption" /></td>
+	</tr>
+</table>
+
+</form>
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+<tr>
+	<td class="catBottom" colspan="2" align="center" height="28"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" name="reset" class="liteoption" />
+	</td>
+</tr>
+</table>
+<!-- END switch_avatar_block -->
+</td></tr></table>{S_HIDDEN_FIELDS}
+</form>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# at top of the file
+#
+<h1>{L_CONFIGURATION_TITLE}</h1>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<script language="JavaScript" type="text/javascript">
+<!--//
+function _dom_menu()
+{
+	return this;
+}
+	_dom_menu.prototype.objref = function(id)
+	{
+		return document.getElementById ? document.getElementById(id) : (document.all ? document.all[id] : (document.layers ? document.layers[id] : null));
+	}
+	_dom_menu.prototype.cancel_event = function()
+	{
+		if ( window.event )
+		{
+			window.event.cancelBubble = true;
+		}
+	}
+
+	_dom_menu.prototype.set = function(menu) {
+		var menus = new Array(
+			'generalinfo',
+			'cookiesinfo',
+			'pminfo',
+			'basicinfo',
+			'avatarinfo',
+			'coppainfo',
+			'emailinfo'
+		);
+		var object;
+		var opt;
+		var flag;
+		for (i=0; i < menus.length; i++)
+		{
+			cur_menu = menus[i];
+			object = this.objref(cur_menu);
+			if ( object && object.style )
+			{
+				object.style.display = (cur_menu == menu) ? '' : 'none';
+			}
+			opt = this.objref(cur_menu + '_opt');
+			if ( opt && opt.style )
+			{
+				opt.style.fontWeight = (cur_menu == menu) ? 'bold' : '';
+			}
+			flag = this.objref(cur_menu + '_flag');
+			if ( flag && flag.style )
+			{
+				flag.style.fontWeight = (cur_menu == menu) ? 'bold' : '';
+			}
+		}
+		this.cancel_event();
+	}
+
+// instantiate
+dom_menu = new _dom_menu();
+//-->
+</script>
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<form action="{S_CONFIG_ACTION}" method="post"><table width="99%" cellpadding="4" cellspacing="1" border="0" align="center" class="forumline">
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# let's add the menu
+#
+
+<form action="{S_CONFIG_ACTION}" method="post">
+<table cellpadding="0" cellspacing="2" border="0" width="100%"><tr><td width="200" valign="top">
+
+<table cellpadding="4" cellspacing="1" border="0" class="forumline" width="200">
+<tr>
+	<th class="thHead">{L_CONFIGURATION_TITLE}</th>
+</tr>
+<tr>
+	<td height="25" class="row1">
+		<span class="gensmall"><b>{L_CONFIGURATION_TITLE}</b></span><hr />
+		<table cellspacing="0" cellpadding="2" border="0" width="100%">
+		<tr>
+			<td width="10" align="right"><div id="generalinfo_flag" class="gensmall" style="font-weight: bold;">&raquo;</div></td>
+			<td nowrap="nowrap" onMouseOver="this.style.cursor='pointer'; this.style.fontWeight='bold';" onMouseOut="this.style.cursor='pointer'; this.style.fontWeight='normal';" onClick="dom_menu.set('generalinfo'); return false;"><div id="generalinfo_opt" class="gensmall" style="font-weight: bold;">{L_GENERAL_SETTINGS}</div></td>
+		</tr>
+		<tr>
+			<td width="10" align="right"><div id="cookiesinfo_flag" class="gensmall">&raquo;</div></td>
+			<td nowrap="nowrap" onMouseOver="this.style.cursor='pointer'; this.style.fontWeight='bold';" onMouseOut="this.style.cursor='pointer'; this.style.fontWeight='normal';" onClick="dom_menu.set('cookiesinfo'); return false;"><div id="cookiesinfo_opt" class="gensmall">{L_COOKIE_SETTINGS}</div></td>
+		</tr>
+		<tr>
+			<td width="10" align="right"><div id="pminfo_flag" class="gensmall">&raquo;</div></td>
+			<td nowrap="nowrap" onMouseOver="this.style.cursor='pointer'; this.style.fontWeight='bold';" onMouseOut="this.style.cursor='pointer'; this.style.fontWeight='normal';" onClick="dom_menu.set('pminfo'); return false;"><div id="pminfo_opt" class="gensmall">{L_PRIVATE_MESSAGING}</div></td>
+		</tr>
+		<tr>
+			<td width="10" align="right"><div id="basicinfo_flag" class="gensmall">&raquo;</div></td>
+			<td nowrap="nowrap" onMouseOver="this.style.cursor='pointer'; this.style.fontWeight='bold';" onMouseOut="this.style.cursor='pointer'; this.style.fontWeight='normal';" onClick="dom_menu.set('basicinfo'); return false;"><div id="basicinfo_opt" class="gensmall">{L_ABILITIES_SETTINGS}</div></td>
+		</tr>
+		<tr>
+			<td width="10" align="right"><div id="avatarinfo_flag" class="gensmall">&raquo;</div></td>
+			<td nowrap="nowrap" onMouseOver="this.style.cursor='pointer'; this.style.fontWeight='bold';" onMouseOut="this.style.cursor='pointer'; this.style.fontWeight='normal';" onClick="dom_menu.set('avatarinfo'); return false;"><div id="avatarinfo_opt" class="gensmall">{L_AVATAR_SETTINGS}</div></td>
+		</tr>
+		<tr>
+			<td width="10" align="right"><div id="coppainfo_flag" class="gensmall">&raquo;</div></td>
+			<td nowrap="nowrap" onMouseOver="this.style.cursor='pointer'; this.style.fontWeight='bold';" onMouseOut="this.style.cursor='pointer'; this.style.fontWeight='normal';" onClick="dom_menu.set('coppainfo'); return false;"><div id="coppainfo_opt" class="gensmall">{L_COPPA_SETTINGS}</div></td>
+		</tr>
+		<tr>
+			<td width="10" align="right"><div id="emailinfo_flag" class="gensmall">&raquo;</div></td>
+			<td nowrap="nowrap" onMouseOver="this.style.cursor='pointer'; this.style.fontWeight='bold';" onMouseOut="this.style.cursor='pointer'; this.style.fontWeight='normal';" onClick="dom_menu.set('emailinfo'); return false;"><div id="emailinfo_opt" class="gensmall">{L_EMAIL_SETTINGS}</div></td>
+		</tr>
+		</table>
+	</td>
+</tr>
+</table>
+
+</td><td valign="top" width="100%">
+
+<table id="generalinfo" border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_SERVER_NAME}</td>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_COOKIE_SETTINGS}</th>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<tr>
+		<td class="catBottom" colspan="2" align="center"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" />
+		</td>
+	</tr>
+
+</table><table id="cookiesinfo" style="display:none" border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_COOKIE_DOMAIN}</td>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_PRIVATE_MESSAGING}</th>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<tr>
+		<td class="catBottom" colspan="2" align="center"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" />
+		</td>
+	</tr>
+
+</table><table id="pminfo" style="display:none" border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_DISABLE_PRIVATE_MESSAGING}</td>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_ABILITIES_SETTINGS}</th>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<tr>
+		<td class="catBottom" colspan="2" align="center"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" />
+		</td>
+	</tr>
+
+</table><table id="basicinfo" style="display:none" border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_MAX_POLL_OPTIONS}</td>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_AVATAR_SETTINGS}</th>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<tr>
+		<td class="catBottom" colspan="2" align="center"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" />
+		</td>
+	</tr>
+
+</table><table id="avatarinfo" style="display:none" border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ALLOW_LOCAL}</td>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_COPPA_SETTINGS}</th>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<tr>
+		<td class="catBottom" colspan="2" align="center"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" />
+		</td>
+	</tr>
+
+</table><table id="coppainfo" style="display:none" border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_COPPA_FAX}</td>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+	<tr>
+	  <th class="thHead" colspan="2">{L_EMAIL_SETTINGS}</th>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<tr>
+		<td class="catBottom" colspan="2" align="center"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" />
+		</td>
+	</tr>
+
+</table><table id="emailinfo" style="display:none" border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline">
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ADMIN_EMAIL}</td>
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<td class="row1"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ width="38%"
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="catBottom" colspan="2" align="center">{S_HIDDEN_FIELDS}<input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" />
+		</td>
+	</tr>
+</table></form>
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+	<tr>
+		<td class="catBottom" colspan="2" align="center"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" />
+		</td>
+	</tr>
+
+</table>
+
+</td></tr></table>{S_HIDDEN_FIELDS}
+</form>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

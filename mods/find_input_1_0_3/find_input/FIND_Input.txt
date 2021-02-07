@@ -1,0 +1,183 @@
+############################################################## 
+## MOD Title: FIND - Forum Integrated News Delivery - Input
+## MOD Author: netclectic < adrian@netclectic.com > (Adrian Cockburn) http://www.netclectic.com 
+## MOD Description: Delivers rss / xml newsfeeds direct to your forums.
+## MOD Version: 1.0.3
+## 
+## Installation Level: Moderate
+## Installation Time: 15 Minutes 
+## Files To Edit: (2) 
+##      constants.php, 
+##      lang_main.php
+##
+## Included Files: (9) 
+##      news_insert.php, 
+##      functions_news.php, 
+##      rss_parser.php, 
+##      admin_newsfeeds.php, 
+##      newsfeeds_body.tpl, 
+##      lang_admin_find.php, 
+##      functions_insert_post.php, 
+##      admin_newsfeed_sources.php,
+##      newsfeed_sources_body.tpl
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: 
+##
+##     Requires you to be able to setup a script to run as a cron job (or similar).
+##     Includes addition of 1 table to your database and 1 insert into config table.
+##
+##     IMPORTANT!!
+##
+##          Step 1  :  Follow the instructions below.
+##          Step 2  :  Browse to your Admin Control Panel and configure the Newsfeeds.
+##          Step 3  :  Perform news insert by clicking the 'Get News Now' button.
+##
+##                     Ensure everything works as expected before setting up the automation in step 4.
+##
+##                     If you do not have access to any automation tools then you will have to stop at
+##                     this point and regularly run the news insert script manually from the newsfeed admin page.
+##
+##          Step 4  :  Finally, set up an automated task to run the news insert automatically.
+##
+##                     LINUX SYSTEMS
+##                     -------------
+##                          Set up a cron job (I use a quarter daily cron job) containing the following...
+##                              (if anyone knows a better way of doing this, please let me know!)
+##
+##                          get all      - GET http://www.YOURDOMAIN.com/YOURFORUMS/news_insert.php > /dev/null
+##                          get 1        - GET http://www.YOURDOMAIN.com/YOURFORUMS/news_insert.php?n=1 > /dev/null
+##                          get multiple - GET http://www.YOURDOMAIN.com/YOURFORUMS/news_insert.php?n=1,2,3 > /dev/null
+##
+##                          beginners guide to cron - http://www.unixgeeks.org/security/newbie/unix/cron-1.html
+##                          
+##
+##                     WINDOWS SYSTEMS
+##                     ---------------
+##                          Create a batch (.bat) file containging the following...
+##                          
+##                          YOUR_PATH_TO_PHP -q YOUR_PATH_TO_NEWS_INSERT.php
+##
+##                          Set up a windows system task as follows...
+##
+##                              [*] open Windows Task Scheduler 
+##                              [*] create a new task 
+##                              [*] enter YOUR_PATH_BAT_FILE (with the quotes!)
+##                              [*] give it a scheduled time to run 
+##                              [*] on the settings tab, check the Stop the task box and set the value to 0 hrs 1 minute 
+##                                  (this should be plenty long enough and is probably longer than your php timeout setting).
+##
+##
+############################################################## 
+##
+## MOD History:
+##
+##     2003-08-23  - Version 1.0.3
+##          - you can now specify a feed id (or ids - with a comma seperated list) when calling news_insert.php
+##            this should make it easier to break up your feed inserts into seperate cron jobs to get around any
+##            problems with individual feeds timing out.
+##
+##     2003-08-06  - Version 1.0.2
+##          - Minor fix in rss_parser to trim item parts
+##          - Minor fix in prepare_newsfeed_messaage function 
+##
+##     2003-08-05  - Version 1.0.1 
+##          - Lots of fixes.
+##          - Fixed annoying bug with forum list in admin page.
+##          - Split newsfeed source to seperate admin page, now uses it's own rss feed.
+##          - Fixed parsing issues.
+##
+##     2003-03-12  - Version 1.0.0 
+##          - Out of BETA.
+##
+############################################################## 
+##
+## Known Issues:
+##      
+##     PHP Versions < 4.1.0 - There appears to be a problem with parsing the xml
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+# See schemas directory for databases other than mysql
+#
+CREATE TABLE phpbb_newsfeeds (
+      feed_id smallint(5) unsigned NOT NULL auto_increment,
+      forum_id smallint(5) unsigned NOT NULL default '0',
+      user_id mediumint(8) NOT NULL default '0',
+      news_url varchar(255) NOT NULL default '',
+      news_name varchar(60) default NULL,
+      news_limit smallint(5) unsigned NOT NULL default '0',
+      news_active tinyint(1) unsigned NOT NULL default '1',
+      include_channel tinyint(1) unsigned NOT NULL default '1',
+      include_image tinyint(1) unsigned NOT NULL default '1',
+      PRIMARY KEY  (feed_id),
+      KEY forum_id (forum_id)
+    );
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy admin/admin_newsfeeds.php to admin/admin_newsfeeds.php
+copy admin/admin_newsfeed_sources.php to admin/admin_newsfeed_sources.php
+copy mods/netclectic/find_input/news_insert.php to mods/netclectic/find_input/news_insert.php
+copy mods/netclectic/find_input/includes/functions_news.php to mods/netclectic/find_input/includes/functions_news.php
+copy mods/netclectic/find_input/includes/rss_parser.php to mods/netclectic/find_input/includes/rss_parser.php
+copy mods/netclectic/includes/functions_insert_post.php to mods/netclectic/includes/functions_insert_post.php
+copy language/lang_english/lang_admin_find.php to language/lang_english/lang_admin_find.php
+copy templates/subSilver/admin/newsfeeds_body.tpl to templates/subSilver/admin/newsfeeds_body.tpl
+copy templates/subSilver/admin/newsfeed_sources_body.tpl to templates/subSilver/admin/newsfeed_sources_body.tpl
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/constants.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------- 
+# 
+// FIND - newsfeeds
+define('NEWSFEEDS_TABLE',  $table_prefix.'newsfeeds');
+define('POST_NEWSFEED_URL',  'n');
+// end FIND - newsfeeds
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// That's all, Folks!
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------- 
+# 
+// FIND - newsfeeds
+$lang['Check_All'] = 'Check All';
+$lang['UnCheck_All'] = 'UnCheck All';
+$lang['News_Read_More'] = 'Read more...';
+$lang['News_source'] = 'Source: ';
+// end FIND - newsfeeds
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+# 
+# EoM

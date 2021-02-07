@@ -1,0 +1,354 @@
+############################################################## 
+## MOD Title: Topic display order - Part 1
+## MOD Author: Ptirhiik < admin@rpgnet-fr.com > (Ptirhiik) http://www.rpgnet-fr.com
+## MOD Description: 
+##		This mod allows your users to sort the topics in a forum 
+##		by author, topic_title, topic time, and last reply time (default sort),
+##		ascending or descending
+## MOD Version: 1.0.2
+## 
+## Installation Level: easy 
+## Installation Time: 10 Minutes 
+## Files To Edit: 
+##			viewforum.php
+##			admin/admin_forums.php
+##			includes/functions.php
+##			templates/subSilver/admin/forum_edit_body.tpl
+##
+## Included Files: n/a
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+##
+##	- Part 1 is common to all installations
+##	- Part 2 is for installation without the split topic type v 2 mod
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2003-09-14 - Version 1.0.2
+##      - minor adjustement in viewforum
+##
+##   2003-07-17 - Version 1.0.1
+##      - add the default choice in forum administration
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_forums ADD forum_display_sort TINYINT(1) NOT NULL;
+ALTER TABLE phpbb_forums ADD forum_display_order TINYINT(1) NOT NULL;
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Grab all the basic data (all topics except announcements)
+// for this forum
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+//-- add
+// default forum values
+$dft_sort = $forum_row['forum_display_sort'];
+$dft_order = $forum_row['forum_display_order'];
+
+// Sort def
+$sort_value = $dft_sort;
+if ( isset($HTTP_GET_VARS['sort']) || isset($HTTP_POST_VARS['sort']) )
+{
+	$sort_value = isset($HTTP_GET_VARS['sort']) ? intval($HTTP_GET_VARS['sort']) : intval($HTTP_POST_VARS['sort']);
+}
+$sort_list = '<select name="sort">' . get_forum_display_sort_option($sort_value, 'list', 'sort') . '</select>';
+
+// Order def
+$order_value = $dft_order;
+if ( isset($HTTP_GET_VARS['order']) || isset($HTTP_POST_VARS['order']) )
+{
+	$order_value = isset($HTTP_GET_VARS['order']) ? intval($HTTP_GET_VARS['order']) : intval($HTTP_POST_VARS['order']);
+}
+$order_list = '<select name="order">' . get_forum_display_sort_option($order_value, 'list', 'order') . '</select>';
+
+// display
+$s_display_order = '&nbsp;' . $lang['Sort_by'] . ':&nbsp;' . $sort_list . $order_list . '&nbsp;';
+
+// selected method
+$sort_method = get_forum_display_sort_option($sort_value, 'field', 'sort');
+$order_method = get_forum_display_sort_option($order_value, 'field', 'order');
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full lines are longer
+$sql = "SELECT t.*, 
+	FROM " . TOPICS_TABLE . "
+	WHERE t.forum_id = 
+		AND t.topic_poster = 
+		AND p.post_id = 
+		AND p2.post_id = 
+		AND u2.user_id = 
+		AND t.topic_type <> " . POST_ANNOUNCE . " 
+		$limit_topics_time
+	ORDER BY t.topic_type DESC, t.topic_last_post_id DESC 
+	LIMIT 
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+// here we added 
+//	, $sort_method $order_method
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+t.topic_type DESC
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, $sort_method $order_method
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+		'PAGINATION' => generate_pagination(
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+// here we added 
+//	&amp;sort=$sort_value&amp;order=$order_value
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+&amp;topicdays=$topic_days
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+&amp;sort=$sort_value&amp;order=$order_value
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_forums.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$forumstatus = $row['forum_status'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+//-- add
+				$forum_display_sort = $row['forum_display_sort'];
+				$forum_display_order = $row['forum_display_order'];
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$forumstatus = FORUM_UNLOCKED;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+//-- add
+				$forum_display_sort = 0;
+				$forum_display_order = 0;
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$template->set_filenames(array(
+				"body" => "admin/forum_edit_body.tpl")
+			);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+//-- add
+			$forum_display_sort_list = get_forum_display_sort_option($forum_display_sort, 'list', 'sort');
+			$forum_display_order_list = get_forum_display_sort_option($forum_display_order, 'list', 'order');
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$s_hidden_fields = '<input type="hidden" name="mode" value="' . $newmode .'" /><input type="hidden" name="' . POST_FORUM_URL . '" value="' . $forum_id . '" />';
+
+			$template->assign_vars(array(
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+//-- add
+				'L_FORUM_DISPLAY_SORT'			=> $lang['Sort_by'],
+				'S_FORUM_DISPLAY_SORT_LIST'		=> $forum_display_sort_list,
+				'S_FORUM_DISPLAY_ORDER_LIST'	=> $forum_display_order_list,
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$value_sql .= ", $value";
+
+			}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+//-- add
+			$field_sql .= ', forum_display_sort';
+			$value_sql .= ', ' . intval($HTTP_POST_VARS['forum_display_sort']);
+			$field_sql .= ', forum_display_order';
+			$value_sql .= ', ' . intval($HTTP_POST_VARS['forum_display_order']);
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full lines are longer
+			$sql = "UPDATE " . FORUMS_TABLE
+				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname'])
+				WHERE forum_id = 
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+// here we have added :
+//		, forum_display_order = " . intval($HTTP_POST_VARS['forum_display_order']) . ", forum_display_sort = " . intval($HTTP_POST_VARS['forum_display_sort']) . "
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, prune_enable = " . intval($HTTP_POST_VARS['prune_enable'])
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, forum_display_order = " . intval($HTTP_POST_VARS['forum_display_order']) . ", forum_display_sort = " . intval($HTTP_POST_VARS['forum_display_sort']) . "
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+function get_db_stat($mode)
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : topic display order ---------------------------------------------------------------------
+//-- add
+// build a list of the sortable fields or return field name
+function get_forum_display_sort_option($selected_row=0, $action='list', $list='sort')
+{
+	global $lang;
+
+	$forum_display_sort = array(
+		'lang_key'	=> array('Last_Post', 'Sort_Topic_Title', 'Sort_Time', 'Sort_Author'),
+		'fields'	=> array('t.topic_last_post_id', 't.topic_title', 't.topic_time', 'u.username'),
+	);
+	$forum_display_order = array(
+		'lang_key'	=> array('Sort_Descending', 'Sort_Ascending'),
+		'fields'	=> array('DESC', 'ASC'),
+	);
+
+	// get the good list
+	$list_name = 'forum_display_' . $list;
+	$listrow = $$list_name;
+
+	// init the result
+	$res = '';
+	if ( $selected_row > count($listrow['lang_key']) )
+	{
+		$selected_row = 0;
+	}
+
+	// build list
+	if ($action == 'list')
+	{
+		for ($i=0; $i < count($listrow['lang_key']); $i++)
+		{
+			$selected = ($i==$selected_row) ? ' selected="selected"' : '';
+			$l_value = (isset($lang[$listrow['lang_key'][$i]])) ? $lang[$listrow['lang_key'][$i]] : $listrow['lang_key'][$i];
+			$res .= '<option value="' . $i . '"' . $selected . '>' . $l_value . '</option>';
+		}
+	}
+	else
+	{
+		// field
+		$res = $listrow['fields'][$selected_row];
+	}
+	return $res;
+}
+//-- fin mod : topic display order -----------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/forum_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+# at top of the file
+<h1>{L_FORUM_TITLE}</h1>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- mod : topic display order -->
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr> 
+	  <td class="catBottom" colspan="2" align="center">{S_HIDDEN_FIELDS}<input type="submit" name="submit" value="{S_SUBMIT_VALUE}" class="mainoption" /></td>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<tr>
+		<td class="row1">{L_FORUM_DISPLAY_SORT}</td>
+		<td class="row2">
+			<select name="forum_display_sort">{S_FORUM_DISPLAY_SORT_LIST}</select>&nbsp;
+			<select name="forum_display_order">{S_FORUM_DISPLAY_ORDER_LIST}</select>&nbsp;
+		</td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

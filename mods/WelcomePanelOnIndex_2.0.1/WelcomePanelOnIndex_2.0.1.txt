@@ -1,0 +1,507 @@
+##############################################################
+## MOD Title: Welcome Panel On Index
+## MOD Author: Aiencran < cranportal@katamail.com > 
+## MOD Description: This hack adds a welcome panel at the top of the index page with many information about user such as 
+##		    the amount of the new messages, new topics, new private messages and new users since his last visit. 
+##		    A suggested topic is also displayed. If user is a guest, a special welcome message is displayed.
+## MOD Version: 2.0.1
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit: index.php,
+##		  search.php, 
+##		  includes/constants.php, 			
+##		  language/lang_english/lang_admin.php,
+##		  language/lang_english/lang_main.php, 
+##		  templates/subSilver/index_body.tpl
+## Included Files: admin/admin_welcome_panel.php,
+##		   includes/functions_suggest.php,
+##		   templates/subSilver/admin/admin_welcome_panel.tpl,
+##		   templates/subSilver/images/welcome_panel.gif
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2005-02-03 - Version 2.0.1
+##      - Fixed a syntax error in lang_admin.php
+##
+##   2005-01-07 - Version 2.0.0
+##      - Optimized the code
+## 	- Fixed permissions bug for suggested topics
+##	- Suggestion Topic modality is customizable from AdminCP
+##	- Panel is at the top of the index
+##
+##   2004-10-07 - Version 1.1.1
+##      - Fixed a little conflict with Birthday Hack
+##
+##   2004-10-04 - Version 1.1.0
+##      - Fixed validation issues
+##	- Separated extra-languages modifications
+##	- Added Birthday welcome message add-on (it requires Birthday Hack)
+##
+##   2004-09-29 - Version 1.0.0
+##      - First version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------------------------
+#
+INSERT INTO `phpbb_config` (config_name, config_value) VALUES ('suggestion_type', '0');
+INSERT INTO `phpbb_config` (config_name, config_value) VALUES ('suggest_announcements', '0');
+INSERT INTO `phpbb_config` (config_name, config_value) VALUES ('suggested_topic_id', '0');
+INSERT INTO `phpbb_config` (config_name, config_value) VALUES ('suggestion_source', '0');
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy admin/admin_welcome_panel.php to admin/admin_welcome_panel.php
+copy includes/functions_suggest.php to includes/functions_suggest.php
+copy templates/subSilver/admin/admin_welcome_panel.tpl to templates/subSilver/admin/admin_welcome_panel.tpl
+copy templates/subSilver/images/welcome_panel.gif to templates/subSilver/images/welcome_panel.gif
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/index.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+include($phpbb_root_path . 'common.'.$phpEx);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+include($phpbb_root_path . 'includes/functions_suggest.'.$phpEx);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// End session management
+//
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+// Welcome Panel On Index MOD - START
+if ( $userdata['session_logged_in'] )
+{
+	if ( $userdata['user_level'] == ADMIN )
+	{
+		$welcome_user_level = sprintf(strtolower($lang['Admin_online_color']), '<span style="color:#' . $theme['fontcolor3'] . '"><b>', '</b></span>'); 
+		$welcome_username =  '<span style="color:#' . $theme['fontcolor3'] . '"><b>' . $userdata['username'] . '</b></span>';
+	}
+	else if ( $userdata['user_level'] == MOD )
+	{
+		$welcome_user_level = sprintf(strtolower($lang['Mod_online_color']), '<span style="color:#' . $theme['fontcolor2'] . '"><b>', '</b></span>'); 
+		$welcome_username =  '<span style="color:#' . $theme['fontcolor2'] . '"><b>' . $userdata['username'] . '</b></span>';
+	}
+	else
+	{
+		$welcome_user_level = '<b>' . $lang['Welcome_normal_user'] . '</b>'; 
+		$welcome_username =  '<b>' . $userdata['username'] . '</b>';
+	}
+
+	$welcome_user_regdate = create_date($lang['DATE_FORMAT'], $userdata['user_regdate'], $board_config['board_timezone']);
+	
+	// Get number of user's posts
+	if ( $userdata['user_posts'] == 0 )
+	{
+		$welcome_user_posts = $lang['Welcome_user_no_posts'];
+	}
+	else
+	{
+		$welcome_user_posts = ( $userdata['user_posts'] == 1 ) ? $lang['Welcome_user_one_post'] : $lang['Welcome_user_posts'];
+		$welcome_user_posts = sprintf($welcome_user_posts, '<a href="' . append_sid('search.'.$phpEx.'?search_id=egosearch') . '">', $userdata['user_posts'], '</a>');
+	}
+
+	$welcome_username = sprintf($lang['Welcome_user'], $welcome_username);
+	$welcome_user_info = sprintf($lang['Welcome_user_info'], $welcome_user_level, $board_config['sitename'], $welcome_user_regdate) . $welcome_user_posts;
+	
+	// Get number of new posts
+	$sql = "SELECT COUNT(post_id) as total 
+		FROM " . POSTS_TABLE . " 
+		WHERE post_time >= " . $userdata['user_lastvisit'] . " 
+		AND poster_id != " . $userdata['user_id']; 
+
+	$result = $db->sql_query($sql); 
+	if( $result ) 
+	{ 
+		$row = $db->sql_fetchrow($result); 
+
+		if ( $row['total'] == 0 )
+		{
+			$welcome_new_posts = $lang['Welcome_no_new_posts'];
+		}
+		else
+		{
+			$welcome_new_posts = ( $row['total'] == 1 ) ? $lang['Welcome_one_new_post'] : $lang['Welcome_new_posts'];
+			$welcome_new_posts = sprintf($welcome_new_posts, '<a href="' . append_sid('search.'.$phpEx.'?search_id=newposts') . '">', $row['total'], '</a>');
+		}
+	}
+	$db->sql_freeresult($result);
+
+	// Get number of new topics
+	$sql = "SELECT COUNT(topic_id) as total 
+		FROM " . TOPICS_TABLE . " 
+		WHERE topic_time >= " . $userdata['user_lastvisit']; 
+
+	$result = $db->sql_query($sql); 
+	if( $result ) 
+	{ 
+		$row = $db->sql_fetchrow($result); 
+
+		if ( $row['total'] == 0 )
+		{
+			$welcome_new_topics = $lang['Welcome_no_new_topics'];
+		}
+		else
+		{
+			$welcome_new_topics = ( $row['total'] == 1 ) ? $lang['Welcome_one_new_topic'] : $lang['Welcome_new_topics'];
+			$welcome_new_topics = sprintf($welcome_new_topics, '<a href="' . append_sid('search.'.$phpEx.'?search_id=newtopics') . '">', $row['total'], '</a>');
+		}
+	}
+	$db->sql_freeresult($result);
+
+	// Get number of new private messages
+	if ( $userdata['user_new_privmsg'] == 0 )
+	{
+		$welcome_new_pms = $lang['Welcome_no_new_pms'];
+	}
+	else
+	{
+		$welcome_new_pms = ( $userdata['user_new_privmsg'] == 1 ) ? $lang['Welcome_one_new_pm'] : $lang['Welcome_new_pms'];
+		$welcome_new_pms = sprintf($welcome_new_pms, '<a href="' . append_sid('privmsg.'.$phpEx.'?folder=inbox') . '">', $userdata['user_new_privmsg'], '</a>');
+	}
+
+	// Get number of new users
+	$sql = "SELECT COUNT(user_id) as total 
+		FROM " . USERS_TABLE . " 
+		WHERE user_regdate >= " . $userdata['user_lastvisit']; 
+
+	$result = $db->sql_query($sql); 
+	if( $result ) 
+	{ 
+		$row = $db->sql_fetchrow($result); 
+
+		if ( $row['total'] == 0 )
+		{
+			$welcome_new_users = $lang['Welcome_no_new_users'];
+		}
+		else
+		{
+			$welcome_new_users = ( $row['total'] == 1 ) ? $lang['Welcome_one_new_user'] : $lang['Welcome_new_users'];
+			$welcome_new_users = sprintf($welcome_new_users, '<a href="' . append_sid('memberlist.'.$phpEx.'?order=DESC') . '">', $row['total'], '</a>');
+		}
+	}
+	$db->sql_freeresult($result);
+
+	// Group previous data
+	$welcome_news = $lang['Welcome_since_last_visit'] . $welcome_new_posts . ' | ' . $welcome_new_topics . ' | ' . $welcome_new_pms . ' | ' . $welcome_new_users;
+}
+else
+{
+	$welcome_username = sprintf($lang['Welcome_user'], '<b>' . $lang['Guest'] . '</b>');
+	$welcome_news = '';
+	$welcome_user_info = $lang['Welcome_guest_info'] . ' ' . sprintf($lang['Welcome_register'], '<a href="' . append_sid('profile.'.$phpEx.'?mode=register') . '">', '</a>', $board_config['sitename']);
+}
+
+
+// Suggested Topics for Welcome Panel
+$suggestion_type = $board_config['suggestion_type'];
+if ( $suggestion_type != DO_NOT_SUGGEST ) 
+{
+	$suggested_topic = suggest_topic($userdata);
+	$suggested_link = $suggested_topic['topic_link'];
+	$suggested_title = $suggested_topic['topic_title'];
+
+	$template->assign_block_vars('switch_suggest_topic', array());
+}
+
+// Welcome Panel On Index MOD - END
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+'TOTAL_POSTS' => sprintf($l_total_post_s, $total_posts),
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------
+#
+// Welcome Panel On Index MOD - START
+'WELCOME_USER' => $welcome_username,
+'WELCOME_NEWS' => $welcome_news,
+'WELCOME_USER_INFO' => $welcome_user_info,
+'WELCOME_SUGGESTED_TOPICS' => sprintf($lang['Welcome_suggested_topics'], $board_config['sitename']),
+'WELCOME_SUGGESTED_LINK' => $suggested_link,
+'WELCOME_SUGGESTED_TITLE' => $suggested_title,
+// Welcome Panel On Index MOD - END
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/search.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if ( $search_id == 'newposts' || $search_id == 'egosearch' || $search_id == 'unanswered' || $search_keywords != '' || $search_author != '' )
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------
+#
+$search_id == 'newposts' || 
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------
+#
+$search_id == 'newtopics' || 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if ( $search_id == 'newposts' || $search_id == 'egosearch' || ( $search_author != '' && $search_keywords == '' )  )
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------
+#
+$search_id == 'newposts' || 
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------
+#
+$search_id == 'newtopics' || 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+else if ( $search_id == 'egosearch' )
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------
+#
+else if ( $search_id == 'newtopics' )
+{
+	if ( $userdata['session_logged_in'] )
+	{
+		$sql = "SELECT topic_first_post_id AS post_id
+			FROM " . TOPICS_TABLE . " 
+			WHERE topic_time >= " . $userdata['user_lastvisit'];
+	}
+	else
+	{
+		redirect(append_sid("login.$phpEx?redirect=search.$phpEx&search_id=newtopics", true));
+	}
+
+	$show_results = 'topics';
+	$sort_by = 0;
+	$sort_dir = 'DESC';
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/includes/constants.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------
+#
+// Suggested Topic on Welcome Panel
+define('DO_NOT_SUGGEST', 0);
+define('SUGGEST_FAQ', 1);
+define('SUGGEST_TOPIC_FROM', 2);
+define('SUGGEST_SPECIFIC', 3);
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------
+#
+// Welcome Panel On Index MOD - START
+$lang['Welcome_Panel'] = 'Welcome Panel';
+$lang['Welcome_Panel_explain'] = 'The form below will allow you to customize all the setting for Welcome Panel on Index.';
+$lang['Suggested_Topics'] = 'Suggested Topics';
+$lang['Suggested_Topics_explain'] = 'Select topic suggestion modality you desired:';
+$lang['Do_not_suggest'] = 'Do not suggest any topic';
+$lang['Suggest_faq'] = 'Suggest the FAQ of this board';
+$lang['Suggest_topic_from'] = 'Suggest a topic* from ';
+$lang['Suggest_specific'] = 'Suggest always the topic* whose ID is ';
+$lang['Suggest_announcements'] = 'Suggest only Announcements and Sticky Topics';
+$lang['Suggestion_Warning'] = '* If user hasn\'t permissions to read the selected topic, a link to FAQ will be displayed';
+// Welcome Panel On Index MOD - END
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------
+#
+// Welcome Panel On Index MOD - START
+$lang['Welcome_user'] = 'Hi %s!';
+$lang['Welcome_normal_user'] = 'member'; 
+$lang['Welcome_user_info'] = 'You\'re %s of <b>%s</b> since <b>%s</b>';
+$lang['Welcome_guest_info'] = 'As you\'re not registered, some features could be unavailable.';
+$lang['Welcome_register'] = '%sClick here%s if you want to become a member of <b>%s</b>';
+
+$lang['Welcome_since_last_visit'] = 'There are: ';
+
+$lang['Welcome_new_posts'] = '%s<b>%d</b>%s new messages';
+$lang['Welcome_one_new_post'] = '%s<b>%d</b>%s new message';
+$lang['Welcome_no_new_posts'] = '<b>No</b> new messages';
+
+$lang['Welcome_new_topics'] = '%s<b>%d</b>%s new topics';
+$lang['Welcome_one_new_topic'] = '%s<b>%d</b>%s new topic';
+$lang['Welcome_no_new_topics'] = '<b>No</b> new topics';
+
+$lang['Welcome_new_users'] = '%s<b>%d</b>%s new users';
+$lang['Welcome_one_new_user'] = '%s<b>%d</b>%s new user';
+$lang['Welcome_no_new_users'] = '<b>No</b> new users';
+
+$lang['Welcome_new_pms'] = '%s<b>%d</b>%s new private messages';
+$lang['Welcome_one_new_pm'] = '%s<b>%d</b>%s new private message';
+$lang['Welcome_no_new_pms'] = '<b>No</b> new private messages';
+
+$lang['Welcome_user_posts'] = ' and you wrote %s<b>%d</b>%s messages.';
+$lang['Welcome_user_one_post'] = ' and you wrote %s<b>%d</b>%s message.';
+$lang['Welcome_user_no_posts'] = ' and you wrote <b>no messages</b>.';
+
+$lang['Welcome_suggested_topics'] = 'The staff of <b>%s</b> invites you to read this topic:';
+$lang['Welcome_no_suggested_topic'] = 'FAQ (Frequently Asked Questions)';
+// Welcome Panel On Index MOD - END
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/templates/subSilver/index_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<table width="100%" cellspacing="0" cellpadding="2" border="0" align="center">
+  <tr> 
+	<td align="left" valign="bottom"><span class="gensmall">
+	<!-- BEGIN switch_user_logged_in -->
+	{LAST_VISIT_DATE}<br />
+	<!-- END switch_user_logged_in -->
+	{CURRENT_TIME}<br /></span><span class="nav"><a href="{U_INDEX}" class="nav">{L_INDEX}</a></span></td>
+	<td align="right" valign="bottom" class="gensmall">
+		<!-- BEGIN switch_user_logged_in -->
+		<a href="{U_SEARCH_NEW}" class="gensmall">{L_SEARCH_NEW}</a><br /><a href="{U_SEARCH_SELF}" class="gensmall">{L_SEARCH_SELF}</a><br />
+		<!-- END switch_user_logged_in -->
+		<a href="{U_SEARCH_UNANSWERED}" class="gensmall">{L_SEARCH_UNANSWERED}</a></td>
+  </tr>
+</table>
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+<table width="100%" cellspacing="0" cellpadding="2" border="0" align="center">
+  <tr> 
+	<td align="left" valign="bottom"><span class="gensmall">{CURRENT_TIME}</span></td>
+  </tr>
+</table>
+<table width="100%" cellpadding="3" cellspacing="1" class="forumline">
+  <tr> 
+	<td class="catHead" colspan="2"><span class="cattitle"><a href="{U_INDEX}" class="nav">{L_INDEX}</a></span></td>
+  </tr>
+  <tr> 
+	<td class="row1" align="center" valign="middle" rowspan="2"><img src="templates/subSilver/images/welcome_panel.gif" alt="" /></td>
+	<td class="row1" width="100%"><span class="genmed">{WELCOME_USER}</span><br /><span class="gensmall">{WELCOME_USER_INFO}</span></td>
+  </tr>
+  <!-- BEGIN switch_user_logged_in -->
+  <tr> 
+	<td class="row1" width="100%"><span class="gensmall">{LAST_VISIT_DATE}<br />{WELCOME_NEWS}</span></td>
+  </tr>
+  <!-- END switch_user_logged_in -->
+  <!-- BEGIN switch_user_logged_out -->
+  <form method="post" action="{S_LOGIN_ACTION}">
+  <tr> 
+      <td class="row1" valign="middle" height="28"><span class="gensmall">{L_USERNAME}: 
+	<input class="post" type="text" name="username" size="10" />
+	&nbsp;&nbsp;&nbsp;{L_PASSWORD}: 
+	<input class="post" type="password" name="password" size="10" maxlength="32" />
+	&nbsp;&nbsp; &nbsp;&nbsp;{L_AUTO_LOGIN} 
+	<input class="text" type="checkbox" name="autologin" />
+	&nbsp;&nbsp;&nbsp; 
+	<input type="submit" class="mainoption" name="login" value="{L_LOGIN}" /></span> </td>
+  </tr>
+  </form>
+  <!-- END switch_user_logged_out -->
+  <!-- BEGIN switch_suggest_topic -->
+  <tr> 
+	<td class="row1" width="100%" colspan="2"><span class="gensmall">{WELCOME_SUGGESTED_TOPICS}&nbsp;&nbsp;<a href="{WELCOME_SUGGESTED_LINK}" class"gensmall">{WELCOME_SUGGESTED_TITLE}</a></span></td>
+  </tr>
+  <!-- END switch_suggest_topic -->
+</table>
+<br />
+<table width="100%" cellspacing="0" cellpadding="2" border="0" align="center">
+  <tr>
+	<td align="right" valign="bottom" class="gensmall"><a href="{U_SEARCH_UNANSWERED}" class="gensmall">{L_SEARCH_UNANSWERED}</a></td>
+  </tr>
+</table>
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<!-- BEGIN switch_user_logged_out -->
+<form method="post" action="{S_LOGIN_ACTION}">
+  <table width="100%" cellpadding="3" cellspacing="1" border="0" class="forumline">
+	<tr> 
+	  <td class="catHead" height="28"><a name="login"></a><span class="cattitle">{L_LOGIN_LOGOUT}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row1" align="center" valign="middle" height="28"><span class="gensmall">{L_USERNAME}: 
+		<input class="post" type="text" name="username" size="10" />
+		&nbsp;&nbsp;&nbsp;{L_PASSWORD}: 
+		<input class="post" type="password" name="password" size="10" maxlength="32" />
+		&nbsp;&nbsp; &nbsp;&nbsp;{L_AUTO_LOGIN} 
+		<input class="text" type="checkbox" name="autologin" />
+		&nbsp;&nbsp;&nbsp; 
+		<input type="submit" class="mainoption" name="login" value="{L_LOGIN}" />
+		</span> </td>
+	</tr>
+  </table>
+</form>
+<!-- END switch_user_logged_out -->
+
+<br clear="all" />
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+<br clear="all" />
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM 

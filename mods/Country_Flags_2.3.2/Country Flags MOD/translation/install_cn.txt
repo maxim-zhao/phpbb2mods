@@ -1,0 +1,521 @@
+########################################################
+## 外挂名称: 国家与地区旗帜外挂
+## 外挂作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外挂作者: Nuttzy99 < n/a > (Nuttzy) http://www.spellingcow.com/
+## 外挂作者: AbelaJohnB < n/a > (John B. Abela) n/a
+## 外挂描述: 这个外挂允许你的注册会员能够选择所属的国家与地区的旗帜
+## 外挂版本: 2.3.2
+## 
+## 安装难度: 中等 
+## 安装时间: 15 - 20 分钟 
+##
+## 需要编辑的档案: 12
+##	viewtopic.php
+##	memberlist.php
+##	admin/admin_users.php
+##	includes/constants.php
+##	includes/usercp_viewprofile.php
+##	includes/usercp_register.php
+##	includes/usercp_avatar.php
+##	language/lang_chinese_simplified/lang_main.php
+##	language/lang_chinese_simplified/lang_admin.php
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/admin/user_edit_body.tpl
+##
+## 附加的档案: 6 + 261 图示
+##	root/images/flags/*.gif
+##	root/admin/admin_flags.php
+##	root/templates/subSilver/admin/flags_list_body.tpl
+##	root/templates/subSilver/admin/flags_edit_body.tpl
+##	contrib/install/db_update_en.php
+##	contrib/install/db_update_en.txt
+##	contrib/install/db_update_tw.php
+##	contrib/install/db_update_tw.txt
+##	contrib/install/db_update_cn.php
+##	contrib/install/db_update_cn.txt
+##
+## 版权声明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由于安全上的考量, 请检查: http://www.phpbb.com/mods/
+## 是否有此外挂的最新版本. 虽然在加入外挂资料库前，外挂已经经过检查
+## 但是这并不保证外挂中完全没有安全上的问题. 
+## 对于不在外挂资料库 (http://www.phpbb.com/mods/) 内的外挂
+## 将不会在 phpbb.com 的讨论板内给予支援 
+##############################################################
+## 作者留言:
+##	此外挂在 2.0.21 上测试过. 可以用 EasyMOD 0.3.0 来安装此外挂
+##	旗帜图示来自 CIA - The World Factbook - Flags of the World
+##	http://www.cia.gov/cia/publications/factbook/docs/flagsoftheworld.html
+##
+############################################################## 
+## 版本历史: 
+##
+##   2002-02-28 - 版本 ???
+##      - 更新成可在 2.0 RC2 上安装 - Nuttzy
+##
+##   2002-04-01 - 版本 ???
+##      - 更新成可在 2.0 RC4 上安装
+##	- 在会员列表中右置图示
+##
+##   2002-04-14 - 版本 2.0.4
+##	- 更新成可在 2.0 Final 上安装
+##
+##   2002-05-18 - 版本 2.0.5
+##	- 修正了有时个人资料会重置设定 - 感谢 sj26!
+##	- 在编辑个人资料时显示旗帜 - 由 sj26 提供
+##	- 可以在管理员控制台编辑会员旗帜
+##	- 更新了 2.0.4 里的程式
+##
+##   2002-08-13 - 版本 2.0.6
+##	- 更新成可在 2.0.2 上安装
+##	- 更新成可使用 EasyMod alpha
+##
+##   2003-02-20 - 版本 2.2.0
+##	- 更新成可在 2.0.4 上安装
+##	- 增加管理员控制台编辑/增加/删除旗帜功能
+##
+##   2006-04-15 - 版本 2.3.0
+##	- 外挂由 ycl6 接手
+##	- 更新成可在 2.0.20 上安装
+##	- 增加更多国家/地区和旗帜
+##	- 重新编写了部分程式以及修正了一些小虫
+##
+##   2006-05-05 - 版本 2.3.1
+##	- 修正了在重新编辑个人资料时旗帜会重置的问题 (感谢 kenn)
+##
+##   2006-06-24 - 版本 2.3.2
+##	- 增加可用 EastMOD 来安装的 SQL 指令
+## 
+############################################################## 
+## 在增加此外挂前, 请务必备份所有需要修改的档案
+##############################################################
+
+#
+#-----[ 复制 ]------------------------------------------ 
+#
+copy root/images/flags/*.gif to images/flags/
+copy root/admin/*.php to admin/
+copy root/templates/subSilver/admin/*.tpl to templates/subSilver/admin/
+#
+#-----[ DIY 手动设定说明 ]------------------------------------------ 
+#
+方法一: 复制 root/install/db_update_cn.php 到 install/db_update_cn.php. 执行并且在执行后删除
+方法二: 使用 contrib/install/db_update_cn.txt 里面的指令手动加入资料库
+#
+#-----[ 打开 ]------------------------------------------ 
+#
+includes/constants.php
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+define('FLAG_TABLE', $table_prefix.'flags');	// Country/Location Flags
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+includes/usercp_viewprofile.php
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+$pm = '<a href="' . $temp_url . '">' . $lang['Send_private_message'] . '</a>';
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+// Country/Location Flags
+$location = ( $profiledata['user_from'] ) ? $profiledata['user_from'] : '&nbsp;';
+$flag = ( !empty($profiledata['user_from_flag']) ) ? '&nbsp;<img src="images/flags/' . $profiledata['user_from_flag'] . '" alt="' . $profiledata['user_from_flag'] . '" title="' . $profiledata['user_from_flag'] . '" border="1" />' : '';
+$location .= $flag;
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+	'LOCATION' => ( $profiledata['user_from'] ) ? $profiledata['user_from'] : '&nbsp;',
+#
+#-----[ 取代为 ]------------------------------------------ 
+#
+	'LOCATION' => $location,	// Country/Location Flags
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+includes/usercp_register.php
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+	$user_timezone = ( isset($HTTP_POST_VARS['timezone']) ) ? doubleval($HTTP_POST_VARS['timezone']) : $board_config['board_timezone'];
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	$user_flag = ( !empty($HTTP_POST_VARS['user_flag']) && $HTTP_POST_VARS['user_flag'] != 'blank.gif' ) ? htmlspecialchars($HTTP_POST_VARS['user_flag']) : '' ;	// Country/Location Flags
+#
+#-----[ 寻找 ]------------------------------------------ 
+# 
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql
+#
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+user_from = '" . str_replace("\'", "''", $location) . "',
+#
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+ user_from_flag = '" . str_replace("\'", "''", $user_flag) . "',
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+			$sql = "INSERT INTO " . USERS_TABLE . "	(user_id
+				VALUES ($user_id
+#
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+user_from,
+#
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+ user_from_flag,
+#
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+'" . str_replace("\'", "''", $location) . "',
+#
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+'" . str_replace("\'", "''", $user_flag) . "',
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+	$location = $userdata['user_from'];
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	$user_flag = $userdata['user_from_flag'];	// Country/Location Flags
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+	display_avatar_gallery($mode,
+#
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+$location,
+#
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+ $user_flag,
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+		$template->assign_block_vars('switch_edit_profile', array());
+	}
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	// Country/Location Flags
+	// Query to get the list of flags
+	$sql = "SELECT *
+		FROM " . FLAG_TABLE . "
+		ORDER BY flag_name";
+	if(!$flags_result = $db->sql_query($sql))
+	{
+		message_die(GENERAL_ERROR, "Couldn't obtain flags information.", "", __LINE__, __FILE__, $sql);
+	}
+
+	// Build the html select statement
+	$flag_start_image = 'blank.gif';
+	$flag_select = '<select name="user_flag" onChange="document.images[\'user_flag\'].src = \'images/flags/\' + this.value;">';
+	$flag_select .= '<option value="blank.gif">' . $lang['Select_country'] . '</option>';
+	while ( $flag_row = $db->sql_fetchrow($flags_result) )
+	{
+		$flag_name = $flag_row['flag_name'];
+		$flag_image = $flag_row['flag_image'];
+		$selected = ( $user_flag == $flag_image ) ? ' selected="selected"' : '';
+		$flag_select .= '&nbsp;&nbsp;&nbsp;<option value="' . $flag_image . '"' . $selected . '">' . $flag_name . '</option>';
+		if ( isset( $user_flag) && ($user_flag == $flag_image))
+		{
+			$flag_start_image = $flag_image;
+		}
+	}
+	$flag_select .= '</select>';
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+		'LOCATION' => $location,
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+		'L_FLAG' => $lang['Country_flag'],	// Country/Location Flags
+		'FLAG_SELECT' => $flag_select,		// Country/Location Flags
+		'FLAG_START' => $flag_start_image,	// Country/Location Flags
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+includes/usercp_avatar.php
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+function display_avatar_gallery($mode,
+#
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+&$location,
+#
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+ &$user_flag,
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+	$params = array(
+#
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+'location',
+#
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+ 'user_flag',
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+viewtopic.php
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+$sql = "SELECT u.username,
+#
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+u.user_from,
+#
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+ u.user_from_flag,
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+	$poster_from = ( $postrow[$i]['user_from'] && $postrow[$i]['user_id'] != ANONYMOUS ) ? $lang['Location'] . ': ' . $postrow[$i]['user_from'] : '';
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	// Country/Location Flags
+	$poster_from_flag = ( $postrow[$i]['user_from_flag'] && $postrow[$i]['user_id'] != ANONYMOUS ) ? '<br /><img src="images/flags/' . $postrow[$i]['user_from_flag'] . '" alt="' . $postrow[$i]['user_from_flag'] . '" border="1" /><br />' : '';
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+		'POSTER_FROM' => $poster_from,
+#
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+$poster_from
+#
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+ . $poster_from_flag
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+memberlist.php
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+$sql = "SELECT username,
+#
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+user_from,
+#
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+ user_from_flag,
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+		$from = ( !empty($row['user_from']) ) ? $row['user_from'] : '&nbsp;';
+#
+#-----[ 取代为 ]------------------------------------------ 
+#
+		$from = ( !empty($row['user_from']) ) ? $row['user_from'] : '';
+		// Country/Location Flags
+		$from = ( !empty($row['user_from_flag']) ) ? $from . '&nbsp;<img src="images/flags/' . $row['user_from_flag'] . '" alt="' . $row['user_from_flag'] . '" border="1" />' : $from;
+#
+#-----[ 打开 ]------------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+		$user_timezone = ( isset( $HTTP_POST_VARS['timezone']) ) ? doubleval( $HTTP_POST_VARS['timezone'] ) : $board_config['board_timezone'];
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+		$user_flag = ( !empty($HTTP_POST_VARS['user_flag']) && $HTTP_POST_VARS['user_flag'] != 'blank.gif' ) ? htmlspecialchars($HTTP_POST_VARS['user_flag']) : '' ;	// Country/Location Flags
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql
+#
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+user_from = '" . str_replace("\'", "''", $location) . "',
+#
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+ user_from_flag = '" . str_replace("\'", "''", $user_flag) . "',
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+			$location = htmlspecialchars(stripslashes($location));
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+			$user_flag = htmlspecialchars(stripslashes($user_flag));	// Country/Location Flags
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+		$location = htmlspecialchars($this_userdata['user_from']);
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+		$user_flag = htmlspecialchars($this_userdata['user_from_flag']);	// Country/Location Flags
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="location" value="' . str_replace("\"", "&quot;", $location) . '" />';
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="user_flag" value="' . str_replace("\"", "&quot;", $user_flag) . '" />';	// Country/Location Flags
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+		$form_enctype = ( !@$ini_val('file_uploads')
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+		// Country/Location Flags
+		// Query to get the list of flags
+		$sql = "SELECT *
+			FROM " . FLAG_TABLE . "
+			ORDER BY flag_name";
+		if(!$flags_result = $db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, "Couldn't obtain flags information.", "", __LINE__, __FILE__, $sql);
+		}
+
+		// Build the html select statement
+		$flag_start_image = 'blank.gif';
+		$flag_select = '<select name="user_flag" onChange="document.images[\'user_flag\'].src = \'../images/flags/\' + this.value;">';
+		$flag_select .= '<option value="blank.gif">' . $lang['Select_country'] . '</option>';
+		while ( $flag_row = $db->sql_fetchrow($flags_result) )
+		{
+			$flag_name = $flag_row['flag_name'];
+			$flag_image = $flag_row['flag_image'];
+			$selected = ( $user_flag == $flag_image ) ? ' selected="selected"' : '';
+			$flag_select .= '&nbsp;&nbsp;&nbsp;<option value="' . $flag_image . '"' . $selected . '">' . $flag_name . '</option>';
+			if ( isset( $user_flag) && ($user_flag == $flag_image))
+			{
+				$flag_start_image = $flag_image;
+			}
+		}
+		$flag_select .= '</select>';
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+			'LOCATION' => $location,
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+			'L_FLAG' => $lang['Country_flag'],	// Country/Location Flags
+			'FLAG_SELECT' => $flag_select,		// Country/Location Flags
+			'FLAG_START' => $flag_start_image,	// Country/Location Flags
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+language/lang_chinese_simplified/lang_main.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+$lang['Country_flag'] = '旗帜';			// Country/Location Flags
+$lang['Select_country'] = '选择国家或地区';	// Country/Location Flags
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+language/lang_chinese_simplified/lang_admin.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+// Country/Location Flags
+$lang['Flags'] = '旗帜';
+$lang['Flags_title'] = '旗帜管理';
+$lang['Flags_explain'] = '在这个选项中, 您可以新增, 编辑, 观看或是删除旗帜. 你也可以自制旗帜并且使用会员管理面版来编辑会员的旗帜设定.';
+$lang['Add_new_flag'] = '增加一个新旗帜';
+$lang['Flag_name'] = '旗帜名称';
+$lang['Flag_pic'] = '图示';
+$lang['Flag_image'] = '旗帜图档 (在 images/flags/ 目录中)';
+$lang['Flag_image_explain'] = '使用这个栏位来定义旗帜图示的路径';
+$lang['Must_select_flag'] = '您必须选择一个旗帜';
+$lang['Flag_updated'] = '旗帜已经完成更新';
+$lang['Flag_added'] = '新的旗帜已经成功加入';
+$lang['Flag_removed'] = '旗帜已被顺利移除';
+$lang['No_update_flags'] = '旗帜已被顺利移除. 但是使用此旗帜的会员设定并没有一起更新. 因此你必须手动重置这些会员的设定';
+$lang['Flag_confirm'] = '删除旗帜';
+$lang['Confirm_delete_flag'] = '您确定要删除这个旗帜?';
+$lang['Click_return_flagadmin'] = '点选 %s这里%s 返回旗帜管理';
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+		<input type="text" class="post" style="width: 200px"  name="location" size="25" maxlength="100" value="{LOCATION}" />
+	  </td>
+	</tr>
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_FLAG}:</span></td>
+	  <td class="row2"><span class="gensmall">
+		<table><tr>
+			<td>{FLAG_SELECT}&nbsp;&nbsp;&nbsp;</td>
+	  		<td><img src="images/flags/{FLAG_START}" name="user_flag" /></td>
+		</tr></table>
+	  </span></td>
+	</tr>
+#
+#-----[ 打开 ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ 寻找 ]------------------------------------------ 
+#
+		<input class="post" type="text" name="location" size="35" maxlength="100" value="{LOCATION}" />
+	  </td>
+	</tr>
+#
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_FLAG}:</span></td>
+	  <td class="row2"><span class="gensmall">
+		<table><tr>
+			<td>{FLAG_SELECT}&nbsp;&nbsp;&nbsp;</td>
+	  		<td><img src="../images/flags/{FLAG_START}" name="user_flag" /></td>
+		</tr></table>
+	  </span></td>
+	</tr>
+# 
+#-----[ 储存/关闭所有档案 ]------------------------------------------ 
+# 
+# 外挂修正结束

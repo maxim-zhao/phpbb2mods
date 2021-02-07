@@ -1,0 +1,195 @@
+######################################################## 
+## 外挂名称: 讨论版 分区图示
+## 外挂作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外挂描述: 这个外挂可以让管理员在控制台中指定各个讨论版的分区图示，然后显示在 index
+## 外挂版本: 1.0.0
+## 
+## 安装难度: 简单
+## 安装时间: 5 分钟
+##
+## 需要编辑的档案: 6
+##	index.php
+##	admin/admin_forums.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	templates/subSilver/index_body.tpl
+##	templates/subSilver/admin/forum_admin_body.tpl
+##	templates/subSilver/admin/category_edit_body.tpl
+##
+## 附加的档案: n/a
+##
+## 版权声明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+################################################################# 
+## 由于安全上的考量, 请检查: http://www.phpbb.com/mods/
+## 是否有此外挂的最新版本. 虽然在加入外挂资料库前，外挂已经经过检查
+## 但是这并不保证外挂中完全没有安全上的问题. 
+## 对于不在外挂资料库 (http://www.phpbb.com/mods/) 内的外挂
+## 将不会在 phpbb.com 的讨论板内给予支援 
+############################################################## 
+## 作者留言:
+##	此外挂在 2.0.20 上测试过. 可以用 EasyMOD 0.3.0 来安装此外挂
+## 
+############################################################## 
+## 版本历史: 
+##
+##   2006-05-07 - 版本 1.0.0
+##      - 首次发布
+## 
+############################################################## 
+## 在增加此外挂前, 请务必备份所有需要修改的档案
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# 请记得修改成你的资料表头名称
+ALTER TABLE phpbb_categories ADD cat_icon VARCHAR(255) DEFAULT NULL;
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+$lang['Category_icon'] = '分区图示'; // Category Icon MOD
+$lang['Category_icon_explain'] = 'e.g. 如果你的图片位于 <b>http://yourdomain/forum_path/images/categories_icon/test.gif</b><br /> 那便设定为 <b>images/category_icon/test.gif</b>'; // Category Icon MOD
+# 
+#-----[ 打开 ]------------------------------------------ 
+#  
+admin/admin_forums.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+			$cat_title = $row['cat_title'];
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+			$cat_icon = $row['cat_icon'];	// Category Icon MOD
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+				'CAT_TITLE' => $cat_title,
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+				'CAT_ICON' => $cat_icon,	// Category Icon MOD
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+				'L_CATEGORY' => $lang['Category'],
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+#
+				'L_CAT_ICON' => $lang['Category_icon'],		// Category Icon MOD
+				'L_CAT_ICON_EXPLAIN' =>  $lang['Category_icon_explain'],	// Category Icon MOD
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+				SET cat_title = '" . str_replace("\'", "''", $HTTP_POST_VARS['cat_title']) . "'
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+$HTTP_POST_VARS['cat_title']) . "'
+# 
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+, cat_icon = '" . str_replace("\'", "''", $HTTP_POST_VARS['cat_icon']) . "'
+# 
+#-----[ 寻找 ]------------------------------------------ 
+#
+$sql = "SELECT cat_id, cat_title, cat_order
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+, cat_order
+# 
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+, cat_icon
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+			'CAT_DESC' => $category_rows[$i]['cat_title'],
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+# 
+			'CAT_ICON' => ( !empty($category_rows[$i]['cat_icon']) ) ? '&nbsp;<img src="' . $phpbb_root_path . $category_rows[$i]['cat_icon'] . '" border="0" />&nbsp;' : '',	// Category Icon MOD
+# 
+#-----[ 打开 ]------------------------------------------ 
+#  
+index.php
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+$sql = "SELECT c.cat_id, c.cat_title, c.cat_order
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+, c.cat_order
+# 
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+#
+, c.cat_icon
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+				'CAT_DESC' => $category_rows[$i]['cat_title'],
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+# 
+				'CAT_ICON' => ( !empty($category_rows[$i]['cat_icon']) ) ? '&nbsp;<img src="' . $phpbb_root_path . $category_rows[$i]['cat_icon'] . '" border="0" />&nbsp;' : '',	// Category Icon MOD
+# 
+#-----[ 打开 ]------------------------------------------ 
+#  
+templates/subSilver/admin/category_edit_body.tpl
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+	  <td class="row2"><input class="post" type="text" size="25" name="cat_title" value="{CAT_TITLE}" /></td>
+	</tr>
+# 
+#-----[ 之后, 加上 ]------------------------------------------ 
+# 
+	<tr> 
+	  <td class="row1">{L_CAT_ICON}<br /><span class="gensmall">{L_CAT_ICON_EXPLAIN}</span></td>
+	  <td class="row2"><input type="text" size="35" name="cat_icon" value="{CAT_ICON}" class="post" /></td>
+	</tr>
+# 
+#-----[ 打开 ]------------------------------------------ 
+#  
+templates/subSilver/admin/forum_admin_body.tpl
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+		<td class="catLeft" colspan="3"><span class="cattitle"><b><a href="{catrow.U_VIEWCAT}">{catrow.CAT_DESC}</a></b></span></td>
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+		<td class="catLeft" colspan="3">
+# 
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+# 
+{catrow.CAT_ICON}
+# 
+#-----[ 打开 ]------------------------------------------ 
+# 
+templates/subSilver/index_body.tpl
+# 
+#-----[ 寻找 ]------------------------------------------ 
+# 
+	<td class="catLeft" colspan="2" height="28"><span class="cattitle"><a href="{catrow.U_VIEWCAT}" class="cattitle">{catrow.CAT_DESC}</a></span></td>
+# 
+#-----[ 在该行内寻找 ]------------------------------------------ 
+#
+	<td class="catLeft" colspan="2" height="28">
+# 
+#-----[ 在该行后, 加上 ]------------------------------------------ 
+# 
+{catrow.CAT_ICON}
+# 
+#-----[ 储存/关闭所有档案 ]------------------------------------------ 
+#
+# 外挂修正结束

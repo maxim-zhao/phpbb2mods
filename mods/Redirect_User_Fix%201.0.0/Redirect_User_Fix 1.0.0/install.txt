@@ -1,0 +1,83 @@
+###################### 
+## MOD Title:  Redirect User Fix 1.0.0
+## MOD Author: Solo Forever < solarent@excite.com > (N/As) http://foreversilent.net
+## MOD Author, Secondary: Mav < mav@universalspider.com > (N/As) N/As 
+##
+## MOD Description:
+##			redirect users directly to their message after making a new post, instead of the "Click here to view your message, here for Forum index" message screen.
+## MOD Version:		1.0.0
+## 
+## Installation Level:	Easy
+## Installation Time:	1 Minutes
+## Files To Edit:
+##			includes/functions_post.php
+##			
+## Included Files:
+##			no files included but the mod and it's file within it. 
+###################### 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+###################### 
+## Author Notes:
+##      - We will try our best to give the support if errors should arise. 
+##      - this MOD can be installed with EasyMOD verion 1.0.13
+##
+## 
+######################
+## MOD History: 
+## 
+##   2005-02-01 - Version 0.1
+## 
+###################### 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+######################
+#
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+$meta = '<meta http-equiv="refresh" content="3;url=' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $post_id) . '#' . $post_id . '">'; 
+$message = $lang['Stored'] . '<br /><br />' . sprintf($lang['Click_view_message'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $post_id) . '#' . $post_id . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_forum'], '<a href="' . append_sid("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id") . '">', '</a>'); 
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+// $meta = '<meta http-equiv="refresh" content="3;url=' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $post_id) . '#' . $post_id . '">'; 
+// $message = $lang['Stored'] . '<br /><br />' . sprintf($lang['Click_view_message'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $post_id) . '#' . $post_id . '">', '</a>') . '<br /><br />' . sprintf($lang['Click_return_forum'], '<a href="' . append_sid("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id") . '">', '</a>'); 
+
+if ( $mode != 'editpost' ) 
+{ 
+$user_id = ( $mode == 'reply' || $mode == 'newtopic' ) ? $userdata['user_id'] : $post_data['poster_id']; 
+update_post_stats($mode, $post_data, $forum_id, $topic_id, $post_id, $user_id); 
+} 
+
+if ($error_msg == '' && $mode != 'poll_delete') 
+{ 
+user_notification($mode, $post_data, $post_info['topic_title'], $forum_id, $topic_id, $post_id, $notify_user); 
+} 
+
+if ( $mode == 'newtopic' || $mode == 'reply' ) 
+{ 
+$tracking_topics = ( !empty($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) : array(); 
+$tracking_forums = ( !empty($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) : array(); 
+
+if ( count($tracking_topics) + count($tracking_forums) == 100 && empty($tracking_topics[$topic_id]) ) 
+{ 
+asort($tracking_topics); 
+unset($tracking_topics[key($tracking_topics)]); 
+} 
+
+$tracking_topics[$topic_id] = time(); 
+
+setcookie($board_config['cookie_name'] . '_t', serialize($tracking_topics), 0, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']); 
+} 
+redirect(append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $post_id) . '#' . $post_id, true);
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

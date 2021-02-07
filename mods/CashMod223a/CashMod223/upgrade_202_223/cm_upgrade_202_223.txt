@@ -1,0 +1,909 @@
+############################################################## 
+## MOD Title: Cash Mod
+## MOD Author: Xore < mods@xore.ca > (Robert Hetzler) http://www.xore.ca
+## MOD Description: Cash Mod for users to gain money/points by posting 
+## MOD Version: 2.2.3
+## 
+## Installation Level: Intermediate
+## Installation Time: 15 Minutes 
+## Files To Edit: common.php
+##                memberlist.php
+##                posting.php
+##                privmsg.php
+##                profile.php
+##                viewtopic.php
+##                includes/constants.php
+##                includes/functions.php
+##                includes/functions_post.php
+##                includes/usercp_viewprofile.php
+##                language/lang_english/lang_admin.php,
+##                language/lang_english/lang_main.php,
+##                templates/subSilver/memberlist_body.tpl
+##                templates/subSilver/profile_view_body.tpl
+##                templates/subSilver/viewtopic_body.tpl
+## Included Files: cash.php
+##                 admin/admin_cash.php
+##                 admin/cash_config.php
+##                 admin/cash_currencies.php
+##                 admin/cash_events.php
+##                 admin/cash_exchange.php
+##                 admin/cash_forums.php
+##                 admin/cash_groups.php
+##                 admin/cash_help.php
+##                 admin/cash_log.php
+##                 admin/cash_recount.php
+##                 admin/cash_reset.php
+##                 admin/cash_settings.php
+##                 includes/classes_cash.php
+##                 includes/functions_cash.php
+##                 language/lang_english/lang_cash.php
+##                 templates/subSilver/cash_donate.tpl
+##                 templates/subSilver/cash_exchange.tpl
+##                 templates/subSilver/cash_modedit.tpl
+##                 templates/subSilver/cash_viewprofile.tpl
+##                 templates/subSilver/cash_viewtopic.tpl
+##                 templates/subSilver/admin/cash_config.tpl
+##                 templates/subSilver/admin/cash_currencies.tpl
+##                 templates/subSilver/admin/cash_event.tpl
+##                 templates/subSilver/admin/cash_events.tpl
+##                 templates/subSilver/admin/cash_exchange.tpl
+##                 templates/subSilver/admin/cash_forum.tpl
+##                 templates/subSilver/admin/cash_group.tpl
+##                 templates/subSilver/admin/cash_groups.tpl
+##                 templates/subSilver/admin/cash_help.tpl
+##                 templates/subSilver/admin/cash_log.tpl
+##                 templates/subSilver/admin/cash_menu.tpl
+##                 templates/subSilver/admin/cash_navbar.tpl
+##                 templates/subSilver/admin/cash_reset.tpl
+##                 templates/subSilver/admin/cash_resetting.tpl
+##                 templates/subSilver/admin/cash_settings.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+##
+##     Please read the README.txt, there is
+##          IMPORTANT & NECESSARY installation information there
+##
+##     Many thanks to everyone who has contributed, they can be found in
+##          credits.txt
+##     My apologies if i've missed anyone
+##
+############################################################## 
+## MOD History:
+## v2.2.3 phpbb 2.0.18 compatibility
+## v2.2.2 Security Patch
+## v2.2.1 Fixed a few minor bugs
+## v2.2.0 A bundle of new features
+## v2.0.2 Another Bug fix, plus help/support link.
+## v2.0.1 A few bug fixes...
+## v2.0.0 Multiple currencies, fixed log_actions mod incompatibility
+##        And a bunch of other stuff ;-)
+## v1.1.2 EasyMOD Compliance
+## v1.1.1 Bug fix for admin panels
+## v1.1.0 Forum management added, donations, admin editing, logging, quotes stripping
+##        Renaming from MoneySystems to Cash Mod
+## v1.0.1 SQL update, with quotes
+## v1.0.0 First version release. no bugs, i hope :P
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ DELETE ]------------------------------------------ 
+#
+exchange.php
+admin/admin_cash_config.php
+admin/admin_cash_currencies.php
+admin/admin_cash_exchange.php
+admin/admin_cash_forums.php
+admin/admin_cash_help.php
+admin/admin_cash_log.php
+admin/admin_cash_settings.php
+templates/subSilver/exchange_body.tpl
+
+#
+#-----[ COPY ]------------------------------------------ 
+#
+copy cash.php                                      to cash.php
+copy admin/admin_cash.php                          to admin/admin_cash.php
+copy admin/cash_config.php                         to admin/cash_config.php
+copy admin/cash_currencies.php                     to admin/cash_currencies.php
+copy admin/cash_events.php                         to admin/cash_events.php
+copy admin/cash_exchange.php                       to admin/cash_exchange.php
+copy admin/cash_forums.php                         to admin/cash_forums.php
+copy admin/cash_groups.php                         to admin/cash_groups.php
+copy admin/cash_help.php                           to admin/cash_help.php
+copy admin/cash_log.php                            to admin/cash_log.php
+copy admin/cash_recount.php                        to admin/cash_recount.php
+copy admin/cash_reset.php                          to admin/cash_reset.php
+copy admin/cash_settings.php                       to admin/cash_settings.php
+copy includes/classes_cash.php                     to includes/classes_cash.php
+copy includes/functions_cash.php                   to includes/functions_cash.php
+copy language/lang_english/lang_cash.php           to language/lang_english/lang_cash.php
+copy templates/subSilver/cash_donate.tpl           to templates/subSilver/cash_donate.tpl
+copy templates/subSilver/cash_exchange.tpl         to templates/subSilver/cash_exchange.tpl
+copy templates/subSilver/cash_modedit.tpl          to templates/subSilver/cash_modedit.tpl
+copy templates/subSilver/cash_viewprofile.tpl      to templates/subSilver/cash_viewprofile.tpl
+copy templates/subSilver/cash_viewtopic.tpl        to templates/subSilver/cash_viewtopic.tpl
+copy templates/subSilver/admin/cash_config.tpl     to templates/subSilver/admin/cash_config.tpl
+copy templates/subSilver/admin/cash_currencies.tpl to templates/subSilver/admin/cash_currencies.tpl
+copy templates/subSilver/admin/cash_event.tpl      to templates/subSilver/admin/cash_event.tpl
+copy templates/subSilver/admin/cash_events.tpl     to templates/subSilver/admin/cash_events.tpl
+copy templates/subSilver/admin/cash_exchange.tpl   to templates/subSilver/admin/cash_exchange.tpl
+copy templates/subSilver/admin/cash_forum.tpl      to templates/subSilver/admin/cash_forum.tpl
+copy templates/subSilver/admin/cash_group.tpl      to templates/subSilver/admin/cash_group.tpl
+copy templates/subSilver/admin/cash_groups.tpl     to templates/subSilver/admin/cash_groups.tpl
+copy templates/subSilver/admin/cash_help.tpl       to templates/subSilver/admin/cash_help.tpl
+copy templates/subSilver/admin/cash_log.tpl        to templates/subSilver/admin/cash_log.tpl
+copy templates/subSilver/admin/cash_menu.tpl       to templates/subSilver/admin/cash_menu.tpl
+copy templates/subSilver/admin/cash_navbar.tpl     to templates/subSilver/admin/cash_navbar.tpl
+copy templates/subSilver/admin/cash_reset.tpl      to templates/subSilver/admin/cash_reset.tpl
+copy templates/subSilver/admin/cash_resetting.tpl  to templates/subSilver/admin/cash_resetting.tpl
+copy templates/subSilver/admin/cash_settings.tpl   to templates/subSilver/admin/cash_settings.tpl
+
+# 
+#-----[ SQL ]------------------------------------------
+#
+#   There is an automatic sql upgrader that works currently for mysql
+#   It is neccessary to copy the file sql_upgrade_202_223.php to your main phpbb directory and run it from there
+#   After that, you want to delete the file immediately.
+#
+#   If you prefer to run the queries manually yourself, or to translate it to a different dbms
+#   than mysql, the raw queries are located in sql_202_223.txt, but are only available for mysql.
+#
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+common.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+include($phpbb_root_path . 'includes/db.'.$phpEx);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+if ( defined('IN_CASHMOD') )
+{
+	include($phpbb_root_path . 'includes/functions_cash.'.$phpEx);
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+memberlist.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('IN_PHPBB', true);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+define('IN_CASHMOD', true);
+define('CM_MEMBERLIST', true);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$select_sort_mode = '<select name="mode">';
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$cm_memberlist->droplists($mode_types_text,$mode_types);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	default:
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	case $cm_memberlist->modecheck($mode):
+		$order_by = $cm_memberlist->getfield($mode) . " $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	ORDER BY $order_by";
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$cm_memberlist->generate_columns($template,$sql,8);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			'U_VIEWPROFILE' => append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$user_id"))
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		);
+
+		$cm_memberlist->listing($template,$row
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+posting.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('IN_PHPBB', true);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+define('IN_CASHMOD', true);
+define('CM_POSTING', true);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$sql = "SELECT f.*, t.topic_status, t.topic_title, t.topic_type  
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+t.topic_type
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, t.topic_poster
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$select_sql = (!$submit) ? ', t.topic_title, p.enable_bbcode, p.enable_html, p.enable_smilies, p.enable_sig, p.post_username, pt.post_subject, pt.post_text, pt.bbcode_uid, u.username, u.user_id, u.user_sig, u.user_sig_bbcode_uid' : '';
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+		$temp = $submit;
+		$submit = !(!$submit || ( isset($board_config['cash_disable']) && !$board_config['cash_disable'] && (($mode == 'editpost') || ($mode == 'delete'))));
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$where_sql = ( !$submit ) ? "AND pt.post_id = p.post_id AND u.user_id = p.poster_id" : '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$submit = $temp;
+		unset($temp);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$post_data['poster_post'] = ( $post_info['poster_id'] == $userdata['user_id'] ) ? true : false;
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+		$post_data['post_text'] = ( ($mode == 'editpost') || ($mode == 'delete') ) ? $post_info['post_text'] : '';
+		$post_data['bbcode_uid'] = ( ($mode == 'editpost') || ($mode == 'delete') ) ? $post_info['bbcode_uid'] : '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$post_data['first_post'] = ( $mode == 'newtopic' ) ? true : 0;
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+		$post_data['topic_poster'] = ( $mode == 'reply' ) ? $post_info['topic_poster'] : 0;
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+privmsg.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('IN_PHPBB', true);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+define('IN_CASHMOD', true);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$emailer->reset();
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			}
+			$pmer = new cash_user($userdata['user_id'],$userdata);
+			$pmer->give_pm_amount();
+			while ( false ) {
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+profile.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('IN_PHPBB', true);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+if ( (isset($HTTP_GET_VARS['mode']) && ($HTTP_GET_VARS['mode'] == 'viewprofile')) || (isset($HTTP_POST_VARS['mode']) && ($HTTP_POST_VARS['mode'] == 'viewprofile')) )
+{
+	define('IN_CASHMOD', true);
+	define('CM_VIEWPROFILE',true);
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+viewtopic.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('IN_PHPBB', true);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+define('IN_CASHMOD', true);
+define('CM_VIEWTOPIC', true);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$cash_data = array();
+$cash_field = "";
+if ( !$board_config['cash_disable'] )
+{
+	$sql = "SELECT cash_dbfield, cash_name, cash_image, cash_imageurl
+			FROM " . CASH_TABLE . "
+			WHERE cash_enabled = 1 AND cash_postdisplay = 1
+			ORDER BY cash_order ASC";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, "Could not obtain Cash Mod information.", '', __LINE__, __FILE__, $sql);
+	}
+	while ( $row = $db->sql_fetchrow($result) )
+	{
+		$cash_data[] = $row;
+		$cash_field .= $row['cash_dbfield'] . ", ";
+	}
+}
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# nothing... just delete it
+# 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "SELECT u.username, u.user_id, u.user_posts,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+$cash_field 
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# nothing... just delete it
+# 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	LIMIT $start, ".$board_config['posts_per_page'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$cm_viewtopic->generate_columns($template,$forum_id,$sql);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	foreach ( $cash_data AS $cash_set )
+	{
+		$template->assign_block_vars('postrow.cashrow', array(	'CASH_NAME' => (($cash_set['cash_image'] == 1)?('<img src="'.$phpbb_root_path.$cash_set['cash_imageurl'].'" />'):($cash_set['cash_name'])),
+																'CASH_AMOUNT' => $postrow[$i][$cash_set['cash_dbfield']]));
+	}
+
+	while ( false
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	$cm_viewtopic->post_vars($postrow[$i],$userdata,$forum_id
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/constants.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+// Log Settings
+define('CASH_LOG_DONATE', 1);
+define('CASH_LOG_ADMIN_REMOVE', 2);
+define('CASH_LOG_ADMIN_GIVE', 3);
+define('CASH_LOG_ADMIN_CREATE_CURRENCY',4);
+define('CASH_LOG_ADMIN_DELETE_CURRENCY',5);
+define('CASH_LOG_ADMIN_SET_CURRENCY',6);
+define('CASH_LOG_ADMIN_RENAME_CURRENCY',7);
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# nothing... just delete it
+# 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('CASH_TABLE', $table_prefix.'cash');
+define('CASH_EXCHANGE_TABLE', $table_prefix.'cash_exchange');
+define('CASH_LOGS_TABLE', $table_prefix.'cash_log');
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# nothing... just delete it
+# 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_main.' . $phpEx);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	if ( defined('IN_CASHMOD') )
+	{
+		if ( !file_exists(@phpbb_realpath($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_cash.'.$phpEx)) )
+		{
+			include($phpbb_root_path . 'language/lang_english/lang_cash.' . $phpEx);
+		}
+		else
+		{
+			include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_cash.' . $phpEx);
+		}
+	}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions_post.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if ( !$board_config['cash_disable'] )
+{
+	include($phpbb_root_path . 'includes/functions_cash.'.$phpEx);
+}
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# nothing... just delete it
+# 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$cash_message = "";
+	if ( !$board_config['cash_disable'] )
+	{
+		$cash_message = cash_update($mode,$forum_id,$post_id,$post_message,$current_time);
+	}
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	$cash_message = $GLOBALS['cm_posting']->update_post($mode, $post_data, $forum_id, $topic_id, $post_id, $topic_type, $bbcode_uid, $post_username, $post_message);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	if ( !$board_config['cash_disable'] )
+	{
+		cash_update($mode,$forum_id,$post_id,$post_message);
+	}
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+		$GLOBALS['cm_posting']->update_delete($mode, $post_data, $forum_id, $topic_id, $post_id);
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_viewprofile.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if ( !($board_config['cash_disabled']) )
+{
+	include($phpbb_root_path . 'includes/functions_cash.'.$phpEx);
+	
+	$cash_table = array();
+	$indices = array();
+
+	get_cash_table($cash_table,$indices);
+
+	if ( isset($HTTP_POST_VARS['admin_donate']) && ($HTTP_POST_VARS['admin_donate'] == 1) )
+	{
+		cash_admin_donate($HTTP_GET_VARS[POST_USERS_URL],$userdata,$HTTP_POST_VARS['admin_amount'],$cash_table[$HTTP_POST_VARS['cash_type']]);
+	}
+
+	if ( isset($HTTP_POST_VARS['member_donate']) && ($HTTP_POST_VARS['member_donate'] == 1) )
+	{
+		cash_user_donate($HTTP_GET_VARS[POST_USERS_URL],$userdata,$HTTP_POST_VARS['donate_amount'],$cash_table[$HTTP_POST_VARS['cash_type']]);
+	}
+	
+}
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# nothing... just delete it
+# 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'L_EXCHANGE' => $lang['Exchange'],
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# nothing... just delete it
+# 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'U_EXCHANGE' => append_sid("exchange.$phpEx"),
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# nothing... just delete it
+# 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$cash_count = 0;
+foreach ( $cash_table AS $cash_set )
+{
+	if( !($board_config['cash_disable']) && (($cash_set['cash_enabled'] && $cash_set['cash_profiledisplay']) || ($userdata['user_level'] == ADMIN)) )
+	{
+		$template->assign_block_vars('cashrow', array(	'CASH_NAME' => (($cash_set['cash_image'])?('<img src="'.$phpbb_root_path.$cash_set['cash_imageurl'].'" />'):($cash_set['cash_name'])),
+														'CASH_AMOUNT' => $profiledata[$cash_set['cash_dbfield']],
+														'CASH_TYPE' => $cash_set['cash_id'],
+
+														'DONATER_CASH' => $userdata[$cash_set['cash_dbfield']],
+
+														'L_DONATE' => $lang['Donate'],
+														'L_ADD_CASH' => sprintf($lang['Add_cash'], $cash_set['cash_name']),
+
+														'S_DONATE_ACTION' => append_sid("profile.$phpEx?mode=viewprofile&u=".$HTTP_GET_VARS[POST_USERS_URL]),
+														'S_ADMIN_ACTION' => append_sid("profile.$phpEx?mode=viewprofile&u=".$HTTP_GET_VARS[POST_USERS_URL]))
+														);
+		if ( $cash_set['cash_enabled'] && $cash_set['cash_donate'] && $userdata['session_logged_in'] && ($userdata['user_id'] != $profiledata['user_id']) )
+		{
+			$template->assign_block_vars('cashrow.switch_donatedisplay', array());
+		}
+		if ( ($userdata['user_level'] == ADMIN) || (($cash_set['cash_modedit'] == 1) && ($userdata['user_level'] == MOD)) )
+		{
+			$template->assign_block_vars('cashrow.switch_admindisplay', array());
+		}
+		$cash_count++;
+	}
+}
+if ( !$board_config['cash_disable'] && ($cash_count > 1) )
+{
+	$template->assign_block_vars("switch_exchangeon", array());
+}
+	
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+$cm_viewprofile->post_vars($template,$profiledata,$userdata);
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// Cash Mod Configuration
+//
+$lang['Cash_Configuration'] = 'Cash Configuration';
+$lang['Cash_Currencies'] = 'Cash Currencies';
+$lang['Cash_Exchange'] = 'Cash Exchange';
+$lang['Cash_Forums'] = 'Cash Forums';
+$lang['Cash_Logs'] = 'Cash Logs';
+$lang['Cash_Settings'] = 'Cash Settings';
+
+$lang['Cash_config'] = 'Cash Mod Configuration';
+$lang['Cash_config_explain'] = 'The form below will to set your Cash Mod configuration.';
+$lang['Cash_currencies'] = 'Cash Mod Configuration';
+$lang['Cash_currencies_explain'] = 'The form below will allow you to manage your currencies.';
+$lang['Cash_exchange'] = 'Cash Mod Exchange';
+$lang['Cash_exchange_explain'] = 'The form below will allow you to set the relative value of your currencies, and enable users to exchange.';
+$lang['Forum_settings'] = 'Forum Settings';
+$lang['Forum_settings_explain'] = 'From this panel you can set which forums have Cash Mod enabled';
+$lang['Logs'] = 'Logs';
+$lang['Logs_explain'] = 'From this panel you can see logged Cash Mod events';
+$lang['Cash_settings'] = 'Cash Mod Settings';
+$lang['Cash_settings_explain'] = 'The form below will allow you to customize all the Currency Settings.';
+
+// Config
+$lang['Messages'] = 'Messages';
+$lang['Spam'] = 'Spam';
+$lang['Click_return_cash_config'] = 'Click %sHere%s to return to Cash Mod Configuration';
+$lang['Cash_config_updated'] = 'Cash Mod Configuration Updated Successfully';
+$lang['Cash_disabled'] = 'Disable Cash Mod';
+$lang['Cash_message'] = 'Show Earnings in Post/Reply confirmation screen';
+$lang['Cash_display_message'] = 'Message to display user earnings';
+$lang['Cash_display_message_explain'] = 'Must have exactly one "%s" in it';
+$lang['Cash_spam_disable_num'] = 'Number of posts to disable earnings after (spam prevention)';
+$lang['Cash_spam_disable_time'] = 'Time peroid over which these posts must exceed (hours)';
+$lang['Cash_spam_disable_message'] = 'Spam announcement for null earnings';
+
+// Currencies
+$lang['Click_return_cash_currencies'] = 'Click %sHere%s to return to Cash Mod Currencies';
+$lang['Cash_currencies_updated'] = 'Cash Mod Currencies Updated Successfully';
+$lang['Cash_field'] = 'Field';
+$lang['Cash_currency'] = 'Currency';
+$lang['Cash_order'] = 'Order';
+$lang['Cash_set_all'] = 'Set for all users';
+$lang['Cash_delete'] = 'Delete Currency';
+$lang['Set'] = 'Set';
+
+$lang['Cash_confirm_reset'] = 'Set all user\'s %s to %s?<br />This cannot be undone';
+$lang['Cash_confirm_delete'] = 'Delete %s?<br />This cannot be undone';
+
+$lang['Cash_new_currency'] = 'Create new Currency';
+$lang['Cash_currency_dbfield'] = 'Database field for currency';
+$lang['Cash_currency_default'] = 'Default value for currency';
+
+// Exchange
+$lang['Exchange_insufficient_currencies'] = 'You don\'t have enough Currencies created to create exchange rates<br />At least 2 are required';
+
+// Help
+$lang['Cash_Help'] = 'Cash Help';
+$lang['Cash_help'] = 'Click <a href="%s">Here</a> for help';
+
+// Settings
+$lang['Display'] = 'Display';
+$lang['Implementation'] = 'Implementation';
+$lang['Click_return_cash_settings'] = 'Click %sHere%s to return to Cash Mod Settings';
+$lang['Cash_settings_updated'] = 'Cash Mod Settings Updated Successfully';
+
+$lang['Cash_enabled'] = 'Enable Currency';
+$lang['Cash_custom_currency'] = 'Custom Currency for Cash Mod';
+$lang['Cash_image'] = 'Display the currency as an image';
+$lang['Cash_imageurl'] = 'Image (Relative to phpBB2 root path):';
+$lang['Cash_imageurl_explain'] = 'Use this to define a small image associated with the currency';
+$lang['Prefix'] = 'Prefix';
+$lang['Postfix'] = 'Postfix';
+$lang['Cash_currency_style'] = 'Currency style for Cash Mod';
+$lang['Cash_currency_style_explain'] = 'Currency symbol as ' . $lang['Prefix'] . ' or ' . $lang['Postfix'];
+$lang['Cash_display_usercp'] = 'Show earnings in UserCp';
+$lang['Cash_display_userpost'] = 'Show earnings in Post Profile';
+$lang['Cash_amount_per_post'] = 'Amount of cash earned per post (new topic)';
+$lang['Cash_amount_post_bonus'] = 'Amount of bonus cash earned per reply for topic author';
+$lang['Cash_amount_per_reply'] = 'Amount of cash earned per reply';
+$lang['Cash_amount_per_character'] = 'Amount of cash earned per character';
+$lang['Cash_maxearn'] = 'Maximum amount of cash earned for posting';
+$lang['Cash_include_quotes'] = 'Include quotes when calculating cash per character';
+$lang['Cash_allow_donate'] = 'Allow users to donate their cash to other users';
+$lang['Cash_allow_mod_edit'] = 'Allow moderators to edit user\'s cash';
+$lang['Cash_allow_negative'] = 'Allow users to have negative cash amounts';
+
+// Cash Mod Log Text
+$lang['Donated'] = 'donated';
+$lang['Gave'] = 'gave';
+$lang['Removed'] = 'removed';
+$lang['Created'] = 'created';
+$lang['Deleted'] = 'deleted';
+$lang['Set_all_users'] = 'set all users';
+$lang['Renamed'] = 'renamed';
+$lang['To'] = 'to';
+$lang['From'] = 'from';
+$lang['Log'] = 'Log';
+$lang['Action'] = 'Action';
+$lang['All'] = 'All';
+$lang['Admin'] = 'Admin';
+$lang['User'] = 'User';
+$lang['Delete_all_logs'] = 'Delete all logs';
+$lang['Delete_admin_logs'] = 'Delete admin logs';
+$lang['Delete_user_logs'] = 'Delete user logs';
+$lang['Day'] = 'Day';
+$lang['Week'] = 'Week';
+$lang['Month'] = 'Month';
+$lang['Year'] = 'Year';
+$lang['Page'] = 'Page';
+$lang['Per_page'] = 'per page';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# nothing... just delete it
+# 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['Donate'] = 'Donate';
+$lang['Add_cash'] = 'Add %s';
+$lang['Exchange'] = 'Exchange';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# nothing... just delete it
+# 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// Exchange
+//
+$lang['Convert'] = 'Convert';
+$lang['Select_one'] = 'Select One';
+$lang['Exchange_lack_of_currencies'] = 'There aren\'t enough Currencies for you to be able to exchange<br />To enable this feature, your admin needs to create at least 2 currencies';
+$lang['You_have'] = 'You have';
+$lang['One_worth'] = 'One %s is worth:';
+$lang['Cannot_exchange'] = 'You cannot exchange %s, currently';
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# nothing... just delete it
+# 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/memberlist_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# in subSilver, the full line is 
+#	  <th class="thTop" nowrap="nowrap">{L_POSTS}</th>
+#
+	{L_POSTS}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# on the next line
+#
+	  <!-- BEGIN cashrow -->
+	  <th class="thTop" nowrap="nowrap">{cashrow.NAME}</th>
+	  <!-- END cashrow -->
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# in subSilver, the full line is 
+#	  <td class="{memberrow.ROW_CLASS}" align="center" valign="middle"><span class="gen">{memberrow.POSTS}</span></td>
+# 
+	  {memberrow.POSTS}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# on the next line
+#
+	  <!-- BEGIN cashrow -->
+	  <td class="{memberrow.ROW_CLASS}" align="center" valign="middle"><span class="gen">{memberrow.cashrow.CASH_DISPLAY}</span></td>
+	  <!-- END cashrow -->
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# in subSilver, the full line is 
+#	  <td class="catBottom" colspan="8" height="28">&nbsp;</td>
+# 
+colspan="8"
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+8
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+{NUM_COLUMNS}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/profile_view_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<!-- BEGIN cashrow -->
+		<tr> 
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{cashrow.CASH_NAME}:</span></td>
+		  <td><table border=0><tr><td width="50"><span class="gen"><b>{cashrow.CASH_AMOUNT}</b></span></td>
+		<!-- BEGIN switch_donatedisplay -->
+		<form style="{display: inline;}" action="{cashrow.S_DONATE_ACTION}" method="post"><td><span class="gen"><input type="submit" value="{cashrow.L_DONATE}" class="liteoption" /> <input type="hidden" name="member_donate" value="1" /><input type="hidden" name="cash_type" value="{cashrow.CASH_TYPE}" /><input name="donate_amount" value="0" size="5" class="post" /> / </span></td><td width="50"><span class="gen"><b>{cashrow.DONATER_CASH}</b></span></td></form>
+		<!-- END switch_donatedisplay -->
+		<!-- BEGIN switch_admindisplay -->
+		<form style="{display: inline;}" action="{cashrow.S_ADMIN_ACTION}" method="post"><td><span class="gen"><input type="submit" value="{cashrow.L_ADD_CASH}" class="liteoption" /> <input type="hidden" name="admin_donate" value="1" /><input type="hidden" name="cash_type" value="{cashrow.CASH_TYPE}" /><input name="admin_amount" value="0" size="5" class="post" /></span></td></form>
+		<!-- END switch_admindisplay -->
+		  </tr></table></td>
+		</tr>
+		<!-- END cashrow -->
+		<!-- BEGIN switch_exchangeon -->
+		<tr> 
+		  <td valign="top" align="right" nowrap="nowrap"><span class="gen"></span></td>
+		  <form style="{display: inline;}" action="{U_EXCHANGE}" method="post"><td><input type="submit" value="{L_EXCHANGE}" class="liteoption" /></td></form>
+		</tr>
+		<!-- END switch_exchangeon -->
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+		{CASH}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/viewtopic_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<!-- BEGIN cashrow -->
+		<br />{postrow.cashrow.CASH_NAME}: {postrow.cashrow.CASH_AMOUNT}
+		<!-- END cashrow -->
+
+#
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+{postrow.CASH}
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

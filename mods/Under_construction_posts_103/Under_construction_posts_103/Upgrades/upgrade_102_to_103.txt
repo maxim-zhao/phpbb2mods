@@ -1,0 +1,107 @@
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( $postrow[$i]['post_draft'] =='1' && $userdata['user_id'] != $postrow[$i]['user_id'] )
+	{
+		$message = $lang['Draft_on'];
+	}
+	else
+	{
+
+		$message = $postrow[$i]['post_text'];
+	}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+
+	if ( $postrow[$i]['post_draft'] =='1' && $userdata['user_id'] != $postrow[$i]['user_id'] && !$is_auth['auth_mod'] )
+	{
+		$message = $lang['Draft_on'];
+	}
+	else if ( ( $postrow[$i]['post_draft'] =='1' && (( $is_auth['auth_mod'] ) || !($userdata['user_id'] != $postrow[$i]['user_id'])) ))
+	{
+
+		$message = '<b>'.$lang['Draft_on'].'&nbsp;</b><font color="red">'.$postrow[$i]['post_text'].'</font>';
+	}
+	else
+	{
+
+		$message = $postrow[$i]['post_text'];
+	}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$tsql = "SELECT * FROM " . POSTS_TABLE . " p , " . TOPICS_TABLE . " t
+	WHERE t.topic_id = $topic_id
+	AND p.post_id = $post_id
+	AND p.topic_id = t.topic_id";
+
+$tresult = $db->sql_query($tsql);
+
+if( !$tresult )
+{
+	message_die(GENERAL_ERROR, "Couldn't obtain draft posts from database", "", __LINE__, __FILE__, $sql);
+}
+
+$tdraft = $db->sql_fetchrow($tresult);
+
+if ( (!empty($forum_topic_data['topic_vote'])) && ( $tdraft['post_draft'] == '0' || !($userdata['user_id'] != $tdraft['poster_id'])) )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+$sql = "SELECT t.topic_first_post_id , p.poster_id , p.post_draft 
+FROM " . TOPICS_TABLE . " t , " . POSTS_TABLE . " p
+WHERE p.post_id = t.topic_first_post_id
+AND t.topic_id = $topic_id";
+$result = $db->sql_query($sql);
+if( !$result )
+{
+	message_die(GENERAL_ERROR, "Couldn't obtain draft posts from database", "", __LINE__, __FILE__, $sql);
+}
+$tdraft = $db->sql_fetchrow($tresult);
+
+if ( (!empty($forum_topic_data['topic_vote'])) && ( !($tdraft['post_draft'] == '1' ) || !($tdraft['poster_id'] != $userdata['user_id'])))
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			if ( $row['post_draft'] =='1' && $userdata['user_id'] != $row['user_id'] )
+			{
+				$message = $lang['Draft_on'];
+			}
+			else
+			{
+				$message = $row['post_text'];
+			}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			if ( $row['post_draft'] =='1' && $userdata['user_id'] != $row['user_id'] && !$is_auth['auth_mod'])
+			{
+				$message = $lang['Draft_on'];
+			}
+			else if ( ( $row['post_draft'] =='1' && (( $is_auth['auth_mod'] ) || !($userdata['user_id'] != $row['user_id'])) ))
+			{
+
+				$message = '<b>'.$lang['Draft_on'].'&nbsp;</b><font color="red">'.$row['post_text'].'</font>';
+			}
+			else
+			{
+
+				$message = $row['post_text'];
+			}
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------- 
+# 
+# EoM

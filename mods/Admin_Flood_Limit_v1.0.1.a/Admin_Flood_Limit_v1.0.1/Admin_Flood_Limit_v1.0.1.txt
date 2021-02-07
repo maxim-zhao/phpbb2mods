@@ -1,0 +1,361 @@
+##############################################################
+## MOD Title: Admin Flood Limit
+## MOD Author: RedFoxy < redfoxy@redfoxy.it > (Massimo Ciccio') http://www.redfoxy.it/
+## MOD Description: Administrate the various flood limit of forum,
+##		    you can disable the flood control or set it with different values for Admin, Mods and Users.
+##		    That mod is maded on phpBB 2.0.20 and administrate message and search flood.
+##
+## MOD Version: 1.0.1
+##
+## Installation Level: easy 
+## Installation Time: 1 Minute
+## Files To Edit:
+##		search.php
+##		includes/functions_post.php
+##		admin/admin_board.php
+##		language/lang_english/lang_admin.php
+##		templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files:
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## 
+## This MOD has been tested on phpBB 2.0.20, Categories Hierarchy v 2.1.4 and easyMod 0.3.0
+##
+## Future versions can be found at http://www.redfoxy.it
+## I've set up a support forum for my mods at http://www.forum.redfoxy.com (it's an italian
+## forum but you can post in english without problems in Web & Co and in to Web & Co/phpBB forum.
+##
+## DON'T REMOVE the comments that you found in that mod!
+## That comments are essential for Foxy Fix (auto-Fix of mod installed) and Foxy Update (auto-update of mod).
+##
+## This MOD is released under the GPL License.
+## Intellectual Property is retained by the MOD Author(s) listed above
+## Copyright:      (C) 2005 Admin Control Pannel Foxy Menu 1.0.1 - RedFoxy
+##
+##############################################################
+## MOD History:
+##
+##	2006-05-12 - v1.0.1
+##		- Correct some typo
+##	2006-04-25 - v1.0.0
+##		- First release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('flood_control', '1');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('flood_interval_admin', '15');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('flood_interval_mod', '15');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('search_flood_control', '1');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('search_flood_interval_admin', '15');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('search_flood_interval_mod', '15');
+#
+#-----[ OPEN ]------------------------------------------------
+#
+search.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		//
+		// Flood control
+		//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+	   if($board_config['search_flood_control'] == 1)
+	   {
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			 if (intval($row['last_search_time']) > 0 && ($current_time - intval($row['last_search_time'])) < intval($board_config['search_flood_interval']))
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+			if ($userdata['user_level'] == ADMIN)
+			{
+				$search_flood_limit = intval($board_config['search_flood_interval_admin']);
+			}
+			elseif ($userdata['user_level'] == MOD)
+			{
+				$search_flood_limit = intval($board_config['search_flood_interval_mod']);
+			}
+			else
+			{
+				$search_flood_limit = intval($board_config['search_flood_interval']);
+			}
+//-- replace
+//			 if (intval($row['last_search_time']) > 0 && ($current_time - intval($row['last_search_time'])) < intval($board_config['search_flood_interval']))
+//-- with
+			if (intval($row['last_search_time']) > 0 && ($current_time - intval($row['last_search_time'])) < $search_flood_limit)
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+					message_die(GENERAL_MESSAGE, $lang['Search_Flood_Error']);
+				}
+			}
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+	   }
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		//
+		// Flood control
+		//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+	   if($board_config['flood_control'] == 1)
+	   {
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			if (intval($row['last_post_time']) > 0 && ($current_time - intval($row['last_post_time'])) < intval($board_config['flood_interval']))
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+			if ($userdata['user_level'] == ADMIN)
+			{
+				$flood_limit = intval($board_config['flood_interval_admin']);
+			}
+			elseif ($userdata['user_level'] == MOD)
+			{
+				$flood_limit = intval($board_config['flood_interval_mod']);
+			}
+			else
+			{
+				$flood_limit = intval($board_config['flood_interval']);
+			}
+//-- replace
+//			if (intval($row['last_post_time']) > 0 && ($current_time - intval($row['last_post_time'])) < intval($board_config['flood_interval']))
+//-- with
+			if (intval($row['last_post_time']) > 0 && ($current_time - intval($row['last_post_time'])) < $flood_limit)
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+					message_die(GENERAL_MESSAGE, $lang['Flood_Error']);
+				}
+			}
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+	   }
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$smile_yes = ( $new['allow_smilies'] ) ? "checked=\"checked\"" : "";
+$smile_no = ( !$new['allow_smilies'] ) ? "checked=\"checked\"" : "";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+$flood_control_yes = ( $new['flood_control'] ) ? "checked=\"checked\"" : "";
+$flood_control_no = ( !$new['flood_control'] ) ? "checked=\"checked\"" : "";
+
+$search_flood_control_yes = ( $new['search_flood_control'] ) ? "checked=\"checked\"" : "";
+$search_flood_control_no = ( !$new['search_flood_control'] ) ? "checked=\"checked\"" : "";
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"L_FLOOD_INTERVAL" => $lang['Flood_Interval'],
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+	"L_FLOOD_CONTROL" => $lang['Flood_Control'],
+	"L_FLOOD_CONTROL_EXPLAIN" => $lang['Flood_Control_Explain'],
+	"L_FLOOD_INTERVAL_ADMIN" => $lang['Flood_Interval_Admin'],
+	"L_FLOOD_INTERVAL_ADMIN_EXPLAIN" => $lang['Flood_Interval_Admin_Explain'],
+	"L_FLOOD_INTERVAL_MOD" => $lang['Flood_Interval_Mod'],
+	"L_FLOOD_INTERVAL_MOD_EXPLAIN" => $lang['Flood_Interval_Mod_Explain'],
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+	"L_SEARCH_FLOOD_CONTROL" => $lang['Search_Flood_Control'],
+	"L_SEARCH_FLOOD_CONTROL_EXPLAIN" => $lang['Search_Flood_Control_Explain'],
+	"L_SEARCH_FLOOD_INTERVAL_ADMIN" => $lang['Search_Flood_Interval_Admin'],
+	"L_SEARCH_FLOOD_INTERVAL_ADMIN_EXPLAIN" => $lang['Search_Flood_Interval_Admin_Explain'],
+	"L_SEARCH_FLOOD_INTERVAL_MOD" => $lang['Search_Flood_Interval_Mod'],
+	"L_SEARCH_FLOOD_INTERVAL_MOD_EXPLAIN" => $lang['Search_Flood_Interval_Mod_Explain'],
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"FLOOD_INTERVAL" => $new['flood_interval'],
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+	"S_FLOOD_CONTROL_YES" => $flood_control_yes,
+	"S_FLOOD_CONTROL_NO" => $flood_control_no,
+	"FLOOD_INTERVAL_ADMIN" => $new['flood_interval_admin'],
+	"FLOOD_INTERVAL_MOD" => $new['flood_interval_mod'],
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+	"S_SEARCH_FLOOD_CONTROL_YES" => $search_flood_control_yes,
+	"S_SEARCH_FLOOD_CONTROL_NO" => $search_flood_control_no,
+	"SEARCH_FLOOD_INTERVAL_ADMIN" => $new['search_flood_interval_admin'],
+	"SEARCH_FLOOD_INTERVAL_MOD" => $new['search_flood_interval_mod'],
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['Flood_Interval']
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+$lang['Flood_Control'] = 'Flood control system';
+$lang['Flood_Control_Explain'] = 'Enable/Disable flood control on messages';
+$lang['Flood_Interval_Admin'] = 'Flood Interval - Admin';
+$lang['Flood_Interval_Admin_Explain'] = 'Number of seconds an Admin must wait between posts (0=Disabled)';
+$lang['Flood_Interval_Mod'] = 'Flood Interval - Mod';
+$lang['Flood_Interval_Mod_Explain'] = 'Number of seconds a Mod must wait between posts (0=Disabled)';
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Admin Flood Limit - 04x101 -------------------------------------------------------------
+//-- add
+$lang['Search_Flood_Control'] = 'Search Flood control system';
+$lang['Search_Flood_Control_Explain'] = 'Enable/Disable flood control on searchs';
+$lang['Search_Flood_Interval_Admin'] = 'Search Flood Interval - Admin';
+$lang['Search_Flood_Interval_Admin_Explain'] = 'Number of seconds an Admin must wait between search requests (0=Disabled)';
+$lang['Search_Flood_Interval_Mod'] = 'Search Flood Interval - Mod';
+$lang['Search_Flood_Interval_Mod_Explain'] = 'Number of seconds a Mod must wait between search requests (0=Disabled)';
+//-- end mod : Admin Flood Limit - 04x101 ---------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_FLOOD_INTERVAL} <br /><span class="gensmall">{L_FLOOD_INTERVAL_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="flood_interval" value="{FLOOD_INTERVAL}" /></td>
+	</tr>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<tr>
+		<td class="row1">{L_FLOOD_CONTROL} <br /><span class="gensmall">{L_FLOOD_CONTROL_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="flood_control" value="1" {S_FLOOD_CONTROL_YES} /> {L_ENABLED}&nbsp;&nbsp;<input type="radio" name="flood_control" value="0" {S_FLOOD_CONTROL_NO} /> {L_DISABLED}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_FLOOD_INTERVAL_ADMIN} <br /><span class="gensmall">{L_FLOOD_INTERVAL_ADMIN_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="flood_interval_admin" value="{FLOOD_INTERVAL_ADMIN}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_FLOOD_INTERVAL_MOD} <br /><span class="gensmall">{L_FLOOD_INTERVAL_MOD_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="flood_interval_mod" value="{FLOOD_INTERVAL_MOD}" /></td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_SEARCH_FLOOD_CONTROL} <br /><span class="gensmall">{L_SEARCH_FLOOD_CONTROL_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="search_flood_control" value="1" {S_SEARCH_FLOOD_CONTROL_YES} /> {L_ENABLED}&nbsp;&nbsp;<input type="radio" name="search_flood_control" value="0" {S_SEARCH_FLOOD_CONTROL_NO} /> {L_DISABLED}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_SEARCH_FLOOD_INTERVAL_ADMIN} <br /><span class="gensmall">{L_SEARCH_FLOOD_INTERVAL_ADMIN_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="search_flood_interval_admin" value="{SEARCH_FLOOD_INTERVAL_ADMIN}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_SEARCH_FLOOD_INTERVAL_MOD} <br /><span class="gensmall">{L_SEARCH_FLOOD_INTERVAL_MOD_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="search_flood_interval_mod" value="{SEARCH_FLOOD_INTERVAL_MOD}" /></td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

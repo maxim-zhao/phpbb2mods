@@ -1,0 +1,393 @@
+######################################################## 
+## 外掛名稱: Signature length based on rank
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: Admin can set different signature lengths based on user's rank in ACP.
+## 外掛版本: 1.1.2
+## 
+## 安裝難度: 中等
+## 安裝時間: 10 分鐘
+##
+## 需要編輯的檔案:	8
+##	includes/usercp_register.php
+##	includes/functions_validate.php
+##	admin/admin_ranks.php
+##	admin/admin_users.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	templates/subSilver/admin/ranks_list_body.tpl
+##	templates/subSilver/admin/ranks_edit_body.tpl
+##
+## 附加的檔案: 	0
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+## 	Tested on 2.0.20. Can be installed using EasyMOD 0.3.0
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2005-01-10 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2005-01-23 - 版本 1.0.1
+##      - 修正 usercp_register.php
+##
+##   2005-01-24 - 版本 1.0.2
+##      - 修正 usercp_register.php
+##
+##   2005-02-18 - 版本 1.0.3
+##      - 修正 admin_ranks.php (感謝 bebe2803) 和 usercp_register.php (感謝 PCTalk)
+##	- 顯示簽名多餘的字數
+##
+##   2005-08-21 - 版本 1.1.0
+##	- 增加 admin_users.php 的外掛修改
+##	- 把簽名檔字數的認證移到 functions_validate.php
+##      - 修正了 $lang 在 usercp_register.php 中顯示的結果 (感謝 PCTalk)
+##
+##   2006-04-02 - 版本 1.1.1
+##	- 修正了一個在 admin_users.php 的 Bug
+##	- 修正了一個 validate_sig_length() 的 Bug
+##
+##   2006-04-09 - 版本 1.1.2
+##	- 修改了部分程式以便適用於 2.0.20 上
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+ALTER TABLE `phpbb_ranks` ADD `rank_sig_length` SMALLINT (3) NOT NULL;
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+admin/admin_ranks.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			"MINIMUM" => ( $rank_is_special ) ? "" : $rank_info['rank_min'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			"SIG_LENGTH" => $rank_info['rank_sig_length'],
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			"L_RANK_MINIMUM" => $lang['Rank_minimum'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			"L_RANK_SIG_LENGTH" => $lang['Rank_sig_length'],
+			"L_RANK_SIG_LENGTH_EXPLAIN" => $lang['Rank_sig_length_explain'],
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$min_posts = ( isset($HTTP_POST_VARS['min_posts']) ) ? intval($HTTP_POST_VARS['min_posts']) : -1;
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		$sig_length = ( isset($HTTP_POST_VARS['sig_length']) ) ? intval($HTTP_POST_VARS['sig_length']) : 0;
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+SET rank_title = '" . str_replace
+# 
+#-----[ 之中, 尋找 ]------------------------------------------ 
+#
+rank_min = $min_posts,
+# 
+#-----[ 之中之後, 加上 ]------------------------------------------ 
+#
+ rank_sig_length = $sig_length,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$sql = "INSERT INTO " . RANKS_TABLE . "
+# 
+#-----[ 之中, 尋找 ]------------------------------------------ 
+#
+rank_min,
+# 
+#-----[ 之中之後, 加上 ]------------------------------------------ 
+#
+ rank_sig_length,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+VALUES ('" . str_replace("\'", "''", $rank_title)
+# 
+#-----[ 之中, 尋找 ]------------------------------------------ 
+#
+$min_posts,
+# 
+#-----[ 之中之後, 加上 ]------------------------------------------ 
+#
+ $sig_length,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		"L_SPECIAL_RANK" => $lang['Rank_special'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		"L_RANK_SIG_LENGTH" => $lang['Rank_sig_length'],
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$rank_min = $rank_rows[$i]['rank_min'];
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	$rank_sig_length = (!empty($rank_rows[$i]['rank_sig_length'])) ? $rank_rows[$i]['rank_sig_length'] : $lang['Rank_default_sig_length'];
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			"RANK_MIN" => $rank_min,
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			"RANK_SIG_LENGTH" => $rank_sig_length,
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+admin/admin_users.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			if ( strlen($sig_length_check) > $board_config['max_sig_chars'] )
+			{ 
+				$error = TRUE;
+				$error_msg .=  ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Signature_too_long'];
+			}
+# 
+#-----[ 取代為 ]------------------------------------------ 
+#
+			$sig_length = validate_sig_length($this_userdata['user_rank']);
+			if ( strlen($sig_length_check) > $sig_length )
+			{
+				$extracha = strlen($sig_length_check) - $sig_length;
+				$error = TRUE;
+				$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . sprintf($lang['Signature_too_long'], $extracha);
+			}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$template->set_filenames(array(
+			"body" => "admin/user_edit_body.tpl")
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+		$sig_length = validate_sig_length($this_userdata['user_rank']);
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			'L_SIGNATURE_EXPLAIN' => sprintf($lang['Signature_explain'], $board_config['max_sig_chars'] ),
+# 
+#-----[ 取代為 ]----------------------------------
+#
+			'L_SIGNATURE_EXPLAIN' => ( !empty($sig_length) ) ? sprintf($lang['Signature_explain'], $sig_length) : sprintf($lang['Signature_explain'], $board_config['max_sig_chars']),
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/admin/ranks_list_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		<th class="thTop">{L_SPECIAL_RANK}</th>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		<th class="thTop">{L_RANK_SIG_LENGTH}</th>
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		<td class="{ranks.ROW_CLASS}" align="center">{ranks.SPECIAL_RANK}</td>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		<td class="{ranks.ROW_CLASS}" align="center">{ranks.RANK_SIG_LENGTH}</td>
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# Read "The INCREMENT Action" at http://www.phpbb.com/kb/article.php?article_id=39
+		<td class="catBottom" align="center" colspan="{%:1}">
+#
+#-----[ 增量 ]-------------------------------------
+# Read "The INCREMENT Action" at http://www.phpbb.com/kb/article.php?article_id=39
+%:1 +1
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/admin/ranks_edit_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		<td class="row2"><input class="post" type="text" name="min_posts" size="5" maxlength="10" value="{MINIMUM}" /></td>
+	</tr>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	<tr>
+		<td class="row1" width="38%"><span class="gen">{L_RANK_SIG_LENGTH}:</span><br />
+		<span class="gensmall">{L_RANK_SIG_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" name="sig_length" size="5" maxlength="3" value="{SIG_LENGTH}" /></td>
+	</tr>
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+language/lang_chinese_traditional_taiwan/lang_admin.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$lang['Rank_image_explain']
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+$lang['Rank_sig_length'] = '簽名檔長度';
+$lang['Rank_sig_length_explain'] = '設定此等級能允許的簽名檔長度上限. 如果設為 <b>0</b>, 這個等級會使用在 <b>一般管理 -> 基本組態</b> 裡的長度設定';
+$lang['Rank_default_sig_length'] = '預設長度';
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+language/lang_chinese_traditional_taiwan/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Signature_too_long']
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+$lang['Signature_too_long'] = '您的個性簽名已超出 %s 字元';
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/usercp_register.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	message_die(GENERAL_MESSAGE, $lang['Username_taken'], '', __LINE__, __FILE__);
+}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+if ( $mode == 'editprofile' )
+{
+	include_once($phpbb_root_path . 'includes/functions_validate.'.$phpEx);
+	$sig_length = validate_sig_length($userdata['user_rank']);
+}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	if ( $signature != '' )
+	{
+		if ( strlen($signature) > $board_config['max_sig_chars'] )
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+	if ( $mode == 'editprofile' )
+	{
+		if ( $signature != '' )
+		{
+			if ( strlen($signature) > $sig_length )
+			{
+				$extracha = strlen($signature) - $sig_length;
+				$error = TRUE;
+				$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . sprintf($lang['Signature_too_long'], $extracha);
+			}
+
+			if ( $signature_bbcode_uid == '' )
+			{
+				$signature_bbcode_uid = ( $allowbbcode ) ? make_bbcode_uid() : '';
+			}
+			$signature = prepare_message($signature, $allowhtml, $allowbbcode, $allowsmilies, $signature_bbcode_uid);
+		}
+	}
+
+	if ( $mode == 'register' )
+	{
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$signature = prepare_message($signature, $allowhtml, $allowbbcode, $allowsmilies, $signature_bbcode_uid);
+	}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		'L_SIGNATURE_EXPLAIN' => sprintf($lang['Signature_explain'], $board_config['max_sig_chars']),
+# 
+#-----[ 取代為 ]----------------------------------
+#
+		'L_SIGNATURE_EXPLAIN' => ( !empty($sig_length) ) ? sprintf($lang['Signature_explain'], $sig_length) : sprintf($lang['Signature_explain'], $board_config['max_sig_chars']),
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/functions_validate.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+//
+// Check to signiture length
+//
+function validate_sig_length($user_rank)
+{
+	global $db, $board_config, $userdata;
+
+	$sql = "SELECT *
+		FROM " . RANKS_TABLE . "
+		ORDER BY rank_special, rank_min";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, "Could not obtain ranks information.", '', __LINE__, __FILE__, $sql);
+	}
+	$ranksrow = array();
+	while ( $row = $db->sql_fetchrow($result) )
+	{
+		$ranksrow[] = $row;
+	}
+	$db->sql_freeresult($result);
+
+	// Special Ranks
+	if ( $user_rank )
+	{
+		for($j = 0; $j < count($ranksrow); $j++)
+		{
+			if ( $user_rank == $ranksrow[$j]['rank_id'] && $ranksrow[$j]['rank_special'] )
+			{
+				$rank_sig_length = $ranksrow[$j]['rank_sig_length'];
+				$sig_length = ( empty($rank_sig_length) ) ? $board_config['max_sig_chars'] : $rank_sig_length;
+			}
+		}
+	}
+	// Normal Ranks
+	else
+	{
+		for($j = 0; $j < count($ranksrow); $j++)
+		{
+			if ( $userdata['user_posts'] >= $ranksrow[$j]['rank_min'] && !$ranksrow[$j]['rank_special'] )
+			{
+				$rank_sig_length = $ranksrow[$j]['rank_sig_length'];
+				$sig_length = ( empty($rank_sig_length) ) ? $board_config['max_sig_chars'] : $rank_sig_length;
+			}
+		}
+	}
+
+	return $sig_length;
+}
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

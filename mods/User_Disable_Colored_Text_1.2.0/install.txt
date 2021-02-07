@@ -1,0 +1,340 @@
+##############################################################
+## MOD Title: User Disable Colored Text
+## MOD Author: xx521xx < N/A > (N/A) N/A
+## MOD Description: Gives users the option to disable colored text in
+##                  posts. When enabled, the [color] bbcode will be
+##                  ignored, and colored text will be shown in the
+##                  default text color instead.
+## MOD Version: 1.2.0
+##
+## Installation Level: Easy
+## Installation Time: ~10 Minutes
+## Files To Edit: admin/admin_users.php, includes/bbcode.php,
+##                includes/usercp_register.php,
+##                language/lang_english/lang_main.php,
+##                templates/subSilver/profile_add_body.tpl,
+##                templates/subSilver/admin/user_edit_body.tpl
+## Included Files: sql_updater.php
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: This MOD will add an option in users' preferences to
+## disable colored text in posts. If activated, the [color] BBcode will
+## produce no effect when that user views any post (or signature)
+## containing it.
+##
+## Currently, this MOD is only available in English, and instructions
+## are only available for the subSilver template. These instructions
+## should also work with many templates based on subSilver, however.
+##############################################################
+## MOD History:
+##
+##   1/5/07 - Version 1.2.0
+##      - Added ability to edit users' colored text preference in the ACP
+##      - Added an automatic SQL update file
+##      - Fixed the license line (GNU General Public License, not GNU Public License)
+##      - Clarified the description a little
+##
+##   11/27/06 - Version 1.0.0
+##      - First version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#----[ SQL ]-------------------------------------------
+#
+# Note: phpbb_ should be changed to your table prefix.
+# If you prefer, you can upload contrib/sql_updater.php to your phpBB
+# directory and view it to perform this change automatically.
+#
+ALTER TABLE phpbb_users ADD user_allow_coloredtxt tinyint(1) DEFAULT 1;
+#
+#-----[ OPEN ]-----------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]-----------------------------------------
+#
+# This is a partial find. The entire line, if it has not been edited
+# previously by another MOD, is:
+# $attachsig = ( isset( $HTTP_POST_VARS['attachsig']) ) ? ( ( $HTTP_POST_VARS['attachsig'] ) ? TRUE : 0 ) : 0;
+#
+$attachsig = ( isset
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+# Add this on a new line, without altering the line you just found.
+# This applies to all AFTER, ADD and BEFORE, ADD instructions.
+#
+		$coloredtext = ( isset($HTTP_POST_VARS['allow_coloredtxt']) ) ? ( ( $HTTP_POST_VARS['allow_coloredtxt'] ) ? 1 : 0 ) : 0;
+#
+#-----[ FIND ]-----------------------------------------
+#
+# Full line:
+# SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) . "', user_icq = '" . str_replace("\'", "''", $icq) . "', user_website = '" . str_replace("\'", "''", $website) . "', user_occ = '" . str_replace("\'", "''", $occupation) . "', user_from = '" . str_replace("\'", "''", $location) . "', user_interests = '" . str_replace("\'", "''", $interests) . "', user_sig = '" . str_replace("\'", "''", $signature) . "', user_viewemail = $viewemail, user_aim = '" . str_replace("\'", "''", $aim) . "', user_yim = '" . str_replace("\'", "''", $yim) . "', user_msnm = '" . str_replace("\'", "''", $msn) . "', user_attachsig = $attachsig, user_sig_bbcode_uid = '$signature_bbcode_uid', user_allowsmile = $allowsmilies, user_allowhtml = $allowhtml, user_allowavatar = $user_allowavatar, user_allowbbcode = $allowbbcode, user_allow_viewonline = $allowviewonline, user_notify = $notifyreply, user_allow_pm = $user_allowpm, user_notify_pm = $notifypm, user_popup_pm = $popuppm, user_lang = '" . str_replace("\'", "''", $user_lang) . "', user_style = $user_style, user_timezone = $user_timezone, user_dateformat = '" . str_replace("\'", "''", $user_dateformat) . "', user_active = $user_status, user_rank = $user_rank" . $avatar_sql . "
+#
+$username_sql . $passwd_sql
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+$allowhtml
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+, user_allow_coloredtxt = $coloredtext
+#
+#-----[ FIND ]----------------------------------------
+#
+$allowviewonline = $this_userdata['user_allow_viewonline'];
+#
+#-----[ AFTER, ADD ]----------------------------------
+#
+$coloredtext = $this_userdata['user_allow_coloredtxt'];
+#
+#-----[ FIND ]-----------------------------------------
+#
+# Full line:
+# $s_hidden_fields .= '<input type="hidden" name="hideonline" value="' . !$allowviewonline . '" />';
+#
+type="hidden" name="hideonline"
+#
+#-----[ AFTER, ADD ]-----------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="allow_coloredtxt" value="'.$coloredtext.'" />';
+#
+#-----[ FIND ]-----------------------------------------
+#
+# Full line:
+# 'ALWAYS_ALLOW_SMILIES_NO' => (!$allowsmilies) ? 'checked="checked"' : '',
+#
+'ALWAYS_ALLOW_SMILIES_NO'
+#
+#-----[ AFTER, ADD ]-----------------------------------
+#
+			'ALLOW_COLORED_TEXT_YES' => ( $coloredtext ) ? 'checked="checked"' : '',
+			'ALLOW_COLORED_TEXT_NO' => ( !$coloredtext ) ? 'checked="checked"' : '',
+#
+#-----[ FIND ]----------------------------------------
+#
+# Full line:
+# 'L_ALWAYS_ALLOW_HTML' => $lang['Always_html'],
+#
+'L_ALWAYS_ALLOW_HTML'
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+			'L_ALLOW_COLOREDTEXT' => $lang['Allow_colored_text'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+#
+#----[ FIND ]--------------------------------------------
+#
+# Full chunk of code:
+# function bbencode_second_pass($text, $uid)
+# {
+#	global $lang, $bbcode_tpl;
+#
+function bbencode_second_pass($text, $uid)
+{
+	global
+#
+#----[ IN-LINE FIND ]----------------------------
+#
+$lang
+#
+#----[ IN-LINE AFTER, ADD ]----------------
+#
+, $userdata
+#
+#-----[ FIND ]------------------------------------------
+#
+# Full line:
+# $text = preg_replace("/\[color=(\#[0-9A-F]{6}|[a-z]+):$uid\]/si", $bbcode_tpl['color_open'], $text);
+#
+preg_replace("/\[color=
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	if ($userdata['user_allow_coloredtxt'])
+	{
+#
+#----[ FIND ]----------------------------------------
+#
+# Full line:
+# $text = str_replace("[/color:$uid]", $bbcode_tpl['color_close'], $text);
+#
+str_replace("[/color
+#
+#----[ AFTER, ADD ]---------------------------
+#
+	}
+	else
+	{
+		$text = preg_replace ("/\[color=(\#[0-9A-F]{6}|[a-z]+):$uid\]/si", '', $text);
+		$text = str_replace("[/color:$uid]", '', $text);
+	}
+#
+#----[ OPEN ]-------------------------------------
+#
+includes/usercp_register.php
+#
+#----[ FIND ]--------------------------------------
+#
+# Full line:
+# $popup_pm = ( isset($HTTP_POST_VARS['popup_pm']) ) ? ( ($HTTP_POST_VARS['popup_pm']) ? TRUE : 0 ) : TRUE;
+#
+$popup_pm = ( isset
+#
+#----[ AFTER, ADD ]---------------------------
+#
+	$coloredtext = ( isset($HTTP_POST_VARS['coloredtext']) ) ? ( ($HTTP_POST_VARS['coloredtext']) ? TRUE : 0 ) : TRUE;
+#
+#----[ FIND ]-------------------------------------
+#
+# Full line:
+# SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) ."', user_icq = '" . str_replace("\'", "''", $icq) . "', user_website = '" . str_replace("\'", "''", $website) . "', user_occ = '" . str_replace("\'", "''", $occupation) . "', user_from = '" . str_replace("\'", "''", $location) . "', user_interests = '" . str_replace("\'", "''", $interests) . "', user_sig = '" . str_replace("\'", "''", $signature) . "', user_sig_bbcode_uid = '$signature_bbcode_uid', user_viewemail = $viewemail, user_aim = '" . str_replace("\'", "''", str_replace(' ', '+', $aim)) . "', user_yim = '" . str_replace("\'", "''", $yim) . "', user_msnm = '" . str_replace("\'", "''", $msn) . "', user_attachsig = $attachsig, user_allowsmile = $allowsmilies, user_allowhtml = $allowhtml, user_allowbbcode = $allowbbcode, user_allow_viewonline = $allowviewonline, user_notify = $notifyreply, user_notify_pm = $notifypm, user_popup_pm = $popup_pm, user_timezone = $user_timezone, user_dateformat = '" . str_replace("\'", "''", $user_dateformat) . "', user_lang = '" . str_replace("\'", "''", $user_lang) . "', user_style = $user_style, user_active = $user_active, user_actkey = '" . str_replace("\'", "''", $user_actkey) . "'" . $avatar_sql . "
+#
+SET " . $username_sql
+#
+#----[ IN-LINE FIND ]------------------------
+#
+user_active = $user_active
+#
+#----[ IN-LINE AFTER, ADD ]------------
+#
+, user_allow_coloredtxt = $coloredtext
+#
+#----[ FIND ]-------------------------------------
+#
+# Full Line:
+# $sql = "INSERT INTO " . USERS_TABLE . "	(user_id, username, user_regdate, user_password, user_email, user_icq, user_website, user_occ, user_from, user_interests, user_sig, user_sig_bbcode_uid, user_avatar, user_avatar_type, user_viewemail, user_aim, user_yim, user_msnm, user_attachsig, user_allowsmile, user_allowhtml, user_allowbbcode, user_allow_viewonline, user_notify, user_notify_pm, user_popup_pm, user_timezone, user_dateformat, user_lang, user_style, user_level, user_allow_pm, user_active, user_actkey)
+#
+"INSERT INTO " . USERS_TABLE
+#
+#----[ IN-LINE FIND ]------------------------
+#
+user_allow_pm
+#
+#----[ IN-LINE AFTER, ADD ]-------------
+#
+, user_allow_coloredtxt
+#
+#----[ FIND ]-------------------------------------
+#
+# Full line:
+# VALUES ($user_id, '" . str_replace("\'", "''", $username) . "', " . time() . ", '" . str_replace("\'", "''", $new_password) . "', '" . str_replace("\'", "''", $email) . "', '" . str_replace("\'", "''", $icq) . "', '" . str_replace("\'", "''", $website) . "', '" . str_replace("\'", "''", $occupation) . "', '" . str_replace("\'", "''", $location) . "', '" . str_replace("\'", "''", $interests) . "', '" . str_replace("\'", "''", $signature) . "', '$signature_bbcode_uid', $avatar_sql, $viewemail, '" . str_replace("\'", "''", str_replace(' ', '+', $aim)) . "', '" . str_replace("\'", "''", $yim) . "', '" . str_replace("\'", "''", $msn) . "', $attachsig, $allowsmilies, $allowhtml, $allowbbcode, $allowviewonline, $notifyreply, $notifypm, $popup_pm, $user_timezone, '" . str_replace("\'", "''", $user_dateformat) . "', '" . str_replace("\'", "''", $user_lang) . "', $user_style, 0, 1, ";
+#
+str_replace("\'", "''", $new_password)
+#
+#----[ IN-LINE FIND ]-------------------------
+#
+0, 1
+#
+#----[ IN-LINE AFTER, ADD ]------------
+#
+, $coloredtext
+#
+#----[ FIND ]--------------------------------------
+#
+$allowviewonline = $userdata['user_allow_viewonline'];
+#
+#----[ AFTER, ADD ]--------------------------
+#
+	$coloredtext = $userdata['user_allow_coloredtxt'];
+#
+#----[ FIND ]--------------------------------------
+#
+# Full line:
+# 'ALWAYS_ALLOW_SMILIES_NO' => ( !$allowsmilies ) ? 'checked="checked"' : '',
+#
+'ALWAYS_ALLOW_SMILIES_NO'
+#
+#----[ AFTER, ADD ]-------------------------
+#
+		'ALLOW_COLORED_TEXT_YES' => ( $coloredtext ) ? 'checked="checked"' : '',
+		'ALLOW_COLORED_TEXT_NO' => ( !$coloredtext ) ? 'checked="checked"' : '',
+#
+#----[ FIND ]------------------------------------
+#
+# Full line:
+# 'L_EMAIL_ADDRESS' => $lang['Email_address'],
+#
+'L_EMAIL_ADDRESS'
+#
+#----[ AFTER, ADD ]----------------------
+#
+		'L_ALLOW_COLOREDTEXT' => $lang['Allow_colored_text'],
+#
+#----[ OPEN ]--------------------------------
+#
+language/lang_english/lang_main.php
+#
+#----[ FIND ]----------------------------------
+#
+# Full line:
+# $lang['Hide_user'] = 'Hide your online status';
+#
+$lang['Hide_user']
+#
+#----[ AFTER, ADD ]----------------------
+#
+$lang['Allow_colored_text'] = 'Allow colored text in posts';
+#
+#----[ OPEN ]-----------------------------
+#
+# Apply this change to all templates you have installed.
+#
+templates/subSilver/profile_add_body.tpl
+#
+#----[ FIND ]-------------------------------
+#
+# Full line:
+# <td class="row1"><span class="gen">{L_BOARD_LANGUAGE}:</span></td>
+#
+{L_BOARD_LANGUAGE}
+#
+#----[ BEFORE, ADD ]----------------
+#
+	  <td class="row1"><span class="gen">{L_ALLOW_COLOREDTEXT}:</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="coloredtext" value="1" {ALLOW_COLORED_TEXT_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="coloredtext" value="0" {ALLOW_COLORED_TEXT_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+	<tr>
+#
+#-----[ OPEN ]-------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]-------------------------
+#
+# Full line:
+# <td class="row1"><span class="gen">{L_BOARD_LANGUAGE}</span></td>
+#
+{L_BOARD_LANGUAGE}
+#
+#-----[ BEFORE, ADD ]------------------
+#
+		<td class="row1"><span class="gen">{L_ALLOW_COLOREDTEXT}</span></td>
+		<td class="row2">
+		<input type="radio" name="allow_coloredtxt" value="1" {ALLOW_COLORED_TEXT_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp;
+		<input type="radio" name="allow_coloredtxt" value="0" {ALLOW_COLORED_TEXT_NO} />
+		<span class="gen>{L_NO}</span></td>
+	</tr>
+	<tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

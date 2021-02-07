@@ -1,0 +1,166 @@
+######################################################## 
+## MOD Title: Server Uptime MOD (For Linux Only)
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: Display server uptime and average load on page tail. This MOD only work on linux servers.
+## MOD Version:	1.0.4
+## 
+## Installation Level: Easy
+## Installation Time: 3 Minutes 
+##
+## Files To Edit: 3
+##	includes/page_tail.php
+##	language/lang_english/lang_main.php
+##	templates/subSilver/overall_footer.tpl
+##
+## Included Files: 0
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.20. Can be installed using EasyMOD 0.3.0
+##
+##	Your Linux machine need to have "uptime" in order for this MOD to work.
+## 
+############################################################## 
+## MOD History: 
+##
+##   2005-09-29 - Version 1.0.0
+##      - Initial Release
+##
+##   2005-10-02 - Version 1.0.1
+##      - Fix a bug with missing ")"
+##
+##   2005-10-06 - Version 1.0.2
+##      - Change the uptime parser so that it can be better translated
+##
+##   2005-11-03 - Version 1.0.3
+##      - Change the uptime preg_match parser so that it will get the day/hour/min correctly now
+##
+##   2006-05-07 - Version 1.0.4
+##      - Updated the uptime preg_match parser again
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Server Uptime MOD (For Linux Only)
+$lang['Server_uptime'] = 'Server Uptime: %s day(s) %s hour(s) %s minute(s)';
+$lang['Server_load'] = 'Average Load: %s';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/page_tail.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$template->set_filenames(array(
+	'overall_footer' => ( empty($gen_simple_header) ) ? 'overall_footer.tpl' : 'simple_footer.tpl')
+);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+/*
+Idea taken from Andrew Walsh
+*/
+// Server Uptime MOD (For Linux Only)
+$uptime = @exec('uptime');
+if ( strstr($uptime, 'day') )
+{
+	if ( strstr($uptime, 'min') )
+	{
+		preg_match("/up\s+(\d+)\s+(days,|days|day,|day)\s+(\d{1,2})\s+min/", $uptime, $times);
+		$days = $times[1];
+		$hours = 0;
+		$mins = $times[3];
+	}
+	else
+	{
+		preg_match("/up\s+(\d+)\s+(days,|days|day,|day)\s+(\d{1,2}):(\d{1,2}),/", $uptime, $times);
+		$days = $times[1];
+		$hours = $times[3];
+		$mins = $times[4];
+	}
+}
+else
+{
+	if ( strstr($uptime, 'min') )
+	{
+		preg_match("/up\s+(\d{1,2})\s+min/", $uptime, $times);
+		$days = 0;
+		$hours = 0;
+		$mins = $times[1];
+	}
+	else
+	{
+		preg_match("/up\s+(\d+):(\d+),/", $uptime, $times);
+		$days = 0;
+		$hours = $times[1];
+		$mins = $times[2];
+	}
+}
+preg_match("/averages?: ([0-9\.]+),[\s]+([0-9\.]+),[\s]+([0-9\.]+)/", $uptime, $avgs);
+$load = $avgs[1].", ".$avgs[2].", ".$avgs[3]."";
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'ADMIN_LINK' => $admin_link)
+);
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	'ADMIN_LINK' => $admin_link,
+
+	// Server Uptime MOD (For Linux Only)
+	'SERVER_UPTIME' => sprintf($lang['Server_uptime'], $days, $hours, $mins),
+	'SERVER_LOAD' => sprintf($lang['Server_load'], $load))
+);
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/overall_footer.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+Powered by <a href="http://www.phpbb.com/" target="_phpbb" class="copyright">phpBB</a> &copy; 2001, 2005 phpBB Group<br />{TRANSLATION_INFO}</span></div>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+{TRANSLATION_INFO}</span>
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+<br /><span class="gensmall">{SERVER_UPTIME} | {SERVER_LOAD}</span>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

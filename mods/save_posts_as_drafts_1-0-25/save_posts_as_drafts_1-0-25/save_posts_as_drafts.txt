@@ -1,0 +1,2597 @@
+##############################################################
+## MOD Title:		Save posts as drafts
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Description:	Allow users to save their posts or pms as drafts so they can begin a post or pm
+##			and finish it later. Since it is a draft, others will not see it until it is done.
+##
+## MOD Version:		1.0.25
+##
+## Installation Level:	Easy
+## Installation Time:	20 Minutes ( 1 minute with easymod)
+##
+## Files To Edit:	posting.php
+##			viewforum.php
+##			viewtopic.php
+##			privmsg.php
+##			search.php
+##			admin/admin_forum_prune.php
+##			admin/index.php
+##			includes/constants.php
+##			includes/topic_review.php
+##			includes/functions_post.php
+##			includes/functions_admin.php
+##			includes/prune.php
+##			includes/page_header.php
+##			language/lang_english/lang_main.php
+##			language/lang_english/lang_admin.php
+##			templates/subSilver/admin/forum_prune_select_body.tpl
+##			templates/subSilver/admin/index_body.tpl
+##			templates/subSilver/index_body.tpl
+##			templates/subSilver/posting_body.tpl
+##			templates/subSilver/search_results_posts.tpl
+##			templates/subSilver/search_results_topics.tpl
+##
+## Included Files:	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:	If you have the attachments mod installed on your board, install this mod first and then afterwards
+##			install the mod set forth in "mod_to_save_posts_as_drafts_to_allow_for_attachments.txt"
+##
+##			I have this set up by default to give the user a link on the index page to a list of his drafts and
+##			the topics he has posted to, but you can change things so that the user has a link on the index page 
+##			to a list of his drafts and his individual posts, or you can give the user both links.  To change
+##			which link is available, follow the first comments this mod adds to includes/page_header.php
+##
+##			If you want to add links to drafts on non-standard pages (e.g. in the private message area or, 
+##			for that matter, in viewforum or viewtopic), insert the following code where you want the links
+##			to appear on the template for that page	(the variables get assigned in page_header so you can
+##			stick links on pretty much any template page you want):
+##
+##			<a href="{U_SEARCH_SELF_BY_TOPIC}" class="gensmall">{L_SEARCH_SELF_BY_TOPIC}</a><a href="{U_SEARCH_SELF_BY_POST}" class="gensmall">{L_SEARCH_SELF_BY_POST}</a>
+##
+##############################################################
+## MOD History:
+##
+##   2006-09-16	- Version 1.0.25
+##		  corrected a bug that caused email reply notifications of posts that had been drafts
+##		  to go out with a blank subject matter rather than the title of the topic
+##
+##		  made it easy for people to choose whether to include on the index a link to 
+##		  'View your drafts and posts' or a link to "View your drafts and topics you have posted to'
+##		  or to include both links; you now specify what you want by following the directions in 
+##		  the first comments the mod adds to includes/page_header.php (but note that if you have
+##		  previosuly deleted one of those links from your index.tpl file (as some people have)
+##		  you will need to add it back to index.tpl if you want to turn it on)
+##
+##   2006-04-09	- Version 1.0.24
+##		  made changes needed if installing this mod on a phpbb 2.0.20 (no other changes made)
+##
+##   2005-11-07	- Version 1.0.23
+##		  made changes to conform to chagnes made when upgrading to phpbb 2.0.18; 
+##		  fixed error that would take you to no post if you tried to delete a draft and then cancelled the deletion
+##
+##   2005-10-05	- Version 1.0.22
+##		  no changes in functionality...just tinkered as requested for validation
+##
+##   2005-09-20	- Version 1.0.21
+##		  no changes in functionality...just tinkered as requested for validation
+##
+##   2005-09-03	- Version 1.0.20
+##		  no changes in functionality...just tinkered as requested for validation
+##
+##   2005-08-06	- Version 1.0.19
+##		  added capability to save pms as drafts;
+##
+##		  fixed error in search.php that sometimes created a 'warning' in the php error log;
+##
+##		  changed the font style for draft links from "gen" to 'topictitle' (to match with other search result links)
+##
+##   2005-07-30	- Version 1.0.18a
+##		  small change to search_results templates to assure that you only see the "Your Posts" and
+##		  the "Topics You Have Posted To" headings in egosearch and not in other searches
+##
+##   2005-07-23	- Version 1.0.18
+##		  adds new link on index page (and renames the old one) so that user can choose to see his drafts
+##		  and posts (listed by post) or see his drafts and the topics to which he has posted;
+##
+##		  shows user his drafts even if the user has no real posts;
+##
+##		  adds number of drafts to total number of search matches shown at the top of the results page;
+##
+##		  adds additional columns in drafts table showing for each draft: the name of the forum in which
+##		  the draft will be posted, the subject of the draft (or the topic title if no subject) and
+##		  the time the draft was written or edited
+##
+##   2005-03-04	- Version 1.0.17c
+##		  made additional minor changes required for mod validation (no changes in functionality)
+##
+##   2005-02-19	- Version 1.0.17b
+##		  made additional minor changes required for mod validation (no changes in functionality)
+##
+##   2005-01-28	- Version 1.0.17a
+##		  made minor changes required for mod validation (no changes in functionality)
+##
+##   2005-01-10	- Version 1.0.17
+##		  added draft prune functions (note that auto prune will only work if you enable pruning in the ACP configuration page);
+##		  changed draft delete checkbox to draft delete button; added number of drafts and drafts per user to Forum stats in ACP;
+##		  fixed a post count and pagination error in search.php; fixed an error where if the user clicked to
+##		  page 2 or higher in the draft and post list and then went back to page 1 the draft list would no longer be there;
+##		  changed it so that a guest who is not logged in will not see the save as drafts button; and
+##		  deleted a spurious reference to switch_not_save_a_draft_button that is no longer needed as a result of version 1.0.16 changes.
+##
+##   2004-11-15	- Version 1.0.16
+##		  fixed the treatment of polls in drafts so that they do not get lost when the draft is submitted as a real post;
+##		  corrected small error in prune.php that would result in pruning deleting drafts; and simplified posting_body.tpl so that
+##		  it no longer uses a <!-- END switch_not_save_as_draft_button --> concept (so that privmsg.php will not get messed up for people with PCP mod); as a result, got rid of all changes to privmsg.php
+##
+##   2004-10-04	- Version 1.0.15
+##		  corrected small error in functions_admin.php that counted drafts as posts when it tries to sync a single topic.
+##
+##   2004-09-18	- Version 1.0.14
+##		  corrected small error in search.php that allowed it to count a draft as a new post when you click the new posts link on the index page;
+##		  also corrected problem in functions_admin.php that counted drafts as posts when it tries to sync a forum or topic (e.g. when you hit 'resync' in the forum management part of the ACP);
+##		  and modified things so that a user who isn't generally authorized to delete his own posts can now delete his own drafts
+##
+##   2004-09-05	- Version 1.0.13
+##		  no change in functionality...just changed method of inserting draft as a new post when you finally submit a draft (since method used in version 1.0.11 had some unnecessary steps in it);
+##
+##   2004-09-02	- Version 1.0.12
+##		  broke up large find and replace blocks in mod to smaller bits as needed to get validation...no change in the coding from version 1.1.11;
+##
+##   2004-08-29	- Version 1.0.11
+##		  changed mod so that it in effect creates a brand new post (with a new post_id and, if the post is a new topic, a brand new topic_id) when a draft finally gets submitted;
+##		  the old draft post (and topic if the draft is a new topic) get deleted when the new one is created;
+##		  since post_id now will always fall in same order as post_time, got rid of the changes that had been in prior drafts to places where sorts were done by post_id;
+##		  as a result, the order of post_id of all final posts is now the same as the order of post_time of all final posts (not critical but nice);
+##		  also fixed a minor error where a BEGIN_TRANSACTION statement did not have a corresponding END_TRANSACTION statement when the user saved the post as a draft (which
+##		  could have slowed up the board a bit when a user saves a draft)
+##
+##   2004-08-22	- Version 1.0.10
+##		  tweaked the mod so that post_id and topic_id get updated at the time the draft is finally submitted as real (so that there are never any 'sort' bugs)
+##
+##   2004-08-20	- Version 1.0.9
+##		  corrected the fix in 1.0.8
+##
+##   2004-08-20	- Version 1.0.8
+##		  fixed an error that prevented any regular users who are not moderators from deleting their own drafts
+##
+##   2004-08-6	- Version 1.0.7
+##		  fixed aditional errors in viewtopic that could have caused wrong displays when user hits newest or previous or next in a topic where there are unsubmitted drafts
+##
+##   2004-08-5	- Version 1.0.6
+##		  fixed an error in viewtopic that caused wrong pagination on occassion when there were umsubmitted drafts in a topic
+##
+##   2004-07-24	- Version 1.0.5
+##		  fixed a number of minor bugs and cleaned up code
+##
+##   2004-07-23	- Version 1.0.4
+##		  fixed privmsg.php so that submit and preview buttons show up on pm posts
+##
+##   2004-07-23	- Version 1.0.3
+##		  fixed minor problem where reply notifications didn't go out and post didn't get marked as new when you finally submit draft as a live post
+##
+##   2004-07-23	- Version 1.0.2
+##		  fixed minor problem where board stats didn't get updated after you finally submit a draft as a live post
+##
+##   2004-07-18	- Version 1.0.1
+##		  first release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_posts ADD post_draft smallint(1) unsigned NOT NULL default '0';
+
+CREATE TABLE phpbb_draft_prune (
+prune_id tinyint(1) unsigned NOT NULL default '1',
+prune_days smallint(5) unsigned NOT NULL default '0',
+prune_freq smallint(5) unsigned NOT NULL default '0',
+prune_next int(11) unsigned NOT NULL default '0',
+prune_enable tinyint(1) unsigned NOT NULL default '0'
+);
+
+INSERT INTO phpbb_draft_prune (prune_id, prune_days, prune_freq) VALUES(1, 90, 10);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$params = array('submit' => 'post', 'preview' => 'preview', 'delete' => 'delete', 'poll_delete' => 'poll_delete', 'poll_add' => 'add_poll_option', 'poll_edit' => 'edit_poll_option', 'mode' => 'mode');
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+'preview' => 'preview',
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ 'save_as_draft' => 'save_as_draft', 'was_a_draft' => 'was_a_draft',
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too) ... added save_as_draft and was_a_draft parameters in the preceding line (definitionof $params)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// End session management
+//
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save draft posts
+// since opening up a draft is mostly the same as editing it, we will (if draft mode)
+// switch to edit mode but make sure we keep track that it is a draft
+if ( $mode == 'draft' )
+{
+$was_a_draft = TRUE;
+$mode = 'editpost';
+}
+// also, since save as draft is still a form of submit, make submit true if save as draft is true...
+if ( $save_as_draft )
+{
+$submit = TRUE;
+}
+// end mod save draft posts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$redirect = "viewtopic.$phpEx?" . POST_POST_URL . "=$post_id";
+		$post_append = "#$post_id";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		$redirect = (!$was_a_draft) ? "viewtopic.$phpEx?" . POST_POST_URL . "=$post_id" : "posting.$phpEx?" . "mode=draft&" . POST_POST_URL . "=$post_id";
+		$post_append = (!$was_a_draft) ? "#$post_id" : '';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$select_sql = (!$submit) ? ', t.topic_title, p.enable_bbcode, p.enable_html, p.enable_smilies, p.enable_sig, p.post_username, pt.post_subject, pt.post_text, pt.bbcode_uid, u.username, u.user_id, u.user_sig, u.user_sig_bbcode_uid' : '';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		$select_sql = (!$submit) ? ', t.topic_title, p.enable_bbcode, p.enable_html, p.enable_smilies, p.enable_sig, p.post_draft, p.post_username, pt.post_subject, pt.post_text, pt.bbcode_uid, u.username, u.user_id, u.user_sig, u.user_sig_bbcode_uid' : ', t.topic_title';
+// start mod save posts as drafts (and end mod too) ... in the preceding line (definition of $select_sql), added reference to post_draft column in table and in the case where this was a submit, added reference to t.topic_title so that reply notifications of posts that were drafts go out with the title in the email subject line
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$post_data['first_post'] = ( $post_info['topic_first_post_id'] == $post_id ) ? true : false;
+		$post_data['last_post'] = ( $post_info['topic_last_post_id'] == $post_id ) ? true : false;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+// start mod save posts as drafts...changed the next two lines to cover the case where the post had been a draft of a new topic (and therefor never had a first_post_id or last_post_id inserted into the topics table)
+		$post_data['first_post'] = ( $post_info['topic_first_post_id'] == $post_id || ($was_a_draft && $post_info['topic_first_post_id'] == $post_info['topic_last_post_id'] && $post_info['topic_first_post_id'] == 0) ) ? true : false;
+		$post_data['last_post'] = ( $post_info['topic_last_post_id'] == $post_id || ($was_a_draft && $post_info['topic_first_post_id'] == $post_info['topic_last_post_id'] && $post_info['topic_last_post_id'] == 0) ) ? true : false;
+//end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		else if ( !$post_data['last_post'] && !$is_auth['auth_mod'] && ( $mode == 'delete' || $delete ) )
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+( $mode == 'delete' || $delete )
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ && !$was_a_draft
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		else if ( !$post_data['edit_poll'] && !$is_auth['auth_mod'] && ( $mode == 'poll_delete' || $poll_delete ) )
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+( $mode == 'poll_delete' || $poll_delete )
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ && !$was_a_draft
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)... added !$was_a_draft at end of the preceding two else if clauses to assure that a user who is not a moderator can always delete his own drafts even if the topic has subsequently been replied to
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+if ( !$is_auth[$is_auth_type] )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+if ( !$is_auth[$is_auth_type] && !$was_a_draft )
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$redirect = "mode=quote&" . POST_POST_URL ."=" . $post_id;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+// start mod save posts as drafts ... original line was the middle line; added if clause so that if this was a saved draft that someone is trying to improperly access, he gets sent back to the index page...
+			if (!$was_a_draft)
+			{
+			$redirect = "mode=quote&" . POST_POST_URL ."=" . $post_id;
+			break;
+			}
+			redirect(append_sid("login.$phpEx"));
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+	$s_hidden_fields = '<input type="hidden" name="' . POST_POST_URL . '" value="' . $post_id . '" />';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// start mod save posts as drafts...orignal definition was just the first part; changes so that if this was a draft, that fact gets passed on to the confirmation template so that it can return to post.php afterwards with that fact known
+	$s_hidden_fields = ( !$was_a_draft ) ? '<input type="hidden" name="' . POST_POST_URL . '" value="' . $post_id . '" />' : '<input type="hidden" name="' . POST_POST_URL . '" value="' . $post_id . '" /><input type="hidden" name="was_a_draft" value="was_a_draft" />';
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				submit_post($mode, $post_data, $return_message, $return_meta, $forum_id, $topic_id, $post_id, $poll_id, $topic_type, $bbcode_on, $html_on, $smilies_on, $attach_sig, $bbcode_uid, str_replace("\'", "''", $username), str_replace("\'", "''", $subject), str_replace("\'", "''", $message), str_replace("\'", "''", $poll_title), $poll_options, $poll_length);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+$poll_length
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ , $was_a_draft, $save_as_draft
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...added parameters at end of preceding line to tell function whether the post was a draft and to save the post or submit it as a live post
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			delete_post($mode, $post_data, $return_message, $return_meta, $forum_id, $topic_id, $post_id, $poll_id);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+$poll_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ , $was_a_draft
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...add $was_a_draft parameter at end of preceding line so that the delete function will know if this was a public post
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( $error_msg == '' )
+	{
+		if ( $mode != 'editpost' )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+// start mod save posts as drafts...added the !save_as_draft part of next line to assure that if this is just being saved as a draft the forum stats do not get updated, there is no email notification of the post and new post flags do not get set
+// and also added the ($mode != 'delete' || !$was_a_draft) part because saving a draft does not update the stats so there is no reason to update to relect a deletion of something that was only a draft
+// and also added the $was_a_draft stuff in the line after so that, when a draft finally gets submitted as a final post, the stats do get updated
+	if ( $error_msg == '' && !$save_as_draft && ($mode != 'delete' || !$was_a_draft) )
+	{
+		if ( $was_a_draft )
+		{
+		$mode = ( $post_data['first_post'] ) ? 'newtopic' : 'reply';
+		}
+		if ( $mode != 'editpost' )
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		message_die(GENERAL_MESSAGE, $return_message);
+	}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save draft posts...since the previous block of code excludes the case where user is saving as draft or there is a deletion of something that was just a draft,
+// and in that case skipps the update_stats function that otherwise would do an END_TRANSACTION sql query, this next block does a meaningless END_TRANSACTION query
+// and tells the script where to return in that case
+	if ( $error_msg == '' && $save_as_draft || ($mode == 'delete' && $was_a_draft) )
+	{
+
+		$sql = "DROP TABLE IF EXISTS temporary_table";
+		if (!$db->sql_query($sql, END_TRANSACTION))
+		{
+			message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+		}
+
+		$redirect = "index.$phpEx?";
+		redirect(append_sid($redirect, true) . $post_append);
+		$template->assign_vars(array(
+			'META' => $return_meta)
+		);
+		message_die(GENERAL_MESSAGE, $return_message);
+	}
+// end mod save draft posts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+if ( $mode == 'editpost' && ( ( $is_auth['auth_delete'] && $post_data['last_post'] && ( !$post_data['has_poll'] || $post_data['edit_poll'] ) ) || $is_auth['auth_mod'] ) )
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+$is_auth['auth_mod'] )
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ && !$was_a_draft
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts...added was a post stuff at end because posts that are drafts get handled differently (they get a real delete button)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$template->assign_block_vars('switch_delete_checkbox', array());
+}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+else if ( $mode == 'editpost' && $was_a_draft )
+{
+	$template->assign_block_vars('switch_delete_button', array());
+}
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Topic type selection
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts...if a new topic or a reply or a quote or was_a_draft, allow to save as draft or to delete
+if ( $userdata['session_logged_in'] && ( $mode == 'newtopic' || $mode == 'reply' || $mode == 'quote' || $was_a_draft ) )
+{
+	$template->assign_block_vars('switch_save_as_draft_button', array());
+}
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$hidden_form_fields = '<input type="hidden" name="mode" value="' . $mode . '" />';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+// start mod save posts as draft (and end too)...in next line, added a check on whether is a draft; if so, set mode in hidden fields being assigned to template to 'draft' even though current mode is set to 'editpost'
+$hidden_form_fields = (!$was_a_draft) ? '<input type="hidden" name="mode" value="' . $mode . '" />' : '<input type="hidden" name="mode" value="draft" />';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// Output the data to the template
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts (added the following comments)...
+// below, added the L_SAVE_AS_DRAFT line to specify the name of the new save as draft button in posts;
+// also edited the 'U_REVIEW_TOPIC' line so that topicreview would be pulled in for edits as well as replies
+// so that when you open a draft you can review other posts in the same topic
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'L_DELETE_POST' => $lang['Delete_post'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	'L_DELETE' => $lang['Delete'],
+	'L_SAVE_AS_DRAFT' => $lang['Save_as_draft'],
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'U_REVIEW_TOPIC' => ( $mode == 'reply' ) ? append_sid("posting.$phpEx?mode=topicreview&amp;" . POST_TOPIC_URL . "=$topic_id") : '',
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+$mode == 'reply'
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+$mode == 'reply' || $mode == 'editpost'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+if( $mode == 'reply' && $is_auth['auth_read'] )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...added the "|| $mode == 'editpost'" clause in next line so that when you open a draft you can review other posts in the same topic
+if( ($mode == 'reply' || $mode == 'editpost') && $is_auth['auth_read'] )
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		auto_prune($forum_id);
+	}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	// start mod save posts as drafts ... added separate auto pruning code for drafts
+	$sql = "SELECT * FROM " . DRAFT_PRUNE_TABLE . "
+		WHERE prune_id = 1";
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not read auto draft_prune table', '', __LINE__, __FILE__, $sql);
+	}
+
+	$auto_prune_data = $db->sql_fetchrow($result);
+	if ( $auto_prune_data['prune_next'] < time() && $auto_prune_data['prune_enable'] )
+	{
+		$prunedate = time() - ( $auto_prune_data['prune_days'] * 86400 );
+		$prunenext = time() + ($auto_prune_data['prune_freq'] * 86400);
+
+		$sql = "SELECT post_id
+			FROM " . POSTS_TABLE . "
+			WHERE post_draft=1
+			AND post_time < $prunedate";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain lists of draft posts to auto prune', '', __LINE__, __FILE__, $sql);
+		}
+		$sql_posts = '';
+		while( $row = $db->sql_fetchrow($result) )
+		{
+			$sql_posts .= ( ( $sql_posts != '' ) ? ', ' : '' ) . $row['post_id'];
+		}
+		$db->sql_freeresult($result);
+
+
+		if( $sql_posts != '' )
+		{
+			$sql = "SELECT t.topic_id
+				FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+				WHERE p.post_draft=1
+				AND p.post_time < $prunedate
+				AND t.topic_id = p.topic_id
+				AND t.topic_first_post_id = 0";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain lists of draft topics to auto prune', '', __LINE__, __FILE__, $sql);
+			}
+			$sql_topics = '';
+			while( $row = $db->sql_fetchrow($result) )
+			{
+				$sql_topics .= ( ( $sql_topics != '' ) ? ', ' : '' ) . $row['topic_id'];
+			}
+			$db->sql_freeresult($result);
+
+			if( $sql_topics != '' )
+			{
+
+				$sql = "DELETE FROM " . TOPICS_TABLE . "
+						WHERE topic_id IN ($sql_topics)";
+				if ( !$db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not delete draft topics during auto prune', '', __LINE__, __FILE__, $sql);
+				}
+				$pruned_topics = $db->sql_affectedrows();
+
+				$sql = "SELECT vote_id
+					FROM " . VOTE_DESC_TABLE . "
+					WHERE topic_id IN ($sql_topics)";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain lists of draft polls to auto prune', '', __LINE__, __FILE__, $sql);
+				}
+				$sql_polls = '';
+				while( $row = $db->sql_fetchrow($result) )
+				{
+					$sql_polls .= ( ( $sql_polls != '' ) ? ', ' : '' ) . $row['vote_id'];
+				}
+				$db->sql_freeresult($result);
+
+				if( $sql_polls != '' )
+				{
+					$sql = "DELETE FROM " . VOTE_DESC_TABLE . "
+						WHERE vote_id IN ($sql_polls)";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Error in autopruning poll', '', __LINE__, __FILE__, $sql);
+					}
+
+					$sql = "DELETE FROM " . VOTE_RESULTS_TABLE . "
+						WHERE vote_id IN ($sql_polls)";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Error in autopruning poll', '', __LINE__, __FILE__, $sql);
+					}
+				}
+			}
+
+			$sql = "DELETE FROM " . POSTS_TEXT_TABLE . "
+				WHERE post_id IN ($sql_posts)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete text of draft posts during auto prune', '', __LINE__, __FILE__, $sql);
+			}
+
+			$sql = "DELETE FROM " . POSTS_TABLE . "
+				WHERE post_id IN ($sql_posts)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete draft posts during auto prune', '', __LINE__, __FILE__, $sql);
+			}
+
+		}
+
+
+		$sql = "UPDATE " . DRAFT_PRUNE_TABLE . "
+			SET prune_next = $prunenext";
+
+		if ( !$db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Could not reset prune_next in auto draft_prune table', '', __LINE__, __FILE__, $sql);
+		}
+	}
+	// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			AND p.post_id = t.topic_last_post_id
+			AND p.post_time >= $min_topic_time";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+			AND p.post_id = t.topic_last_post_id
+			AND p.post_time >= $min_topic_time
+			AND p.post_draft = 0";
+// start mod save posts as drafts (and end mod too)...note that I added AND p.post_draft = 0 in the forgoing $sql definition and in two more that follow later in this file to assure that draft topics would not be displayed in viewforum
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		AND t.topic_type = " . POST_ANNOUNCE . "
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		AND p.post_draft = 0
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		AND t.topic_type <> " . POST_ANNOUNCE . "
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		AND p.post_draft = 0
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					ORDER BY p.post_time ASC
+					LIMIT 1";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+						AND p.post_draft = 0
+					ORDER BY p.post_time ASC
+					LIMIT 1";
+// start mod save posts as drafts (and end mod too): added an AND constraint in the foregoing sql definition that post_draft be zero (i.e. that the post not just be a draft)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			ORDER BY t.topic_last_post_id $sql_ordering
+			LIMIT 1";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+				AND t.topic_last_post_id > 0
+			ORDER BY t.topic_last_post_id $sql_ordering
+			LIMIT 1";
+// start mod save posts as drafts (and end mod too): added an AND constraint in the foregoing sql definition that last_post_id be greater than 0 (i.e. that the topic not just be a new draft topic not yet submitted)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$join_sql = (!$post_id) ? "t.topic_id = $topic_id" : "p.post_id = $post_id AND t.topic_id = p.topic_id AND p2.topic_id = p.topic_id AND p2.post_id <= $post_id";
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+AND p2.post_id <= $post_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ AND p2.post_draft = 0
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts (and end too)...added constraint at end of previous line that post_draft be 0 (i.e. that the post not be a draft)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			AND p.topic_id = t.topic_id
+			AND p.post_time >= $min_post_time";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+			AND p.topic_id = t.topic_id
+			AND p.post_time >= $min_post_time
+			AND p.post_draft = 0";
+// start mod save posts as drafts (and end too)...added constraint at end of next line that post_draft be 0 (i.e. that the post not be a draft)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	ORDER BY p.post_time $post_time_order
+	LIMIT $start, ".$board_config['posts_per_page'];
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		AND p.post_draft = 0
+	ORDER BY p.post_time $post_time_order
+	LIMIT $start, ".$board_config['posts_per_page'];
+// start mod save posts as drafts (and end mod too)...note that I added AND p.post_draft = 0 in the forgoing $sql definition to assure that draft posts would not be displayed in viewtopic
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$save = ( isset($HTTP_POST_VARS['save']) ) ? TRUE : 0;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts...check to see if this is a draft and set parameters accordingly
+if ( isset($HTTP_POST_VARS['save_as_draft']) )
+{
+	$save_as_draft = TRUE;
+	$submit = TRUE;
+}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$mode = htmlspecialchars($mode);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	// start mod save posts as drafts...check if this is a draft and if so set a flag ($was_a_draft) and set $mode to be 'edit'
+	if ( $mode == 'draft' )
+	{
+		$was_a_draft = TRUE;
+		$mode = 'edit';
+	}
+	// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+else if ( ( $delete && $mark_list ) || $delete_all )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...changed the next if statment to ensure that if the post is a draft being edited,
+// the user will be have a button to delete the draft
+else if ( ( $delete && $mark_list ) || ( $delete && $was_a_draft ) || $delete_all )
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( !$confirm )
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+	// start mod save posts as drafts...added teh folowing block of code to get the privmsgs_id if you are deleting a draft
+	if ( $was_a_draft )
+	{
+		if ( !empty($HTTP_POST_VARS[POST_POST_URL]) || !empty($HTTP_GET_VARS[POST_POST_URL]) )
+		{
+			$privmsgs_id = ( !empty($HTTP_POST_VARS[POST_POST_URL]) ) ? intval($HTTP_POST_VARS[POST_POST_URL]) : intval($HTTP_GET_VARS[POST_POST_URL]);
+		}
+		else
+		{
+			message_die(GENERAL_ERROR, $lang['No_post_id']);
+		}
+	}
+	//end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		//
+		// Output confirmation page
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+		// start mod save posts as drafts ... added the following block of code to pass the draft info and privmsg_id
+		// onto the confirmation template when deleteing a draft pm
+		if ( $was_a_draft )
+		{
+			$s_hidden_fields .= '<input type="hidden" name="mode" value="draft" />';
+			$s_hidden_fields .= '<input type="hidden" name="' . POST_POST_URL . '" value="' . $privmsgs_id . '" />';
+		}
+		// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$delete_sql_id = "AND privmsgs_id IN ($delete_sql_id)";
+		}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		// start mod savae posts as drafts ... added the following block of code to specify, when a draft is being finally submitted, that the
+		// pm was a draft and to specify the privmsg_id
+		// (note: also added a reference to case 'draft' in the enxt 'switch' and changed the $delete_type reference in that switch to
+		// refer to $privmsgs_new_or_draft_mail rather than PRIVMSGS_NEW_MAIL)
+		if ( $was_a_draft )
+		{
+			$delete_sql_id = "AND privmsgs_id = $privmsgs_id ";
+			$folder = 'draft';
+			$privmsgs_new_or_draft_mail = PRIVMSGS_DRAFT_MAIL;
+		}
+		else
+		{
+			$privmsgs_new_or_draft_mail = PRIVMSGS_NEW_MAIL;
+		}
+		// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			case 'outbox':
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+			case 'draft':
+				// start mod save posts as drafts (and end mod too)...added case 'draft' above and changed PRIVMSGS_NEW_MAIL to $privmsgs_new_or_draft_mail below
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: actual line is longer
+				$delete_type = "privmsgs_from_userid = " .
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+PRIVMSGS_NEW_MAIL
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+$privmsgs_new_or_draft_mail
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					$delete_sql .= "privmsgs_from_userid = " . $userdata['user_id'] . " AND (
+
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+				case 'draft':
+					// start mod save posts as drafts (and end mod too)...added case 'draft' above and changed PRIVMSGS_NEW_MAIL to $privmsgs_new_or_draft_mail below
+
+#
+#-----[ FIND ]------------------------------------------------
+# note:actual line is longer
+						privmsgs_type = " . PRIVMSGS_NEW_MAIL
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+PRIVMSGS_NEW_MAIL
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+$privmsgs_new_or_draft_mail
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			if ( !$db->sql_query($delete_text_sql, END_TRANSACTION) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete private message text', '', __LINE__, __FILE__, $delete_text_sql);
+			}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+			// start mod save posts as drafts ... added the next block of code to redirect to the index if this is a draft being deleted
+			if ( $was_a_draft )
+			{
+				$redirect = "index.$phpEx?";
+				redirect(append_sid($redirect, true));
+			}
+			// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if ( $mode != 'edit' )
+		{
+			//
+			// See if recipient is at their inbox limit
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		// start mod save posts as drafts
+
+		// add definition of privmsgs_new_or_draft_mail for use in two sql definitions appearing later on
+		// (note that I do not have a comment in those two definitions
+		// saying that I have modified them so search for the new variable if you want to see where they are);
+		$privmsgs_new_or_draft_mail = ( $save_as_draft ) ? PRIVMSGS_DRAFT_MAIL : PRIVMSGS_NEW_MAIL;
+
+		// changed the if statement below so that the check versus the recipient's inbox capacity
+		// will occur not only for a new pm ($mode != 'edit ) but also for an old pm that has been saved as
+		// draft and is only now being submitted as a live pm
+		if ( $mode != 'edit' || ( $was_a_draft && !$save_as_draft ) )
+		{
+			// start mod save posts as drafts (and end mod too) ...added the if clause to avoid executing the inbox limits code when this is being saved as draft
+			if ( !$save_as_draft )
+			{
+			//
+			// See if recipient is at their inbox limit
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: actual line is longer
+			$sql_info = "INSERT INTO " . PRIVMSGS_TABLE . " (privmsgs_type,
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+			// start mod save posts as drafts (and end mod too)...added the close bracket that ties to the if statement added earlier by this mod
+			}
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: actual line is longer
+				VALUES (" . PRIVMSGS_NEW_MAIL . "
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+PRIVMSGS_NEW_MAIL
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+$privmsgs_new_or_draft_mail
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		else
+		{
+			$sql_info = "UPDATE " . PRIVMSGS_TABLE . "
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		// start mod save posts as drafts (and end mod too)...change the next line to test if $mode = 'edit') rather than
+		// using an else statement since I changed the prior if statement to execute not only when $mode != 'edit' but also when the pm
+		// is an old draft that is now finally getting submitted as a live pm...in that case the sql definition below will
+		// simply overwrite the sql definition in the prior if clause so that the actual sql query will properly be an update rather than an insert
+		if ( $mode == 'edit' )
+		{
+			$sql_info = "UPDATE " . PRIVMSGS_TABLE . "
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: actual line is longer
+				SET privmsgs_type = " . PRIVMSGS_NEW_MAIL . "
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+PRIVMSGS_NEW_MAIL
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+$privmsgs_new_or_draft_mail
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if ( $mode != 'edit' )
+		{
+			//
+			// Add to the users new pm counter
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		// start mod save posts as drafts (and end mod too)...changed the next line so that the counter will not be incremented
+		// when you save a pm as a draft but will in fact be incremented when you submit it
+		if ( ( $mode != 'edit' && !$save_as_draft ) || ( $was_a_draft && !$save_as_draft ) )
+		{
+			//
+			// Add to the users new pm counter
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$emailer->send();
+				$emailer->reset();
+			}
+		}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		// start mod save posts as drafts ... added the following block of code to redirect to the index if the user is save a pm as a draft
+		if ( $save_as_draft )
+		{
+			$redirect = "index.$phpEx?";
+			redirect(append_sid($redirect, true));
+		}
+		// end mod save postgs as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+# note: the acutal line is longer
+			$sql = "SELECT pm.*,
+
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+			// start mod save posts as drafts (and end mod too)...
+			// add definition of privmsgs_new_or_draft_mail for use in sql definition below
+			// (note that I do not have a comment in that definition saying that I have modified it)
+			$privmsgs_new_or_draft_mail = ( $was_a_draft ) ? PRIVMSGS_DRAFT_MAIL : PRIVMSGS_NEW_MAIL;
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					AND ( pm.privmsgs_type = " . PRIVMSGS_NEW_MAIL . "
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+					AND ( pm.privmsgs_type = " . $privmsgs_new_or_draft_mail . "
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+		$s_hidden_fields .= '<input type="hidden" name="mode" value="' . $mode . '" />';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		// start mod save posts as drafts...changed next block so that if this is a draft being edited and previewed
+		// it is treated differently (so that template keeps track of was_a_draft status
+		if ( $was_a_draft )
+		{
+			$s_hidden_fields .= '<input type="hidden" name="mode" value="draft" />';
+		}
+		else
+		{
+			$s_hidden_fields .= '<input type="hidden" name="mode" value="' . $mode . '" />';
+		}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$s_hidden_fields .= '<input type="hidden" name="mode" value="' . $mode . '" />';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+	// start mod save posts as drafts...changed next block so that if this is a draft being edited and previewed
+	// it is treated differently (so that template keeps track of was_a_draft status
+	if ( $was_a_draft )
+	{
+		$s_hidden_fields .= '<input type="hidden" name="mode" value="draft" />';
+	}
+	else
+	{
+		$s_hidden_fields .= '<input type="hidden" name="mode" value="' . $mode . '" />';
+	}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	generate_smilies('inline', PAGE_PRIVMSGS);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	// start mod save posts as drafts...if a new pm or was_a_draft, allow to save as draft or to delete
+	if ( $mode == 'post' || $mode == 'reply' || $mode == 'quote' || $was_a_draft )
+	{
+		$template->assign_block_vars('switch_save_as_draft_button', array());
+	}
+	if ( $was_a_draft )
+	{
+		$template->assign_block_vars('switch_delete_button', array());
+	}
+	// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		'L_SUBMIT' => $lang['Submit'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+		'L_DELETE' => $lang['Delete'],
+		'L_SAVE_AS_DRAFT' => $lang['Save_as_draft'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$show_results = ($show_results == 'topics') ? 'topics' : 'posts';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts ... if user clicked to see his drafts and posts or topics, set search_id to egosearch and set show_results correctly
+if( $search_id == 'egosearch_by_topic' || $search_id == 'egosearch_by_post' )
+{
+	$show_results = ( $search_id == 'egosearch_by_topic' ) ? 'topics' : 'posts';
+	$search_id = 'egosearch';
+}
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$store_vars = array('search_results', 'total_match_count', 'split_search', 'sort_by', 'sort_dir', 'show_results', 'return_chars');
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+'return_chars'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+, 'draft_on'
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...added the draft_on variable in the next line so that if the user clicks to after page 1 of list and then goes back to page 1 the draft lists will appear
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+						WHERE post_time >= " . $userdata['user_lastvisit'];
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+						WHERE post_time >= " . $userdata['user_lastvisit'] . " AND post_draft = 0";
+						// start mod save posts as drafts (and end mod too)...added constraint in the preceding line that post_draft be 0 so that draftws wouldn't get included
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			else if ( $search_id == 'egosearch' )
+			{
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+				// start mod save posts as drafts ... set $draft_on to true if this is egosearch (since we show drafts only for egosearch)...
+				$draft_on = true;
+				// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+						WHERE poster_id = " . $userdata['user_id'];
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+						WHERE poster_id = " . $userdata['user_id'] . "
+						AND post_draft = 0";
+						// start mod save posts as drafts (and end mod too)...added a constraint in preceding line that post_draft be 0 so that drafts wouldn't get included
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$show_results = 'topics';
+				$sort_by = 0;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+				// start mod save posts as drafts (and end mod too)...deleted the line that set $show_results to 'topics' because $show_results is now set earlier on if this is an egosearch
+				$sort_by = 0;
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+						$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author' ";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+//start mod save posts as drafts (and end mod too)...in the following line, added constraint that post_draft be 0
+						$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author' AND p.post_draft = 0";
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+						$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author'";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+//start mod save posts as drafts (and end mod too)...in the following line, added constraint that post_draft be 0
+
+						$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author' AND p.post_draft = 0";
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		{
+			message_die(GENERAL_MESSAGE, $lang['No_search_match']);
+		}
+
+		//
+		// Delete old data from the search result table
+		//
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+		{
+			// start mod save posts as drafts (and end mod too)...added the check that skips the no match message if there are drafts to be shown
+			if(!$draft_on)
+			{
+				message_die(GENERAL_MESSAGE, $lang['No_search_match']);
+			}
+		}
+
+		//
+		// Delete old data from the search result table
+		//
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ( $search_results != '' )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	// start mod save posts as drafts (and end mod too)...added $draft_on part of next line so that it will execute the next piece of code if we are supposed to show drafts even when there are no search matches
+	if ( $search_results != '' || $draft_on )
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ( !$result = $db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain search results', '', __LINE__, __FILE__, $sql);
+		}
+
+		$searchset = array();
+		while( $row = $db->sql_fetchrow($result) )
+		{
+			$searchset[] = $row;
+		}
+
+		$db->sql_freeresult($result);
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		// start mod save posts as drafts ...skip the actual search query if this is a search that is supposed to show drafts and there are no regular search results
+		if ( $search_results != '' )
+		{
+			if ( !$result = $db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain search results', '', __LINE__, __FILE__, $sql);
+			}
+
+			$searchset = array();
+			while( $row = $db->sql_fetchrow($result) )
+			{
+				$searchset[] = $row;
+			}
+
+			$db->sql_freeresult($result);
+		}
+		// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		// Output header
+		//
+		$page_title = $lang['Search'];
+		include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// start mod save posts as drafts...show all drafts at the top of the search results page when a user searches for all of his or her posts (egosearch)...
+		if ( $draft_on && $start == 0 )
+		{
+			$sql = "SELECT p.post_id, p.post_time, pt.post_subject, t.topic_title, f.forum_name
+				FROM " . POSTS_TABLE . " p , " . POSTS_TEXT_TABLE . " pt, " . TOPICS_TABLE . " t, " . FORUMS_TABLE . " f
+				WHERE p.post_draft = 1
+				AND pt.post_id = p.post_id
+				AND p.poster_id = ".$userdata['user_id']."
+				AND p.topic_id = t.topic_id
+				AND f.forum_id = p.forum_id
+				ORDER BY p.post_time";
+
+			$result = $db->sql_query($sql);
+
+			if( !$result )
+			{
+				message_die(GENERAL_ERROR, "Couldn't obtain draft posts from database", "", __LINE__, __FILE__, $sql);
+			}
+
+			$draft_posts = $db->sql_fetchrowset($result);
+			$db->sql_freeresult($result);
+			$total_draft_posts = count($draft_posts);
+
+			// ok, done collecting all draft posts...now let's find the draft pms
+			$sql = "SELECT privmsgs_id, privmsgs_subject, privmsgs_date
+				FROM " . PRIVMSGS_TABLE . "
+				WHERE privmsgs_type = " . PRIVMSGS_DRAFT_MAIL . "
+				AND privmsgs_from_userid = ".$userdata['user_id']."
+				ORDER BY privmsgs_date";
+
+			$result = $db->sql_query($sql);
+
+			if( !$result )
+			{
+				message_die(GENERAL_ERROR, "Couldn't obtain draft posts from database", "", __LINE__, __FILE__, $sql);
+			}
+
+			$draft_pms = $db->sql_fetchrowset($result);
+			$db->sql_freeresult($result);
+
+			if ( !$draft_posts || !$draft_pms )
+			{
+				$drafts = ( $draft_posts ) ? $draft_posts : $draft_pms;
+			}
+			else
+			{
+				$drafts = array_merge($draft_posts,$draft_pms);
+			}
+
+			$total_drafts = count($drafts);
+
+			// cut this all off if there are no regular search matches and no drafts
+			if( $search_results == '' && $total_drafts == 0 )
+			{
+				message_die(GENERAL_MESSAGE, $lang['No_search_match']);
+			}
+
+			if ( $total_drafts > 0 )
+			{
+			$template->assign_block_vars('switch_show_drafts', array());
+			$template->assign_block_vars("draft", array());
+				for($i = 0; $i < $total_drafts; $i++)
+				{
+					$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+					// now set variables, but variables are different depending on if draft post or draft pm so treat differently...
+					if ( $i < $total_draft_posts )
+					{
+						$draft_time = create_date($board_config['default_dateformat'], $drafts[$i]['post_time'], $board_config['board_timezone']);
+						$draft_subject = ( $drafts[$i]['post_subject'] ) ? $drafts[$i]['post_subject'] : $drafts[$i]['topic_title'];
+						$draft_topic = $drafts[$i]['topic_title'];
+						$draft_forum = $drafts[$i]['forum_name'];
+						$draft_url = append_sid("posting.$phpEx?mode=draft&amp;" . POST_POST_URL . "=".$drafts[$i]['post_id']."");
+					}
+					else
+					{
+						$draft_time = create_date($board_config['default_dateformat'], $drafts[$i]['privmsgs_date'], $board_config['board_timezone']);
+						$draft_subject = $drafts[$i]['privmsgs_subject'];
+						$draft_topic = $drafts[$i]['privmsgs_subject'];
+						$draft_forum = $lang['Private_Messages'];
+						$draft_url = append_sid("privmsg.$phpEx?mode=draft&amp;" . POST_POST_URL . "=".$drafts[$i]['privmsgs_id']."");
+
+					}
+				$template->assign_block_vars("draft.draft_topics", array(
+					"ROW_CLASS" => $row_class,
+					"DRAFT_POST_TIME" =>  $draft_time,
+					"DRAFT_POST_SUBJECT" =>  $draft_subject,
+					"DRAFT_POST_TOPIC" =>  $draft_topic,
+					"DRAFT_POST_FORUM" =>  $draft_forum,
+					"DRAFT_POST_LOC" => $draft_url)
+				);
+				}
+			}
+		}
+		// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$l_search_matches = ( $total_match_count == 1 ) ? sprintf($lang['Found_search_match'], $total_match_count) : sprintf($lang['Found_search_matches'], $total_match_count);
+
+		$template->assign_vars(array(
+			'L_SEARCH_MATCHES' => $l_search_matches,
+
+#
+#-----[ REPLACE WITH ]-----------------------------------------
+#
+		// start mod save posts as drafts (and end mod too)...added drafts to the match count and added text for draft posts in the next two blocks of code
+		$total_match_count = $total_match_count + $total_drafts;
+		$l_search_matches = ( $total_match_count == 1 ) ? sprintf($lang['Found_search_match'], $total_match_count) : sprintf($lang['Found_search_matches'], $total_match_count);
+		( $show_results == 'topics' ) ? $real_posts = $lang['Topics_you_have_posted_to'] : $real_posts = $lang['Your_posts'];
+
+		$template->assign_vars(array(
+			'L_SEARCH_MATCHES' => $l_search_matches,
+			'L_DRAFT_POSTS' => $lang['Draft_posts'],
+			'L_REAL_POSTS' => $real_posts,
+			'L_DRAFT_POST_TIME' =>  $lang['Draft_post_time'],
+			'L_DRAFT_POST_SUBJECT' =>  $lang['Draft_post_subject'],
+			'L_DRAFT_POST_TOPIC' =>  $lang['Draft_post_topic'],
+			'L_DRAFT_POST_FORUM' => $lang['Draft_post_forum'],
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+admin/admin_forum_prune.php
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+if( isset($HTTP_POST_VARS['doprune']) )
+
+#
+#-----[ REPLACE WITH ]-------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...added references to draft prune and draft auto prune
+// so that those cases could be handled separately
+if( isset($HTTP_POST_VARS['doprune']) || isset($HTTP_POST_VARS['do_draft_prune']) || isset($HTTP_POST_VARS['draft_auto_prune']) )
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+	for($i = 0; $i < count($forum_rows); $i++)
+	{
+		$p_result = prune($forum_rows[$i]['forum_id'], $prunedate);
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------------------
+#
+	// start mod save posts as drafts...test to see if drafts are being pruned..if so, handle specially
+	if( isset($HTTP_POST_VARS['do_draft_prune']) )
+	{
+		$pruned_posts = 0;
+		$pruned_topics = 0;
+
+		$sql = "SELECT post_id
+				FROM " . POSTS_TABLE . "
+				WHERE post_draft=1
+				AND post_time < $prunedate";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain lists of draft posts to prune', '', __LINE__, __FILE__, $sql);
+		}
+		$sql_posts = '';
+		while( $row = $db->sql_fetchrow($result) )
+		{
+			$sql_posts .= ( ( $sql_posts != '' ) ? ', ' : '' ) . $row['post_id'];
+		}
+		$db->sql_freeresult($result);
+
+
+		if( $sql_posts != '' )
+		{
+			$sql = "SELECT t.topic_id
+					FROM " . TOPICS_TABLE . " t, " . POSTS_TABLE . " p
+					WHERE p.post_draft=1
+					AND p.post_time < $prunedate
+					AND t.topic_id = p.topic_id
+					AND t.topic_first_post_id = 0";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain lists of draft topics to prune', '', __LINE__, __FILE__, $sql);
+			}
+			$sql_topics = '';
+			while( $row = $db->sql_fetchrow($result) )
+			{
+				$sql_topics .= ( ( $sql_topics != '' ) ? ', ' : '' ) . $row['topic_id'];
+			}
+			$db->sql_freeresult($result);
+
+
+
+			if( $sql_topics != '' )
+			{
+
+				$sql = "DELETE FROM " . TOPICS_TABLE . "
+						WHERE topic_id IN ($sql_topics)";
+				if ( !$db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not delete draft topics during prune', '', __LINE__, __FILE__, $sql);
+				}
+				$pruned_topics = $db->sql_affectedrows();
+
+				$sql = "SELECT vote_id
+					FROM " . VOTE_DESC_TABLE . "
+					WHERE topic_id IN ($sql_topics)";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain lists of draft polls to prune', '', __LINE__, __FILE__, $sql);
+				}
+				$sql_polls = '';
+				while( $row = $db->sql_fetchrow($result) )
+				{
+					$sql_polls .= ( ( $sql_polls != '' ) ? ', ' : '' ) . $row['vote_id'];
+				}
+				$db->sql_freeresult($result);
+
+				if( $sql_polls != '' )
+				{
+					$sql = "DELETE FROM " . VOTE_DESC_TABLE . "
+						WHERE vote_id IN ($sql_polls)";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Error in autopruning poll', '', __LINE__, __FILE__, $sql);
+					}
+
+					$sql = "DELETE FROM " . VOTE_RESULTS_TABLE . "
+						WHERE vote_id IN ($sql_polls)";
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Error in autopruning poll', '', __LINE__, __FILE__, $sql);
+					}
+				}
+			}
+
+			$sql = "DELETE FROM " . POSTS_TEXT_TABLE . "
+					WHERE post_id IN ($sql_posts)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete text of draft posts during prune', '', __LINE__, __FILE__, $sql);
+			}
+
+			$sql = "DELETE FROM " . POSTS_TABLE . "
+					WHERE post_id IN ($sql_posts)";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete draft posts during prune', '', __LINE__, __FILE__, $sql);
+			}
+			$pruned_posts = $db->sql_affectedrows();
+
+		}
+
+		$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
+		$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+
+		$template->assign_block_vars('prune_results', array(
+			'ROW_COLOR' => '#' . $row_color,
+			'ROW_CLASS' => $row_class,
+			'FORUM_NAME' => $lang['Drafts'],
+			'FORUM_TOPICS' => $pruned_topics,
+			'FORUM_POSTS' => $pruned_posts)
+		);
+
+		$template->assign_vars(array(
+		'L_FORUM_PRUNE' => $lang['Draft_prune'],
+		'L_FORUM' => $lang['Drafts'],
+		'L_TOPICS_PRUNED' => $lang['Draft_topics_pruned'], 'Draft topics pruned',
+		'L_POSTS_PRUNED' => $lang['Draft_posts_pruned'], 'Draft posts pruned',
+		'L_PRUNE_RESULT' => $lang['Draft_pruning_successful'])
+		);
+	}
+
+	else if( isset($HTTP_POST_VARS['draft_auto_prune']) )
+	{
+		if( $HTTP_POST_VARS['prune_enable'] )
+		{
+			if( $HTTP_POST_VARS['prune_days'] == "" || $HTTP_POST_VARS['prune_freq'] == "")
+			{
+				message_die(GENERAL_MESSAGE, $lang['Set_prune_data']);
+			}
+
+			$sql = "UPDATE " . DRAFT_PRUNE_TABLE . "
+			SET prune_days = " . intval($HTTP_POST_VARS['prune_days']) . ",	prune_freq = " . intval($HTTP_POST_VARS['prune_freq']) . ", prune_enable = 1
+			WHERE prune_id = 1";
+			if( !$result = $db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't insert row in prune table", "", __LINE__, __FILE__, $sql);
+			}
+		}
+
+		else
+		{
+			$sql = "UPDATE " . DRAFT_PRUNE_TABLE . "
+			SET prune_enable = 0
+			WHERE prune_id = 1";
+			if( !$result = $db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't insert row in prune table", "", __LINE__, __FILE__, $sql);
+			}
+		}
+
+		message_die(GENERAL_MESSAGE, $lang['Auto_prune_settings_changed']);
+
+	}
+
+	else if( isset($HTTP_POST_VARS['doprune']) )
+	{
+	// end mod save posts as drafts...here, we pick up where the user has hit a regular forum doprune
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+		'L_PRUNE_RESULT' => $lang['Prune_success'])
+	);
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+	// start mod save posts as drafts (and end mod too)... added the close bracket on the next line
+	}
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+		$select_list .= '</select>';
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+// start mod save posts as drafts...added the following block to get information from the draft prune table, and
+// added in the stuff passed to the template in the next block a bunch of prune variables
+		$prune_data = $lang['Remove_drafts_not_modified'];
+		$prune_data .= '<input class="post" type="text" name="prunedays" size="4" /> ' . $lang['Days'];
+
+		$sql = "SELECT *
+		FROM " . DRAFT_PRUNE_TABLE . "
+		WHERE prune_id = 1";
+		if(!$draft_prune_result = $db->sql_query($sql))
+		{
+			 message_die(GENERAL_ERROR, "Couldn't read auto draft_prune table.", __LINE__, __FILE__);
+		}
+
+		$draft_prune_row = $db->sql_fetchrow($draft_prune_result);
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+			'L_LOOK_UP' => $lang['Look_up_Forum'],
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+			'L_DRAFT_PRUNE' => $lang['Draft_prune'],
+			'L_DO_PRUNE' => $lang['Do_Prune'],
+			'L_DRAFT_AUTO_PRUNE' => $lang['Draft_auto-prune'],
+			'L_ENABLED' => $lang['Enabled'],
+			'L_PRUNE_DAYS' => $lang['Remove_drafts_not_modified'],
+			'L_PRUNE_FREQ' => $lang['Check_draft_age'],
+			'L_DAYS' => $lang['Days'],
+			'L_SUBMIT' => $lang['Submit'],
+
+			'S_DRAFTPRUNE_ACTION' => append_sid("admin_forum_prune.$phpEx"),
+			'S_PRUNE_DATA' => $prune_data,
+			'S_PRUNE_ENABLED' => ( $draft_prune_row['prune_enable'] ) ? 'checked="checked"' : '',
+			'S_PRUNE_DAYS' => $draft_prune_row['prune_days'],
+			'S_PRUNE_FREQ' => $draft_prune_row['prune_freq'],
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$prune_data .= '<input class="post" type="text" name="prunedays" size="4"> ' . $lang['Days'];
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		$prune_data .= '<input class="post" type="text" name="prunedays" size="4" /> ' . $lang['Days'];
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+admin/index.php
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+
+		"L_USERS_PER_DAY" => $lang['Users_per_day'],
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+		"L_NUMBER_DRAFTS" => $lang['Number_of_drafts'],
+		"L_DRAFTS_PER_USER" => $lang['Drafts_per_user'],
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+	$users_per_day = sprintf("%.2f", $total_users / $boarddays);
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+// start mod save posts as drafts...added the following block, and also added number of drafts and
+// drafts per user to the language assignment to the template above and the variable assignment to the template below
+	$sql = "SELECT COUNT(*) AS count FROM " . POSTS_TABLE . " WHERE post_draft = 1";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not obtain lists of draft posts to count', '', __LINE__, __FILE__, $sql);
+	}
+	$drafts = $db->sql_fetchrow($result);
+	$total_drafts = $drafts['count'];
+	$db->sql_freeresult($result);
+	$drafts_per_user = sprintf("%.2f", $total_drafts / $total_users);
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+		"NUMBER_OF_USERS" => $total_users,
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+		"NUMBER_OF_DRAFTS" => $total_drafts,
+		"DRAFTS_PER_USER" => $drafts_per_user,
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('PRIVMSGS_UNREAD_MAIL', 5);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+define('PRIVMSGS_DRAFT_MAIL', 6);
+// start mod save posts as drafts (and end mod too) ... added the privmsgs_draft_mail definition in the preceding line
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+define('FORUMS_TABLE', $table_prefix.'forums');
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...added the definition of auto_prune_table in next line
+define('DRAFT_PRUNE_TABLE', $table_prefix.'draft_prune');
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/topic_review.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		ORDER BY p.post_time DESC
+		LIMIT " . $board_config['posts_per_page'];
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+			AND (p.post_draft = 0 || p.poster_id = $userdata[user_id])
+		ORDER BY p.post_time DESC
+		LIMIT " . $board_config['posts_per_page'];
+// start mod save posts as drafts (and end mod too)...note that I added AND p.post_draft = 0 || ... in the forgoing $sql definition to assure that draft posts would not be displayed in review topics except if those posts are the users own draft posts
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# note the actual line in the code is much longer
+function submit_post($mode,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+&$poll_length
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+ , &$was_a_draft, &$save_as_draft
+
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+// start mod save posts as drafts (and end too)...added parameters at end of previous line for save as draft and was a draft
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ($mode == 'editpost')
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...add the !$was a draft constraint since drafts do not get saved in the search index
+	if ($mode == 'editpost' && !$was_a_draft)
+
+#
+#-----[ FIND ]------------------------------------------------
+# note the actual line in the code is much longer
+		$sql  = ($mode != "editpost") ? "INSERT INTO "
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+($mode != "editpost")
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+( ($mode != "editpost") || ($was_a_draft && !$save_as_draft && $post_data['first_post']) )
+
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...add the test near the beginning of the preceding line about whether the post was a draft that is a first post in a topic and that is not getting saved as draft...if so, insert a new topic for the post and later on delete the old topic
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$topic_id = $db->sql_nextid();
+		}
+
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+// start mod save posts as drafts
+// in the below added code, we delete the old topic from the topics table if the post
+// was a draft getting finally submitted as a real post and it is the first post of the topic;
+// and we also in that case reset $topic_id to match the new $topic_id of the new topic inserted above;
+// and finally if there is a poll in the topic we change the vote_desc_table so that it now points to the new topic_id rather than the old one...
+		if ($was_a_draft && !$save_as_draft && $post_data['first_post'])
+		{
+			$relevant_topic_id = $topic_id;
+			$topic_id = $db->sql_nextid();
+			$sql = "DELETE FROM " . TOPICS_TABLE . " WHERE topic_id = $relevant_topic_id";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+			}
+
+			if ( $topic_vote == 1 )
+			{
+				$sql = "UPDATE " . VOTE_DESC_TABLE . "
+					SET topic_id = $topic_id
+					WHERE topic_id = $relevant_topic_id";
+				if (!$db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+				}
+			}
+		}
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+# note the actual line in the code is much longer
+	$edited_sql = ($mode == 'editpost'
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts
+	// we'll add an if !$was_a_draft clause to avoid updating the edit stats if we are dealing with a draft,
+	// since to the outside world the draft, when posted, should not look like it was edited
+	if (!$was_a_draft)
+	{
+
+#
+#-----[ FIND ]------------------------------------------------
+# note the actual line in the code is much longer
+	$sql = ($mode != "editpost") ? "INSERT INTO "
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+	}
+	// in the next two lines we set post_draft to correct value so that the proper value can be inserted in the posts table
+	// and we set relevant_post_id to equal post_id...releavnt post id (used to find the post text in the post text table) will normally be whatever the post_id is except where we are replacing an old post_id with a new one upon taking a draft and finally submitting it...
+	$post_draft = ($save_as_draft) ? 1 : 0;
+	$relevant_post_id = $post_id;
+	// Below, we have added to the definition of $sql a test to see if the post was a draft that is now being submitted as a live post...if so,
+	// the post gets submitted as a new post with a new post_id and the old will (a bit later on) get deleted,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+$mode != "editpost"
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+($mode != "editpost") || ($was_a_draft && !$save_as_draft)
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+enable_sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+, post_draft
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+$attach_sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+, $post_draft
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+enable_sig = $attach_sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+, post_draft = $post_draft
+
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+	// if this is already a draft getting saved again as a draft, change the $sql so that it updates the post time...
+	if($was_a_draft && $save_as_draft)
+	{
+	$sql = "UPDATE " . POSTS_TABLE . " SET post_username = '$post_username', post_time = $current_time, enable_bbcode = $bbcode_on, enable_html = $html_on, enable_smilies = $smilies_on, enable_sig = $attach_sig, post_draft = $post_draft" . $edited_sql . " WHERE post_id = $post_id";
+	}
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$post_id = $db->sql_nextid();
+	}
+
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+// start mod save posts as drafts
+// in the below added code, we delete the old post from the posts table if the post was a draft getting finally submitted as a real post; and we also in that case save the $relevant_post_id for purposes of fidning the text in the topic table and then reset $post_id to match the new $post_id of the new post inserted above
+
+		if ($was_a_draft && !$save_as_draft)
+		{
+			$relevant_post_id = $post_id;
+			$post_id = $db->sql_nextid();
+			$sql = "DELETE FROM " . POSTS_TABLE . " WHERE post_id = $relevant_post_id";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+			}
+		}
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$sql = ($mode != 'editpost') ? "INSERT INTO " . POSTS_TEXT_TABLE . " (post_id, post_subject, bbcode_uid, post_text) VALUES ($post_id, '$post_subject', '$bbcode_uid', '$post_message')" : "UPDATE " . POSTS_TEXT_TABLE . " SET post_text = '$post_message',  bbcode_uid = '$bbcode_uid', post_subject = '$post_subject' WHERE post_id = $post_id";
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+WHERE post_id = $post_id";
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------------
+#
+WHERE post_id = $relevant_post_id";
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+post_text = '$post_message'
+
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------------
+#
+post_id = '$post_id',
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts (and end mod too)...changed the SET part of the preceding sql definition to point to text that has $relevant_post_id (and update post_id) in case we are submitting as final a draft and as a result post_id is a new number different from the post_id where the text currently is...
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	add_search_words('single', $post_id, stripslashes($post_message), stripslashes($post_subject));
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+// start mod save posts as drafts
+// Here, we added an if clause around the add_search_words function to prevent it from adding words from draft posts to the search index
+if (!$save_as_draft)
+{
+	add_search_words('single', $post_id, stripslashes($post_message), stripslashes($post_subject));
+}
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+function delete_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_id, &$post_id, &$poll_id)
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------------
+#
+&$poll_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------------
+#
+, &$was_a_draft
+
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+// start mod save posts as drafts (and end too)...added parameters at end of previous line for was a draft
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				}
+			}
+		}
+
+		remove_search_post($post_id);
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+				}
+			}
+		}
+
+// start mod save posts as drafts ...add an if clause around remove_search_post to prevent it from deleting search words from index if deleting a draft (since words of drafts never get added to index in first place)
+		if (!$was_a_draft)
+		{
+		remove_search_post($post_id);
+		}
+// end mod save posts as drafts
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				FROM " . TOPICS_TABLE;
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+				FROM " . TOPICS_TABLE . "
+				WHERE topic_last_post_id > 0";
+// start mod save posts as drafts (and end too)...added constraint that topic_last_post_id be greater than 0 so that this function doesn't try to erroneously sync a topic that is only a draft
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				FROM " . POSTS_TABLE . "
+				WHERE forum_id = $id";
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+				FROM " . POSTS_TABLE . "
+				WHERE forum_id = $id
+				AND post_draft = 0";
+// start mod save posts as drafts (and end too)...added constraint that post_draft be 0 so that this function doesn't count drafts as posts in a topic or forum
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				FROM " . TOPICS_TABLE . "
+				WHERE forum_id = $id";
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+				FROM " . TOPICS_TABLE . "
+				WHERE forum_id = $id
+				AND topic_last_post_id > 0";
+// start mod save posts as drafts (and end too)...added constraint that topic_last_post_id be greater than 0 so that this function doesn't count draft topics as real topics in a forum
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				FROM " . POSTS_TABLE . "
+				WHERE topic_id = $id";
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+				FROM " . POSTS_TABLE . "
+				WHERE topic_id = $id
+				AND post_draft = 0";
+// start mod save posts as drafts (and end too)...added constraint that post_draft be 0 so that this function doesn't count drafts as posts in a topic or forum
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/prune.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	// Before pruning, lets try to clean up the invalid topic entries
+	$sql = 'SELECT topic_id FROM ' . TOPICS_TABLE . '
+		WHERE topic_last_post_id = 0';
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not obtain lists of topics to sync', '', __LINE__, __FILE__, $sql);
+	}
+
+	while( $row = $db->sql_fetchrow($result) )
+	{
+		sync('topic', $row['topic_id']);
+	}
+
+	$db->sql_freeresult($result);
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+	// start mod save posts as drafts (and end mod too)...deleted code added by phpbb2.0.20 that would otherwise delete all drafts of new topics 
+	// whenever any pruning is done (since that code deletes all topics with topic_last_post_id = 0 and all drafts of new topics have
+	// topic_last_post_id = 0)
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('HEADER_INC', TRUE);
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+// start mod save posts as drafts ... here, we define which links to the drafts list the user wants to appear on the index page
+// (and any other template page the links are placed on as described in the author's notes);
+//
+// define('DRAFT_LINK_TOPICS', TRUE) gives the user a link to a list of his drafts and the topics he has posted to
+// define('DRAFT_LINK_POSTS', TRUE); gives the user a list to a list of his drafts and his individual posts)
+//
+// just change TRUE to FALSE to turn off a link and FALSE to TRUE to turn on a link
+//
+// the default gives the user a link to a list of his drafts and the topics he has posted to but not his individual posts
+// (since unmodded phpbb takes the user to a list of the topics he has posted to but not his posts when he clicks the 'View your posts' link)
+// but I personally prefer a link to a list of drafts and indifidual posts so I have that turned on and the topics link turned off on my board
+
+define('DRAFT_LINK_TOPICS', TRUE);
+define('DRAFT_LINK_POSTS', FALSE);
+
+// end mod save posts as drafts
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_SEARCH_SELF' => $lang['Search_your_posts'],
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	'L_SEARCH_SELF_BY_TOPIC' => (DRAFT_LINK_TOPICS) ? $lang['Search_your_drafts_and_topics'] : '',
+	'L_SEARCH_SELF_BY_POST' => (DRAFT_LINK_POSTS) ? $lang['Search_your_drafts_and_posts'] : '',
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'U_SEARCH_SELF' => append_sid('search.'.$phpEx.'?search_id=egosearch'),
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	'U_SEARCH_SELF_BY_TOPIC' => (DRAFT_LINK_TOPICS) ? append_sid('search.'.$phpEx.'?search_id=egosearch_by_topic') : '',
+	'U_SEARCH_SELF_BY_POST' => (DRAFT_LINK_POSTS) ? append_sid('search.'.$phpEx.'?search_id=egosearch_by_post') : '',
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$lang['A_critical_error'] = 'A Critical Error Occurred';
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+// start mod save draft posts
+$lang['Search_your_drafts_and_topics'] = 'View your drafts and topics you have posted to<br />';
+$lang['Search_your_drafts_and_posts'] = 'View your drafts and posts<br />';
+$lang['Draft_posts'] = 'Your drafts';
+$lang['Topics_you_have_posted_to'] = 'Topics you have posted to';
+$lang['Your_posts'] = 'Your posts';
+$lang['Draft_post_time'] = 'Time of Draft';
+$lang['Draft_post_subject'] = 'Draft Post';
+$lang['Draft_post_topic'] = 'Topic of Draft';
+$lang['Draft_post_forum'] = 'Forum';
+$lang['Save_as_draft'] = 'Save as draft';
+// end mod save draft posts
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------------------
+#
+// start mod save posts as drafts ... added teh following variables for pruning and auto pruning of drafts
+$lang['Drafts'] = 'Drafts';
+$lang['Draft_prune'] = 'Draft Prune';
+$lang['Draft_topics_pruned'] = 'Draft topics pruned';
+$lang['Draft_posts_pruned'] = 'Draft posts pruned';
+$lang['Draft_pruning_successful'] = 'pruning of drafts was successful';
+$lang['Draft_auto-prune'] = 'Draft Auto-Prune <br /> (only works if prune is enabled in ACP)';
+$lang['Auto_prune_settings_changed'] = 'Auto prune settings changed';
+$lang['Remove_drafts_not_modified'] = 'Remove drafts that have not been modified for &nbsp; ';
+$lang['Check_draft_age'] = 'Check for draft age every &nbsp;';
+$lang['Number_of_drafts'] = 'Number of drafts';
+$lang['Drafts_per_user'] = 'Drafts per user';
+// end mod save posts as drafts
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+templates/subSilver/admin/forum_prune_select_body.tpl
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+</table></form>
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+<!-- save posts as drafts ... added the following block to give the user draft pruning and draft auto pruning tables to fill out -->
+<br /> <br /> <br /> <br />
+<h1>{L_DRAFT_PRUNE}</h1>
+
+<form method="post"	action="{S_DRAFTPRUNE_ACTION}">
+  <table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
+	<tr>
+	  <th class="thHead">{L_DRAFT_PRUNE}</th>
+	</tr>
+	<tr>
+	  <td class="row1">{S_PRUNE_DATA}</td>
+	</tr>
+	<tr>
+	  <td class="catBottom" align="center">
+		<input type="submit" name="do_draft_prune" value="{L_DO_PRUNE}" class="mainoption" />
+	  </td>
+	</tr>
+  </table>
+</form>
+
+<br /> <br />
+<form method="post"	action="{S_DRAFTPRUNE_ACTION}">
+  <table cellspacing="1" cellpadding="4" border="0" align="center" class="forumline">
+	<tr>
+	  <th class="thHead">{L_DRAFT_AUTO_PRUNE}</th>
+	</tr>
+	<tr>
+	  <td class="row1" align="center">{L_ENABLED}
+		<input type="checkbox" name="prune_enable" {S_PRUNE_ENABLED} /></td>
+	</tr>
+	<tr>
+	  <td class="row2" align="center">{L_PRUNE_DAYS}
+	  	<input type="text" name="prune_days" value="{S_PRUNE_DAYS}" size="5" class="post" />&nbsp;{L_DAYS}
+	  </td>
+	</tr>
+	<tr>
+	  <td class="row1" align="center">{L_PRUNE_FREQ}
+		<input type="text" name="prune_freq" value="{S_PRUNE_FREQ}" size="5" class="post" />&nbsp;{L_DAYS}
+	  </td>
+	</tr>
+	<tr>
+	  <td class="catBottom" align="center">
+		<input type="submit" name="draft_auto_prune" value="{L_SUBMIT}" class="mainoption" />
+	  </td>
+	</tr>
+  </table>
+</form>
+<!-- end mod save posts as drafts -->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/index_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<td class="row2"><b>{USERS_PER_DAY}</b></td>
+  </tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+  <tr>
+  	<td class="row1" nowrap="nowrap">{L_NUMBER_DRAFTS}:</td>
+  	<td class="row2"><b>{NUMBER_OF_DRAFTS}</b></td>
+  	<td class="row1" nowrap="nowrap">{L_DRAFTS_PER_USER}:</td>
+  	<td class="row2"><b>{DRAFTS_PER_USER}</b></td>
+  </tr>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/index_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		<a href="{U_SEARCH_NEW}" class="gensmall">{L_SEARCH_NEW}</a><br /><a href="{U_SEARCH_SELF}" class="gensmall">{L_SEARCH_SELF}</a><br />
+
+#
+#-----[ REPLACE WITH ]-----------------------------------------
+#
+		<a href="{U_SEARCH_NEW}" class="gensmall">{L_SEARCH_NEW}</a><br /><a href="{U_SEARCH_SELF_BY_TOPIC}" class="gensmall">{L_SEARCH_SELF_BY_TOPIC}</a><a href="{U_SEARCH_SELF_BY_POST}" class="gensmall">{L_SEARCH_SELF_BY_POST}</a>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	  <td class="catBottom" colspan="2" align="center" height="28"> {S_HIDDEN_FORM_FIELDS}<input type="submit" tabindex="5" name="preview" class="mainoption" value="{L_PREVIEW}" />&nbsp;<input type="submit" accesskey="s" tabindex="6" name="post" class="mainoption" value="{L_SUBMIT}" /></td>
+
+
+#
+#-----[ REPLACE WITH ]-----------------------------------------
+#
+	<!-- start mod save posts as drafts -->
+	<!-- added begin and end switch_delete_button and switch_save_as_draft and stuff between them -->
+	  <td class="catBottom" colspan="3" align="center" height="28"> {S_HIDDEN_FORM_FIELDS}
+	  <!-- BEGIN switch_delete_button -->
+	  <input type="submit" tabindex="3" name="delete" class="mainoption" value="{L_DELETE}" />&nbsp;
+	  <!-- END switch_delete_button -->
+	  <!-- BEGIN switch_save_as_draft_button -->
+	  <input type="submit" tabindex="4" name="save_as_draft" class="mainoption" value="{L_SAVE_AS_DRAFT}" />&nbsp;
+	  <!-- END switch_save_as_draft_button -->
+	  <input type="submit" tabindex="5" name="preview" class="mainoption" value="{L_PREVIEW}" />&nbsp;<input type="submit" accesskey="s" tabindex="6" name="post" class="mainoption" value="{L_SUBMIT}" /></td>
+	<!-- end mod save posts as drafts -->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/search_results_posts.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<table border="0" cellpadding="3" cellspacing="1" width="100%" class="forumline" align="center">
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- start mod save posts as drafts -->
+<!-- BEGIN switch_show_drafts -->
+<table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
+   <tr>
+ 	<td colspan="4" align="center" height="15" nowrap="nowrap"><br /><br /><b>{L_DRAFT_POSTS}</b></td>
+  </tr>
+</table>
+<table class="forumline" width="100%" cellspacing="1" cellpadding="3" border="0" align="center">
+ <tr>
+	<th class="thCornerL" height="15" nowrap="nowrap">{L_DRAFT_POST_FORUM}</th>
+	<th class="thHead" height="15" nowrap="nowrap">{L_DRAFT_POST_TOPIC}</th>
+	<th class="thHead" height="15" nowrap="nowrap">{L_DRAFT_POST_SUBJECT}</th>
+	<th class="thCornerR" height="15" nowrap="nowrap">{L_DRAFT_POST_TIME}</th>
+  </tr>
+<!-- END switch_show_drafts -->
+<!-- BEGIN draft -->
+  <!-- BEGIN draft_topics -->
+  <tr class="{draft.draft_topics.ROW_CLASS}" align="center">
+  	<td class="row1"><span class="postdetails">{draft.draft_topics.DRAFT_POST_FORUM}</span></td>
+  	<td class="row2"><span class="postdetails">{draft.draft_topics.DRAFT_POST_TOPIC}</span></td>
+  	<td class="row1"<span class="topictitle"><a href="{draft.draft_topics.DRAFT_POST_LOC}" class="topictitle">{draft.draft_topics.DRAFT_POST_SUBJECT}</a></span></td>
+	<td class="row2"><span class="postdetails">{draft.draft_topics.DRAFT_POST_TIME}</span></td>
+  </tr>
+  <!-- END draft_topics -->
+<!-- END draft -->
+<!-- BEGIN switch_show_drafts -->
+</table>
+<table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
+   <tr>
+ 	<td colspan="4" align="center" height="15" nowrap="nowrap"><br /><br /><b>{L_REAL_POSTS}</b></td>
+  </tr>
+</table>
+<!-- END switch_show_drafts -->
+<!-- end mod save posts as drafts -->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/search_results_topics.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<table width="100%" cellpadding="4" cellspacing="1" border="0" class="forumline" align="center">
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- start mod save posts as drafts -->
+<!-- BEGIN switch_show_drafts -->
+<table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
+   <tr>
+ 	<td colspan="4" align="center" height="15" nowrap="nowrap"><br /><br /><b>{L_DRAFT_POSTS}</b></td>
+  </tr>
+</table>
+<table class="forumline" width="100%" cellspacing="1" cellpadding="3" border="0" align="center">
+ <tr>
+	<th class="thCornerL" height="15" nowrap="nowrap">{L_DRAFT_POST_FORUM}</th>
+	<th class="thHead" height="15" nowrap="nowrap">{L_DRAFT_POST_TOPIC}</th>
+	<th class="thHead" height="15" nowrap="nowrap">{L_DRAFT_POST_SUBJECT}</th>
+	<th class="thCornerR" height="15" nowrap="nowrap">{L_DRAFT_POST_TIME}</th>
+  </tr>
+<!-- END switch_show_drafts -->
+<!-- BEGIN draft -->
+  <!-- BEGIN draft_topics -->
+  <tr class="{draft.draft_topics.ROW_CLASS}" align="center">
+  	<td class="row1"><span class="postdetails">{draft.draft_topics.DRAFT_POST_FORUM}</span></td>
+  	<td class="row2"><span class="postdetails">{draft.draft_topics.DRAFT_POST_TOPIC}</span></td>
+  	<td class="row1"<span class="topictitle"><a href="{draft.draft_topics.DRAFT_POST_LOC}" class="topictitle">{draft.draft_topics.DRAFT_POST_SUBJECT}</a></span></td>
+	<td class="row2"><span class="postdetails">{draft.draft_topics.DRAFT_POST_TIME}</span></td>
+  </tr>
+  <!-- END draft_topics -->
+<!-- END draft -->
+<!-- BEGIN switch_show_drafts -->
+</table>
+<table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
+   <tr>
+ 	<td colspan="4" align="center" height="15" nowrap="nowrap"><br /><br /><b>{L_REAL_POSTS}</b></td>
+  </tr>
+</table>
+<!-- END switch_show_drafts -->
+<!-- end mod save posts as drafts -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

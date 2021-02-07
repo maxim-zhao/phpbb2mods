@@ -1,0 +1,350 @@
+##############################################################
+## MOD Title: Google Free Search
+## MOD Author: Zanejin < zanejincheng@yahoo.com > (Andy Cheng) N/A
+## MOD Description: This MOD will add a Google Free searchbar to the overall header of your 
+##	board.  Includes Admin CP control.
+## MOD Version: 2.0.1
+##
+## Installation Level: Intermediate
+## Installation Time: ~10 Minutes
+## Files To Edit: 
+## 	admin/admin_board.php
+## 	includes/page_header.php
+## 	language/lang_english/lang_admin.php
+##	language/lang_english/lang_main.php
+## 	templates/subSilver/overall_header.tpl
+## 	templates/subSilver/admin/board_config_body.tpl
+## Included Files:
+## 	readme.txt
+## 	contrib/update_101_to_201.txt
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## Please read readme.txt before doing anything!
+##
+## 1) Compatibility
+## -------------------
+## This MOD can be successfully installed on phpBB 2.0.5 to phpBB 2.0.21.
+##
+## 2) EasyMOD
+## -------------------
+## This MOD can be successfully installed using EasyMOD 0.3.0.
+##
+## 3) Support
+## -------------------
+## Official support (questions, suggestions, remarks, comments, etc.) for this MOD is offered
+## at http://www.phpbb.com/phpBB/viewtopic.php?p=1739244.
+##
+## 4) Latest Version
+## -------------------
+## The official latest stable version of this MOD can be and always will be found at 
+## http://www.phpbb.com/phpBB/viewtopic.php?p=1739244.  Download links offered elsewhere
+## may be corrupt or false!
+##
+##############################################################
+## MOD History:
+##
+##   2006-10-10 - Version 2.0.1
+##	- Converted hard-coded text in the overall_header.tpl file into "$lang" variables
+##	- Corrected some bugs/errors
+##	- Made the search encoding settings more friendly
+##	- Made more EMC
+##	- Moved the update script to a contrib directory
+##
+##   2005-09-28 - Version 2.0.0
+##      - Added Admin CP control
+##      - Added appropriate copyright/license/trademark information
+##      - Added capability for searching within a selected domain
+##      - Added a readme.txt file
+##      - Added content to the Author Notes
+##      - Converted spaces into tabs
+##
+##   2005-08-20 - Version 1.0.1
+##      - Updated for phpBB 2.0.17
+##      - Cleaned up HTML code
+##      - Replaced previous code with validated XHTML
+##
+##   2004-10-01 - Version 1.0.0
+##      - Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+# NOTE: You will need to replace "phpbb_" with your table prefix if you chose to use anything
+#      other than "phpbb_" during phpBB's installation process.
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('google_free_enable', '1');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('domain_url', 'Domain');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('safesearch_enable', '0');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('results_new', '0');
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$smtp_yes = ( $new['smtp_delivery'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+$google_free_enable_yes = ($new['google_free_enable']) ? "checked=\"checked\"" : "";
+$google_free_enable_no = (!$new['google_free_enable']) ? "checked=\"checked\"" : "";
+$safesearch_enable_yes = ($new['safesearch_enable']) ? "checked=\"checked\"" : "";
+$safesearch_enable_no = (!$new['safesearch_enable']) ? "checked=\"checked\"" : "";
+$results_new_yes = ($new['results_new']) ? "checked=\"checked\"" : "";
+$results_new_no = (!$new['results_new']) ? "checked=\"checked\"" : "";
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_COPPA_SETTINGS" => $lang['COPPA_settings'],
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	"L_GOOGLE_FREE_SETTINGS" => $lang['Google_free_settings'],
+	"L_GOOGLE_FREE_ENABLE" => $lang['Google_free_enable'],
+	"L_GOOGLE_FREE_ENABLE_EXPLAIN" => $lang['Google_free_enable_explain'],
+	"L_DOMAIN_URL" => $lang['Domain_url'],
+	"L_DOMAIN_URL_EXPLAIN" => $lang['Domain_url_explain'],
+	"L_SAFESEARCH_ENABLE" => $lang['Safesearch_enable'],
+	"L_SAFESEARCH_ENABLE_EXPLAIN" => $lang['Safesearch_enable_explain'],
+	"L_RESULTS_NEW" => $lang['Results_new'],
+	"L_RESULTS_NEW_EXPLAIN" => $lang['Results_new_explain'],
+#
+#-----[ FIND ]------------------------------------------
+#
+	"SMTP_YES" => $smtp_yes,
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	"GOOGLE_FREE_ENABLE_YES" => $google_free_enable_yes,
+	"GOOGLE_FREE_ENABLE_NO" => $google_free_enable_no,
+	"DOMAIN_URL" => $new['domain_url'],
+	"SAFESEARCH_ENABLE_YES" => $safesearch_enable_yes,
+	"SAFESEARCH_ENABLE_NO" => $safesearch_enable_no,
+	"RESULTS_NEW_YES" => $results_new_yes,
+	"RESULTS_NEW_NO" => $results_new_no,
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_WHO_IS_ONLINE' => $lang['Who_is_Online'],
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	'L_GOOGLE_SEARCH' => $lang['Google_search'],
+	'L_SEARCH_WWW' => $lang['Search_www'],
+	'L_SEARCH_DOMAIN' => $lang['Search_domain'],
+#
+#-----[ FIND ]------------------------------------------
+#
+// Add no-cache control for cookies if they are set
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//
+// Google Free?
+//
+if ($board_config['google_free_enable'])
+{
+	$template->assign_block_vars('switch_google_free', array(
+		'URL' => $board_config['domain_url']) 
+	);
+	if ($board_config['safesearch_enable'])
+	{
+		$template->assign_block_vars('switch_google_free.switch_safesearch_on', array());
+	}
+	else
+	{
+		$template->assign_block_vars('switch_google_free.switch_safesearch_off', array());
+	}
+	if ($board_config['results_new'])
+	{
+		$template->assign_block_vars('switch_google_free.switch_results_new_on', array());
+	}
+	else
+	{
+		$template->assign_block_vars('switch_google_free.switch_results_new_off', array());
+	}
+}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE: This is a partial match, the whole line for the English version looks like this:
+# 	$lang['Session_length'] = 'Session length [ seconds ]';
+#
+$lang['Session_length']
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+
+//
+// Google Free Search MOD
+//
+$lang['Google_free_settings'] = 'Google Free Settings';
+$lang['Google_free_enable'] = 'Enable Google Free';
+$lang['Google_free_enable_explain'] = 'Displays the Google Free searchbar in the board header.';
+$lang['Domain_url'] = 'Domain URL';
+$lang['Domain_url_explain'] = 'The domain you want the Google Free service to search in.';
+$lang['Safesearch_enable'] = 'Enable SafeSearch';
+$lang['Safesearch_enable_explain'] = 'Filters out most websites containing adult content and explicit material, but removes the capability for searching in a domain.';
+$lang['Results_new'] = 'Display results in new window';
+$lang['Results_new_explain'] = 'Displays the search results in a new window - make sure pop-up blockers are deactivated if "Yes".';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE: This is a partial match, the whole line for the english version looks like this:
+# 	$lang['Moderators'] = 'Moderators';
+#
+$lang['Moderators']
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+
+//
+// Google Free Search MOD
+//
+$lang['Google_search'] = 'Google Search';
+$lang['Search_www'] = 'Search WWW';
+$lang['Search_domain'] = 'Search'; // followed by domain name to be searched
+#
+#-----[ OPEN ]------------------------------------------
+#
+# NOTE: You will need to perform the following actions for all of your templates.
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				</table></td>
+			</tr>
+		</table>
+
+		<br />
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<!-- BEGIN switch_google_free -->
+		<div align="center">
+			<!-- BEGIN switch_results_new_off -->
+			<form method="get" action="http://www.google.com/search">
+			<!-- END switch_results_new_off -->
+			<!-- BEGIN switch_results_new_on -->
+			<form method="get" action="http://www.google.com/search" target="_blank">
+			<!-- END switch_results_new_on -->
+			<input type="hidden" name="ie" value="{S_CONTENT_ENCODING}" />
+			<input type="hidden" name="oe" value="{S_CONTENT_ENCODING}" />
+				<table cellspacing="0" cellpadding="0" border="0" align="center">
+					<tr>
+						<td>
+							<!-- BEGIN switch_safesearch_off -->
+							<a href="http://www.google.com/"><img src="http://www.google.com/logos/Logo_40wht.gif" border="0" alt="Google" />
+							<!-- END switch_safesearch_off -->
+							<!-- BEGIN switch_safesearch_on -->
+							<a href="http://www.google.com/search?safe=vss"><img src="http://www.google.com/logos/Google_Safe.gif" border="0" alt="Google" />
+							<!-- END switch_safesearch_on -->
+							</a>
+						</td>
+						<td>
+							<input type="text" name="q" size="31" maxlength="255" value="" />
+							<!-- BEGIN switch_safesearch_off -->
+							<input type="submit" name="btnG" value="{L_GOOGLE_SEARCH}" /><input type="hidden" name="domains" value="{switch_google_free.URL}" />
+							<!-- END switch_safesearch_off -->
+							<!-- BEGIN switch_safesearch_on -->
+							<input type="submit" name="sa" value="{L_GOOGLE_SEARCH}" /><input type="hidden" name="safe" value="strict" />
+							<!-- END switch_safesearch_on -->
+							<!-- BEGIN switch_safesearch_off -->
+							<br /><input type="radio" name="sitesearch" value="" /><span class="gen">&nbsp;{L_SEARCH_WWW}&nbsp;</span>
+							<input type="radio" name="sitesearch" value="{switch_google_free.URL}" checked="checked" /><span class="gen">&nbsp;{L_SEARCH_DOMAIN}&nbsp;{switch_google_free.URL}&nbsp;</span>
+							<!-- END switch_safesearch_off -->
+							<br />
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+		<!-- END switch_google_free -->
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+# NOTE: You will need to perform the following actions for all of your different templates.
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_COPPA_SETTINGS}</th>
+	</tr>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_GOOGLE_FREE_SETTINGS}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_GOOGLE_FREE_ENABLE}<br /><span class="gensmall">{L_GOOGLE_FREE_ENABLE_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="google_free_enable" value="1" {GOOGLE_FREE_ENABLE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="google_free_enable" value="0" {GOOGLE_FREE_ENABLE_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_DOMAIN_URL}<br /><span class="gensmall">{L_DOMAIN_URL_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" maxlength="255" name="domain_url" value="{DOMAIN_URL}" />
+	</tr>
+	<tr>
+		<td class="row1">{L_SAFESEARCH_ENABLE}<br /><span class="gensmall">{L_SAFESEARCH_ENABLE_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="safesearch_enable" value="1" {SAFESEARCH_ENABLE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="safesearch_enable" value="0" {SAFESEARCH_ENABLE_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_RESULTS_NEW}<br /><span class="gensmall">{L_RESULTS_NEW_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="results_new" value="1" {RESULTS_NEW_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="results_new" value="0" {RESULTS_NEW_NO} /> {L_NO}</td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

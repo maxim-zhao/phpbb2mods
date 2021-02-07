@@ -1,0 +1,287 @@
+##############################################################
+## MOD Title: Null Vote
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com
+## MOD Description: Lets users make a null vote on polls, so that when they don't want to vote on a poll, they don't have to keep on clicking on view results to see the results every time they reload the page. The null vote is counted as a vote and users cannot reverse their decision, just like voting for an option. Can be enabled or disabled via the ACP.
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: ~ 5 Minutes
+## Files To Edit:
+##		admin/admin_board.php
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/admin/board_config_body.tpl
+##		templates/subSilver/viewtopic_poll_ballot.tpl
+##		viewtopic.php
+##		posting.php
+##
+##
+## Included Files:
+##		N/A
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## This is the version that works with treopolis's (http://www.treopolis.de/) Guestvote MOD.
+## If you are not currently using that MOD, please use the main file, null_vote_1.0.0c.txt
+##
+## If you find the SQL command a little hard going, or you cannot perform the actions yourself, upload the contrib/db_update.php file to your server, run it and be sure to delete it again.
+##
+##############################################################
+## MOD History:
+##
+##
+##   2005-03-19 - Version 1.0.1
+##      - Another coding error fixed
+##
+##   2005-03-19 - Version 1.0.0c
+##      - Fixed mistake in coding, to make it compatible with the phpBB coding standards
+##
+##   2005-03-09 - Version 1.0.0b
+##      - Fixed another error in the SQL syntax
+##
+##   2005-02-21 - Version 1.0.0a
+##      - Error in MOD SQL syntax, used constants
+##
+##   2005-02-05 - Version 1.0.0
+##      - First release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+# 
+#-----[ SQL ]-------------------------------------------------
+# 
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('null_vote', '1');
+
+# 
+#-----[ OPEN ]------------------------------------------------
+# 
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+$disable_board_no = ( !$new['board_disable'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Null Vote MOD, By Manipe (Begin)
+$null_vote_yes = ($new['null_vote'] == '1') ? "checked=\"checked\"" : "";
+$null_vote_no = ($new['null_vote'] == '0') ? "checked=\"checked\"" : "";
+// Null Vote MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+	"L_NO" => $lang['No'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Null Vote MOD, By Manipe (Begin)
+	"L_ENABLE_NULL_VOTE" => $lang['Enable_null_vote'],
+// Null Vote MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+	"S_DISABLE_BOARD_NO" => $disable_board_no,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Null Vote MOD, By Manipe (Begin)
+	"NULL_VOTE_YES" => $null_vote_yes,
+	"NULL_VOTE_NO" => $null_vote_no,
+// Null Vote MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+# 
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+# 
+// Null Vote MOD, By Manipe (Begin)
+$lang['Enable_null_vote'] = 'Enable Null Voting';
+// Null Vote MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+# 
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+# 
+// Null Vote MOD, By Manipe (Begin)
+$lang['Null_vote_cast'] = 'Your null vote has been cast';
+$lang['Click_view_results'] = 'Click %sHere%s to view the poll results';
+$lang['Null_vote'] = 'Null vote';
+// Null Vote MOD, By Manipe (End)
+
+# 
+#-----[ OPEN ]------------------------------------------------
+# 
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+# 
+	<tr>
+		<th class="thHead" colspan="2">{L_COOKIE_SETTINGS}</th>
+	</tr>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+# 
+	<tr>
+		<td class="row1">{L_ENABLE_NULL_VOTE}</td>
+		<td class="row2"><input type="radio" name="null_vote" value="1" {NULL_VOTE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="null_vote" value="0" {NULL_VOTE_NO} /> {L_NO}</td>
+	</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------------
+# 
+templates/subSilver/viewtopic_poll_ballot.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		  <td align="center"><span class="gensmall"><b><a href="{U_VIEW_RESULTS}" class="gensmall">{L_VIEW_RESULTS}</a></b></span></td>
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+# 
+		  <td align="center"><span class="gensmall"><b><a href="{U_VIEW_RESULTS}" class="gensmall">{L_VIEW_RESULTS}</a>
+<!-- BEGIN switch_null_vote -->
+<br /><a href="{U_POLL_NULL_VOTE}" class="gensmall">{L_NULL_VOTE}</a>
+<!-- END switch_null_vote -->
+</b></span></td>
+
+# 
+#-----[ OPEN ]------------------------------------------------
+# 
+viewtopic.php
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+			$template->set_filenames(array(
+				'pollbox' => 'viewtopic_poll_ballot.tpl')
+			);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Null Vote MOD, By Manipe (Begin)
+			if ($board_config['null_vote'] == 1)
+			{
+				$template->assign_block_vars('switch_null_vote', array());
+			}
+// Null Vote MOD, By Manipe (End)
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+				'L_VIEW_RESULTS' => $lang['View_results'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Null Vote MOD, By Manipe (Begin)
+				'L_NULL_VOTE' => $lang['Null_vote'],
+// Null Vote MOD, By Manipe (End)
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+			'POLL_QUESTION' => $vote_title,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Null Vote MOD, By Manipe (Begin)
+			'U_POLL_NULL_VOTE' => append_sid("posting.$phpEx?mode=vote&amp;" . POST_TOPIC_URL . "=$topic_id&amp;vote=-1"),
+// Null Vote MOD, By Manipe (End)
+
+# 
+#-----[ OPEN ]------------------------------------------------
+# 
+posting.php
+
+# 
+#-----[ FIND ]------------------------------------------------
+# 
+		$message .=  '<br /><br />' . sprintf($lang['Click_view_message'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id") . '">', '</a>');
+		message_die(GENERAL_MESSAGE, $message);
+	}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Null Vote MOD, By Manipe (Begin)
+	else if ((isset($HTTP_GET_VARS['vote'])) && ($HTTP_GET_VARS['vote'] == -1) && ($board_config['null_vote'] == 1))
+	{
+
+		$sql = "SELECT vd.vote_id    
+			FROM " . VOTE_DESC_TABLE . " vd
+			WHERE vd.topic_id = $topic_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain vote data for this topic', '', __LINE__, __FILE__, $sql);
+		}
+
+		$vote_info = $db->sql_fetchrow($result);
+		$vote_id = $vote_info['vote_id'];
+		$db->sql_freeresult($result);
+
+		if ($guestvote_logging == 1 || $guestvote_logging == 3)
+		{
+			if ($userdata['session_logged_in'])
+			{
+				$sql = "INSERT INTO " . VOTE_USERS_TABLE . " (vote_id, vote_user_id, vote_user_ip)
+					VALUES ($vote_id, " . $userdata['user_id'] . ", '$user_ip')";
+			}
+			else
+			{
+				$sql = "INSERT INTO " . VOTE_USERS_TABLE . " (vote_id, vote_user_id, vote_user_ip)
+					VALUES ($vote_id, " . $userdata['user_id'] . ", '$user_ip')";
+			}
+			if ( !$db->sql_query($sql, END_TRANSACTION) )
+			{
+				message_die(GENERAL_ERROR, "Could not insert user_id for poll", "", __LINE__, __FILE__, $sql);
+			}
+		}
+		guestvote_set_cookie();
+		$message = $lang['Null_vote_cast'];
+		$template->assign_vars(array(
+			'META' => '<meta http-equiv="refresh" content="3;url=' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id") . '">')
+		);
+		$message .=  '<br /><br />' . sprintf($lang['Click_view_results'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id") . '">', '</a>');
+		message_die(GENERAL_MESSAGE, $message);
+	}
+// Null Vote MOD, By Manipe (End)
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+# 
+
+# EoM

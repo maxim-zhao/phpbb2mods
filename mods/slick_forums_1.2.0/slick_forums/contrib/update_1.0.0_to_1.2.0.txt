@@ -1,0 +1,312 @@
+##############################################################
+## MOD Title: Slick Forum Admin Update 1.0.0 to 1.2.0
+## MOD Author: damnian < damnian at phpbb dot cc > (Dmitry Shechtman) http://www.phpbb.cc
+## MOD Description: Update Slick Forum Admin MOD to version 1.2.0
+## MOD Version: 1.2.0
+## 
+## Installation Level: Easy
+## Installation Time: 5 minutes
+## Files To Edit: 2
+##  admin/admin_forums.php
+##  templates/subSilver/admin/forum_edit_body.tpl
+##
+## Included Files: N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##      Fully compatible with Attachment MOD
+##############################################################
+## MOD History:
+## 
+## 2007-01-18 - Version 1.2.0
+##      - Initial release
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_forums.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$forum_auth_ary = array(
+	"auth_view" => AUTH_ALL, 
+	"auth_read" => AUTH_ALL, 
+	"auth_post" => AUTH_REG, 
+	"auth_reply" => AUTH_REG, 
+	"auth_edit" => AUTH_REG, 
+	"auth_delete" => AUTH_REG, 
+	"auth_sticky" => AUTH_MOD, 
+	"auth_announce" => AUTH_MOD, 
+	"auth_vote" => AUTH_REG, 
+	"auth_pollcreate" => AUTH_REG
+);
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// Slick Forum Admin MOD: 12 lines removed
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$simple_auth_types = 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+, $lang['Custom']
+#
+#-----[ FIND ]------------------------------------------
+#
+// Begin function block
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Start add - Slick Forum Admin MOD
+function simple_auth($forum_row)
+{
+	global $simple_auth_ary, $forum_auth_fields, $lang;
+
+	for ($i = 0; $i < count($simple_auth_ary); $i++)
+	{
+		$matched = 1;
+		$forum_auth_ary = $simple_auth_ary[$i];
+		for ($j = 0; $j < count($forum_auth_ary); $j++)
+		{
+			if ($forum_row[$forum_auth_fields[$j]] != $forum_auth_ary[$j])
+			{
+				$matched = 0;
+				break;
+			}
+		}
+		if ($matched)
+		{
+			return $i;
+		}
+	}
+	return $i;
+}
+// End add - Slick Forum Admin MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$prune_enabled = '';
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Slick Forum Admin MOD
+				$s_simple_auth = simple_auth($row);
+				// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+$prune_enabled = '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Slick Forum Admin MOD
+				$s_simple_auth = 1;
+				// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->set_filenames(array(
+	"body" => "admin/forum_edit_body.tpl")
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+			// Start add - Slick Forum Admin MOD
+			$simple_auth = '<select name="simpleauth">';
+
+			$matched = 0;
+			for($j = 0; $j < count($simple_auth_types); $j++)
+			{
+				if ($j < count($simple_auth_types) - 1 || !$matched)
+				{
+					$selected = ( $s_simple_auth == $j ) ? ' selected="selected"' : '';
+					$simple_auth .= '<option value="' . $j . '"' . $selected . '>' . $simple_auth_types[$j] . '</option>';
+				}
+				if ($s_simple_auth == $j)
+				{
+					$matched = 1;
+				}
+			}
+
+			$simple_auth .= '</select>';
+			// End add - Slick Forum Admin MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'S_CAT_LIST' => 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Slick Forum Admin MOD
+				'S_AUTH_LEVELS_SELECT' => $simple_auth,
+				// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'L_CATEGORY' => 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Slick Forum Admin MOD
+				'L_PERMISSIONS' => $lang['Permissions'],
+				// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+			//
+			// Default permissions of public :: 
+			//
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			// Start add - Slick Forum Admin MOD
+			$forum_auth_ary = $simple_auth_ary[intval($HTTP_POST_VARS['simpleauth'])];
+			// End add - Slick Forum Admin MOD
+			// Slick Forum Admin MOD: 3 lines removed
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+while( list($field, $value)
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			// Slick Forum Admin MOD: 1 line replaced
+			for( $i = 0; $i < count($forum_auth_ary); $i++ )
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$field_sql .= 
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				// Slick Forum Admin MOD: 1 line replaced
+				$field_sql .= ', ' . $forum_auth_fields[$i];
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$value_sql .= 
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				// Slick Forum Admin MOD: 1 line replaced
+				$value_sql .= ', ' . $forum_auth_ary[$i];
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "UPDATE " . FORUMS_TABLE . "
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+			// Start add - Slick Forum Admin MOD
+			$sql = '';
+			if( intval($HTTP_POST_VARS['simpleauth']) < count($simple_auth_types) - 1 )
+			{
+				$simple_ary = $simple_auth_ary[intval($HTTP_POST_VARS['simpleauth'])];
+
+				for($i = 0; $i < count($simple_ary); $i++)
+				{
+					$sql .= ', ' . $forum_auth_fields[$i] . ' = ' . $simple_ary[$i];
+				}
+			}
+			// End add - Slick Forum Admin MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+SET forum_name = 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+intval($HTTP_POST_VARS['prune_enable'])
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ . $sql
+#
+#-----[ FIND ]------------------------------------------
+#
+				$simple_auth = $lang['Custom'];
+				for ($k = 0; $k < count($simple_auth_ary); $k++)
+				{
+					$matched = 1;
+					for ($l = 0; $l < count($forum_auth_ary); $l++)
+					{
+						$key = $forum_auth_fields[$l];
+						if ($forum_rows[$j][$key] != $simple_auth_ary[$k][$l])
+						{
+							$matched = 0;
+							break;
+						}
+					}
+					if ($matched)
+					{
+						$simple_auth = $simple_auth_types[$k];
+						break;
+					}
+				}
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				$simple_auth = $simple_auth_types[simple_auth($forum_rows[$j])];
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'U_FORUM_PERMISSIONS' => 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$forum_id
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+&amp;adv=1
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/forum_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+<td class="row2"><select name="c">
+</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr> 
+	  <td class="row1">{L_PERMISSIONS}</td>
+	  <td class="row2">{S_AUTH_LEVELS_SELECT}</td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

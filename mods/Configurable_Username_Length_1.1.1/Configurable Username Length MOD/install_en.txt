@@ -1,0 +1,369 @@
+######################################################## 
+## MOD Title: Configurable Username Length MOD
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This mod allow admins to set both the minimum and maximum username length in ACP
+## MOD Version:	1.1.1
+## 
+## Installation Level: Easy 
+## Installation Time: 15 Minutes 
+##
+## Files To Edit: 11
+##	admin/admin_board.php
+##	language/lang_english/lang_admin.php
+##	language/lang_english/lang_main.php
+##	includes/functions_validate.php
+##	includes/usercp_register.php
+##	includes/functions.php
+##	includes/page_header.php
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/login_body.tpl
+##	templates/subSilver/posting_body.tpl
+##
+## Included Files: 0
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.21. Can be installed using EasyMOD 0.3.0
+##
+## 	Monitor update status: http://sourceforge.net/project/filemodule_monitor.php?filemodule_id=165659
+##
+############################################################## 
+## MOD History: 
+##
+##   2005-10-06 - Version 1.0.0
+##      - Initial Release
+##
+##   2005-10-14 - Version 1.0.1
+##      - Added a SQL query to update username field in phpbb_users to accepate values more than 25 chars
+##
+##   2005-11-03 - Version 1.0.2
+##      - Update the SQL query for it to work with EM
+#	- Make a tiny change to limit the maximum number of char to 99
+##
+##   2006-04-02 - Version 1.0.3
+##      - Update char limit in phpbb_clean_username(), thanks to fahraeus
+##
+##   2006-04-16 - Version 1.0.4
+##      - Updated for phpBB 2.0.20
+##
+##   2006-06-03 - Version 1.1.0
+##      - Make substantial changes to the original code and implemented minimum username length checks
+##
+##   2006-07-16 - Version 1.1.1
+##	- Fix maxlength in login body and posting body
+##	- Check if max. length is smaller than min. length in admin_board.php
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+INSERT INTO `phpbb_config` VALUES ('limit_username_min_length', '2');
+INSERT INTO `phpbb_config` VALUES ('limit_username_max_length', '25');
+ALTER TABLE `phpbb_users` MODIFY `username` varchar(99) NOT NULL; 
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Configurable Username Length MOD
+$lang['username_max_min_error'] = 'Maximum username length is smaller than the minimum length';
+$lang['Limit_username_max_length'] = 'Maximum Username Length';
+$lang['Limit_username_max_length_explain'] = 'Maximum number of characters allowed for user\'s username (maximum: 99 chars)';
+$lang['Limit_username_min_length'] = 'Minimum Username Length';
+$lang['Limit_username_min_length_explain'] = 'Minimum number of characters required for user\'s username (minimum: 2 chars)';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Configurable Username Length MOD
+$lang['Allowed_username_length'] = '(Allowed username length is between %s ~ %s chars)';
+$lang['Username_long'] = 'Your username must be no more than %s characters.';
+$lang['Username_short'] = 'Your username must be more than %s characters.';
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+admin/admin_board.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	while( $row = $db->sql_fetchrow($result) )
+	{
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	// Configurable Username Length MOD
+	if( isset($HTTP_POST_VARS['submit']) )
+	{
+		if ($HTTP_POST_VARS['limit_username_max_length'] < $HTTP_POST_VARS['limit_username_min_length'])
+		{
+			message_die(GENERAL_MESSAGE, 'username_max_min_error');
+		}
+	}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$new['server_name'] = str_replace('http://', '', $new['server_name']);
+		}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		// Configurable Username Length MOD
+		if ($config_name == 'limit_username_min_length' && $config_value < 2)
+		{
+			$new['limit_username_min_length'] = 2;
+		}
+		else if ($config_name == 'limit_username_max_length' && $config_value < 2)
+		{
+			$new['limit_username_max_length'] = 25;
+		}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"L_ADMIN" => $lang['Acc_Admin'], 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	"L_LIMIT_USERNAME_MAX_LENGTH" => $lang['Limit_username_max_length'],			// Configurable Username Length MOD
+	"L_LIMIT_USERNAME_MAX_LENGTH_EXPLAIN" => $lang['Limit_username_max_length_explain'],	// Configurable Username Length MOD
+	"L_LIMIT_USERNAME_MIN_LENGTH" => $lang['Limit_username_min_length'],			// Configurable Username Length MOD
+	"L_LIMIT_USERNAME_MIN_LENGTH_EXPLAIN" => $lang['Limit_username_min_length_explain'],	// Configurable Username Length MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"SERVER_PORT" => $new['server_port'], 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	"LIMIT_USERNAME_MAX_LENGTH" => $new['limit_username_max_length'],	// Configurable Username Length MOD
+	"LIMIT_USERNAME_MIN_LENGTH" => $new['limit_username_min_length'],	// Configurable Username Length MOD
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/page_header.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'PRIVMSG_IMG' => $icon_pm,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	'LIMIT_USERNAME_MAX_LENGTH' => $board_config['limit_username_max_length'],	// Configurable Username Length MOD
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+includes/functions_validate.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	global $db, $lang, $userdata;
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+$userdata
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, $board_config
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		return array('error' => true, 'error_msg' => $lang['Username_invalid']);
+	}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+	if ( strlen($username) > $board_config['limit_username_max_length'] )
+	{
+		return array('error' => true, 'error_msg' => sprintf($lang['Username_long'], $board_config['limit_username_max_length']));
+	}
+	else if ( strlen($username) < $board_config['limit_username_min_length'] || strlen($username) < 2 )
+	{
+		return array('error' => true, 'error_msg' => sprintf($lang['Username_short'], $board_config['limit_username_min_length']));
+	}
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+includes/usercp_register.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+# 1st time
+					'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+0, 25
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+0, $board_config['limit_username_max_length']
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+# 2nd time
+					'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+0, 25
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+0, $board_config['limit_username_max_length']
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+# 3rd time
+					'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+0, 25
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+0, $board_config['limit_username_max_length']
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+# 4th time
+						'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+0, 25
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+0, $board_config['limit_username_max_length']
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'L_CURRENT_PASSWORD' => $lang['Current_password'],
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+		'L_LIMIT_USERNAME_LENGTH_EXPLAIN' => sprintf($lang['Allowed_username_length'], $board_config['limit_username_min_length'], $board_config['limit_username_max_length']),	// Configurable Username Length MOD
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+includes/functions.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$username = substr(htmlspecialchars(str_replace("\'", "'", trim($username))), 0, 25);
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+25
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+99
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td class="row2"><input type="radio" name="allow_namechange" value="1" {NAMECHANGE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_namechange" value="0" {NAMECHANGE_NO} /> {L_NO}</td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MIN_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MIN_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_min_length" value="{LIMIT_USERNAME_MIN_LENGTH}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LIMIT_USERNAME_MAX_LENGTH}<br /><span class="gensmall">{L_LIMIT_USERNAME_MAX_LENGTH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="2" name="limit_username_max_length" value="{LIMIT_USERNAME_MAX_LENGTH}" /></td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td class="row2"><input type="text" class="post" style="width:200px" name="username" size="25" maxlength="25" value="{USERNAME}" /></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+maxlength="25"
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+maxlength="{LIMIT_USERNAME_MAX_LENGTH}"
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+value="{USERNAME}" />
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+ <span class="gensmall">{L_LIMIT_USERNAME_LENGTH_EXPLAIN}</span>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/login_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			  <input type="text" class="post" name="username" size="25" maxlength="40" value="{USERNAME}" />
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+maxlength="40"
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+maxlength="{LIMIT_USERNAME_MAX_LENGTH}"
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/posting_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# switch_privmsg
+		<td class="row2"><span class="genmed"><input type="text"  class="post" name="username" maxlength="25" size="25" tabindex="1" value="{USERNAME}" />
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+maxlength="25"
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+maxlength="{LIMIT_USERNAME_MAX_LENGTH}"
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

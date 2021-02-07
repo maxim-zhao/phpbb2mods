@@ -1,0 +1,1104 @@
+##############################################################
+## MOD Title:		Online/Offline/Hidden
+## MOD Author:		kooky < [nospam]kooky@altern.org > (n/a) http://www.myphpbb.zaup.org
+## MOD Description:	This mod will show the Online status of a user, stating if
+##			he is Online, Offline or Hidden (with image or text) within
+##			viewtopic as well his profile, in memberlist, groupcp, ...
+##			Only Admin, Mod (and Group Mod) and the user himself can
+##			view hidden status.
+## MOD Version:		2.2.7
+##
+## Installation Level:	Easy
+## Installation Time:	15-20 Minutes
+## Files To Edit:	21
+##			groupcp.php
+##			memberlist.php
+##			privmsg.php
+##			viewtopic.php
+##			admin/admin_board.php
+##			admin/admin_styles.php
+##			includes/page_header.php
+##			includes/usercp_viewprofile.php
+##			language/lang_english/lang_admin.php
+##			language/lang_english/lang_main.php
+##			templates/subSilver/groupcp_info_body.tpl
+##			templates/subSilver/groupcp_pending_info.tpl
+##			templates/subSilver/memberlist_body.tpl
+##			templates/subSilver/overall_header.tpl
+##			templates/subSilver/privmsgs_read_body.tpl
+##			templates/subSilver/profile_view_body.tpl
+##			templates/subSilver/viewtopic_body.tpl
+##			templates/subSilver/subSilver.cfg
+##			templates/subSilver/subSilver.css
+##			templates/subSilver/admin/board_config_body.tpl
+##			templates/subSilver/admin/styles_edit_body.tpl
+## Included Files:	3
+##			icon_online.png
+##			icon_offline.png
+##			icon_hidden.png
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## 1. Copyright and special thanks!
+## -----------
+## This program is free software, you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation.
+##
+## With the spirit of phpBB's GPL, i have attempted to give
+## credit to past authors (almost inspired)
+## Thanks to John B. Abela < http://www.johnabela.com > (Online/Offline Mod)
+## and AJ Quick < http://www.ajquick.com > (Show Online Status In Viewtopic).
+##
+## All graphical gif included were designed and copyrighted by Daz
+## http://www.forumimages.com
+## You are not allowed to redistribute them without his copyright/agreement.
+## I only exported the gif format to the png with PNGOptimizer.
+##
+## If you want to add this Mod to any database, please don't add
+## my e-mail address to a topic, just point to my website (see above).
+## (for spamming prevention)
+##
+## 2. Feature list
+## -----------
+## This MOD tries to fix and enhance the online status.
+## - Linked to viewonline page
+## - Hidden users can view their online status
+## - Many languages supported (DU/EN/FR/GR/SP/IT/...)
+## - 2 methods implemented: How to use them?
+##   In your xxx_body.tpl use:
+##	o image: {X_ONLINE_STATUS_IMG}
+##	o text: {X_ONLINE_STATUS} (remove "_IMG")
+##
+## 3. Compatibility / EasyMOD
+## -----------
+## This MOD is compatible with phpBB 2.0.18
+##
+## It is also compatible with EasyMOD of Nuttzy and can be
+## installed by it but is not yet certified EMC (EasyMOD Compliant)!
+## http://area51.phpbb.com/phpBB22/viewforum.php?sid=&f=15
+##
+## 3. Official last version link
+## -----------
+## Contact with email address quoted above without [nospam]
+## Check this official link for latest updates...
+## http://www.myphpbb.zaup.org/
+##
+##############################################################
+## MOD History:
+##
+## 2005/11/07 - Version 2.2.7
+##	- Updated to be compliant with phpBB 2.0.18
+##	- Replace gif format with png (free format)
+##
+## 2005/02/14 - Version 2.2.6
+##	- Added admin setting for online status time (set your own time)
+##
+## 2005/01/13 - Version 2.2.5
+##	- Fixed missing variable for text version in viewtopic.php
+##	- Rewrote viewtopic.php
+##	- Added Dutch translation
+##
+## 2004/12/31 - Version 2.2.4
+##	- Mixed text version with image version
+##	  (for those who want use both version with
+##	  differents templates)
+##	- Updated to be 100% xHTML 1.1 compliant (welcome to the future)
+##	- Fixed session time in privmsg.php (text version 1.0.7)
+##	  (thanks to StalkR for reported this)
+##	- Added Selection order Addon (memberlist)
+##	- Added German translation
+##
+## 2004/09/09 - Version 2.2.3
+##	- Updated how to (no change in files)
+##	- Added Italian translation
+##
+## 2004/06/04 - Version 2.2.2
+##	- Fixed issue with XML/XHTML
+##
+## 2004/05/15 - Version 2.2.1
+##	- Fixed a bug in privmsg.php
+##
+## 2004/04/03 - Version 2.2.0
+##	- Revised and improved the entire of the Mod
+##	- Fixed missing SQL field for groupcp pending
+##	- phpBB 2.0.8 compliant
+##
+## 2004/01/11 - Version 2.1.9
+##	- Added a link to viewonline
+##	- Improved viewtopic part
+##	- Added username, eg: "Nikname is online"
+##	- Added 3 new entries in lang_main.php
+##
+## 2003/12/23 - Version 2.1.8
+##	- Easy Mod compliant
+##	- Updated to phpBB 2.0.6
+##	- Added part for pivmsg
+##
+## 2003/11/02 - Version 2.1.6
+##	- Updated to phpBB 2.0.5
+##	- Fixed a typo in groupcp.php
+##
+## 2003/10/28 - Version 2.1.5
+##	- Fixed issue in groupcp.php and hidden user
+##
+## 2003/10/24 - Version 2.1.4
+##	- Added Online status in groupcp.php
+##	- Fixed an issue in viewtopic.php
+##
+## 2003/09/10 - Version 2.1.3
+##	- Added hidden users can view their status
+##	- Fixed and changed some lines in the how to
+##	- Renamed xxx.gif to icon_xxx.gif
+##
+## 2003/08/24 - Version 2.1.2
+##	- Fixed a line in the How to
+##
+## 2003/08/06 - Version 2.1.1
+##	- Fixed an error in usercp_viewprofile.php and memberlist.php
+##
+## 2003/07/18 - Version 2.1.0
+##	- Added hidden users only viewable by Admin
+##
+## 2003/05/12 - Version 2.0.2
+##	- Added icon in view profile
+##
+## 2003/05/06 - Version 2.0.1
+##	- Added Hidden and session duration if not log in
+##	- Added Online status in memberlist.php
+##
+## 2002/??/?? - Version 1.0.1
+##	- A little change :). Under guest no online offline.
+##	- Add multilinguage
+##
+## 2002/05/19 - Version 1.0.0
+##	- Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------------------------
+# If you use a beta release of EasyMOD, this instructions will be executed!
+# Please read author notes to update your database.
+#
+ALTER TABLE phpbb_themes ADD online_color varchar(6) NOT NULL;
+ALTER TABLE phpbb_themes ADD offline_color varchar(6) NOT NULL;
+ALTER TABLE phpbb_themes ADD hidden_color varchar(6) NOT NULL;
+UPDATE phpbb_themes SET online_color = '008500' WHERE themes_id >= '1';
+UPDATE phpbb_themes SET offline_color = 'DF0000' WHERE themes_id >= '1';
+UPDATE phpbb_themes SET hidden_color = 'EBD400' WHERE themes_id >= '1';
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('online_time', '60');
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy root/templates/subSilver/images/lang_english/*.png to templates/subSilver/images/lang_english/*.png
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Online/Offline/Hidden Mod
+$lang['Online_time'] = 'Online status time';
+$lang['Online_time_explain'] = 'Number of seconds a user must be displayed online (do not use lower value than 60).';
+$lang['Online_setting'] = 'Online Status Setting';
+$lang['Online_color'] = 'Online text color';
+$lang['Offline_color'] = 'Offline text color';
+$lang['Hidden_color'] = 'Hidden text color';
+// End add - Online/Offline/Hidden Mod
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Online/Offline/Hidden Mod
+$lang['Online'] = 'Online';
+$lang['Offline'] = 'Offline';
+$lang['Hidden'] = 'Hidden';
+$lang['is_online'] = '%s is online now';
+$lang['is_offline'] = '%s is offline';
+$lang['is_hidden'] = '%s is hidden';
+$lang['Online_status'] = 'Status';
+// End add - Online/Offline/Hidden Mod
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// Go ahead and pull all data for this topic
+//
+$sql = "SELECT u.username
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_allowavatar, u.user_allowsmile
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------
+#
+, u.user_allow_viewonline, u.user_session_time
+#
+#-----[ FIND ]------------------------------------------
+#
+		$yim = ( $postrow[$i]['user_yim'] )
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		// Start add - Online/Offline/Hidden Mod
+		if ($postrow[$i]['user_session_time'] >= (time()-$board_config['online_time']))
+		{
+			if ($postrow[$i]['user_allow_viewonline'])
+			{
+				$online_status_img = '<a href="' . append_sid("viewonline.$phpEx") . '"><img src="' . $images['icon_online'] . '" alt="' . sprintf($lang['is_online'], $poster) . '" title="' . sprintf($lang['is_online'], $poster) . '" /></a>&nbsp;';
+				$online_status = '<br />' . $lang['Online_status'] . ': <strong><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_online'], $poster) . '"' . $online_color . '>' . $lang['Online'] . '</a></strong>';
+			}
+			else if ( $is_auth['auth_mod'] || $userdata['user_id'] == $poster_id )
+			{
+				$online_status_img = '<a href="' . append_sid("viewonline.$phpEx") . '"><img src="' . $images['icon_hidden'] . '" alt="' . sprintf($lang['is_hidden'], $poster) . '" title="' . sprintf($lang['is_hidden'], $poster) . '" /></a>&nbsp;';
+				$online_status = '<br />' . $lang['Online_status'] . ': <strong><em><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_hidden'], $poster) . '"' . $hidden_color . '>' . $lang['Hidden'] . '</a></em></strong>';
+			}
+			else
+			{
+				$online_status_img = '<img src="' . $images['icon_offline'] . '" alt="' . sprintf($lang['is_offline'], $poster) . '" title="' . sprintf($lang['is_offline'], $poster) . '" />&nbsp;';
+				$online_status = '<br />' . $lang['Online_status'] . ': <span title="' . sprintf($lang['is_offline'], $poster) . '"' . $offline_color . '><strong>' . $lang['Offline'] . '</strong></span>';
+			}
+		}
+		else
+		{
+			$online_status_img = '<img src="' . $images['icon_offline'] . '" alt="' . sprintf($lang['is_offline'], $poster) . '" title="' . sprintf($lang['is_offline'], $poster) . '" />&nbsp;';
+			$online_status = '<br />' . $lang['Online_status'] . ': <span title="' . sprintf($lang['is_offline'], $poster) . '"' . $offline_color . '><strong>' . $lang['Offline'] . '</strong></span>';
+		}
+		// End add - Online/Offline/Hidden Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+		$yim_img = '';
+		$yim = '';
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		// Start add - Online/Offline/Hidden Mod
+		$online_status_img = '';
+		$online_status = '';
+		// End add - Online/Offline/Hidden Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+		'POSTER_AVATAR' => $poster_avatar,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// Start add - Online/Offline/Hidden Mod
+		'POSTER_ONLINE_STATUS_IMG' => $online_status_img,
+		'POSTER_ONLINE_STATUS' => $online_status,
+		// End add - Online/Offline/Hidden Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+memberlist.php
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_POSTS' => $lang['Posts'],
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Start add - Online/Offline/Hidden Mod
+	'L_ONLINE_STATUS' => $lang['Online_status'],
+	// End add - Online/Offline/Hidden Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT username
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+user_avatar_type, user_allowavatar
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_allow_viewonline, user_session_time
+#
+#-----[ FIND ]------------------------------------------
+#
+		$search = '<a href="' . $temp_url . '">' . $lang['Search_user_posts'] . '</a>';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// Start add - Online/Offline/Hidden Mod
+		if ($row['user_session_time'] >= (time()-$board_config['online_time']))
+		{
+			if ($row['user_allow_viewonline'])
+			{
+				$online_status_img = '<a href="' . append_sid("viewonline.$phpEx") . '"><img src="' . $images['icon_online'] . '" alt="' . sprintf($lang['is_online'], $username) . '" title="' . sprintf($lang['is_online'], $username) . '" /></a>';
+				$online_status = '<strong><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_online'], $username) . '"' . $online_color . '>' . $lang['Online'] . '</a></strong>';
+			}
+			else if ($userdata['user_level'] == ADMIN || $userdata['user_id'] == $user_id)
+			{
+				$online_status_img = '<a href="' . append_sid("viewonline.$phpEx") . '"><img src="' . $images['icon_hidden'] . '" alt="' . sprintf($lang['is_hidden'], $username) . '" title="' . sprintf($lang['is_hidden'], $username) . '" /></a>';
+				$online_status = '<strong><em><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_hidden'], $username) . '"' . $hidden_color . '>' . $lang['Hidden'] . '</a></em></strong>';
+			}
+			else
+			{
+				$online_status_img = '<img src="' . $images['icon_offline'] . '" alt="' . sprintf($lang['is_offline'], $username) . '" title="' . sprintf($lang['is_offline'], $username) . '" />';
+				$online_status = '<span title="' . sprintf($lang['is_offline'], $username) . '"' . $offline_color . '><strong>' . $lang['Offline'] . '</strong></span>';
+			}
+		}
+		else
+		{
+			$online_status_img = '<img src="' . $images['icon_offline'] . '" alt="' . sprintf($lang['is_offline'], $username) . '" title="' . sprintf($lang['is_offline'], $username) . '" />';
+			$online_status = '<span title="' . sprintf($lang['is_offline'], $username) . '"' . $offline_color . '><strong>' . $lang['Offline'] . '</strong></span>';
+		}
+		// End add - Online/Offline/Hidden Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+			'YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// Start add - Online/Offline/Hidden Mod
+			'ONLINE_STATUS_IMG' => $online_status_img,
+			'ONLINE_STATUS' => $online_status,
+			// End add - Online/Offline/Hidden Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Start add - Online/Offline/Hidden Mod
+if ($profiledata['user_session_time'] >= (time()-$board_config['online_time']))
+{
+	if ($profiledata['user_allow_viewonline'])
+	{
+		$online_status_img = '<a href="' . append_sid("viewonline.$phpEx") . '"><img src="' . $images['icon_online'] . '" alt="' . sprintf($lang['is_online'], $profiledata['username']) . '" title="' . sprintf($lang['is_online'], $profiledata['username']) . '" /></a>';
+		$online_status = '<strong><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_online'], $profiledata['username']) . '"' . $online_color . '>' . $lang['Online'] . '</a></strong>';
+	}
+	else if ($userdata['user_level'] == ADMIN || $userdata['user_id'] == $profiledata['user_id'])
+	{
+		$online_status_img = '<a href="' . append_sid("viewonline.$phpEx") . '"><img src="' . $images['icon_hidden'] . '" alt="' . sprintf($lang['is_hidden'], $profiledata['username']) . '" title="' . sprintf($lang['is_hidden'], $profiledata['username']) . '" /></a>';
+		$online_status = '<strong><em><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_hidden'], $profiledata['username']) . '"' . $hidden_color . '>' . $lang['Hidden'] . '</a></em></strong>';
+	}
+	else
+	{
+		$online_status_img = '<img src="' . $images['icon_offline'] . '" alt="' . sprintf($lang['is_offline'], $profiledata['username']) . '" title="' . sprintf($lang['is_offline'], $profiledata['username']) . '" />';
+		$online_status = '<span title="' . sprintf($lang['is_offline'], $profiledata['username']) . '"' . $offline_color . '><strong>' . $lang['Offline'] . '</strong></span>';
+	}
+}
+else
+{
+	$online_status_img = '<img src="' . $images['icon_offline'] . '" alt="' . sprintf($lang['is_offline'], $profiledata['username']) . '" title="' . sprintf($lang['is_offline'], $profiledata['username']) . '" />';
+	$online_status = '<span title="' . sprintf($lang['is_offline'], $profiledata['username']) . '"' . $offline_color . '><strong>' . $lang['Offline'] . '</strong></span>';
+}
+// End add - Online/Offline/Hidden Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_INTERESTS' => $lang['Interests'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start add - Online/Offline/Hidden Mod
+	'ONLINE_STATUS_IMG' => $online_status_img,
+	'ONLINE_STATUS' => $online_status,
+	'L_ONLINE_STATUS' => $lang['Online_status'],
+	// End add - Online/Offline/Hidden Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+groupcp.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+function generate_user_info(&$row
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+&$yim_img, &$yim
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, &$userdata, &$online_status_img, &$online_status
+#
+#-----[ FIND ]------------------------------------------
+#
+	global $lang
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$board_config
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $online_color, $offline_color, $hidden_color
+#
+#-----[ FIND ]------------------------------------------
+#
+	$search = '<a href="' . $temp_url . '">' . sprintf($lang['Search_user_posts'], $row['username']) . '</a>';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start add - Online/Offline/Hidden Mod
+	if ($row['user_session_time'] >= (time()-$board_config['online_time']))
+	{
+		if ($row['user_allow_viewonline'])
+		{
+			$online_status_img = '<a href="' . append_sid("viewonline.$phpEx") . '"><img src="' . $images['icon_online'] . '" alt="' . sprintf($lang['is_online'], $row['username']) . '" title="' . sprintf($lang['is_online'], $row['username']) . '" /></a>';
+			$online_status = '<strong><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_online'], $row['username']) . '"' . $online_color . '>' . $lang['Online'] . '</a></strong>';
+		}
+		else if (!empty($row['user_allow_viewonline']) || $group_mod || $userdata['user_id'] == $row['user_id'])
+		{
+			$online_status_img = '<a href="' . append_sid("viewonline.$phpEx") . '"><img src="' . $images['icon_hidden'] . '" alt="' . sprintf($lang['is_hidden'], $row['username']) . '" title="' . sprintf($lang['is_hidden'], $row['username']) . '" /></a>';
+			$online_status = '<strong><em><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_hidden'], $row['username']) . '"' . $hidden_color . '>' . $lang['Hidden'] . '</a></em></strong>';
+		}
+		else
+		{
+			$online_status_img = '<img src="' . $images['icon_offline'] . '" alt="' . sprintf($lang['is_offline'], $row['username']) . '" title="' . sprintf($lang['is_offline'], $row['username']) . '" />';
+			$online_status = '<span title="' . sprintf($lang['is_offline'], $row['username']) . '"' . $offline_color . '><strong>' . $lang['Offline'] . '</strong></span>';
+		}
+	}
+	else
+	{
+		$online_status_img = '<img src="' . $images['icon_offline'] . '" alt="' . sprintf($lang['is_offline'], $row['username']) . '" title="' . sprintf($lang['is_offline'], $row['username']) . '" />';
+		$online_status = '<span title="' . sprintf($lang['is_offline'], $row['username']) . '"' . $offline_color . '><strong>' . $lang['Offline'] . '</strong></span>';
+	}
+	// End add - Online/Offline/Hidden Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+	//
+	// Get moderator details for this group
+	//
+	$sql = "SELECT username,
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+user_yim, user_msnm
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_allow_viewonline, user_session_time
+#
+#-----[ FIND ]------------------------------------------
+#
+	//
+	// Get user information for this group
+	//
+	$sql = "SELECT u.username
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_msnm, ug.user_pending
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_allow_viewonline, u.user_session_time
+#
+#-----[ FIND ]------------------------------------------
+#
+	$db->sql_freeresult($result);
+
+	$sql = "SELECT u.username
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_msnm
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_allow_viewonline, u.user_session_time
+#
+#-----[ FIND ]------------------------------------------
+#
+generate_user_info($group_moderator
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$yim_img, $yim
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $userdata, $online_status_img, $online_status
+#
+#-----[ FIND ]------------------------------------------
+#
+		'MOD_YIM_IMG' => $yim_img,
+		'MOD_YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// Start add - Online/Offline/Hidden Mod
+		'MOD_ONLINE_STATUS_IMG' => $online_status_img,
+		'MOD_ONLINE_STATUS' => $online_status,
+		'L_ONLINE_STATUS' => $lang['Online_status'],
+		// End add - Online/Offline/Hidden Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+generate_user_info($group_members[$i]
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$yim_img, $yim
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $userdata, $online_status_img, $online_status
+#
+#-----[ FIND ]------------------------------------------
+#
+				'YIM_IMG' => $yim_img,
+				'YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Online/Offline/Hidden Mod
+				'ONLINE_STATUS_IMG' => $online_status_img,
+				'ONLINE_STATUS' => $online_status,
+				// End add - Online/Offline/Hidden Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+generate_user_info($modgroup_pending_list[$i]
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$yim_img, $yim
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $userdata, $online_status_img, $online_status
+#
+#-----[ FIND ]------------------------------------------
+#
+					'YIM_IMG' => $yim_img,
+					'YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					// Start add - Online/Offline/Hidden Mod
+					'ONLINE_STATUS_IMG' => $online_status_img,
+					'ONLINE_STATUS' => $online_status,
+					// End add - Online/Offline/Hidden Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	//
+	// Major query obtains the message ...
+	//
+	$sql = "SELECT u.username
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_avatar
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_allow_viewonline AS user_allow_viewonline_1, u2.user_allow_viewonline AS user_allow_viewonline_2, u.user_session_time AS user_session_time_1, u2.user_session_time AS user_session_time_2
+#
+#-----[ FIND ]------------------------------------------
+#
+	$search = '<a href="' . $temp_url . '">' . sprintf($lang['Search_user_posts'], $username_from) . '</a>';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start add - Online/Offline/Hidden Mod
+	if ($privmsg['user_session_time_1'] >= (time()-$board_config['online_time']))
+	{
+		if ($privmsg['user_allow_viewonline_1'])
+		{
+			$online_status_img = '<a href="' . append_sid("viewonline.$phpEx") . '"><img src="' . $images['icon_online'] . '" alt="' . sprintf($lang['is_online'], $username_from) . '" title="' . sprintf($lang['is_online'], $username_from) . '" /></a>&nbsp;';
+			$online_status = '&nbsp;(<strong><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_online'], $username_from) . '"' . $online_color . '>' . $lang['Online'] . '</a></strong>)';
+		}
+		else if ($userdata['user_level'] == ADMIN || $userdata['user_id'] == $user_id_from)
+		{
+			$online_status_img = '<a href="' . append_sid("viewonline.$phpEx") . '"><img src="' . $images['icon_hidden'] . '" alt="' . sprintf($lang['is_hidden'], $username_from) . '" title="' . sprintf($lang['is_hidden'], $username_from) . '" /></a>&nbsp;';
+			$online_status = '&nbsp;(<strong><em><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_hidden'], $username_from) . '"' . $hidden_color . '>' . $lang['Hidden'] . '</a></em></strong>)';
+		}
+		else
+		{
+			$online_status_img = '<img src="' . $images['icon_offline'] . '" alt="' . sprintf($lang['is_offline'], $username_from) . '" title="' . sprintf($lang['is_offline'], $username_from) . '" />&nbsp;';
+			$online_status = '&nbsp;(<span title="' . sprintf($lang['is_offline'], $username_from) . '"' . $offline_color . '><strong>' . $lang['Offline'] . '</strong></span>)';
+		}
+	}
+	else
+	{
+		$online_status_img = '<img src="' . $images['icon_offline'] . '" alt="' . sprintf($lang['is_offline'], $username_from) . '" title="' . sprintf($lang['is_offline'], $username_from) . '" />&nbsp;';
+		$online_status = '&nbsp;(<span title="' . sprintf($lang['is_offline'], $username_from) . '"' . $offline_color . '><strong>' . $lang['Offline'] . '</strong></span>)';
+	}
+
+	if ($privmsg['user_session_time_2'] >= (time()-$board_config['online_time']))
+	{
+		if ($privmsg['user_allow_viewonline_2'])
+		{
+			$online_status_2 = '&nbsp;(<strong><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_online'], $username_to) . '"' . $online_color . '>' . $lang['Online'] . '</a></strong>)';
+		}
+		else if ($userdata['user_level'] == ADMIN || $userdata['user_id'] == $user_id_to)
+		{
+			$online_status_2 = '&nbsp;(<strong><em><a href="' . append_sid("viewonline.$phpEx") . '" title="' . sprintf($lang['is_hidden'], $username_to) . '"' . $hidden_color . '>' . $lang['Hidden'] . '</a></em></strong>)';
+		}
+		else
+		{
+			$online_status_2 = '&nbsp;(<span title="' . sprintf($lang['is_offline'], $username_to) . '"' . $offline_color . '>' . $lang['Offline'] . '</strong></span>)';
+		}
+	}
+	else
+	{
+		$online_status_2 = '&nbsp;(<span title="' . sprintf($lang['is_offline'], $username_to) . '"' . $offline_color . '><strong>' . $lang['Offline'] . '</strong></span>)';
+	}
+	// End add - Online/Offline/Hidden Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+		'MESSAGE' => $private_message,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// Start add - Online/Offline/Hidden Mod
+		'POSTER_FROM_ONLINE_STATUS_IMG' => $online_status_img,
+		'POSTER_FROM_ONLINE_STATUS' => $online_status,
+		'POSTER_TO_ONLINE_STATUS' => $online_status_2,
+		// End add - Online/Offline/Hidden Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// Format Timezone. We are unable to use array_pop here, because of PHP3 compatibility
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Online/Offline/Hidden Mod
+// Define global text color
+$online_color = ' style="color: #' . $theme['online_color'] . '"';
+$offline_color = ' style="color: #' . $theme['offline_color'] . '"';
+$hidden_color = ' style="color: #' . $theme['hidden_color'] . '"';
+// End add - Online/Offline/Hidden Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+	'T_SPAN_CLASS3' => $theme['span_class3'],
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	// Start add - Online/Offline/Hidden Mod
+	// Not used, but can help you...
+	'T_ONLINE_COLOR' => '#' . $theme['online_color'],
+	'T_OFFLINE_COLOR' => '#' . $theme['offline_color'],
+	'T_HIDDEN_COLOR' => '#' . $theme['hidden_color'],
+	// End add - Online/Offline/Hidden Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_RESET" => $lang['Reset'], 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start add - Online/Offline/Hidden Mod
+	'L_ONLINE_TIME' => $lang['Online_time'],
+	'L_ONLINE_TIME_EXPLAIN' => $lang['Online_time_explain'], 
+	'ONLINE_TIME' => $new['online_time'],
+	// End add - Online/Offline/Hidden Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_styles.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$updated_name['span_class3_name'] = $HTTP_POST_VARS['span_class3_name'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// Start add - Online/Offline/Hidden Mod
+			$updated['online_color'] = $HTTP_POST_VARS['online_color'];
+			$updated['offline_color'] = $HTTP_POST_VARS['offline_color'];
+			$updated['hidden_color'] = $HTTP_POST_VARS['hidden_color'];
+			// End add - Online/Offline/Hidden Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+				"SPAN_CLASS3_NAME" => $selected['span_class3_name'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Online/Offline/Hidden Mod
+				'L_ONLINE_SETTING' => $lang['Online_setting'],
+				'L_ONLINE_COLOR' => $lang['Online_color'],
+				'L_OFFLINE_COLOR' => $lang['Offline_color'],
+				'L_HIDDEN_COLOR' => $lang['Hidden_color'],
+				'ONLINE_COLOR' => $selected['online_color'],
+				'OFFLINE_COLOR' => $selected['offline_color'],
+				'HIDDEN_COLOR' => $selected['hidden_color'],
+				// End add - Online/Offline/Hidden Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				<td valign="middle" nowrap="nowrap">{postrow.PROFILE_IMG}
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+{postrow.PROFILE_IMG}
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+# use {postrow.POSTER_ONLINE_STATUS} if you want text instead of image
+#
+{postrow.POSTER_ONLINE_STATUS_IMG}
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/memberlist_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <th class="thTop" nowrap="nowrap">{L_JOINED}</th>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	  <th class="thTop" nowrap="nowrap">{L_ONLINE_STATUS}</th>
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="{memberrow.ROW_CLASS}" align="center" valign="middle"><span class="gensmall">{memberrow.JOINED}</span></td>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	  <td class="{memberrow.ROW_CLASS}" align="center" valign="middle"><span class="gen">{memberrow.ONLINE_STATUS_IMG}</span></td>
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="catBottom" colspan="{%:1}" height="28">&nbsp;</td>
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+{%:1} +1
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		<tr> 
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_ICQ_NUMBER}:</span></td>
+		  <td class="row1"><script language="JavaScript" type="text/javascript"><!-- 
+
+		if ( navigator.userAgent.toLowerCase().indexOf('mozilla') != -1 && navigator.userAgent.indexOf('5.') == -1 && navigator.userAgent.indexOf('6.') == -1 )
+			document.write(' {ICQ_IMG}');
+		else
+			document.write('<table cellspacing="0" cellpadding="0" border="0"><tr><td nowrap="nowrap"><div style="position:relative;height:18px"><div style="position:absolute">{ICQ_IMG}</div><div style="position:absolute;left:3px;top:-1px">{ICQ_STATUS_IMG}</div></div></td></tr></table>');
+		  
+		  //--></script><noscript>{ICQ_IMG}</noscript></td>
+		</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<tr> 
+			<td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_ONLINE_STATUS}:</span></td>
+			<td class="row1" valign="middle"><span class="gen">{ONLINE_STATUS_IMG}</span></td>
+		</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/groupcp_info_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <th class="thTop">{L_EMAIL}</th>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	  <th class="thTop">{L_ONLINE_STATUS}</th>
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="catSides" colspan="{%:1}"
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+{%:1} +1
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row1" align="center" valign="middle"><span class="gen">{MOD_EMAIL_IMG}</span></td>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	  <td class="row1" align="center" valign="middle"><span class="gen">{MOD_ONLINE_STATUS_IMG}</span></td>
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="catSides" colspan="{%:1}"
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+{%:1} +1
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="{member_row.ROW_CLASS}" align="center" valign="middle"><span class="gen">{member_row.EMAIL_IMG}</span></td>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	  <td class="{member_row.ROW_CLASS}" align="center" valign="middle"><span class="gen">{member_row.ONLINE_STATUS_IMG}</span></td>
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row1" colspan="{%:1}"
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+{%:1} +1
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row1" colspan="{%:1}"
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+{%:1} +1
+#
+#-----[ FIND ]------------------------------------------
+#
+		<td class="catBottom" colspan="{%:1}"
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+{%:1} +1
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/groupcp_pending_info.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <th class="thTop">{L_EMAIL}</th>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	  <th class="thTop">{L_ONLINE_STATUS}</th>
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="catSides" colspan="{%:1}"
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+{%:1} +1
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="{pending_members_row.ROW_CLASS}" align="center"><span class="gen">{pending_members_row.EMAIL_IMG}</span></td>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	  <td class="{pending_members_row.ROW_CLASS}" align="center"><span class="gen">{pending_members_row.ONLINE_STATUS_IMG}</span></td>
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="cat" colspan="{%:1}"
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+{%:1} +1
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/privmsgs_read_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td width="100%" class="row2" colspan="2"><span class="genmed">{MESSAGE_TO}</span></td>
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+{MESSAGE_TO}</span>
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+<span class="gensmall">{POSTER_TO_ONLINE_STATUS}</span>
+#
+#-----[ FIND ]------------------------------------------
+#
+			<td valign="middle" nowrap="nowrap">{PROFILE_IMG}
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+{PROFILE_IMG}
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+{POSTER_FROM_ONLINE_STATUS_IMG}
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_SYSTEM_TIMEZONE}</td>
+		<td class="row2">{TIMEZONE_SELECT}</td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ONLINE_TIME} <br /><span class="gensmall">{L_ONLINE_TIME_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="online_time" value="{ONLINE_TIME}" /></td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/styles_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_SPAN_CLASS_3}:</td>
+		<td class="row2"><input class="post" type="text" size="25" maxlength="25" name="span_class3" value="{SPAN_CLASS3}"></td>
+		<td class="row2"><input class="post" type="text" size="25" maxlength="100" name="span_class3_name" value="{SPAN_CLASS3_NAME}">
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<th colspan="3">{L_ONLINE_SETTING}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_ONLINE_COLOR}:</td>
+		<td class="row2" colspan="2"><input class="post" type="text" size="6" maxlength="6" name="online_color" value="{ONLINE_COLOR}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_OFFLINE_COLOR}:</td>
+		<td class="row2" colspan="2"><input class="post" type="text" size="6" maxlength="6" name="offline_color" value="{OFFLINE_COLOR}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_HIDDEN_COLOR}:</td>
+		<td class="row2" colspan="2"><input class="post" type="text" size="6" maxlength="6" name="hidden_color" value="{HIDDEN_COLOR}" /></td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+# if your template is not subSilver, you can ignore this
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+.helpline { background-color: {T_TR_COLOR2}; border-style: none; }
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+/* Set Image style */
+img, .forumline img {
+	border: 0;
+}
+
+#
+#-----[ OPEN ]------------------------------------------
+# or your template_name.css
+#
+templates/subSilver/subSilver.css
+
+#
+#-----[ FIND ]------------------------------------------
+#
+.helpline { background-color: #DEE3E7; border-style: none; }
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+/* Set Image style */
+img, .forumline img {
+	border: 0;
+}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Online/Offline/Hidden Mod
+$images['icon_online'] = $current_template_images . '/{LANG}/icon_online.png';
+$images['icon_offline'] = $current_template_images . '/{LANG}/icon_offline.png';
+$images['icon_hidden'] = $current_template_images . '/{LANG}/icon_hidden.png';
+// End add - Online/Offline/Hidden Mod
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]----------------------------------------
+#
+# EoM

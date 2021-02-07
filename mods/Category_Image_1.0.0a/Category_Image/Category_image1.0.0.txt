@@ -1,0 +1,242 @@
+#########################################################################################
+## MOD Title: Categories Images with ACP Control
+## MOD Author: axe70 < axew3@w3it.org > (Alessio Nanni) http://www.w3it.org 
+## MOD Description: This mod allow admin to give each Category a image in the ACP
+##                  Images will show on main index
+## MOD Version: 1.0.0a
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes 
+##
+## Files To Edit: 5
+##      index.php
+##      admin/admin_forums.php
+##      language/lang_english/lang_admin.php
+##      templates/subSilver/admin/category_edit_body.tpl
+##      templates/subSilver/index_body.tpl
+##
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes:
+## You should adapt your images dimensions, and values for thats images on index_body.tpl, matching your skin!
+## An example, to avoid blank space on categories index display, on cats where maybe the image is not set, can be changing the final step of this MOD where:
+##
+## Tested on phpBB version 2.0.20
+##  
+##############################################################
+## MOD History:
+## 2006-06-05 - Version 1.0.0 - initial relase, basic fetures 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################  
+
+# 
+#-----[ SQL ]--------------------------------------------------------- 
+#
+#
+
+ALTER TABLE `phpbb_categories` ADD `cat_image` VARCHAR( 40 ) default NULL;
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+# 
+
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#
+
+$lang['Edit_Category_explain'] = 'Use this form to modify a category\'s name.';
+
+# 
+#-----[ AFTER, ADD ]--------------------------------------------------
+#
+
+$lang['Cat_image'] = 'Category image<br />e.g. If your image is at <b>phpBBRoot/images/foo.gif</b><br />  then set it as <b>images/foo.gif</b>';
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#  
+
+admin/admin_forums.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+#  
+     
+$cat_id = $row['cat_id'];
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+# 
+
+$cat_image = $row['cat_image'];
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+# 
+
+$cat_title = $row['cat_title'];
+ 
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+# 
+
+$cat_image = $row['cat_image'];
+				
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+# 
+
+'L_CATEGORY' => $lang['Category'],
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+# 
+
+'L_CAT_IMAGE' => $lang['Cat_image'],  
+'CATIMG' => ( $cat_image ) ? $cat_image : '',
+'CATIMG_DISPLAY' => ( $cat_image ) ? '<img alt="" src="' . $phpbb_root_path . $cat_image . '" />' : '',
+				
+# 
+#-----[ FIND ]--------------------------------------------------------
+# 
+
+SET cat_title = '" . str_replace("\'", "''", $HTTP_POST_VARS['cat_title']) . "'
+	
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+#
+	
+$HTTP_POST_VARS['cat_title']) . "'
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#	
+
+, cat_image = '" . str_replace("\'", "''", $HTTP_POST_VARS['catimg']). "'
+
+			
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+# 
+
+'CAT_DESC' => $category_rows[$i]['cat_title'],
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+# 				
+
+'CAT_IMG' => ( $category_rows[$j]['cat_image'] ) ? '<img src="' . $phpbb_root_path . $category_rows[$j]['cat_image'] . '" alt="" title="'.$cat_id[$j]['cat_title'].'" />' : '',
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+  
+index.php
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+# 
+
+$sql = "SELECT c.cat_id, c.cat_title, c.cat_order
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+#   
+
+, c.cat_order
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+, c.cat_image
+
+
+# 
+#-----[ FIND ]--------------------------------------------------------
+# 
+
+$cat_id = $category_rows[$i]['cat_id'];
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+# 
+
+$catimg = $category_rows[$i]['cat_image'];
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+# 
+
+'CAT_DESC' => $category_rows[$i]['cat_title'],
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+#
+ 
+'CAT_IMG' => ($catimg) ? '<img src="' . $phpbb_root_path . $catimg . '" alt="" title="'.$category_rows[$i]['cat_title'].'" />' : '',
+        			
+
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+#
+  
+templates/subSilver/admin/category_edit_body.tpl
+
+# 
+#-----[ FIND ]--------------------------------------------------------
+# 
+
+<tr> 
+	<td class="row1">{L_CATEGORY}</td>
+	<td class="row2"><input class="post" type="text" size="25" name="cat_title" value="{CAT_TITLE}" /></td>
+</tr>
+
+# 
+#-----[ AFTER, ADD ]-------------------------------------------------- 
+#
+
+<tr> 
+	<td class="row1">{L_CAT_IMAGE}</td>
+	<td class="row2"><input type="text" size="35" name="catimg" value="{CATIMG}" class="post" />&nbsp;&nbsp;{CATIMG_DISPLAY}</td>
+</tr>
+	
+# 
+#-----[ OPEN ]-------------------------------------------------------- 
+# 
+
+templates/subSilver/index_body.tpl
+
+# 
+#-----[ FIND ]-------------------------------------------------------- 
+# 
+
+<td class="catLeft" colspan="2" height="28"><span class="cattitle"><a href="{catrow.U_VIEWCAT}" class="cattitle">{catrow.CAT_DESC}</a></span></td>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+#   
+ 
+height="28">
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+{catrow.CAT_IMG}&nbsp;
+
+
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM		

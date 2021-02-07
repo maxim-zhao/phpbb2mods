@@ -1,0 +1,582 @@
+##############################################################
+## MOD Title:		Split posts and merge in one step
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Description:	Allow admin to split posts from a topic (using the regular split feature) and merge them
+##					into an existing topic in a single step
+##
+## MOD Version:		1.0.4
+##
+## Installation Level:	Easy
+## Installation Time:	5 Minutes ( 1 minute with easymod)
+##
+## Files To Edit:	modcp.php
+##					language/lang_english/lang_main.php
+##					templates/subSilver/modcp_split.tpl
+##
+## Included Files:	n/a
+##
+## License:			http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:	if you are using my save posts as drafts mod, you need to
+##					make the following change after installing this mod:
+##
+##					OPEN
+##					modcp.php
+##
+##					FIND
+##					$sql = "INSERT INTO " . POSTS_TABLE . " (topic_id, forum_id, poster_id, post_username, post_time, poster_ip, enable_bbcode, enable_html, enable_smilies, enable_sig) VALUES ($final_topic_id, $final_forum_id, " . $rows[$i]['poster_id'] . ", '$split_post_username', " . $rows[$i]['post_time'] . ", '$split_post_poster_ip', " . $rows[$i]['enable_bbcode'] . ", " . $rows[$i]['enable_html'] . ", " . $rows[$i]['enable_smilies'] . ", " . $rows[$i]['enable_sig'] . ")";
+##
+##					REPLACE WITH
+##					$sql = "INSERT INTO " . POSTS_TABLE . " (topic_id, forum_id, poster_id, post_username, post_time, poster_ip, enable_bbcode, enable_html, enable_smilies, enable_sig, post_draft) VALUES ($final_topic_id, $final_forum_id, " . $rows[$i]['poster_id'] . ", '$split_post_username', " . $rows[$i]['post_time'] . ", '$split_post_poster_ip', " . $rows[$i]['enable_bbcode'] . ", " . $rows[$i]['enable_html'] . ", " . $rows[$i]['enable_smilies'] . ", " . $rows[$i]['enable_sig'] . ", " . $rows[$i]['post_draft'] . ")";
+##
+##					FIND
+##					$sql = "INSERT INTO " . POSTS_TABLE . " (topic_id, forum_id, poster_id, post_username, post_time, poster_ip, enable_bbcode, enable_html, enable_smilies, enable_sig) VALUES ($final_topic_id, $final_forum_id, " . $rows[$i]['poster_id'] . ", '$split_post_username', " . $rows[$i]['post_time'] . ", '$split_post_poster_ip', " . $rows[$i]['enable_bbcode'] . ", " . $rows[$i]['enable_html'] . ", " . $rows[$i]['enable_smilies'] . ", " . $rows[$i]['enable_sig'] . ")";
+##
+##					REPLACE WITH
+##					$sql = "INSERT INTO " . POSTS_TABLE . " (topic_id, forum_id, poster_id, post_username, post_time, poster_ip, enable_bbcode, enable_html, enable_smilies, enable_sig, post_draft) VALUES ($final_topic_id, $final_forum_id, " . $rows[$i]['poster_id'] . ", '$split_post_username', " . $rows[$i]['post_time'] . ", '$split_post_poster_ip', " . $rows[$i]['enable_bbcode'] . ", " . $rows[$i]['enable_html'] . ", " . $rows[$i]['enable_smilies'] . ", " . $rows[$i]['enable_sig'] . ", " . $rows[$i]['post_draft'] . ")";
+##
+##############################################################
+## MOD History:
+##
+##   2007-05-16 - Version 1.0.4
+##				  Allow even the first post in a topic to be split (thanks for the idea, blackcat75);
+##				  added an option to 'copy' rather than 'move' the split posts to the destination topic;
+##				  removed limit on number of characters in the textbox for the url so that long urls will work;
+##				  fixed mod script so that it replaces the old code in modcp.php rather than adding to it
+##
+##   2006-05-20 - Version 1.0.3a
+##				  no changes...just repacked to be validated against phpbb2.0.20
+##
+##   2005-05-06 - Version 1.0.3
+##				  added an intval to protect against injection risk
+##
+##   2005-04-09 - Version 1.0.2
+##				  a few more changes in textual instructions to ensure that the instructions don't wrap on monitors
+##				  with resolutions lower than 1280 accross
+##
+##   2005-04-09 - Version 1.0.1
+##				  a few changes in textual instructions suggested by mistakeprone (no change in functionality)
+##
+##   2005-04-08 - Version 1.0.0
+##				  initial version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+modcp.php
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+			$sql = "SELECT post_id, poster_id, topic_id, post_time
+				FROM " . POSTS_TABLE . "
+				WHERE post_id IN ($post_id_sql)
+				ORDER BY post_time ASC";
+			if (!($result = $db->sql_query($sql)))
+			{
+				message_die(GENERAL_ERROR, 'Could not get post information', '', __LINE__, __FILE__, $sql);
+			}
+
+			if ($row = $db->sql_fetchrow($result))
+			{
+				$first_poster = $row['poster_id'];
+				$topic_id = $row['topic_id'];
+				$post_time = $row['post_time'];
+
+				$user_id_sql = '';
+				$post_id_sql = '';
+				do
+				{
+					$user_id_sql .= (($user_id_sql != '') ? ', ' : '') . intval($row['poster_id']);
+					$post_id_sql .= (($post_id_sql != '') ? ', ' : '') . intval($row['post_id']);;
+				}
+				while ($row = $db->sql_fetchrow($result));
+
+				$post_subject = trim(htmlspecialchars($HTTP_POST_VARS['subject']));
+				if (empty($post_subject))
+				{
+					message_die(GENERAL_MESSAGE, $lang['Empty_subject']);
+				}
+
+				$new_forum_id = intval($HTTP_POST_VARS['new_forum_id']);
+				$topic_time = time();
+
+				$sql = 'SELECT forum_id FROM ' . FORUMS_TABLE . '
+					WHERE forum_id = ' . $new_forum_id;
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select from forums table', '', __LINE__, __FILE__, $sql);
+				}
+
+				if (!$db->sql_fetchrow($result))
+				{
+					message_die(GENERAL_MESSAGE, 'New forum does not exist');
+				}
+
+				$db->sql_freeresult($result);
+
+				$sql  = "INSERT INTO " . TOPICS_TABLE . " (topic_title, topic_poster, topic_time, forum_id, topic_status, topic_type)
+					VALUES ('" . str_replace("\'", "''", $post_subject) . "', $first_poster, " . $topic_time . ", $new_forum_id, " . TOPIC_UNLOCKED . ", " . POST_NORMAL . ")";
+				if (!($db->sql_query($sql, BEGIN_TRANSACTION)))
+				{
+					message_die(GENERAL_ERROR, 'Could not insert new topic', '', __LINE__, __FILE__, $sql);
+				}
+
+				$new_topic_id = $db->sql_nextid();
+
+				// Update topic watch table, switch users whose posts
+				// have moved, over to watching the new topic
+				$sql = "UPDATE " . TOPICS_WATCH_TABLE . "
+					SET topic_id = $new_topic_id
+					WHERE topic_id = $topic_id
+						AND user_id IN ($user_id_sql)";
+				if (!$db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Could not update topics watch table', '', __LINE__, __FILE__, $sql);
+				}
+
+				$sql_where = (!empty($HTTP_POST_VARS['split_type_beyond'])) ? " post_time >= $post_time AND topic_id = $topic_id" : "post_id IN ($post_id_sql)";
+
+				$sql = 	"UPDATE " . POSTS_TABLE . "
+					SET topic_id = $new_topic_id, forum_id = $new_forum_id
+					WHERE $sql_where";
+				if (!$db->sql_query($sql, END_TRANSACTION))
+				{
+					message_die(GENERAL_ERROR, 'Could not update posts table', '', __LINE__, __FILE__, $sql);
+				}
+
+				sync('topic', $new_topic_id);
+				sync('topic', $topic_id);
+				sync('forum', $new_forum_id);
+				sync('forum', $forum_id);
+
+				$template->assign_vars(array(
+					'META' => '<meta http-equiv="refresh" content="3;url=' . "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;sid=" . $userdata['session_id'] . '">')
+				);
+
+				$message = $lang['Topic_split'] . '<br /><br />' . sprintf($lang['Click_return_topic'], '<a href="' . "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;sid=" . $userdata['session_id'] . '">', '</a>');
+				message_die(GENERAL_MESSAGE, $message);
+			}
+
+#
+#-----[ REPLACE WITH ]-------------------------------------------------
+#
+			// start mod split posts and merge in one step... replace most of the rest of the split case with the following
+
+			// find out if the user wants to move or copy the split posts
+			$split_copy = (empty($HTTP_POST_VARS['split_move_or_copy'])) ? true : '';
+
+			// now check to see if subject (title title of the new topic) is empty...if so, and if there is a destination topic,
+			// set $final_topic_id to the destination topic_id and $final_forum_id to the destination forum_id
+			$new_topic_title = (!empty($HTTP_POST_VARS['subject'])) ? trim(htmlspecialchars($HTTP_POST_VARS['subject'])) : '';
+			if (empty($new_topic_title))
+			{
+				// if we get here, the subject (topic title for the new topic) is blank so the user is presumably trying to
+				// specify a target topic rather split into a new topic...so let's check to see if a destination topic
+				// is actually filled in and if not give an error message
+				$destination_topic = $HTTP_POST_VARS['destination_topic'];
+				if (empty($destination_topic))
+				{
+					message_die(GENERAL_MESSAGE, $lang['Forgot_to_specify']);
+				}
+				else
+				{
+					// ok, the subject is blank and the destination topic line is filled in so let's
+					// figure out what the topic_id and forum_id of the destination topic is...
+
+					// the next block of code is borrowed from the simply merge mod...it extracts the topic id from topic_id, topic url or post url...
+					// is this a direct value?
+					$num_topic = intval($destination_topic);
+					if ($destination_topic == "$num_topic")
+					{
+						$final_topic_id = $num_topic;
+					}
+					// is this a url with topic id or post id ?
+					else
+					{
+						$name = explode('?', $destination_topic);
+						$parms = ( isset($name[1]) ) ? $name[1] : $name[0];
+						parse_str($parms, $parm);
+						$found = false;
+						$final_topic_id = 0;
+						while ((list($key, $val) = each($parm)) && !$found)
+						{
+							$vals = explode('#', $val);
+							$val = $vals[0];
+							if (empty($val))
+							{
+								$val = 0;
+							}
+							else $val = intval($val);
+							switch($key)
+							{
+								case POST_POST_URL:
+								$sql = "SELECT topic_id FROM " . POSTS_TABLE . " WHERE post_id=$val";
+								if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Could not get post information', '', __LINE__, __FILE__, $sql);
+								if ($row = $db->sql_fetchrow($result))
+								{
+									$val = $row['topic_id'];
+									$found = true;
+								}
+								break;
+
+								case POST_TOPIC_URL:
+								$found = true;
+								break;
+							}
+							if ($found)
+							{
+								$final_topic_id = $val;
+							}
+						}
+					}
+
+					// ok, we've fetched the topic_id for the destination topic and we've set $final_topic_id to that topic_id...
+					// now, let's get the forum_id for destination topic and set $final_forum_id to that forum_id...
+					$sql = "SELECT forum_id
+							FROM " . TOPICS_TABLE . "
+							WHERE topic_id = $final_topic_id";
+					if ( !($result = $db->sql_query($sql)) )
+					{
+						message_die(GENERAL_ERROR, 'Could not get forum information for destination topic', '', __LINE__, __FILE__, $sql);
+					}
+					$row = $db->sql_fetchrow($result);
+					$final_forum_id = $row['forum_id'];
+					$db->sql_freeresult($result);
+
+					// if there is no forum_id (probably because there is no such topic_id), give error message
+					if ($final_forum_id == '')
+					{
+						message_die(GENERAL_MESSAGE, 'Could not get forum information (no such topic_id?)');
+					}
+				}
+			}
+
+			// now get the post_time of the earliest post
+			$sql = "SELECT post_time
+					FROM " . POSTS_TABLE . "
+					WHERE post_id IN ($post_id_sql)
+					ORDER BY post_time ASC
+					LIMIT 1";
+
+			if (!$result = $db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Could not get post information', '', __LINE__, __FILE__, $sql);
+			}
+			$row = $db->sql_fetchrow($result);
+			$post_time = $row['post_time'];
+			$db->sql_freeresult($result);
+
+			// define the $sql_where variables used in the main query to pick the right posts in the topic
+			// (the definitions depend on whether the admin has elected to 'split from selected post' or 'split selected postss')
+			if (!empty($HTTP_POST_VARS['split_type_beyond']))
+			{
+				$sql_where_move = " post_time >= $post_time AND topic_id = $topic_id";
+				$sql_where_copy = " p.post_time >= $post_time AND p.topic_id = $topic_id";
+			}
+			else
+			{
+				$sql_where_move = " post_id IN ($post_id_sql)";
+				$sql_where_copy = " p.post_id IN ($post_id_sql)";
+			}
+
+			// now get the relevant post info, but the amount of relevant info depends on whether we are moving or copying the posts
+			if ($split_copy)
+			{
+				// we are copying rather than moving, so we will need all the post and post text info
+				$sql = "SELECT *
+						FROM " . POSTS_TABLE . " p, " . POSTS_TEXT_TABLE . " pt
+						WHERE $sql_where_copy
+						AND pt.post_id = p.post_id
+						ORDER BY post_time ASC";
+			}
+		else
+		{
+			// we are moving rather than copying, so collect only the info we need for a move
+			$sql = "SELECT post_id, poster_id, topic_id, post_time
+					FROM " . POSTS_TABLE . "
+					WHERE $sql_where_move
+					ORDER BY post_time ASC";
+		}
+
+		if (!$result = $db->sql_query($sql, BEGIN_TRANSACTION))
+		{
+			message_die(GENERAL_ERROR, 'Could not get post information', '', __LINE__, __FILE__, $sql);
+		}
+
+		// now actually fetch the post info
+		$rows = array();
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$rows[] = $row;
+			$user_id_sql .= (($user_id_sql != '') ? ', ' : '') . $row['poster_id'];
+			$post_id_sql .= (($post_id_sql != '') ? ', ' : '') . $row['post_id'];
+
+			// check to confirm that the relevant post being split is in the current topic (if not, something is wrong)
+			if ($topic_id != $row['topic_id'])
+			{
+				message_die(GENERAL_MESSAGE, 'For some reason, topic_id of one of the split posts does not match the topic we are splitting');
+			}
+		}
+		$db->sql_freeresult($result);
+
+		// check to see if user wants to split the posts to a brand new topic; if so, create that new topic
+		if (!empty($new_topic_title))
+		{
+			$first_poster = $rows[0]['poster_id'];
+			$final_forum_id = intval($HTTP_POST_VARS['new_forum_id']);
+
+			$sql = 'SELECT forum_id FROM ' . FORUMS_TABLE . '
+					WHERE forum_id = ' . $final_forum_id;
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not select from forums table', '', __LINE__, __FILE__, $sql);
+			}
+			if (!$db->sql_fetchrow($result))
+			{
+				message_die(GENERAL_MESSAGE, 'New forum does not exist');
+			}
+			$db->sql_freeresult($result);
+
+			$sql = "INSERT INTO " . TOPICS_TABLE . " (topic_title, topic_poster, topic_time, forum_id, topic_status, topic_type)
+					VALUES ('" . str_replace("\'", "''", $new_topic_title) . "', $first_poster, " . $post_time . ", $final_forum_id, " . TOPIC_UNLOCKED . ", " . POST_NORMAL . ")";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Could not insert new topic', '', __LINE__, __FILE__, $sql);
+			}
+			$final_topic_id = $db->sql_nextid();
+		}
+
+		// check to see if user wants to copy or move the split posts...handle differently depending on answer
+		if ($split_copy)
+		{
+			// if we get here, the user wants to copy the posts, so do so...
+			$split_post_count = count($rows);
+
+			for ($i = 0; $i < $split_post_count; $i++)
+			{
+				$split_post_username = str_replace("'", "\'", $rows[$i]['post_username']);
+				$split_post_poster_ip = str_replace("'", "\'", $rows[$i]['poster_ip']);
+				$sql = "INSERT INTO " . POSTS_TABLE . " (topic_id, forum_id, poster_id, post_username, post_time, poster_ip, enable_bbcode, enable_html, enable_smilies, enable_sig) VALUES ($final_topic_id, $final_forum_id, " . $rows[$i]['poster_id'] . ", '$split_post_username', " . $rows[$i]['post_time'] . ", '$split_post_poster_ip', " . $rows[$i]['enable_bbcode'] . ", " . $rows[$i]['enable_html'] . ", " . $rows[$i]['enable_smilies'] . ", " . $rows[$i]['enable_sig'] . ")";
+				if (!$db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Could not insert post into posts table', '', __LINE__, __FILE__, $sql);
+				}
+				$split_post_id = $db->sql_nextid();
+				$split_post_subject = str_replace("'", "\'", $rows[$i]['post_subject']);
+				$split_post_bbcode_uid = $rows[$i]['bbcode_uid'];
+				$split_post_text = str_replace("'", "\'", $rows[$i]['post_text']);
+
+				$sql = "INSERT INTO " . POSTS_TEXT_TABLE . " (post_id, post_subject, bbcode_uid, post_text) VALUES ($split_post_id, '$split_post_subject', '$split_post_bbcode_uid', '$split_post_text')";
+				if (!$db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Could not insert post text into posts text table', '', __LINE__, __FILE__, $sql);
+				}
+			}
+
+			// now run a meaningless query so we can formally END TRANSACTION
+			$sql = "SELECT 1";
+			if (!$db->sql_query($sql, END_TRANSACTION))
+			{
+				message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+			}
+		}
+		else
+		{
+			// and if we get here, the user wants to move the posts, so...
+			// do a sql for switching the split posts over to the final topic and forum
+			$sql = "UPDATE " . POSTS_TABLE . "
+					SET topic_id = $final_topic_id, forum_id = $final_forum_id
+					WHERE $sql_where_move";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Could not update posts table', '', __LINE__, __FILE__, $sql);
+			}
+
+			//
+			// The rest of this else statement deals with subscribing and unsubscribing users in the TOPICS_WATCH_TABLE
+			//
+
+			// Look up which users with split posts also have posts remaining behind so we
+			// can figure out which users should not be unsubscribed from original topic
+			$sql = "SELECT poster_id
+					FROM " . POSTS_TABLE . "
+					WHERE topic_id = $topic_id
+					AND poster_id IN ($user_id_sql)";
+
+			if (!$result = $db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Could not get the user_ids for users who still have posts in old topic', '', __LINE__, __FILE__, $sql);
+			}
+
+			// fetch user_id for each user that remains in the old topic
+			$user_id_keep_subscribed_sql = 0;
+			while ($row = $db->sql_fetchrow($result))
+			{
+				$user_id_keep_subscribed_sql .= ', ' . $row['poster_id'];
+			}
+			$db->sql_freeresult($result);
+
+			// Now, look up which users with split posts don't already have an entry in the destination topic
+			// so we can figure out which ones to subscribe to the destination topic
+
+			$sql = "SELECT user_id
+					FROM " . TOPICS_WATCH_TABLE . "
+					WHERE topic_id = $final_topic_id
+					AND user_id IN ($user_id_sql)";
+
+			if (!$result = $db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Could not get the user_ids for users not already subscribed to the destination topic', '', __LINE__, __FILE__, $sql);
+			}
+
+			// now fetch user_id for each poster of a split post that is already subscribed to the destination topic
+			$user_id_already_subscribed_sql = 0;
+			while ($row = $db->sql_fetchrow($result))
+			{
+				$user_id_already_subscribed_sql .= ', ' . $row['user_id'];
+			}
+			$db->sql_freeresult($result);
+
+			// Now insert an entry in topic watch table for each user with a split post going to the final topic
+			// who had an entry for the original topic in that table unless that user already has an entry for the final topic
+			// in that table
+
+			$sql = "INSERT INTO " . TOPICS_WATCH_TABLE . " (user_id, topic_id, notify_status)
+					SELECT DISTINCT user_id, $final_topic_id, 0
+					FROM " . TOPICS_WATCH_TABLE . "
+					WHERE topic_id = $topic_id
+					AND user_id IN ($user_id_sql)
+					AND user_id NOT IN ($user_id_already_subscribed_sql)";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Could not insert topic watch information for split post users', '', __LINE__, __FILE__, $sql);
+			}
+
+			// Finally, unsubscribe from old topic any user with split posts who has no posts remaining behind
+			$sql = "DELETE FROM " . TOPICS_WATCH_TABLE . "
+					WHERE topic_id = $topic_id
+					AND user_id IN ($user_id_sql)
+					AND user_id NOT IN ($user_id_keep_subscribed_sql)";
+
+			if ( !$db->sql_query($sql, END_TRANSACTION) )
+			{
+				message_die(GENERAL_ERROR, 'Could not unsubscribe the users of posts being split', '', __LINE__, __FILE__, $sql);
+			}
+
+		}
+
+		sync('topic', $final_topic_id);
+		sync('topic', $topic_id);
+		sync('forum', $final_forum_id);
+		sync('forum', $forum_id);
+
+		$template->assign_vars(array(
+			'META' => '<meta http-equiv="refresh" content="3;url=' . "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$final_topic_id&amp;sid=" . $userdata['session_id'] . '">')
+			);
+
+		$message = $lang['Topic_split'] . '<br /><br />' . sprintf($lang['Click_return_topic'], '<a href="' . "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$final_topic_id&amp;sid=" . $userdata['session_id'] . '">', '</a>');
+		message_die(GENERAL_MESSAGE, $message);
+		// end mod split posts and merge in one step
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+					'L_POST' => $lang['Post'],
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+					'L_IF_TITLE_BLANK' => $lang['If_title_blank'],
+					'L_DESTINATION_TOPIC' => $lang['Destination_topic'],
+					'L_DESTINATION_TOPIC_FORMAT' => $lang['Destination_topic_format'],
+					'L_SPLIT_MOVE_OR_COPY' => $lang['Split_move_or_copy'],
+					'L_SPLIT_MOVE' => $lang['Split_move'],
+					'L_SPLIT_COPY' => $lang['Split_copy'],
+					'L_SPLIT_MOVE_OR_COPY_EXPLANATION' => $lang['Split_move_or_copy_explanation'],
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+					$checkbox = ( $i > 0 ) ? '<input type="checkbox" name="post_id_list[]" value="' . $post_id . '" />' : '&nbsp;';
+
+#
+#-----[ REPLACE WITH ]-------------------------------------------------
+#
+					$checkbox = '<input type="checkbox" name="post_id_list[]" value="' . $post_id . '" />';
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+$lang['Topic_split'] = 'The selected topic has been split successfully';
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+// start mod split posts and merge in one step
+$lang['If_title_blank'] = '<br />(specify new topic title; leave blank to merge split-off posts into existing topic specified below)';
+$lang['Destination_topic'] = 'Destination topic';
+$lang['Destination_topic_format'] = '<br />(if merging into existing topic, insert topic id or url of that topic, or insert url of a post in that topic)';
+$lang['Forgot_to_specify'] = 'You forgot to specify a subject or a destination topic (you need to either fill in the subject line for a new topic or the destination topic line for the topic into which you wish the split posts to go)';
+$lang['Split_move_or_copy'] = 'Move or copy';
+$lang['Split_move'] = 'move';
+$lang['Split_copy'] = 'copy';
+$lang['Split_move_or_copy_explanation'] = '<br />(to move the split posts to a new topic, select \'move\'; to copy the split posts to a new topic while leaving them in the old topic at the same time, select \'copy\')';
+// end mod split posts and merge in one step
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+templates/subSilver/modcp_split.tpl
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+	  <td class="row2" colspan="2"><input class="post" type="text" size="35" style="width: 350px" maxlength="60" name="subject" /></td>
+
+#
+#-----[ REPLACE WITH ]-------------------------------------------------
+#
+	  <td class="row2" colspan="2"><input class="post" type="text" size="35" style="width: 350px" maxlength="60" name="subject" /><span class="gensmall">{L_IF_TITLE_BLANK}</span></td>
+
+#
+#-----[ FIND ]-------------------------------------------------
+#
+	<tr>
+	  <td class="row1" nowrap="nowrap"><span class="gen">{L_SPLIT_FORUM}</span></td>
+	  <td class="row2" colspan="2">{S_FORUM_SELECT}</td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]-------------------------------------------------
+#
+	<tr>
+	  <td class="row1" nowrap="nowrap"><span class="gen">{L_DESTINATION_TOPIC}</span></td>
+	  <td class="row2" colspan="2"><input class="post" type="text" size="35" style="width: 350px" name="destination_topic" /><span class="gensmall">{L_DESTINATION_TOPIC_FORMAT}</span></td>
+	</tr>
+	<tr>
+	  <td class="row1" nowrap="nowrap"><span class="gen">{L_SPLIT_MOVE_OR_COPY}</span></td>
+	  <td class="row2" colspan="2"><span class="gen"><input type="radio" name="split_move_or_copy" value="1" checked="checked" />{L_SPLIT_MOVE}&nbsp;&nbsp;<input type="radio" name="split_move_or_copy" value="0" />{L_SPLIT_COPY}</span><span class="gensmall">{L_SPLIT_MOVE_OR_COPY_EXPLANATION}</span></td>
+	</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

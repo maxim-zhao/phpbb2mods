@@ -1,0 +1,205 @@
+##############################################################
+## MOD Title:		keep unread flags (upgrade from 2.0.6 to 2.0.7)
+##
+## MOD Author: Merlin Sythove < N/A > (N/A) N/A
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Author: Ptirhiik < N/A > (Pierre) http://rpgnet.clanmckeen.com
+##
+## MOD Description:	This upgrades an installation of keep unread flags
+##			from version 2.0.6 to 2.0.7
+##
+## MOD Version:		2.0.7
+##
+## Installation Level:	Easy
+## Installation Time:	4 Minutes
+##
+## Files To Edit: 	posting.php
+##					includes/functions.php
+##
+## Included Files:	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 	Note: this is an upgrade mod that assumes you already have version 2.0.6 of the
+##			keep unread flags mod installed; do not use this mod unless the version you currently
+##			have installed is version 2.0.6
+##
+##############################################################
+## MOD History:
+##
+##   2007-07-04 - Version 2.0.7
+##		- Fixed bug that sometimes resulted in a users's own posts being shown as unread after
+##		  'mark all topics read' link is clicked;
+##		- Fixed timing bug that sometimes caused a whole topic to be marked as read when you 
+##		  reply to a post in the middle and sometimes caused problems when other people post
+##		  in a topic while you were replying to a post in that topic
+##
+##   2006-06-20 - Version 2.0.6
+##		- Fixed bug that gave error message when someone gives the wrong login info 
+##		  and in certain other instances when guests are not authorized to view any forums;
+##		  changed code in list_new_unreads() to make it a bit more efficient.
+##
+##   2006-06-09 - Version 2.0.5a
+##		- Changed mod script so that it installs properly on phpbb 2.0.21 (simply deleted the two changes
+##		  in search.php that disabled the usual phpbb behavior of preventing a user from searching for 
+##		  an author with a wildcard and specifying less than a minimum number of characters (e.g. 3); 
+##		  but note that I did not add an upgrade script from 2.0.5 to 2.0.5a because any user who had 2.0.5 
+##		  installed and who successfully upgraded to phpbb 2.0.21 has already addressed these changes);
+##		  for information on how to upgrade to phpbb 2.0.21 if you have this mod installed, 
+##		  see: http://www.phpbb.com/phpBB/viewtopic.php?p=2173137#2173137
+##
+##   2006-06-01 - Version 2.0.5
+##		- Optimized the query in the list_new_unreads function (thanks for the idea, bigwebmaster); and 
+##		  changed the code so that list_new_unreads only gets run a single time when the user is on index.php
+##		  (before this change, index.php ran list_new_unreads a first time and page_header.php ran it a second time)
+##		- Put in code that will allow people to easily add a toggling link ("View your unread posts" versus 
+##		  "You have no unread posts") on pages other than index.php (see author's notes for how to add links)
+##		- Changed viewtopic.php so that the mod will work regardless of whether viewtopic is set
+##		  to display from oldest to newest or newest to oldest
+##
+##   2006-05-20 - Version 2.0.4
+##		- Changes to conform to phpbb2.0.20 changes (only relevant for the mod itself, 
+##		  not the upgrade...but if you already have keep unread installed and
+##		  are trying to upgrade phpbb from 2.0.19 to 2.0.20 and are stuck because of 
+##		  this mod, see http://www.phpbb.com/phpBB/viewtopic.php?p=2082858#2082858 for help)
+##		- Fixed bugs that would trigger an error for banned users and that would show 
+##		  guests that there are unread posts in forums they are not authorized as guests
+##		  to view on boards with mod to the mod to change view unread posts link installed
+##		- Optimized the queries for the mod to the mod to change view unread 
+##		  posts link so that the code runs fewer queries to get to the same result
+##		- Changed basic mod so that the link will now read "View unread posts" if there 
+##		  are any and "You have no unread posts" if there aren't any
+##		- Changed index_body.tpl to ensure that users would see the mark all forums read 
+##		  link even if they are not logged in.
+##		- Changed the author's notes to include links to posts showing how
+##		  to make this mod compatible with the simple subforums mod, 
+##		  the old version of categories hierarchy mod,
+##		  the latest topics on index mod and the post sort order mod
+##		- Changed author's notes to show how to add the number of topics with unread posts 
+##		  to the link, and how to add a link to the page that shows a list of unread posts 
+##		  that lets the user mark all posts read
+##		- Changed the author's note about adding a text link for marking a post unread so that 
+##		  the link appears on the far right in the same font as the 'Back to Top' link that
+##		  appears on the far left
+##
+##   2006-01-01 - Version 2.0.3c
+##		- No changes at all in the code.  Repacked to show so that the 'changed files' version in
+##		  the contrib folder has phpbb2.0.19 version of those file
+##
+##   2005-11-20 - Version 2.0.3b
+##		- Changes requried for validation (no functional changes)
+##
+##   2005-10-18 - Version 2.0.3 or 2.0.3a
+##		- Added author's notes telling people who use topic calendar mod, PCP or other mods that install
+##		  functions_topic_list.php in the 'includes' directory to look at Niksa's
+##		  post describing how to adapt the mod to work with those mods;
+##		- Fixed bug that would improperly treat 'mark all topics read' request when the user was on the board as a guest;
+##		- security change to prevent possible sql injection risk;
+##		- Changed mod to the mod so that it checks which forums a user is authorized to view when it figures out
+##		  when to turn on the big red "View new posts" link
+##
+##   2005-07-21 - Version 2.0.2a
+##		- No change in mod (you don't need to upgrade from 2.0.2 to this)...just a change in a FIND command in the mod script
+##		  to dovetail with a change made from phpbb2.0.16 to 2.0.17
+##
+##   2005-07-12 - Version 2.0.2
+##		- Small changes required for validation; no change in functionality
+##
+##   2005-07-05 - Version 2.0.1
+##		- Small bugfix to correct intermittant error in topic_last_read function when marking topics read
+##
+##   2005-05-27 - Version 2.0.0
+##		- Merlin Sythove updates as specified above.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		//START MOD Keep_unread_2
+		if ( $mode == 'newtopic' || $mode == 'reply' || $mode == 'quote' || ($mode == 'editpost' && $post_data['last_post']) )
+		{
+			$board_config['tracking_unreads'][$topic_id] = time();
+			write_cookies($userdata);
+		}
+		//END MOD Keep_unread_2
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+		//START MOD Keep_unread_2
+		if ( $mode == 'newtopic' || $mode == 'reply' || $mode == 'quote' || ($mode == 'editpost' && $post_data['last_post']) )
+		{
+			//Get old tracking time and set set new default.
+			$tracking_time = $board_config['tracking_unreads'][$topic_id];
+			$board_config['tracking_unreads'][$topic_id] = time();
+			//If the next post in this topic, beyond my "unread time", is not THIS post,
+			//then mark the topic UNread at that post.
+			//This covers situations where I reply to posts in the middle of a topic
+			//and where people respond whilst I write a reply
+			if ($tracking_time)
+			{
+				$sql = "SELECT post_id, post_time
+				FROM "  . POSTS_TABLE . "
+				WHERE post_time > $tracking_time
+				AND topic_id = $topic_id
+				ORDER BY post_time
+				LIMIT 1";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not query latest post information', '', __LINE__, __FILE__, $sql);
+				}
+				$row = $db->sql_fetchrow($result);
+				if ($row['post_id'] != $post_id && $row['post_time'] > 0)
+				{
+					$board_config['tracking_unreads'][$topic_id] = $row['post_time'] - 1; //-1 marks the found post as unread
+				}
+			}
+			write_cookies($userdata);
+		}
+		//END MOD Keep_unread_2
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+
+#
+#-----------[ FIND ]-----------
+#
+		$toggle_unreads_link = false;
+
+#
+#-----------[ REPLACE WITH ]-----------
+#
+		$toggle_unreads_link = true;
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$tracking_time = ( $board_config['tracking_time'] != 0 ) ? $board_config['tracking_time'] : $userdata['user_lastvisit'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	if ($tracking_time == '') $tracking_time = 0;
+	
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

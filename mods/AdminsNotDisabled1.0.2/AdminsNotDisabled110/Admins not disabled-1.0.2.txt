@@ -1,0 +1,150 @@
+##############################################################
+## MOD Title: Admins can Use a Disabled Board
+## MOD Author: Prent < prent@milkohol.net > (N/A) N/A
+## MOD Description: Admins can still use a board that is disabled to users.
+## MOD Version: 1.0.2
+##
+## Installation Level: Easy
+## Installation Time: 5 Minutes
+## Files To Edit: common.php
+##		  includes/sessions.php
+##		  includes/page_header.php
+##		  templates/subSilver/overall_header.tpl
+##
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##	This file is for users who have NOT installed the Disabled Board Message MOD
+##   	and are installing this mod for the first time.
+##
+##	If you have version 1.0.1 of this mod, and it still works after your upgrade to phpBB 2.0.18, you do not need to install this.
+##
+##############################################################
+## MOD History:
+##
+##   2006-01-02 - Version 1.0.2
+##      - Fixed for installation with phpBB 2.0.18/19
+##   2005-07-06 - Version 1.0.1
+##	- Fixed bug where users and guests could see the board when starting a session.
+##	- Included version for users of Disabled Board Message MOD (thanks Fountain of Apples)
+##	- Fixed syntax of this file for common.php
+##   2005-06-30 - Version 1.0.0
+##      - Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+common.php
+#
+#-----[ FIND ]------------------------------------------
+#
+if( $board_config['board_disable'] && !defined("IN_ADMIN") && !defined("IN_LOGIN") )
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+/*
+#
+#-----[ FIND ]------------------------------------------
+#
+	message_die(GENERAL_MESSAGE, 'Board_disable', 'Information');
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+*/
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/sessions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	//
+	// Initial ban check against user id, IP and email address
+	//
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+	//
+	// Show 'Board is disabled' message if needed.
+	//
+	if( $board_config['board_disable'] && !defined("IN_ADMIN") && !defined("IN_LOGIN") && !defined("HAS_DIED") && ($userdata['user_level'] != ADMIN) )
+	{
+		message_die(GENERAL_MESSAGE, 'Board_disable', 'Information');
+	}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+		//
+		// Did the session exist in the DB?
+		//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		//
+		// Show 'Board is disabled' message if needed, if not in admin panel, if not logging in, 
+		// if message_die() hasn't been called yet, and if user is not an admin
+		//
+		if( $board_config['board_disable'] && !defined("IN_ADMIN") && !defined("IN_LOGIN") && !defined("HAS_DIED") && ($userdata['user_level'] != ADMIN) )
+		{
+			message_die(GENERAL_MESSAGE, 'Board_disable', 'Information');
+		}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$template->assign_block_vars('switch_enable_pm_popup', array());
+	}
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// If disabled and admin, show Reminder Box below header.
+if ( $board_config['board_disable'] && $userdata['user_level'] == ADMIN )
+{
+	$template->set_filenames(array('board_disabled_box' => 'error_body.tpl'));
+	$template->assign_vars(array('ERROR_MESSAGE' => $lang['Board_disable']));
+	$template->assign_var_from_handle('BOARD_DISABLE_MSG', 'board_disabled_box');
+}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<br />
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+{BOARD_DISABLE_MSG}
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM 

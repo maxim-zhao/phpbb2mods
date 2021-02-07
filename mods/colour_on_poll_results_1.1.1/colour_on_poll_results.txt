@@ -1,0 +1,184 @@
+#############################################################
+## MOD Title: Colour on poll results
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com 
+## MOD Description: Instead of the standard results images on the poll results, this hack shows colour on the results of a poll. Different colours are given to each range of percentages. Also it gives a certain colour to the option that you voted for (Default= Purple)
+## MOD Version: 1.1.1 
+## 
+## Installation Level: Easy
+## Installation Time: ~5 Minutes 
+## Files To Edit: 
+##		viewtopic.php
+##		templates/subSilver/viewtopic_poll_result.tpl
+##		posting.php
+##
+## Included Files: 
+##		update_to_1.1.1.txt
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##	If you previously installed version 1.0.3 of this MOD, use update_to_1.1.1.txt to update this MOD to the most recent version
+##	
+############################################################## 
+## MOD History: 
+##
+##
+##   2004-12-09 - Version 1.1.1
+##      - Forgot to add the code in posting.php
+##
+##   2004-12-03 - Version 1.1.0
+##      - Added a function so that the option that you voted for is given a specific colour
+##
+##   2004-09-05 - Version 1.0.3
+##      - Minor error fixed
+##
+##   2004-09-04 - Version 1.0.2
+##      - Minor error fixed
+##
+##   2004-08-25 - Version 1.0.1
+##      - Some bugs fixed
+##
+##   2004-08-14 - Version 1.0.0
+##      - MOD created
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ SQL ]-------------------------------------------
+# 
+ALTER TABLE phpbb_vote_voters ADD vote_option_id mediumint( 8 ) NULL 
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+viewtopic.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#		
+		if ( $user_voted || $view_result || $poll_expired || !$is_auth['auth_vote'] || $forum_topic_data['topic_status'] == TOPIC_LOCKED )
+		{
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+// Colour on Poll Results MOD, By Manipe (Begin)
+			$sql1 = "SELECT vote_option_id 
+				FROM " . VOTE_USERS_TABLE . " 
+				WHERE vote_user_id = '" . $userdata['user_id'] . "' 
+				AND vote_id = '" . $vote_id . "'";
+			if ( !($result1 = $db->sql_query($sql1)) )
+			{
+			 	message_die(GENERAL_ERROR, 'Could not obtain user voted information', '', __LINE__, __FILE__, $sql);
+			}
+			$row1 = $db->sql_fetchrow($result1);
+			$voted_option_id =  $row1['vote_option_id'];
+			$db->sql_freeresult($result1);
+// Colour on Poll Results MOD, By Manipe (End)
+
+#
+#-----[ FIND ]---------------------------------------------
+# 
+				$vote_percent = ( $vote_results_sum > 0 ) ? $vote_info[$i]['vote_result'] / $vote_results_sum : 0;
+				$vote_graphic_length = round($vote_percent * $board_config['vote_graphic_length']);
+
+				$vote_graphic_img = $images['voting_graphic'][$vote_graphic];
+				$vote_graphic = ($vote_graphic < $vote_graphic_max - 1) ? $vote_graphic + 1 : 0;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+// Colour on Poll Results MOD, By Manipe (Begin)
+				$vote_percent = ( $vote_results_sum > 0 ) ? $vote_info[$i]['vote_result'] / $vote_results_sum : 0; 
+				$vote_graphic_length = round($vote_percent * $board_config['vote_graphic_length']);
+// Colour on Poll Results MOD, By Manipe (End)
+
+#
+#-----[ FIND ]---------------------------------------------
+# 
+				if ( count($orig_word) )
+				{
+					$vote_info[$i]['vote_option_text'] = preg_replace($orig_word, $replacement_word, $vote_info[$i]['vote_option_text']);
+				}
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+// Colour on Poll Results MOD, By Manipe (Begin)
+				if ($voted_option_id == ($i+1)){
+					$vote_color = 'purple';
+				}
+				else{
+					if ( $vote_percent <= 0.3 ){
+						$vote_color = 'green';
+					}
+					else if ( ($vote_percent > 0.3) && ($vote_percent <= 0.6) ){
+						$vote_color = 'blue';
+					}
+					else if ( $vote_percent > 0.6 ){
+						$vote_color = 'red';
+					}
+				}
+// Colour on Poll Results MOD, By Manipe (End)
+
+#
+#-----[ FIND ]---------------------------------------------
+# 
+				$template->assign_block_vars("poll_option", array(
+					'POLL_OPTION_CAPTION' => $vote_info[$i]['vote_option_text'],
+					'POLL_OPTION_RESULT' => $vote_info[$i]['vote_result'],
+					'POLL_OPTION_PERCENT' => sprintf("%.1d%%", ($vote_percent * 100)),
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+// Colour on Poll Results MOD, By Manipe (Begin)
+					'POLL_OPTION_COLOR' => $vote_color,
+// Colour on Poll Results MOD, By Manipe (End)
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+posting.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# 
+				$sql = "INSERT INTO " . VOTE_USERS_TABLE . " (vote_id, vote_user_id, vote_user_ip) 
+					VALUES ($vote_id, " . $userdata['user_id'] . ", '$user_ip')";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+// Colour on Poll Results MOD, By Manipe (Begin)
+				$sql = "INSERT INTO " . VOTE_USERS_TABLE . " (vote_id, vote_user_id, vote_user_ip, vote_option_id) 
+					VALUES ($vote_id, " . $userdata['user_id'] . ", '$user_ip', '$vote_option_id')";
+// Colour on Poll Results MOD, By Manipe (End)
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+templates/subSilver/viewtopic_poll_result.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+# 
+					<td><img src="templates/subSilver/images/vote_lcap.gif" width="4" alt="" height="12" /></td>
+					<td><img src="{poll_option.POLL_OPTION_IMG}" width="{poll_option.POLL_OPTION_IMG_WIDTH}" height="12" alt="{poll_option.POLL_OPTION_PERCENT}" /></td>
+					<td><img src="templates/subSilver/images/vote_rcap.gif" width="4" alt="" height="12" /></td>
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+					<td width="{poll_option.POLL_OPTION_IMG_WIDTH}" height="12" bgcolor="{poll_option.POLL_OPTION_COLOR}"><IMG src="images/spacer.gif" height="12"></td>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+
+# EoM

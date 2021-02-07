@@ -1,0 +1,759 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+  <header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en-gb">Smart Dates</title>
+		<description lang="en-gb">This MOD will change time formating to "2 hours ago", "3 days ago", ect.</description>
+		<author-notes lang="en-gb">This MOD was inspired for vBulletin, as i have seen this feature
+on a vB powered board. I'm not sure if it's a default feature,
+but i like it. So i created it for phpBB. I hope you like it!
+
+There's some more info about how this MOD works in the contrib/docs/ folder. ;)
+There is also a manual located there, that explains how to use it.
+
+There is also a db_update.php script in the contrib/ folder, that you can
+use, if you don't know phpmyadmin. Just upload it to the root of your forum,
+visit it with your browser, and remove the file after the install.
+
+"Official" Support for this MOD can be obtained at either phpBBModders.org
+or at phpBB.com, but only in the release topic. You may get support elsewhere,
+but not from me, as i just don't have the time and energy. If you have a
+suggestion, post it at one of those two sites, or PM me. Or send me a mail.
+
+This MOD is distributed under the GPL, as stated above. You can find a copy
+in the contrib/docs/ folder, it's called gpl.txt. Open source ftw!</author-notes>
+		<author-group>
+			<author>
+				<realname>Igor Wiedler</realname>
+				<email>evil@phpbbmodders.net</email>
+				<username>eviL&lt;3</username>
+				<homepage>http://phpbbmodders.net</homepage>
+				<contributions />
+			</author>
+		</author-group>
+		<mod-version>
+			<major>1</major>
+			<minor>0</minor>
+			<revision>5</revision>
+		</mod-version>
+		<installation>
+			<level>intermediate</level>
+			<time>900</time>
+			<target-version>
+				<target-primary>2.0</target-primary>
+				<target-major allow="exact">2</target-major>
+				<target-minor allow="exact">0</target-minor>
+			</target-version>
+		</installation>
+		<history>
+			<entry>
+				<date>2006-10-19</date>
+				<rev-version>
+					<major>0</major>
+					<minor>1</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Initial version</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-12-03</date>
+				<rev-version>
+					<major>0</major>
+					<minor>1</minor>
+					<revision>1</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Added missing lang vars (thanks Mickroz)</change>
+					<change>Changed lang code</change>
+					<change>Recommented</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-12-03</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Submitted to MODDB</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-12-18</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>1</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Thanks to dan for testing</change>
+					<change>Fixed some stuff</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2007-01-29</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>2</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Fixed timezone bug</change>
+					<change>Fixed language bug (timezone $lang array keys)</change>
+					<change>Thanks schaapie</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2007-02-07</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>3</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Optimized a language bug</change>
+					<change>Fixed bad after add</change>
+					<change>Thanks to Duvaren</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2007-05-02</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>4</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Fixed a 12h bug (thanks to schaapie once again)</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2007-07-17</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>5</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change>Cleaned up a little</change>
+					<change>Fixed a little bug in 1_0_3 to 1_0_4</change>
+				</changelog>
+			</entry>
+		</history>
+		<meta name="generator" content="Phpbb.ModTeam.Tools (c#)" />
+	</header>
+	<action-group>
+		<sql>ALTER TABLE phpbb_users ADD user_smart_dates TINYINT NULL DEFAULT '1';
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('smart_dates_allow', '1');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('smart_dates_time', '1');</sql>
+		<open src="groupcp.php">
+			<edit>
+				<find>$joined = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="index.php">
+			<edit>
+				<find>$last_post_time = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="memberlist.php">
+			<edit>
+				<find>$joined = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="modcp.php">
+			<edit>
+				<find>$post_date = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>$last_post_time = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="posting.php">
+			<edit>
+				<find><![CDATA['POST_DATE' => create_date(]]></find>
+				<inline-edit>
+					<inline-find>$board_config['board_timezone']</inline-find>
+					<inline-action type="after-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>$msg_date =	create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="privmsg.php">
+			<edit>
+				<find>$post_date = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>$msg_date =	create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA['POST_DATE' => create_date(]]></find>
+				<inline-edit>
+					<inline-find>)$board_config['board_timezone']</inline-find>
+					<inline-action type="after-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>$msg_date = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="search.php">
+			<edit>
+				<find>$post_date = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>$first_post_time = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>$last_post_time = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="viewforum.php">
+			<edit>
+				<find>$first_post_time = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>$last_post_time = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="viewonline.php">
+			<edit>
+				<find><![CDATA['LASTUPDATE' => create_date(]]></find>
+				<inline-edit>
+					<inline-find>),</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="viewtopic.php">
+			<edit>
+				<find>$post_date = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>$poster_joined = ( $postrow[$i]['user_id'] != ANONYMOUS )</find>
+				<inline-edit>
+					<inline-find>) : '';</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[$l_edited_by = '<br /><br />' . ]]></find>
+				<inline-edit>
+					<inline-find>), $postrow[$i]['post_edit_count']);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="admin/admin_board.php">
+			<edit>
+				<find>$namechange_no</find>
+				<action type="after-add">//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+$smartdate_yes		= ( $new['smart_dates_allow'] ) ? 'checked="checked"' : '';
+$smartdate_no		= ( !$new['smart_dates_allow'] ) ? 'checked="checked"' : '';
+$smartdate_time_yes	= ( $new['smart_dates_time'] ) ? 'checked="checked"' : '';
+$smartdate_time_no	= ( !$new['smart_dates_time'] ) ? 'checked="checked"' : '';
+//-- fin mod : Smart Dates --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find><![CDATA["L_ALLOW_NAME_CHANGE" => $lang['Allow_name_change'],]]></find>
+				<action type="after-add"><![CDATA[//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+	'L_ENABLE_SMART_DATES'	=> $lang['Smart_dates_enable'],
+	'L_SMART_DATES_TIME'	=> $lang['Smart_dates_time'],
+//-- fin mod : Smart Dates --------------------------------------------------------]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA["NAMECHANGE_NO" => $namechange_no,]]></find>
+				<action type="after-add"><![CDATA[//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+	'SMART_DATES_YES'		=> $smartdate_yes,
+	'SMART_DATES_NO'		=> $smartdate_no,
+	'SMART_DATES_TIME_YES'	=> $smartdate_time_yes,
+	'SMART_DATES_TIME_NO'	=> $smartdate_time_no,
+//-- fin mod : Smart Dates --------------------------------------------------------]]></action>
+			</edit>
+		</open>
+		<open src="admin/index.php">
+			<edit>
+				<find>$start_date = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA["STARTED" => create_date(]]></find>
+				<inline-edit>
+					<inline-find>),</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA["LASTUPDATE" => create_date(]]></find>
+				<inline-edit>
+					<inline-find>),</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA["STARTED" => create_date(]]></find>
+				<inline-edit>
+					<inline-find>),</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA["LASTUPDATE" => create_date(]]></find>
+				<inline-edit>
+					<inline-find>),</inline-find>
+					<inline-action type="before-add">, true
+</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="admin/admin_users.php">
+			<edit>
+				<find>$allowsmilies = ( isset( $HTTP_POST_VARS['allowsmilies']) ) ? intval( $HTTP_POST_VARS['allowsmilies'] ) : $board_config['allow_smilies'];</find>
+				<action type="after-add">//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		$smart_dates = ( isset( $HTTP_POST_VARS['smart_dates']) ) ? intval( $HTTP_POST_VARS['smart_dates'] ) : 0;
+//-- fin mod : Smart Dates --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find>SET " . $username_sql . $passwd_sql . </find>
+				<inline-edit>
+					<inline-find>, user_allowsmile = $allowsmilies</inline-find>
+					<inline-action type="after-add">, user_smart_dates = $smart_dates</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>$allowviewonline = $this_userdata['user_allow_viewonline'];</find>
+				<action type="after-add">//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		$smart_dates = $this_userdata['user_smart_dates'];
+//-- fin mod : Smart Dates --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find><![CDATA[$s_hidden_fields .= '<input type="hidden" name="dateformat" value="' . str_replace("\"", "&quot;", $user_dateformat) . '" />';]]></find>
+				<action type="after-add"><![CDATA[//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+			$s_hidden_fields .= '<input type="hidden" name="user_smart_dates" value="' . $smart_dates . '" />';
+//-- fin mod : Smart Dates --------------------------------------------------------
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA['WEBSITE' => $website,
+]]></find>
+				<action type="after-add"><![CDATA[//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+			'SMART_DATES_YES'	=> ( $smart_dates ) ? 'checked="checked"' : '',
+			'SMART_DATES_NO'	=> ( !$smart_dates ) ? 'checked="checked"' : '',
+//-- fin mod : Smart Dates --------------------------------------------------------]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA['L_ALLOW_AVATAR' => $lang['User_allowavatar'],
+]]></find>
+				<action type="after-add"><![CDATA[//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+			'L_SMART_DATES'			=> $lang['Smart_dates_use'],
+			'L_SMART_DATES_EXPLAIN'	=> $lang['Smart_dates_use_explain'],
+//-- fin mod : Smart Dates --------------------------------------------------------]]></action>
+			</edit>
+		</open>
+		<open src="includes/functions.php">
+			<edit>
+				<find>function create_date(</find>
+				<inline-edit>
+					<inline-find>)</inline-find>
+					<inline-action type="before-add">, $smart_dates = false</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>	global $board_config, $lang;</find>
+				<action type="after-add"><![CDATA[//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+	global $userdata;
+//-- fin mod : Smart Dates --------------------------------------------------------]]></action>
+			</edit>
+			<edit>
+				<find>return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));</find>
+				<action type="replace-with"><![CDATA[//-- mod : Smart Dates ------------------------------------------------------------
+//-- delete
+//	return ( !empty($translate) ) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
+//-- fin mod : Smart Dates --------------------------------------------------------
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+	if ($smart_dates && $board_config['smart_dates_allow'] && $userdata['user_smart_dates'])
+	{
+		$use_time = false;
+		$diff = time() - $gmepoch;
+		switch (true)
+		{
+			case ($diff < 60):
+				$secs = (int) gmdate('s', $diff);
+				$ret = ($secs == 1) ? $lang['Smart_dates_second'] : sprintf($lang['Smart_dates_seconds'], $secs);
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+			break;
+			
+			case ($diff < 3600):
+				$mins = (int) gmdate('i', $diff);
+				$ret = ($mins == 1) ? $lang['Smart_dates_minute'] : sprintf($lang['Smart_dates_minutes'], $mins);
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+			break;
+			
+			case ($diff < (3600 * 24)):
+				$hours = (int) gmdate('G', $diff);
+				$ret = ($hours == 1) ? $lang['Smart_dates_hour'] : sptintf($lang['Smart_dates_hours'], $hours);
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+				$use_time = true;
+			break;
+			
+			case ($diff < (3600 * 24) * 2):
+				$ret = $lang['Smart_dates_yesterday'];
+				$use_time = true;
+			break;
+			
+			case (($diff > (3600 * 24) * 3) && ($diff < (3600 * 24) * 7)):
+				$days = gmdate('j', $diff);
+				$ret = $days . ' ' . $lang['Days'];
+				$ret = sprintf($lang['Smart_dates_ago'], $ret);
+				$use_time = true;
+			break;
+		}
+	}
+	
+	if ($ret)
+	{
+		if ($board_config['smart_dates_time'] && $use_time)
+		{
+			$min_sec = gmdate('g:i a', $gmepoch + (3600 * $tz));
+			$ret = sprintf($lang['Smart_dates_at'], $ret, $min_sec);
+		}
+	}
+	else
+	{
+		$ret = (!empty($translate)) ? strtr(@gmdate($format, $gmepoch + (3600 * $tz)), $translate) : @gmdate($format, $gmepoch + (3600 * $tz));
+	}
+	
+	return $ret;
+//-- fin mod : Smart Dates --------------------------------------------------------]]></action>
+			</edit>
+		</open>
+		<open src="includes/page_header.php">
+			<edit>
+				<find>$s_last_visit = ( $userdata['session_logged_in'] ) ? create_date(</find>
+				<inline-edit>
+					<inline-find>) : '';</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[//
+// The following assigns all _common_ variables that may be used at any point]]></find>
+				<action type="before-add"><![CDATA[
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+if ($board_config['smart_dates_allow'] && $userdata['user_smart_dates'] && ($board_config['record_online_date'] - time()) < (3600 * 24))
+{
+	$lang['Record_online_users'] = $lang['Smart_dates_onlinerecord'];
+}
+//-- fin mod : Smart Dates --------------------------------------------------------
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA['RECORD_USERS' => sprintf($lang['Record_online_users'], $board_config['record_online_users'], create_date(]]></find>
+				<inline-edit>
+					<inline-find>)),</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="includes/usercp_avatar.php">
+			<edit>
+				<find>function display_avatar_gallery
+</find>
+				<inline-edit>
+					<inline-find><![CDATA[, &$session_id
+]]></inline-find>
+					<inline-action type="after-add"><![CDATA[, &$smart_dates]]></inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="includes/usercp_register.php">
+			<edit>
+				<find>$allowsmilies = ( isset($HTTP_POST_VARS['allowsmilies'])</find>
+				<action type="after-add">//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		$smart_dates = ( isset($HTTP_POST_VARS['smart_dates']) ) ? ( ($HTTP_POST_VARS['smart_dates']) ? TRUE : 0 ) : 0;
+//-- fin mod : Smart Dates --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find>$allowsmilies = ( isset($HTTP_POST_VARS['allowsmilies'])</find>
+				<action type="after-add">//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		$smart_dates = ( isset($HTTP_POST_VARS['smart_dates']) ) ? ( ($HTTP_POST_VARS['smart_dates']) ? TRUE : 0 ) : $userdata['user_smart_dates'];
+//-- fin mod : Smart Dates --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find>$sql = "UPDATE " . USERS_TABLE . "</find>
+				<find>SET " . $username_sql . $passwd_sql .</find>
+				<inline-edit>
+					<inline-find>, user_allowsmile = $allowsmilies</inline-find>
+					<inline-action type="after-add">, user_smart_dates = $smart_dates</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>$sql = "INSERT INTO " . USERS_TABLE . "</find>
+				<inline-edit>
+					<inline-find>, user_allowsmile</inline-find>
+					<inline-action type="after-add">, user_smart_dates</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>VALUES ($user_id</find>
+				<inline-edit>
+					<inline-find>, $allowsmilies</inline-find>
+					<inline-action type="after-add">, $smart_dates</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>$allowsmilies = $userdata['user_allowsmile'];</find>
+				<action type="after-add">//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+$smart_dates = $userdata['user_smart_dates'];
+//-- fin mod : Smart Dates --------------------------------------------------------</action>
+			</edit>
+			<edit>
+				<find>display_avatar_gallery(</find>
+				<inline-edit>
+					<inline-find>, $userdata['session_id']
+</inline-find>
+					<inline-action type="after-add">, $smart_dates</inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find>// Visual Confirmation</find>
+				<action type="before-add"><![CDATA[//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+	if ( $board_config['smart_dates_allow'] )
+	{
+		$template->assign_block_vars( 'smart_dates', array() );
+	}
+//-- fin mod : Smart Dates --------------------------------------------------------]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA['ALWAYS_ALLOW_SMILIES_NO' => ( !$allowsmilies ) ? 'checked="checked"' : '',]]></find>
+				<action type="after-add"><![CDATA[//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		'SMART_DATES_YES'	=> ( $smart_dates ) ? 'checked="checked"' : '',
+		'SMART_DATES_NO'	=> ( !$smart_dates ) ? 'checked="checked"' : '',
+//-- fin mod : Smart Dates --------------------------------------------------------]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA['L_ALWAYS_ADD_SIGNATURE' => $lang['Always_add_sig'],]]></find>
+				<action type="after-add"><![CDATA[//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+		'L_SMART_DATES'			=> $lang['Smart_dates_use'],
+		'L_SMART_DATES_EXPLAIN'	=> $lang['Smart_dates_use_explain'],
+//-- fin mod : Smart Dates --------------------------------------------------------]]></action>
+			</edit>
+		</open>
+		<open src="includes/topic_review.php">
+			<edit>
+				<find>$post_date = create_date(</find>
+				<inline-edit>
+					<inline-find>);</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="includes/usercp_viewprofile.php">
+			<edit>
+				<find><![CDATA['JOINED' => create_date(]]></find>
+				<inline-edit>
+					<inline-find>),</inline-find>
+					<inline-action type="before-add">, true</inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="language/lang_english/lang_main.php">
+			<edit>
+				<find><![CDATA[?>]]></find>
+				<action type="before-add"><![CDATA[
+//-- mod : Smart Dates ------------------------------------------------------------
+//-- add
+$lang += array(
+	/* Config */
+	'Smart_dates_use'			=> 'Use smart dates',
+	'Smart_dates_use_explain'	=> 'If this option is turned on, you will see how long ago a topic was posted instead of the date. If it\'s older than a week, the date will be displayed.',
+	/* Options */
+	'Smart_dates_enable'	=> 'Enable smart dates',
+	'Smart_dates_time'		=> 'Add time to smart dates',
+	/* Display */
+	'Smart_dates_ago' 		=> '%s ago',
+	'Smart_dates_at' 		=> '%s at %s',
+	'Smart_dates_yesterday'	=> 'Yesterday',
+	/* Online record language fix */
+	'Smart_dates_onlinerecord'	=> 'Most users ever online was %1$s, <b>%2$s</b>',
+	/* Time strings */
+	'Smart_dates_second'	=> '1 second',
+	'Smart_dates_seconds'	=> '%s seconds',
+	'Smart_dates_minute'	=> '1 minute',
+	'Smart_dates_minutes'	=> '%s minutes',
+	'Smart_dates_hour'		=> '1 hour',
+	'Smart_dates_hours'		=> '%s hours',
+);
+//-- fin mod : Smart Dates --------------------------------------------------------
+]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/profile_add_body.tpl">
+			<edit>
+				<find><![CDATA[		<input type="text" name="dateformat" value="{DATE_FORMAT}" maxlength="14" class="post" />
+		</td>
+	</tr>]]></find>
+				<action type="after-add"><![CDATA[	<!-- BEGIN smart_dates -->
+	<tr> 
+		<td class="row1">
+			<span class="gen">{L_SMART_DATES}:</span><br />
+			<span class="gensmall">{L_SMART_DATES_EXPLAIN}</span>
+		</td>
+		<td class="row2">
+			<label for="smart_dates_yes">
+				<input type="radio" id="smart_dates_yes" name="smart_dates" value="1" {SMART_DATES_YES} />
+				<span class="gen">{L_YES}</span>&nbsp;
+			</label>
+			<label for="smart_dates_no">
+				<input type="radio" id="smart_dates_no" name="smart_dates" value="0" {SMART_DATES_NO} />
+				<span class="gen">{L_NO}</span>
+			</label>
+		</td>
+	</tr>
+	<!-- END smart_dates -->]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/admin/board_config_body.tpl">
+			<edit>
+				<find><![CDATA[		<td class="row2"><input type="radio" name="allow_namechange" value="1" {NAMECHANGE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_namechange" value="0" {NAMECHANGE_NO} /> {L_NO}</td>
+	</tr>]]></find>
+				<action type="after-add"><![CDATA[	<tr>
+		<td class="row1">
+			{L_ENABLE_SMART_DATES}
+		</td>
+		<td class="row2">
+			<label for="smart_dates_allow_yes">
+				<input type="radio" id="smart_dates_allow_yes" name="smart_dates_allow" value="1" {SMART_DATES_YES} /> {L_YES}&nbsp;
+			</label>
+			<label for="smart_dates_allow_no">
+				<input type="radio" id="smart_dates_allow_no" name="smart_dates_allow" value="0" {SMART_DATES_NO} /> {L_NO}
+			</label>
+		</td>
+	</tr>
+	<tr>
+		<td class="row1">
+			{L_SMART_DATES_TIME}
+		</td>
+		<td class="row2">
+			<label for="smart_dates_time_yes">
+				<input type="radio" id="smart_dates_time_yes" name="smart_dates_time" value="1" {SMART_DATES_TIME_YES} /> {L_YES}&nbsp;
+			</label>
+			<label for="smart_dates_time_no">
+				<input type="radio" id="smart_dates_time_no" name="smart_dates_time" value="0" {SMART_DATES_TIME_NO} /> {L_NO}
+			</label>
+		</td>
+	</tr>]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/admin/user_edit_body.tpl">
+			<edit>
+				<find><![CDATA[		<input class="post" type="text" name="dateformat" value="{DATE_FORMAT}" maxlength="16" />
+		</td>
+	</tr>]]></find>
+				<action type="after-add"><![CDATA[	<tr> 
+		<td class="row1">
+			<span class="gen">{L_SMART_DATES}:</span><br />
+			<span class="gensmall">{L_SMART_DATES_EXPLAIN}</span>
+		</td>
+		<td class="row2">
+			<label for="smart_dates_yes">
+				<input type="radio" id="smart_dates_yes" name="smart_dates" value="1" {SMART_DATES_YES} />
+				<span class="gen">{L_YES}</span>&nbsp;
+			</label>
+			<label for="smart_dates_no">
+				<input type="radio" id="smart_dates_no" name="smart_dates" value="0" {SMART_DATES_NO} />
+				<span class="gen">{L_NO}</span>
+			</label>
+		</td>
+	</tr>]]></action>
+			</edit>
+		</open>
+	</action-group>
+</mod>

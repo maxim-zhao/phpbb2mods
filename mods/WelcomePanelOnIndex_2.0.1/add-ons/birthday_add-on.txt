@@ -1,0 +1,71 @@
+##############################################################
+## MOD Title: Birthday Add-on for Welcome Panel On Index
+## MOD Author: Aiencran < cranportal@katamail.com > 
+## MOD Description: This add-on displays a special welcome message when user has birthday. It requires the Birthday Hack.
+##		    
+## MOD Version: 2.0.1
+##
+## Installation Level: Easy
+## Installation Time: 4 Minutes
+## Files To Edit: index.php, 
+##		  language/lang_english/lang_main.php
+## Included Files: (n/a, or list of included/required files)
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##	- Apply the changes only after Welcome Panel On Index's modifications
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/index.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$welcome_username = sprintf($lang['Welcome_user'], $welcome_username);
+$welcome_user_info = sprintf($lang['Welcome_user_info'], $welcome_user_level, $board_config['sitename'], $welcome_user_regdate) . $welcome_user_posts;
+
+# 
+#-----[ REPLACE WITH ]------------------------------------
+#
+$this_year = create_date('Y', time(), $board_config['board_timezone']);
+if ( $userdata['user_birthday']!=999999 && create_date('Ymd', time(), $board_config['default_timezone'])  == $this_year.($user_birth = realdate("md",$userdata['user_birthday'] )) )
+{
+	$welcome_username = sprintf($lang['Welcome_birthday_user'], $welcome_username);
+	$welcome_user_info = sprintf ( $lang['Welcome_birthday_greeting'], $board_config['sitename'], date('Y')-realdate('Y',$userdata['user_birthday']) );
+}
+else
+{
+	$welcome_username = sprintf($lang['Welcome_user'], $welcome_username);
+	$welcome_user_info = sprintf($lang['Welcome_user_info'], $welcome_user_level, $board_config['sitename'], $welcome_user_regdate) . $welcome_user_posts;
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['Welcome_user'] = 'Hi %s!';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+$lang['Welcome_birthday_user'] = 'Happy Birthday %s!';
+$lang['Welcome_birthday_greeting'] = 'The staff of <b>%s</b> would like to wish you congratulatons on reaching <b>%s</b> years old today.';
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM 

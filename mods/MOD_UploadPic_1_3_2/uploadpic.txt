@@ -1,0 +1,669 @@
+##############################################################
+## MOD Title:   UploadPic
+## MOD Author:  buegelfalte < N/A > ( B.Funke ) http://forum.beehave.de
+## MOD Description:
+##   UploadPic adds a link to the message-editor, which allows
+##   the user to upload a picture (jpg/gif/png) and paste it
+##   to the message (standard/align left/align right, align
+##   requires the MOD "Left and Right IMG tags") with the
+##   correct BBCode.
+##   The uploaded image will be resized (if too big) to the
+##   maximum size given by the admin or to a (lower) size
+##   entered by the user.
+##   Images can be rotated by 90/180/270 degrees.
+##   Images with a filesize larger than a given limit (after
+##   conversion) will be rejected.
+##   The admin can control the uploaded pictures in the ACP
+##   and delete images (one by one or all with one click)
+##   not used in a message (any more).
+##   (this is to prevent users from uploading images to
+##    your forum to use them in *another* forum)
+##   You can give each user permission to upload images (to
+##   secure your webspace), guests can not upload.
+## MOD Version: 1.3.2
+##
+## Installation Level: Medium
+##
+## Installation Time: 10 Minutes
+## Files To Edit:
+##   posting.php
+##   privmsg.php
+##   viewonline.php
+##   admin/admin_users.php
+##   admin/index.php
+##   includes/constants.php
+##   language/lang_english/lang_admin.php
+##   language/lang_english/lang_main.php
+##   templates/subSilver/admin/user_edit_body.tpl
+##   templates/subSilver/posting_body.tpl
+##   templates/subSilver/subSilver.cfg
+##
+## Included Files:
+##   uploadpic.php
+##   admin/admin_uploadpic.php
+##   admin/admin_uploadpic_config.php
+##   admin/admin_uploadpic_groups.php
+##   admin/admin_uploadpic_latest.php
+##   admin/admin_uploadpic_users.php
+##   includes/uploadpic_functions.php
+##   install/install_uploadpic.php
+##   templates/subSilver/admin/admin_uploadpic.tpl
+##   templates/subSilver/admin/admin_uploadpic_config.tpl
+##   templates/subSilver/admin/admin_uploadpic_group.tpl
+##   templates/subSilver/admin/admin_uploadpic_groups.tpl
+##   templates/subSilver/admin/admin_uploadpic_latest.tpl
+##   templates/subSilver/admin/admin_uploadpic_user.tpl
+##   templates/subSilver/admin/admin_uploadpic_users.tpl
+##   templates/subSilver/uploadpic_body.tpl
+##   templates/subSilver/uploadpic_gallery.tpl
+##   templates/subSilver/uploadpic_posted.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## Developed/tested with:
+##   phpBB 2.0.17 - 2.0.19
+##
+## Notes:
+##   This MOD needs the GD-library to be installed with PHP.
+##   (You'll see an error message if it's missing.)
+##
+## Warning:
+##   Although several security-checks are performed, this MOD
+##   can be used to fill your webspace with junk.
+##   Use with caution & only grant permission to users you trust!
+##
+## Please make sure you have the latest version of UploadPic:
+## http://www.beehave.de/forum/viewtopic.php?t=527
+##
+## If you have questions or bug-reports, please check phpbb.de/
+## phpbb.com *first* for threads on your topic.
+## Alternative adress (for suggestions also):
+## http://www.beehave.de/forum/viewforum.php?f=17
+## A FAQ-list can be found here:
+## http://www.beehave.de/forum/viewtopic.php?t=521
+##
+## This MOD will install using EasyMOD!
+##
+##############################################################
+## MOD History:
+##
+##   2005-08-03 - Version 1.0.0 (release)
+##   2005-11-17 - Version 1.1.2 (release)
+##        - bugfix: GIF would always be renamed to JPG
+##        - added support for UploadPic in private messages (PMs)
+##        - enhanced doc-files
+##        - install-script
+##        - enhanced file-handling
+##        - check for avatar-pics uploaded with UploadPic
+##        - install-script
+##        - moved configuration to database
+##        - added "insert as link"
+##   2005-11-19 - Version 1.1.2a (rerelease)
+##        - added support for x-citrix-pjpeg (and other JPG-types)
+##        - fixed bug that sometimes would occur with GZIP switched on
+##        - minor changes to improve memory-usage
+##   2005-11-22 - Version 1.1.3 (release)
+##        - changed UploadPic to work with the Junior Admin MOD
+##   2005-11-28 - Version 1.1.3a (internal)
+##        - small changes
+##   2005-12-15 - Version 1.2.0 (release)
+##        - permissions can now be set for whole groups at once
+##          (new entry in the ACP-menu)
+##        - gallery: users can view their uploaded pictures and
+##          insert them into posts (again)
+##        - improved error-handling
+##        - general makeover for MOD-DB-compliance
+##   2005-12-22 - Version 1.2.1 (release)
+##        - provided compatibility with virtual directories
+##        - added "select all/none" for userlist
+##        - set upload-permission for admin(s) on install
+##   2005-12-26 - Version 1.2.2 (release)
+##        - minor changes to increase security
+##   2005-12-27 - Version 1.2.2a (rerelease)
+##        - fixed bug (in IE) with datatype-check
+##   2005-12-30 - Version 1.2.4 (release)
+##        - added support for GD-libraries without GIF-support
+##        - added editable textfield with user-infos to display
+##          before upload
+##   2006-01-05 - Version 1.2.5 (release)
+##        - (another) general makeover for MOD-DB-compliance
+##        - changes to support the use of UploadPic with the
+##          "Quick Reply MOD" (or others)
+##        - fixed errors caused by wrong config-inputs
+##        - added link to insert the uploaded picture and switch
+##          back to the form to upload another one (can be
+##          switched off in the ACP)
+##   2006-01-22 - Version 1.2.6 (release)
+##        - fixed (one more) problem with wrong script_path
+##          settings (should now work with all possibilities)
+##        - "all/none"-checkbox is automatically checked if all
+##          users are checked (for user- and group-list)
+##        - moved optional information-text to language-files
+##   2006-02-12 - Version 1.3.0 (release)
+##        - rebuilt the uploading process to prevent errors
+##          with "open_basedir"-restriction on some servers
+##        - changed the install-script to support PostgreSQL
+##          and MSSQL
+##        - added swedish language (by Max)
+##        - added dutch language (by FredSchenk)
+##        - added german formal language
+##        - changes to make UploadPic work with the "Knowledge
+##          Base"
+##        - view "latest x uploads" in ACP with a function
+##          to "censor" inappropriate pictures
+##        - added support for domain-forwarding and local
+##          forums with changing IPs
+##        - replaced the "UploadPic"-link with a button
+##        - changes to make UploadPic work with "easyCMS"
+##        - enhanced sorting-order: the newst pictures are now
+##          always first in all lists
+##        - you can set a minimum number of posts a user has
+##          to write before he can upload (still only users
+##          with permission !)
+##        - UploadPic has its own page constant now, so you
+##          can see who's currently upload in the ACP and
+##          viewonline.php
+##   2006-02-16 - Version 1.3.1 (release)
+##        - UploadPic now checks if uploaded pictures are
+##          used in the signature
+##        - the UploadPic-Button is now included also for the
+##          upload in PMs (instead of the link)
+##        - fixed a small problem with username with spaces
+##        - changed the install-script to run with certain
+##          MODs which would cause errors
+##        - after deleting the unused images a message is
+##          displayed showing how many files have been deleted
+##   2006-02-17 - Version 1.3.1a (rerelease)
+##        - small bugfixes
+##        - changed uploadpic.php so you can place an upload
+##          button next to the signature-textarea (or any
+##          other textarea with a different form name)
+##   2006-04-09 - Version 1.3.2 (release)
+##        - minor changes
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy includes/*.* to includes/*.*
+copy install/*.* to install/*.*
+copy uploadpic.php to uploadpic.php
+copy admin/*.* to admin/*.*
+copy templates/subSilver/*.* to templates/subSilver/*.*
+copy templates/subSilver/admin/*.* to templates/subSilver/admin/*.*
+copy templates/subSilver/images/lang_english/*.* to templates/subSilver/images/lang_english/*.*
+
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------------ 
+#
+run install/install_uploadpic.php
+delete install/ directory
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->assign_block_vars('switch_not_privmsg', array());
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// create switch for UploadPic
+if (($userdata['user_allow_uploadpic'] == 1) && ($userdata['user_posts'] >= intval($board_config['uploadpic_minposts'])))
+{
+	$template->assign_block_vars('switch_uploadpic', array());
+}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_FONT_HUGE' => $lang['font_huge'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// MOD UploadPic - begin
+	'S_UPLOADPIC' => append_sid('uploadpic.'.$phpEx),
+	'L_UPLOADPIC' => (file_exists($images['uploadpic_button'])) ? '<img src="'.$images['uploadpic_button'].'" name="upbutton" alt="'.$lang['UploadPic'].'" title="'.$lang['UploadPic'].'" border="0">' : $lang['UploadPic'],
+	'L_UPHELP' => $lang['UP_Help'],
+	// MOD UploadPic - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$template->assign_vars(array(
+		'SUBJECT' => $privmsg_subject,
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+	// create switch for UploadPic
+	if (($userdata['user_allow_uploadpic'] == 1) && ($board_config['uploadpic_allowpm'] == 1) && ($userdata['user_posts'] >= intval($board_config['uploadpic_minposts'])))
+	{
+		$template->assign_block_vars('switch_uploadpic', array());
+	}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_FONT_HUGE' => $lang['font_huge'], 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// MOD UploadPic - begin
+		'S_UPLOADPIC' => append_sid('uploadpic.'.$phpEx),
+		'L_UPLOADPIC' => (file_exists($images['uploadpic_button'])) ? '<img src="'.$images['uploadpic_button'].'" name="upbutton" alt="'.$lang['UploadPic'].'" title="'.$lang['UploadPic'].'" border="0">' : $lang['UploadPic'],
+		'L_UPHELP' => $lang['UP_Help'],
+		// MOD UploadPic - end
+
+#
+#-----[ OPEN ]--------------------------------------------
+#
+viewonline.php
+
+#
+#-----[ FIND ]--------------------------------------------
+#
+				case PAGE_FAQ:
+					$location = $lang['Viewing_FAQ'];
+					$location_url = "faq.$phpEx";
+					break;
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+				// MOD UploadPic - begin
+				case PAGE_UPLOADPIC:
+					$location = $lang['UploadPic'];
+					$location_url = "";
+					break;
+				// MOD UploadPic - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$user_status = ( !empty($HTTP_POST_VARS['user_status']) ) ? intval( $HTTP_POST_VARS['user_status'] ) : 0;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// MOD UploadPic - begin
+		$user_allowuploadpic = ( !empty($HTTP_POST_VARS['user_allowuploadpic']) ) ? intval( $HTTP_POST_VARS['user_allowuploadpic'] ) : 0;
+		// MOD UploadPic - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+SET " . $username_sql . $passwd_sql
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+user_allow_pm = $user_allowpm,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ user_allow_uploadpic = $user_allowuploadpic, 
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$user_allowavatar = $this_userdata['user_allowavatar'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// MOD UploadPic - begin
+		$user_allowuploadpic = $this_userdata['user_allow_uploadpic'];
+		// MOD UploadPic - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="user_status" value="' . $user_status . '" />';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// MOD UploadPic - begin
+			$s_hidden_fields .= '<input type="hidden" name="user_allowuploadpic" value="' . $user_allowuploadpic . '" />';
+			// MOD UploadPic - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'DATE_FORMAT' => $user_dateformat,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// MOD UploadPic - begin
+			'ALLOW_UPLOADPIC_YES' => ($user_allowuploadpic) ? 'checked="checked"' : '',
+			'ALLOW_UPLOADPIC_NO' => (!$user_allowuploadpic) ? 'checked="checked"' : '',
+			// MOD UploadPic - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'L_USER_ACTIVE' => $lang['User_status'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// MOD UploadPic - begin
+			'L_ALLOW_UPLOADPIC' => $lang['UP_AllowUP'],
+			// MOD UploadPic - end
+
+#
+#-----[ OPEN ]--------------------------------------------
+#
+admin/index.php
+
+#
+#-----[ FIND ]--------------------------------------------
+#
+						case PAGE_FAQ:
+							$location = $lang['Viewing_FAQ'];
+							$location_url = "index.$phpEx?pane=right";
+							break;
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+						// MOD UploadPic - begin
+						case PAGE_UPLOADPIC:
+							$location = $lang['UploadPic'];
+							$location_url = "index.$phpEx?pane=right";
+							break;
+						// MOD UploadPic - end
+
+#
+#-----[ FIND ]--------------------------------------------
+#
+					case PAGE_FAQ:
+						$location = $lang['Viewing_FAQ'];
+						$location_url = "index.$phpEx?pane=right";
+						break;
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+					// MOD UploadPic - begin
+					case PAGE_UPLOADPIC:
+						$location = $lang['UploadPic'];
+						$location_url = "index.$phpEx?pane=right";
+						break;
+					// MOD UploadPic - end
+
+#
+#-----[ OPEN ]--------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]--------------------------------------------
+#
+define('PAGE_GROUPCP', -11);
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+// MOD UploadPic - begin
+define('PAGE_UPLOADPIC', -1240);
+// MOD UploadPic - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+# NOTE: apply this to ALL your languages if they are not present in the "translations"-directory
+#
+// UploadPic
+$lang['UploadPic_menu_config'] = 'UploadPic config';
+$lang['UploadPic_menu_groups'] = 'UploadPic groups';
+$lang['UploadPic_menu_latest'] = 'UploadPic recent';
+$lang['UploadPic_menu_users'] = 'UploadPic users';
+$lang['UP_4group'] = 'for members in group';
+$lang['UP_AllNone'] = 'all/none';
+$lang['UP_AllowUP'] = 'Is allowed to upload pictures';
+$lang['UP_Back2GL'] = 'back to grouplist';
+$lang['UP_Back2UL'] = 'back to userlist';
+$lang['UP_Both'] = 'both';
+$lang['UP_Censor'] = 'Censor';
+$lang['UP_CensorAsk'] = 'Censor this image? (file will be overwritten)';
+$lang['UP_CMSShort'] = 'CMS';
+$lang['UP_conf_allowed'] = 'allowed datatypes';
+$lang['UP_conf_allowpm'] = 'allow image-upload in personal messages (PMs)?';
+$lang['UP_conf_delete'] = 'delete unused pictures on &quot;back&quot;/&quot;cancel&quot;';
+$lang['UP_conf_forcepath'] = 'Force picture-path<br />(<u>Caution</u>: please read the <a href="http://www.beehave.de/forum/viewtopic.php?t=574" target="_blank"><strong>FAQ</strong></a>, chapter III. 8. before using this)';
+$lang['UP_conf_gallery'] = 'allow user-gallery';
+$lang['UP_conf_gallerysize'] = 'max. width or height for pictures displayed in the gallery';
+$lang['UP_conf_jpgqual'] = 'jpg-quality for resized picture (0-100)';
+$lang['UP_conf_lrmod'] = '&quot;Left and Right IMG tags&quot;-MOD installed?';
+$lang['UP_conf_maxpicx'] = 'max. width of picture';
+$lang['UP_conf_maxpicy'] = 'max. height of picture';
+$lang['UP_conf_maxpmdays'] = 'max. time to save pictures in PMs (in days)';
+$lang['UP_conf_maxsize'] = 'max. picsize (kByte) after conversion';
+$lang['UP_conf_minimum'] = 'min. picture width/height (user custom)';
+$lang['UP_conf_minposts'] = 'min. number of posts before a user is allowed to upload<br />(only users with permission)';
+$lang['UP_conf_multiple'] = 'view link to upload another picture after upload';
+$lang['UP_conf_numlatest'] = 'Number of latest uploads to view in the ACP';
+$lang['UP_conf_picdir'] = 'picture-dir (starting from domain-&quot;root&quot;)';
+$lang['UP_conf_PosBC'] = 'bottom center';
+$lang['UP_conf_PosBL'] = 'bottom left';
+$lang['UP_conf_PosBR'] = 'bottom right';
+$lang['UP_conf_PosTC'] = 'top center';
+$lang['UP_conf_PosTL'] = 'top left';
+$lang['UP_conf_PosTR'] = 'top right';
+$lang['UP_conf_showlink'] = 'Show insert-links for for [img] and/or [url]';
+$lang['UP_conf_uniqfn'] = 'make unique filenames?';
+$lang['UP_conf_vbbcode'] = 'shows an extra input-field with the img-BBCode';
+$lang['UP_conf_watermark'] = 'apply watermark to uploaded pictures?';
+$lang['UP_conf_wmminsize'] = 'min. picture-size to apply watermark';
+$lang['UP_conf_wmpicture'] = 'watermark-picture';
+$lang['UP_conf_wmposition'] = 'watermark-position';
+$lang['UP_Date'] = 'Date';
+$lang['UP_ErrConfig'] = 'Config not found. Please execute the install-script.';
+$lang['UP_Explain'] = '<strong>List of all users with uploaded pictures.</strong><br \>Click on the username to open details.';
+$lang['UP_Filename'] = 'Filename';
+$lang['UP_Files'] = 'Files';
+$lang['UP_GrpExplain'] = '<strong>Note:</strong> Use this overview to control upload-permissions for members of a group. The permissions are saved <strong>per member</strong> only and not <strong>per group</strong> for security reasons. Permissions are not set automatically based on group-membership.';
+$lang['UP_Information'] = 'Information';
+$lang['UP_KBShort'] = 'KB';
+$lang['UP_LatestUploads'] = 'The latest %d uploads';
+$lang['UP_Pending'] = 'pending';
+$lang['UP_Permissions'] = 'set permissions';
+$lang['UP_PixDeleted'] = '%d pictures have been deleted.';
+$lang['UP_PMShort'] = 'PM';
+$lang['UP_Save'] = 'save';
+$lang['UP_SigShort'] = 'Sig';
+$lang['UP_Size'] = 'size';
+$lang['UP_Total'] = 'total';
+$lang['UP_UPPMPrune'] = 'delete old images from PMs';
+$lang['UP_UPPrune'] = 'delete all unused images';
+$lang['UP_Used'] = 'in use';
+$lang['UP_Userfiles'] = 'All files uploaded by <strong>%s</strong>';
+$lang['UP_Yes'] = 'yes';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+# NOTE: apply this to ALL your languages if they are not present in the "translations"-directory
+#
+// UploadPic
+$lang['UploadPic'] = 'UploadPic';
+$lang['UP_Back'] = 'back';
+$lang['UP_BBCode'] = 'BBCode';
+$lang['UP_CloseWindow'] = 'cancel';
+$lang['UP_Converted'] = 'larger images will be resized';
+$lang['UP_CopyCode'] = 'standard';
+$lang['UP_CopyCodeLeft'] = 'left';
+$lang['UP_CopyCodeRight'] = 'right';
+$lang['UP_CopyText'] = 'insert picture';
+$lang['UP_CopyURL'] = 'insert as link';
+$lang['UP_Custom'] = 'Custom size';
+$lang['UP_Datatypes'] = 'Datatypes';
+$lang['UP_Dimensions'] = 'Dimensions';
+$lang['UP_ErrCreateGIF'] = 'Image too big.<br />A GIF-image must not be larger than %dx%d pixels in size.';
+$lang['UP_ErrCreatePic'] = 'Image could not be created.<br />Try uploading a smaller picture.';
+$lang['UP_ErrDatatype'] = 'The datatype <strong>%s</strong> is not supported.';
+$lang['UP_ErrFilesize'] = 'Filesize exceeds limit.';
+$lang['UP_ErrGDLib'] = 'GD-Library not available.';
+$lang['UP_ErrImgDir'] = 'Image-directory doesn\'t exist.';
+$lang['UP_ErrLogin'] = 'Please login.';
+$lang['UP_ErrMinposts'] = 'You have to write at least %d posts to be allowed to upload images.';
+$lang['UP_ErrNoGallery'] = 'Gallery not activated.';
+$lang['UP_ErrPermission'] = 'You don\'t have permission to upload.';
+$lang['UP_ErrUpload'] = 'Image could not be uploaded.';
+$lang['UP_ErrWritable'] = 'Image-directory is not writable.';
+$lang['UP_Files'] = 'files';
+$lang['UP_Gallery'] = 'gallery';
+$lang['UP_Help'] = 'Upload a picture and insert it into your message.';
+$lang['UP_Maximum'] = 'max.';
+$lang['UP_Multiple'] = 'insert picture and upload another one';
+$lang['UP_Note'] = 'Note';
+$lang['UP_PFile'] = 'Picture file';
+$lang['UP_Pixel'] = 'pixel';
+$lang['UP_Resized'] = 'resized';
+$lang['UP_Rotate'] = 'Rotation (right)';
+$lang['UP_Rotate0'] = 'none';
+$lang['UP_Rotate180'] = '180&deg;';
+$lang['UP_Rotate270'] = '270&deg;';
+$lang['UP_Rotate90'] = '90&deg;';
+$lang['UP_send'] = 'send';
+$lang['UP_Title'] = 'upload picture';
+$lang['UP_YourPics'] = 'Your uploaded files';
+// the variable "UP_Information" can be used to display information in the upload-window before the upload
+$lang['UP_Information'] = '';
+
+#
+#-----[ OPEN ]------------------------------------------
+# NOTE: apply this to ALL your templates
+#
+templates/subSilver/admin/user_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		<input type="radio" name="user_status" value="0" {USER_ACTIVE_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<!-- MOD UploadPic - begin -->
+	<tr> 
+	  <td class="row1"><span class="gen">{L_ALLOW_UPLOADPIC}</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="user_allowuploadpic" value="1" {ALLOW_UPLOADPIC_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="user_allowuploadpic" value="0" {ALLOW_UPLOADPIC_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+	<!-- MOD UploadPic - end -->
+
+#
+#-----[ OPEN ]------------------------------------------
+# NOTE: apply this to ALL your templates
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+f_help = "{L_BBCODE_F_HELP}";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// MOD UploadPic - begin
+up_help = "{L_UPHELP}";
+// MOD UploadPic - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				  <td nowrap="nowrap" align="right"><span class="gensmall"><a href="javascript:bbstyle(-1)" class="genmed" onMouseOver="helpline('a')">{L_BBCODE_CLOSE_TAGS}</a></span></td>
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				  <td nowrap="nowrap" align="right"><span class="gensmall">
+					<!-- BEGIN switch_uploadpic -->
+					<strong><a href="{S_UPLOADPIC}" onclick="window.open('{S_UPLOADPIC}', '_uploadpic', 'height=400,resizable=yes,scrollbars=yes,width=450');return false;" target="_uploadpic" class="nav" onMouseOver="helpline('up')">{L_UPLOADPIC}</a><br /></strong>
+					<!-- END switch_uploadpic -->
+<a href="javascript:bbstyle(-1)" class="genmed" onMouseOver="helpline('a')">{L_BBCODE_CLOSE_TAGS}</a></span></td>
+
+#
+#-----[ OPEN ]------------------------------------------
+# NOTE: apply this to ALL your templates
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$current_template_images = $current_template_path . "/images";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// MOD UploadPic - begin
+$images['uploadpic_button'] = "$current_template_images/{LANG}/up_button.gif";
+$images['uploadpic_censorgif'] = "$current_template_images/{LANG}/up_censored.gif";
+$images['uploadpic_censorjpg'] = "$current_template_images/{LANG}/up_censored.jpg";
+$images['uploadpic_censorpng'] = "$current_template_images/{LANG}/up_censored.png";
+// MOD UploadPic - end
+
+# 
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

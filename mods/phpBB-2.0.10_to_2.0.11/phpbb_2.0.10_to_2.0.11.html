@@ -1,0 +1,1143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html dir="ltr">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<title>phpBB 2.0.10 to phpBB 2.0.11 Code Changes</title>
+
+<style type="text/css">
+<!--
+/* General page style. The scroll bar colours only visible in IE5.5+ */
+body {
+	background-color: #E5E5E5;
+	scrollbar-face-color: #DEE3E7;
+	scrollbar-highlight-color: #FFFFFF;
+	scrollbar-shadow-color: #DEE3E7;
+	scrollbar-3dlight-color: #D1D7DC;
+	scrollbar-arrow-color:  #006699;
+	scrollbar-track-color: #EFEFEF;
+	scrollbar-darkshadow-color: #98AAB1;
+}
+
+/* General font families for common tags */
+font,th,td,p { font-family: Verdana, Arial, Helvetica, sans-serif }
+a:link,a:active,a:visited { color : #006699; }
+a:hover		{ text-decoration: underline; color : #DD6900; }
+hr	{ height: 0px; border: solid #D1D7DC 0px; border-top-width: 1px;}
+
+/* This is the border line & background colour round the entire page */
+.bodyline	{ background-color: #FFFFFF; border: 1px #98AAB1 solid; }
+
+/* This is the outline round the main forum tables */
+.forumline	{ background-color: #FFFFFF; border: 2px #006699 solid; }
+
+/* Main table cell colours and backgrounds */
+td.row1	{ background-color: #EFEFEF; }
+td.row2	{ background-color: #DEE3E7; }
+td.row3	{ background-color: #D1D7DC; }
+
+/*
+  This is for the table cell above the Topics, Post & Last posts on the index.php page
+  By default this is the fading out gradiated silver background.
+  However, you could replace this with a bitmap specific for each forum
+*/
+td.rowpic {
+		background-color: #FFFFFF;
+		background-image: url(templates/subSilver/images/cellpic2.jpg);
+		background-repeat: repeat-y;
+}
+
+/* Header cells - the blue and silver gradient backgrounds */
+th	{
+	color: #FFA34F; font-size: 11px; font-weight : bold;
+	background-color: #006699; height: 25px;
+	background-image: url(templates/subSilver/images/cellpic3.gif);
+}
+
+td.cat,td.catHead,td.catSides,td.catLeft,td.catRight,td.catBottom {
+			background-image: url(templates/subSilver/images/cellpic1.gif);
+			background-color:#D1D7DC; border: #FFFFFF; border-style: solid; height: 28px;
+}
+
+/*
+  Setting additional nice inner borders for the main table cells.
+  The names indicate which sides the border will be on.
+  Don't worry if you don't understand this, just ignore it :-)
+*/
+td.cat,td.catHead,td.catBottom {
+	height: 29px;
+	border-width: 0px 0px 0px 0px;
+}
+th.thHead,th.thSides,th.thTop,th.thLeft,th.thRight,th.thBottom,th.thCornerL,th.thCornerR {
+	font-weight: bold; border: #FFFFFF; border-style: solid; height: 28px;
+}
+td.row3Right,td.spaceRow {
+	background-color: #D1D7DC; border: #FFFFFF; border-style: solid;
+}
+
+th.thHead,td.catHead { font-size: 12px; border-width: 1px 1px 0px 1px; }
+th.thSides,td.catSides,td.spaceRow	 { border-width: 0px 1px 0px 1px; }
+th.thRight,td.catRight,td.row3Right	 { border-width: 0px 1px 0px 0px; }
+th.thLeft,td.catLeft	  { border-width: 0px 0px 0px 1px; }
+th.thBottom,td.catBottom  { border-width: 0px 1px 1px 1px; }
+th.thTop	 { border-width: 1px 0px 0px 0px; }
+th.thCornerL { border-width: 1px 0px 0px 1px; }
+th.thCornerR { border-width: 1px 1px 0px 0px; }
+
+/* The largest text used in the index page title and toptic title etc. */
+.maintitle	{
+	font-weight: bold; font-size: 22px; font-family: "Trebuchet MS",Verdana, Arial, Helvetica, sans-serif;
+	text-decoration: none; line-height : 120%; color : #000000;
+}
+
+/* General text */
+.gen { font-size : 12px; }
+.genmed { font-size : 11px; }
+.gensmall { font-size : 10px; }
+.gen,.genmed,.gensmall { color : #000000; }
+a.gen,a.genmed,a.gensmall { color: #006699; text-decoration: none; }
+a.gen:hover,a.genmed:hover,a.gensmall:hover	{ color: #DD6900; text-decoration: underline; }
+
+/* The register, login, search etc links at the top of the page */
+.mainmenu		{ font-size : 11px; color : #000000 }
+a.mainmenu		{ text-decoration: none; color : #006699;  }
+a.mainmenu:hover{ text-decoration: underline; color : #DD6900; }
+
+/* Forum category titles */
+.cattitle		{ font-weight: bold; font-size: 12px ; letter-spacing: 1px; color : #006699}
+a.cattitle		{ text-decoration: none; color : #006699; }
+a.cattitle:hover{ text-decoration: underline; }
+
+/* Forum title: Text and link to the forums used in: index.php */
+.forumlink		{ font-weight: bold; font-size: 12px; color : #006699; }
+a.forumlink 	{ text-decoration: none; color : #006699; }
+a.forumlink:hover{ text-decoration: underline; color : #DD6900; }
+
+/* Used for the navigation text, (Page 1,2,3 etc) and the navigation bar when in a forum */
+.nav			{ font-weight: bold; font-size: 11px; color : #000000;}
+a.nav			{ text-decoration: none; color : #006699; }
+a.nav:hover		{ text-decoration: underline; }
+
+/* titles for the topics: could specify viewed link colour too */
+.topictitle,h1,h2	{ font-weight: bold; font-size: 11px; color : #000000; }
+a.topictitle:link   { text-decoration: none; color : #006699; }
+a.topictitle:visited { text-decoration: none; color : #5493B4; }
+a.topictitle:hover	{ text-decoration: underline; color : #DD6900; }
+
+/* Name of poster in viewmsg.php and viewtopic.php and other places */
+.name			{ font-size : 11px; color : #000000;}
+
+/* Location, number of posts, post date etc */
+.postdetails		{ font-size : 10px; color : #000000; }
+
+/* The content of the posts (body of text) */
+.postbody { font-size : 12px; line-height: 18px}
+a.postlink:link	{ text-decoration: none; color : #006699 }
+a.postlink:visited { text-decoration: none; color : #5493B4; }
+a.postlink:hover { text-decoration: underline; color : #DD6900}
+
+/* Quote & Code blocks */
+.code {
+	font-family: Courier, 'Courier New', sans-serif; font-size: 11px; color: #006600;
+	background-color: #FAFAFA; border: #D1D7DC; border-style: solid;
+	border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px
+}
+
+.quote {
+	font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 11px; color: #444444; line-height: 125%;
+	background-color: #FAFAFA; border: #D1D7DC; border-style: solid;
+	border-left-width: 1px; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px
+}
+
+/* Copyright and bottom info */
+.copyright		{ font-size: 10px; font-family: Verdana, Arial, Helvetica, sans-serif; color: #444444; letter-spacing: -1px;}
+a.copyright		{ color: #444444; text-decoration: none;}
+a.copyright:hover { color: #000000; text-decoration: underline;}
+
+/* Form elements */
+input,textarea, select {
+	color : #000000;
+	font: normal 11px Verdana, Arial, Helvetica, sans-serif;
+	border-color : #000000;
+}
+
+/* The text input fields background colour */
+input.post, textarea.post, select {
+	background-color : #FFFFFF;
+}
+
+input { text-indent : 2px; }
+
+/* The buttons used for bbCode styling in message post */
+input.button {
+	background-color : #EFEFEF;
+	color : #000000;
+	font-size: 11px; font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
+/* The main submit button option */
+input.mainoption {
+	background-color : #FAFAFA;
+	font-weight : bold;
+}
+
+/* None-bold submit button */
+input.liteoption {
+	background-color : #FAFAFA;
+	font-weight : normal;
+}
+
+/* This is the line in the posting page which shows the rollover
+  help line. This is actually a text box, but if set to be the same
+  colour as the background no one will know ;)
+*/
+.helpline { background-color: #DEE3E7; border-style: none; }
+
+-->
+</style>
+</head>
+<body bgcolor="#E5E5E5" text="#000000" link="#006699" vlink="#5493B4">
+
+<table class="forumline" width="100%" cellspacing="1" cellpadding="4" border="0">
+	<tr>
+		<td class="row1"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td>
+<span class="postbody"><span style="font-size: 18px; line-height: normal">phpBB 2.0.10 to phpBB 2.0.11 Code Changes</span>
+<br /><br /><br />
+<br />
+These are the Changes from phpBB 2.0.10 to phpBB 2.0.11 summed up into a little Mod. This might be very helpful if you want to update your Board and have installed a bunch of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.<br />
+<br />
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.<br />
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.<br />
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in the 'REPLACE WITH'-Statement.<br />
+When you find a 'DELETE'-Statement, the Code have to be deleted.<br />
+<br />
+After you have finished this tutorial, you have to upload the update_to_2011.php file, execute it and then delete it from your webspace.<br />
+<br />
+Ok, lets start:<br />
+<br />
+The first step to do, is to upload the new file usercp_confirm.php to your includes folder:<br />
+<br />
+copy usercp_confirm.php to includes/usercp_confirm.php<br />
+<br />
+<span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>admin/admin_board.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 100</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+$activation_user = &#40; $new&#91;'require_activation'&#93; == USER_ACTIVATION_SELF &#41; ? &quot;checked=\&quot;checked\&quot;&quot; &#58; &quot;&quot;;<br />
+$activation_admin = &#40; $new&#91;'require_activation'&#93; == USER_ACTIVATION_ADMIN &#41; ? &quot;checked=\&quot;checked\&quot;&quot; &#58; &quot;&quot;;<br />
+&nbsp; <br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+$confirm_yes = &#40;$new&#91;'enable_confirm'&#93;&#41; ? 'checked=&quot;checked&quot;' &#58; '';<br />
+$confirm_no = &#40;!$new&#91;'enable_confirm'&#93;&#41; ? 'checked=&quot;checked&quot;' &#58; '';<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 166</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&quot;L_NONE&quot; =&gt; $lang&#91;'Acc_None'&#93;, <br />
+&nbsp; &nbsp;&quot;L_USER&quot; =&gt; $lang&#91;'Acc_User'&#93;, <br />
+&nbsp; &nbsp;&quot;L_ADMIN&quot; =&gt; $lang&#91;'Acc_Admin'&#93;, <br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&quot;L_VISUAL_CONFIRM&quot; =&gt; $lang&#91;'Visual_confirm'&#93;, <br />
+&nbsp; &nbsp;&quot;L_VISUAL_CONFIRM_EXPLAIN&quot; =&gt; $lang&#91;'Visual_confirm_explain'&#93;, <br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>common.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 28</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+function unset_vars&#40;&amp;$var&#41;<br />
+&#123;<br />
+&nbsp; &nbsp;while &#40;list&#40;$var_name, $null&#41; = @each&#40;$var&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;unset&#40;$GLOBALS&#91;$var_name&#93;&#41;;<br />
+&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;return;<br />
+&#125;<br />
+<br />
+//<br />
+error_reporting&nbsp; &#40;E_ERROR | E_WARNING | E_PARSE&#41;; // This will NOT report uninitialized variables<br />
+set_magic_quotes_runtime&#40;0&#41;; // Disable magic_quotes_runtime<br />
+<br />
+$ini_val = &#40;@phpversion&#40;&#41; &gt;= '4.0.0'&#41; ? 'ini_get' &#58; 'get_cfg_var';<br />
+<br />
+// Unset globally registered vars - PHP5 ... hhmmm<br />
+if &#40;@$ini_val&#40;'register_globals'&#41; == '1' || strtolower&#40;@$ini_val&#40;'register_globals'&#41;&#41; == 'on'&#41;<br />
+&#123;<br />
+&nbsp; &nbsp;$var_prefix = 'HTTP';<br />
+&nbsp; &nbsp;$var_suffix = '_VARS';<br />
+&nbsp; &nbsp;<br />
+&nbsp; &nbsp;$test = array&#40;'_GET', '_POST', '_SERVER', '_COOKIE', '_ENV'&#41;;<br />
+<br />
+&nbsp; &nbsp;foreach &#40;$test as $var&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;is_array&#40;$&#123;$var_prefix . $var . $var_suffix&#125;&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;unset_vars&#40;$&#123;$var_prefix . $var . $var_suffix&#125;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;@reset&#40;$&#123;$var_prefix . $var . $var_suffix&#125;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;is_array&#40;$&#123;$var&#125;&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;unset_vars&#40;$&#123;$var&#125;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;@reset&#40;$&#123;$var&#125;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;if &#40;is_array&#40;$&#123;'_FILES'&#125;&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;unset_vars&#40;$&#123;'_FILES'&#125;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;@reset&#40;$&#123;'_FILES'&#125;&#41;;<br />
+&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;if &#40;is_array&#40;$&#123;'HTTP_POST_FILES'&#125;&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;unset_vars&#40;$&#123;'HTTP_POST_FILES'&#125;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;@reset&#40;$&#123;'HTTP_POST_FILES'&#125;&#41;;<br />
+&nbsp; &nbsp;&#125;<br />
+&#125;<br />
+<br />
+// PHP5 with register_long_arrays off?<br />
+if &#40;!isset&#40;$HTTP_POST_VARS&#41; &amp;&amp; isset&#40;$_POST&#41;&#41;<br />
+&#123;<br />
+&nbsp; &nbsp;$HTTP_POST_VARS = $_POST;<br />
+&nbsp; &nbsp;$HTTP_GET_VARS = $_GET;<br />
+&nbsp; &nbsp;$HTTP_SERVER_VARS = $_SERVER;<br />
+&nbsp; &nbsp;$HTTP_COOKIE_VARS = $_COOKIE;<br />
+&nbsp; &nbsp;$HTTP_ENV_VARS = $_ENV;<br />
+&nbsp; &nbsp;$HTTP_POST_FILES = $_FILES;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+error_reporting&nbsp; &#40;E_ERROR | E_WARNING | E_PARSE&#41;; // This will NOT report uninitialized variables<br />
+set_magic_quotes_runtime&#40;0&#41;; // Disable magic_quotes_runtime<br />
+<br />
+// The following code &#40;unsetting globals&#41; was contributed by Matt Kavanagh<br />
+<br />
+// PHP5 with register_long_arrays off?<br />
+if &#40;!isset&#40;$HTTP_POST_VARS&#41; &amp;&amp; isset&#40;$_POST&#41;&#41;<br />
+&#123;<br />
+&nbsp; &nbsp;$HTTP_POST_VARS = $_POST;<br />
+&nbsp; &nbsp;$HTTP_GET_VARS = $_GET;<br />
+&nbsp; &nbsp;$HTTP_SERVER_VARS = $_SERVER;<br />
+&nbsp; &nbsp;$HTTP_COOKIE_VARS = $_COOKIE;<br />
+&nbsp; &nbsp;$HTTP_ENV_VARS = $_ENV;<br />
+&nbsp; &nbsp;$HTTP_POST_FILES = $_FILES;<br />
+<br />
+&nbsp; &nbsp;// _SESSION is the only superglobal which is conditionally set<br />
+&nbsp; &nbsp;if &#40;isset&#40;$_SESSION&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$HTTP_SESSION_VARS = $_SESSION;<br />
+&nbsp; &nbsp;&#125;<br />
+&#125;<br />
+<br />
+if &#40;@phpversion&#40;&#41; &lt; '4.0.0'&#41;<br />
+&#123;<br />
+&nbsp; &nbsp;// PHP3 path; in PHP3, globals are _always_ registered<br />
+&nbsp; &nbsp;<br />
+&nbsp; &nbsp;// We 'flip' the array of variables to test like this so that<br />
+&nbsp; &nbsp;// we can validate later with isset&#40;$test&#91;$var&#93;&#41; &#40;no in_array&#40;&#41;&#41;<br />
+&nbsp; &nbsp;$test = array&#40;'HTTP_GET_VARS' =&gt; NULL, 'HTTP_POST_VARS' =&gt; NULL, 'HTTP_COOKIE_VARS' =&gt; NULL, 'HTTP_SERVER_VARS' =&gt; NULL, 'HTTP_ENV_VARS' =&gt; NULL, 'HTTP_POST_FILES' =&gt; NULL&#41;;<br />
+<br />
+&nbsp; &nbsp;// Loop through each input array<br />
+&nbsp; &nbsp;@reset&#40;$test&#41;;<br />
+&nbsp; &nbsp;while &#40;list&#40;$input,&#41; = @each&#40;$test&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;while &#40;list&#40;$var,&#41; = @each&#40;$$input&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;// Validate the variable to be unset<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!isset&#40;$test&#91;$var&#93;&#41; &amp;&amp; $var != 'test' &amp;&amp; $var != 'input'&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;unset&#40;$$var&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&#125;<br />
+&#125;<br />
+else if &#40;@ini_get&#40;'register_globals'&#41; == '1' || strtolower&#40;@ini_get&#40;'register_globals'&#41;&#41; == 'on'&#41;<br />
+&#123;<br />
+&nbsp; &nbsp;// PHP4+ path<br />
+&nbsp; &nbsp;<br />
+&nbsp; &nbsp;// Not only will array_merge give a warning if a parameter<br />
+&nbsp; &nbsp;// is not an array, it will actually fail. So we check if<br />
+&nbsp; &nbsp;// HTTP_SESSION_VARS has been initialised.<br />
+&nbsp; &nbsp;if &#40;!isset&#40;$HTTP_SESSION_VARS&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$HTTP_SESSION_VARS = array&#40;&#41;;<br />
+&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;// Merge all into one extremely huge array; unset<br />
+&nbsp; &nbsp;// this later<br />
+&nbsp; &nbsp;$input = array_merge&#40;$HTTP_GET_VARS, $HTTP_POST_VARS, $HTTP_COOKIE_VARS, $HTTP_SERVER_VARS, $HTTP_SESSION_VARS, $HTTP_ENV_VARS, $HTTP_POST_FILES&#41;;<br />
+<br />
+&nbsp; &nbsp;unset&#40;$input&#91;'input'&#93;&#41;;<br />
+&nbsp; &nbsp;<br />
+&nbsp; &nbsp;while &#40;list&#40;$var,&#41; = @each&#40;$input&#41;&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;unset&#40;$$var&#41;;<br />
+&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;<br />
+&nbsp; &nbsp;unset&#40;$input&#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>groupcp.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 475</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$username = &#40; isset&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; &#41; ? htmlspecialchars&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; &#58; '';<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$username = &#40; isset&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; &#41; ? phpbb_clean_username&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; &#58; '';<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/constants.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 151</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+<br />
+<br />
+// Table names<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+define&#40;'CONFIRM_TABLE', $table_prefix.'confirm'&#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/functions.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 80</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+//<br />
+// Get Userdata, $user can be username or user_id. If force_str is true, the username will be forced.<br />
+//<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">BEFORE, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+// added at phpBB 2.0.11 to properly format the username<br />
+function phpbb_clean_username&#40;$username&#41;<br />
+&#123;<br />
+&nbsp; &nbsp;$username = htmlspecialchars&#40;rtrim&#40;trim&#40;$username&#41;, &quot;\\&quot;&#41;&#41;;<br />
+&nbsp; &nbsp;$username = substr&#40;str_replace&#40;&quot;\\'&quot;, &quot;'&quot;, $username&#41;, 0, 25&#41;;<br />
+&nbsp; &nbsp;$username = str_replace&#40;&quot;'&quot;, &quot;\\'&quot;, $username&#41;;<br />
+<br />
+&nbsp; &nbsp;return $username;<br />
+&#125;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 96</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$user = trim&#40;htmlspecialchars&#40;$user&#41;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$user = substr&#40;str_replace&#40;&quot;\\'&quot;, &quot;'&quot;, $user&#41;, 0, 25&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$user = str_replace&#40;&quot;'&quot;, &quot;\\'&quot;, $user&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$user = phpbb_clean_username&#40;$user&#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/functions_post.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 131</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$username = trim&#40;strip_tags&#40;$username&#41;&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$username = phpbb_clean_username&#40;$username&#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/functions_search.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 438</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$username_search = preg_replace&#40;'/\*/', '%', trim&#40;strip_tags&#40;$search_match&#41;&#41;&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$username_search = preg_replace&#40;'/\*/', '%', phpbb_clean_username&#40;$search_match&#41;&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 472</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;'USERNAME' =&gt; &#40; !empty&#40;$search_match&#41; &#41; ? strip_tags&#40;$search_match&#41; &#58; '', <br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;'USERNAME' =&gt; &#40;!empty&#40;$search_match&#41;&#41; ? phpbb_clean_username&#40;$search_match&#41; &#58; '', <br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/topic_review.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 33</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40; !isset&#40;$topic_id&#41; &#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_MESSAGE, 'Topic_not_exist'&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40; !isset&#40;$topic_id&#41; || !$topic_id&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_MESSAGE, 'Topic_post_not_exist'&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/usercp_register.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 24</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+ *<br />
+ ***************************************************************************/<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+/*<br />
+<br />
+&nbsp; &nbsp;This code has been modified from its original form by psoTFX @ phpbb.com<br />
+&nbsp; &nbsp;Changes introduce the back-ported phpBB 2.2 visual confirmation code. <br />
+<br />
+&nbsp; &nbsp;NOTE&#58; Anyone using the modified code contained within this script MUST include<br />
+&nbsp; &nbsp;a relevant message such as this in usercp_register.php ... failure to do so <br />
+&nbsp; &nbsp;will affect a breach of Section 2a of the GPL and our copyright<br />
+<br />
+&nbsp; &nbsp;png visual confirmation system &#58; &#40;c&#41; phpBB Group, 2003 &#58; All Rights Reserved<br />
+<br />
+*/<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 112</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$strip_var_list = array&#40;'username' =&gt; 'username', 'email' =&gt; 'email', 'icq' =&gt; 'icq', 'aim' =&gt; 'aim', 'msn' =&gt; 'msn', 'yim' =&gt; 'yim', 'website' =&gt; 'website', 'location' =&gt; 'location', 'occupation' =&gt; 'occupation', 'interests' =&gt; 'interests'&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$strip_var_list&#91;'confirm_code'&#93; = 'confirm_code';<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 269</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$error_msg .= &#40; &#40; isset&#40;$error_msg&#41; &#41; ? '&lt;br /&gt;' &#58; '' &#41; . $lang&#91;'Fields_empty'&#93;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&#125;<br />
+&nbsp; <br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;if &#40;$board_config&#91;'enable_confirm'&#93; &amp;&amp; $mode == 'register'&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;empty&#40;$HTTP_POST_VARS&#91;'confirm_id'&#93;&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$error = TRUE;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$error_msg .= &#40; &#40; isset&#40;$error_msg&#41; &#41; ? '&lt;br /&gt;' &#58; '' &#41; . $lang&#91;'Confirm_code_wrong'&#93;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;else<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$confirm_id = htmlspecialchars&#40;$HTTP_POST_VARS&#91;'confirm_id'&#93;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!preg_match&#40;'/^&#91;A-Za-z0-9&#93;+$/', $confirm_id&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$confirm_id = '';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$sql = 'SELECT code <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;FROM ' . CONFIRM_TABLE . &quot; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;WHERE confirm_id = '$confirm_id' <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;AND session_id = '&quot; . $userdata&#91;'session_id'&#93; . &quot;'&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!&#40;$result = $db-&gt;sql_query&#40;$sql&#41;&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_ERROR, 'Could not obtain confirmation code', __LINE__, __FILE__, $sql&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;$row = $db-&gt;sql_fetchrow&#40;$result&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;$row&#91;'code'&#93; != $confirm_code&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$error = TRUE;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$error_msg .= &#40; &#40; isset&#40;$error_msg&#41; &#41; ? '&lt;br /&gt;' &#58; '' &#41; . $lang&#91;'Confirm_code_wrong'&#93;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;else<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$sql = 'DELETE FROM ' . CONFIRM_TABLE . &quot; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;WHERE confirm_id = '$confirm_id' <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;AND session_id = '&quot; . $userdata&#91;'session_id'&#93; . &quot;'&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!$db-&gt;sql_query&#40;$sql&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_ERROR, 'Could not delete confirmation code', __LINE__, __FILE__, $sql&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;else<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;&nbsp; &nbsp;&nbsp; &nbsp;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$error = TRUE;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$error_msg .= &#40; &#40; isset&#40;$error_msg&#41; &#41; ? '&lt;br /&gt;' &#58; '' &#41; . $lang&#91;'Confirm_code_wrong'&#93;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$db-&gt;sql_freeresult&#40;$result&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&#125;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 903</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$template-&gt;assign_block_vars&#40;'switch_namechange_disallowed', array&#40;&#41;&#41;;<br />
+&nbsp; &nbsp;&#125;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+<br />
+&nbsp; &nbsp;// Visual Confirmation<br />
+&nbsp; &nbsp;$confirm_image = '';<br />
+&nbsp; &nbsp;if &#40;!empty&#40;$board_config&#91;'enable_confirm'&#93;&#41; &amp;&amp; $mode == 'register'&#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$sql = 'SELECT session_id <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;FROM ' . SESSIONS_TABLE; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!&#40;$result = $db-&gt;sql_query&#40;$sql&#41;&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_ERROR, 'Could not select session data', '', __LINE__, __FILE__, $sql&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;$row = $db-&gt;sql_fetchrow&#40;$result&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$confirm_sql = '';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;do<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$confirm_sql .= &#40;&#40;$confirm_sql != ''&#41; ? ', ' &#58; ''&#41; . &quot;'&quot; . $row&#91;'session_id'&#93; . &quot;'&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;while &#40;$row = $db-&gt;sql_fetchrow&#40;$result&#41;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$sql = 'DELETE FROM ' .&nbsp; CONFIRM_TABLE . &quot; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;WHERE session_id NOT IN &#40;$confirm_sql&#41;&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!$db-&gt;sql_query&#40;$sql&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_ERROR, 'Could not delete stale confirm data', '', __LINE__, __FILE__, $sql&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$db-&gt;sql_freeresult&#40;$result&#41;;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$sql = 'SELECT COUNT&#40;session_id&#41; AS attempts <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;FROM ' . CONFIRM_TABLE . &quot; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;WHERE session_id = '&quot; . $userdata&#91;'session_id'&#93; . &quot;'&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!&#40;$result = $db-&gt;sql_query&#40;$sql&#41;&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_ERROR, 'Could not obtain confirm code count', '', __LINE__, __FILE__, $sql&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;$row = $db-&gt;sql_fetchrow&#40;$result&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;if &#40;$row&#91;'attempts'&#93; &gt; 3&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_MESSAGE, $lang&#91;'Too_many_registers'&#93;&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$db-&gt;sql_freeresult&#40;$result&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$confirm_chars = array&#40;'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',&nbsp; 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',&nbsp; 'U', 'V', 'W', 'X', 'Y', 'Z', '1', '2', '3', '4', '5', '6', '7', '8', '9'&#41;;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;list&#40;$usec, $sec&#41; = explode&#40;' ', microtime&#40;&#41;&#41;; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;mt_srand&#40;$sec * $usec&#41;; <br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$max_chars = count&#40;$confirm_chars&#41; - 1;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$code = '';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;for &#40;$i = 0; $i &lt; 6; $i++&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$code .= $confirm_chars&#91;mt_rand&#40;0, $max_chars&#41;&#93;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$confirm_id = md5&#40;uniqid&#40;$user_ip&#41;&#41;;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$sql = 'INSERT INTO ' . CONFIRM_TABLE . &quot; &#40;confirm_id, session_id, code&#41; <br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;VALUES &#40;'$confirm_id', '&quot;. $userdata&#91;'session_id'&#93; . &quot;', '$code'&#41;&quot;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40;!$db-&gt;sql_query&#40;$sql&#41;&#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;message_die&#40;GENERAL_ERROR, 'Could not insert new confirm code information', '', __LINE__, __FILE__, $sql&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;unset&#40;$code&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$confirm_image = &#40;@extension_loaded&#40;'zlib'&#41;&#41; ? '&lt;img src=&quot;' . append_sid&#40;&quot;profile.$phpEx?mode=confirm&amp;amp;id=$confirm_id&quot;&#41; . '&quot; alt=&quot;&quot; title=&quot;&quot; /&gt;' &#58; '&lt;img src=&quot;' . append_sid&#40;&quot;profile.$phpEx?mode=confirm&amp;amp;id=$confirm_id&amp;amp;c=1&quot;&#41; . '&quot; alt=&quot;&quot; title=&quot;&quot; /&gt;&lt;img src=&quot;' . append_sid&#40;&quot;profile.$phpEx?mode=confirm&amp;amp;id=$confirm_id&amp;amp;c=2&quot;&#41; . '&quot; alt=&quot;&quot; title=&quot;&quot; /&gt;&lt;img src=&quot;' . append_sid&#40;&quot;profile.$phpEx?mode=confirm&amp;amp;id=$confirm_id&amp;amp;c=3&quot;&#41; . '&quot; alt=&quot;&quot; title=&quot;&quot; /&gt;&lt;img src=&quot;' . append_sid&#40;&quot;profile.$phpEx?mode=confirm&amp;amp;id=$confirm_id&amp;amp;c=4&quot;&#41; . '&quot; alt=&quot;&quot; title=&quot;&quot; /&gt;&lt;img src=&quot;' . append_sid&#40;&quot;profile.$phpEx?mode=confirm&amp;amp;id=$confirm_id&amp;amp;c=5&quot;&#41; . '&quot; alt=&quot;&quot; title=&quot;&quot; /&gt;&lt;img src=&quot;' . append_sid&#40;&quot;profile.$phpEx?mode=confirm&amp;amp;id=$confirm_id&amp;amp;c=6&quot;&#41; . '&quot; alt=&quot;&quot; title=&quot;&quot; /&gt;';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$s_hidden_fields .= '&lt;input type=&quot;hidden&quot; name=&quot;confirm_id&quot; value=&quot;' . $confirm_id . '&quot; /&gt;';<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$template-&gt;assign_block_vars&#40;'switch_confirm', array&#40;&#41;&#41;;<br />
+&nbsp; &nbsp;&#125;<br />
+<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 993</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;'NEW_PASSWORD' =&gt; $new_password,<br />
+&nbsp; &nbsp;&nbsp; &nbsp;'PASSWORD_CONFIRM' =&gt; $password_confirm,<br />
+&nbsp; &nbsp;&nbsp; &nbsp;'EMAIL' =&gt; $email,<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;'CONFIRM_IMG' =&gt; $confirm_image, <br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 1087</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;'L_PROFILE_INFO' =&gt; $lang&#91;'Profile_info'&#93;,<br />
+&nbsp; &nbsp;&nbsp; &nbsp;'L_PROFILE_INFO_NOTICE' =&gt; $lang&#91;'Profile_info_warn'&#93;,<br />
+&nbsp; &nbsp;&nbsp; &nbsp;'L_EMAIL_ADDRESS' =&gt; $lang&#91;'Email_address'&#93;,<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;'L_CONFIRM_CODE_IMPAIRED'&nbsp; &nbsp;=&gt; sprintf&#40;$lang&#91;'Confirm_code_impaired'&#93;, '&lt;a href=&quot;mailto&#58;' . $board_config&#91;'board_email'&#93; . '&quot;&gt;', '&lt;/a&gt;'&#41;, <br />
+&nbsp; &nbsp;&nbsp; &nbsp;'L_CONFIRM_CODE'&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;=&gt; $lang&#91;'Confirm_code'&#93;, <br />
+&nbsp; &nbsp;&nbsp; &nbsp;'L_CONFIRM_CODE_EXPLAIN'&nbsp; &nbsp;=&gt; $lang&#91;'Confirm_code_explain'&#93;, <br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/usercp_sendpasswd.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 32</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$username = &#40; !empty&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; &#41; ? trim&#40;strip_tags&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41;&#41; &#58; '';<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$username = &#40; !empty&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; &#41; ? phpbb_clean_username&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; &#58; '';<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>includes/usercp_viewprofile.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 172</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+$page_title = $lang&#91;'Viewing_profile'&#93;;<br />
+include&#40;$phpbb_root_path . 'includes/page_header.'.$phpEx&#41;;<br />
+&nbsp; <br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+if &#40;function_exists&#40;'get_html_translation_table'&#41;&#41;<br />
+&#123;<br />
+&nbsp; &nbsp;$u_search_author = urlencode&#40;strtr&#40;$profiledata&#91;'username'&#93;, array_flip&#40;get_html_translation_table&#40;HTML_ENTITIES&#41;&#41;&#41;&#41;;<br />
+&#125;<br />
+else<br />
+&#123;<br />
+&nbsp; &nbsp;$u_search_author = urlencode&#40;str_replace&#40;array&#40;'&amp;amp;', '&amp;#039;', '&amp;quot;', '&amp;lt;', '&amp;gt;'&#41;, array&#40;'&amp;', &quot;'&quot;, '&quot;', '&lt;', '&gt;'&#41;, $profiledata&#91;'username'&#93;&#41;&#41;;<br />
+&#125;<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 235</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;'U_SEARCH_USER' =&gt; append_sid&#40;&quot;search.$phpEx?search_author=&quot; . urlencode&#40;$profiledata&#91;'username'&#93;&#41;&#41;,<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;'U_SEARCH_USER' =&gt; append_sid&#40;&quot;search.$phpEx?search_author=&quot; . $u_search_author&#41;,<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>login.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 57</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$username = isset&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; ? trim&#40;htmlspecialchars&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41;&#41; &#58; '';<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$username = substr&#40;str_replace&#40;&quot;\\'&quot;, &quot;'&quot;, $username&#41;, 0, 25&#41;;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;$username = str_replace&#40;&quot;'&quot;, &quot;\\'&quot;, $username&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$username = isset&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; ? phpbb_clean_username&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; &#58; '';<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>privmsg.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 1135</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$to_username = $HTTP_POST_VARS&#91;'username'&#93;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;$to_username = phpbb_clean_username&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 1340</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$to_username = &#40; isset&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; &#41; ? trim&#40;strip_tags&#40;stripslashes&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41;&#41;&#41; &#58; '';<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;$to_username = &#40;isset&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41; &#41; ? trim&#40;htmlspecialchars&#40;stripslashes&#40;$HTTP_POST_VARS&#91;'username'&#93;&#41;&#41;&#41; &#58; '';<br />
+<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 1711</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;'USERNAME' =&gt; preg_replace&#40;$html_entities_match, $html_entities_replace, $to_username&#41;,<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;'USERNAME' =&gt; $to_username,<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>profile.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 103</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&nbsp; &nbsp;include&#40;$phpbb_root_path . 'includes/usercp_register.'.$phpEx&#41;;<br />
+ &nbsp; &nbsp;&nbsp; &nbsp;exit;<br />
+ &nbsp; &nbsp;&#125;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;else if &#40; $mode == 'confirm' &#41;<br />
+&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;// Visual Confirmation<br />
+&nbsp; &nbsp;&nbsp; &nbsp;if &#40; $userdata&#91;'session_logged_in'&#93; &#41;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#123;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;exit;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&#125;<br />
+<br />
+&nbsp; &nbsp;&nbsp; &nbsp;include&#40;$phpbb_root_path . 'includes/usercp_confirm.'.$phpEx&#41;;<br />
+ &nbsp; &nbsp;&nbsp; &nbsp;exit;<br />
+ &nbsp; &nbsp;&#125;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>search.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 63</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$search_author = htmlspecialchars&#40;$search_author&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$search_author = phpbb_clean_username&#40;$search_author&#41;;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>templates/subSilver/admin/board_config_body.tpl</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 38</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+ &nbsp; &nbsp;&lt;tr&gt;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&lt;td class=&quot;row2&quot;&gt;&lt;input type=&quot;radio&quot; name=&quot;require_activation&quot; value=&quot;&#123;ACTIVATION_NONE&#125;&quot; &#123;ACTIVATION_NONE_CHECKED&#125; /&gt;&#123;L_NONE&#125;&amp;nbsp; &amp;nbsp;&lt;input type=&quot;radio&quot; name=&quot;require_activation&quot; value=&quot;&#123;ACTIVATION_USER&#125;&quot; &#123;ACTIVATION_USER_CHECKED&#125; /&gt;&#123;L_USER&#125;&amp;nbsp; &amp;nbsp;&lt;input type=&quot;radio&quot; name=&quot;require_activation&quot; value=&quot;&#123;ACTIVATION_ADMIN&#125;&quot; &#123;ACTIVATION_ADMIN_CHECKED&#125; /&gt;&#123;L_ADMIN&#125;&lt;/td&gt;<br />
+&nbsp; &nbsp;&lt;/tr&gt;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">AFTER, ADD</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;&lt;tr&gt;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&lt;td class=&quot;row1&quot;&gt;&#123;L_VISUAL_CONFIRM&#125;&lt;br /&gt;&lt;span class=&quot;gensmall&quot;&gt;&#123;L_VISUAL_CONFIRM_EXPLAIN&#125;&lt;/span&gt;&lt;/td&gt;<br />
+&nbsp; &nbsp;&nbsp; &nbsp;&lt;td class=&quot;row2&quot;&gt;&lt;input type=&quot;radio&quot; name=&quot;enable_confirm&quot; value=&quot;1&quot; &#123;CONFIRM_ENABLE&#125; /&gt;&#123;L_YES&#125;&amp;nbsp; &amp;nbsp;&lt;input type=&quot;radio&quot; name=&quot;enable_confirm&quot; value=&quot;0&quot; &#123;CONFIRM_DISABLE&#125; /&gt;&#123;L_NO&#125;&lt;/td&gt;<br />
+&nbsp; &nbsp;&lt;/tr&gt;<br />
+
+<br /></td>  	</tr></table><br /><br /></ol><span style="font-size: 18px; line-height: normal"><span style="color: blue"><ul><li>viewtopic.php</span></span></ul><br /><br /><ol type="1">
+<span class="postbody">
+<br /><li>
+<span class="postbody"><br /><span style="color: blue">FIND - Line 486</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.10 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$words = explode&#40;' ', trim&#40;htmlspecialchars&#40;urldecode&#40;$HTTP_GET_VARS&#91;'highlight'&#93;&#41;&#41;&#41;&#41;;<br />
+
+<br /></td>  	</tr></table><br /><span class="postbody"><br /><span style="color: blue">REPLACE WITH</span>
+<br /></span><table width="90%" cellspacing="1" cellpadding="3" border="0" align="center"><tr> 
+     <td><span class="genmed"><b>2.0.11 Code:</b></span></td>
+</tr>
+<tr>
+     <td class="code">
+<br /><br />
+&nbsp; &nbsp;$words = explode&#40;' ', trim&#40;htmlspecialchars&#40;$HTTP_GET_VARS&#91;'highlight'&#93;&#41;&#41;&#41;;<br />
+&nbsp; <br />
+
+<br /></td>  	</tr></table><br /><br /></ol>					</td>
+			</tr>
+		</table></td>
+	</tr>
+</table></html>

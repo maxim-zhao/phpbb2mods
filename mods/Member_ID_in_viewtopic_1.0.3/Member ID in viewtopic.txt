@@ -1,0 +1,163 @@
+############################################################## 
+## MOD Title: Member ID in viewtopic
+## MOD Author: volf < volf@volf.biz > (N/A) http://www.volf.biz/phpBB2/site.php
+## MOD Description: This modification will display the member id in viewtopic under the rank
+## MOD Version: 1.0.3
+##
+## Installation Level:   Easy
+## Installation Time:   1 Minutes
+##
+## Files To Edit:   3
+##   language/lang_english/lang_main.php
+##   viewtopic.php
+##   templates/subSilver/viewtopic_body.tpl
+##
+## Included Files:    n/a
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: 
+##			Small and simple Mod releaced based on a request.
+##############################################################
+## MOD History:
+##   2005-6-30 - Version 1.0.3
+##      - Another MOD Template update.
+##   2005-6-27 - Version 1.0.2
+##      - Removed Member id in topics for guests.
+##   2005-6-17 - Version 1.0.1
+##      - Fixed a typo.
+##      - Moved hard-coded text from tpl file to lang_main.php
+##   2005-6-11 - Version 1.0.0
+##      - Final Version Releaced, MOD Template updated to Phpbb's standards
+##   2005-5-23 - Version 0.0.1
+##      - Initial releace
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+############################################################## 
+#
+#-----[ OPEN ]---------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+
+$lang['Poster_rank'] = 'Poster rank';
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+
+$lang['Poster_id'] = 'Member ID:';
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+   $template->assign_block_vars('postrow', array(
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+
+If ( $poster_id == ANONYMOUS )
+{
+   $template->assign_block_vars('postrow', array(
+      'POSTER_ID' =>'',
+      'L_POSTER_ID' => '',
+      'ROW_COLOR' => '#' . $row_color,
+      'ROW_CLASS' => $row_class,
+      'POSTER_NAME' => $poster,
+      'POSTER_RANK' => $poster_rank,
+      'RANK_IMAGE' => $rank_image,
+      'POSTER_JOINED' => $poster_joined,
+      'POSTER_POSTS' => $poster_posts,
+      'POSTER_FROM' => $poster_from,
+      'POSTER_AVATAR' => $poster_avatar,
+      'POST_DATE' => $post_date,
+      'POST_SUBJECT' => $post_subject,
+      'MESSAGE' => $message,
+      'EDITED_MESSAGE' => $l_edited_by,
+      'MINI_POST_IMG' => $mini_post_img,
+      'SEARCH_IMG' => $search_img,
+      'SEARCH' => $search,
+      'EDIT_IMG' => $edit_img,
+      'EDIT' => $edit,
+      'QUOTE_IMG' => $quote_img,
+      'QUOTE' => $quote,
+      'IP_IMG' => $ip_img,
+      'IP' => $ip,
+      'DELETE_IMG' => $delpost_img,
+      'DELETE' => $delpost,
+      'L_MINI_POST_ALT' => $mini_post_alt,
+      'U_MINI_POST' => $mini_post_url,
+      'U_POST_ID' => $postrow[$i]['post_id'])
+   );
+}
+else
+{
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+
+      'ROW_COLOR' => '#' . $row_color,
+      'ROW_CLASS' => $row_class,
+      'POSTER_NAME' => $poster,
+      'POSTER_RANK' => $poster_rank,
+      'RANK_IMAGE' => $rank_image,
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+
+      'POSTER_ID' => $poster_id,
+		'L_POSTER_ID' => $lang['Poster_id'],
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+
+		'U_POST_ID' => $postrow[$i]['post_id'])
+	);
+}
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+
+}
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+<td width="150" align="left" valign="top" class="{postrow.ROW_CLASS}"><span class="name"><a name="{postrow.U_POST_ID}">
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+<br />{postrow.RANK_IMAGE}
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------------------
+#
+
+{postrow.L_POSTER_ID} {postrow.POSTER_ID}<br />
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

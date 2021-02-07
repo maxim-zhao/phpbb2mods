@@ -1,0 +1,711 @@
+############################################################## 
+## MOD Title: Add XING to profile
+## MOD Author: Underhill < webmaster@underhill.de > (N/A) http://www.underhill.de/
+## MOD Description: Add's a "XING profile" button to the users profile
+## MOD Version: 1.0.0
+## 
+## Installation Level: Intermediate
+## Installation Time: 10 minutes
+## Files To Edit:
+##		admin/admin_users.php
+##		includes/usercp_avatar.php
+##		includes/usercp_register.php
+##		includes/usercp_viewprofile.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/admin/user_edit_body.tpl
+##		templates/subSilver/profile_add_body.tpl
+##		templates/subSilver/profile_view_body.tpl
+##		templates/subSilver/subSilver.cfg
+##		templates/subSilver/viewtopic_body.tpl
+##		viewtopic.php
+## Included Files:
+##		root/templates/subSilver/images/lang_english/icon_xing.gif
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+## This modification was built for use with the phpBB template "subSilver"
+## You must apply these changes for all your other templates also
+##
+## Screenshot: http://www.underhill.de/downloads/phpbb2mods/addxingtoprofile.png
+## Download: http://www.underhill.de/downloads/phpbb2mods/addxingtoprofile.zip
+##
+## The name XING/openBC and the XING logo is copyrighted by the OPEN Business Club AG
+##
+############################################################## 
+## MOD History: 
+##
+##   2007-02-17 - Version 1.0.0
+##      - Initial release
+##		- Format changed to the phpBB MOD Template
+##
+##   2007-02-03 - Version 0.0.2
+##		- BETA version
+##		- Fixed error in includes/usercp_viewprofile.php
+##
+##   2007-01-20 - Version 0.0.1
+##		- BETA version
+##		- Built and successfully tested with phpBB 2.0.22
+##		- Successfully tested with EasyMOD beta (0.3.0)
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+#
+#-----[ SQL ]------------------------------------------
+#
+# replace phpbb_ with your prefix_
+
+ALTER TABLE `phpbb_users` ADD `user_xing` VARCHAR( 100 ) NULL DEFAULT NULL ;
+
+#
+#-----[ COPY ]------------------------------------------
+#
+
+copy root/templates/subSilver/images/lang_english/icon_xing.gif to templates/subSilver/images/lang_english/icon_xing.gif
+
+#
+#-----[ OPEN ]------------------------------------------------------------------
+#
+
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 248
+
+		$interests = ( !empty($HTTP_POST_VARS['interests']) ) ? trim(strip_tags( $HTTP_POST_VARS['interests'] ) ) : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+		$xing = ( !empty($HTTP_POST_VARS['xing']) ) ? trim(strip_tags( $HTTP_POST_VARS['xing'] ) ) : '';
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 251
+
+		validate_optional_fields($icq, $aim, $msn, $yim, $website, $location, $occupation, $interests, $signature);
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+, $interests
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+, $xing
+		
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 302
+
+			if ( !isset($HTTP_POST_VARS['cancelavatar']))
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------------------------
+#
+
+			$xing = htmlspecialchars(stripslashes($xing));
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 671
+
+				SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) . "', user_icq = '" . str_replace("\'", "''", $icq) . "', user_website = '" . str_replace("\'", "''", $website) . "', user_occ = '" . str_replace("\'", "''", $occupation) . "', user_from = '" . str_replace("\'", "''", $location) . "', user_interests = '" . str_replace("\'", "''", $interests) . "', user_sig = '" . str_replace("\'", "''", $signature) . "', user_viewemail = $viewemail, user_aim = '" . str_replace("\'", "''", $aim) . "', user_yim = '" . str_replace("\'", "''", $yim) . "', user_msnm = '" . str_replace("\'", "''", $msn) . "', user_attachsig = $attachsig, user_sig_bbcode_uid = '$signature_bbcode_uid', user_allowsmile = $allowsmilies, user_allowhtml = $allowhtml, user_allowavatar = $user_allowavatar, user_allowbbcode = $allowbbcode, user_allow_viewonline = $allowviewonline, user_notify = $notifyreply, user_allow_pm = $user_allowpm, user_notify_pm = $notifypm, user_popup_pm = $popuppm, user_lang = '" . str_replace("\'", "''", $user_lang) . "', user_style = $user_style, user_timezone = $user_timezone, user_dateformat = '" . str_replace("\'", "''", $user_dateformat) . "', user_active = $user_status, user_rank = $user_rank" . $avatar_sql . "
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+, user_interests = '" . str_replace("\'", "''", $interests) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+, user_xing = '" . str_replace("\'", "''", $xing) . "'
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 742
+
+			$user_lang = stripslashes($user_lang);
+			$user_dateformat = htmlspecialchars(stripslashes($user_dateformat));
+		}
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------------------------
+#
+
+			$xing = htmlspecialchars(stripslashes($xing));
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 786
+
+		$interests = htmlspecialchars($this_userdata['user_interests']);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+		$xing = htmlspecialchars($this_userdata['user_xing']);
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 913
+
+			$s_hidden_fields .= '<input type="hidden" name="interests" value="' . str_replace("\"", "&quot;", $interests) . '" />';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+			$s_hidden_fields .= '<input type="hidden" name="xing" value="' . str_replace("\"", "&quot;", $xing) . '" />';
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 1017
+
+			'INTERESTS' => $interests,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+			'XING' => $xing,
+			
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 1075
+
+			'L_INTERESTS' => $lang['Interests'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+			'L_XING' => $lang['Xing'],
+
+#
+#-----[ OPEN ]------------------------------------------------------------------
+#
+
+includes/usercp_avatar.php
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 306
+
+function display_avatar_gallery($mode, &$category, &$user_id, &$email, &$current_email, &$coppa, &$username, &$email, &$new_password, &$cur_password, &$password_confirm, &$icq, &$aim, &$msn, &$yim, &$website, &$location, &$occupation, &$interests, &$signature, &$viewemail, &$notifypm, &$popup_pm, &$notifyreply, &$attachsig, &$allowhtml, &$allowbbcode, &$allowsmilies, &$hideonline, &$style, &$language, &$timezone, &$dateformat, &$session_id)
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+, &$interests
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+, &$xing
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 382
+
+	$params = array('coppa', 'user_id', 'username', 'email', 'current_email', 'cur_password', 'new_password', 'password_confirm', 'icq', 'aim', 'msn', 'yim', 'website', 'location', 'occupation', 'interests', 'signature', 'viewemail', 'notifypm', 'popup_pm', 'notifyreply', 'attachsig', 'allowhtml', 'allowbbcode', 'allowsmilies', 'hideonline', 'style', 'language', 'timezone', 'dateformat');
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+, 'interests'
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+, 'xing'
+
+#
+#-----[ OPEN ]------------------------------------------------------------------
+#
+
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 110
+
+	$strip_var_list = array('email' => 'email', 'icq' => 'icq', 'aim' => 'aim', 'msn' => 'msn', 'yim' => 'yim', 'website' => 'website', 'location' => 'location', 'occupation' => 'occupation', 'interests' => 'interests', 'confirm_code' => 'confirm_code');
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+, 'interests' => 'interests'
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+, 'xing' => 'xing'
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 140
+
+	validate_optional_fields($icq, $aim, $msn, $yim, $website, $location, $occupation, $interests, $signature);
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+, $interests
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+, $xing
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 227
+
+		$signature = htmlspecialchars(stripslashes($signature));
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------------------------
+#
+
+		$xing = htmlspecialchars(stripslashes($xing));
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 526
+
+				SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) ."', user_icq = '" . str_replace("\'", "''", $icq) . "', user_website = '" . str_replace("\'", "''", $website) . "', user_occ = '" . str_replace("\'", "''", $occupation) . "', user_from = '" . str_replace("\'", "''", $location) . "', user_interests = '" . str_replace("\'", "''", $interests) . "', user_sig = '" . str_replace("\'", "''", $signature) . "', user_sig_bbcode_uid = '$signature_bbcode_uid', user_viewemail = $viewemail, user_aim = '" . str_replace("\'", "''", str_replace(' ', '+', $aim)) . "', user_yim = '" . str_replace("\'", "''", $yim) . "', user_msnm = '" . str_replace("\'", "''", $msn) . "', user_attachsig = $attachsig, user_allowsmile = $allowsmilies, user_allowhtml = $allowhtml, user_allowbbcode = $allowbbcode, user_allow_viewonline = $allowviewonline, user_notify = $notifyreply, user_notify_pm = $notifypm, user_popup_pm = $popup_pm, user_timezone = $user_timezone, user_dateformat = '" . str_replace("\'", "''", $user_dateformat) . "', user_lang = '" . str_replace("\'", "''", $user_lang) . "', user_style = $user_style, user_active = $user_active, user_actkey = '" . str_replace("\'", "''", $user_actkey) . "'" . $avatar_sql . "
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+, user_interests = '" . str_replace("\'", "''", $interests) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+, user_xing = '" . str_replace("\'", "''", $xing) . "'
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 630
+
+			$sql = "INSERT INTO " . USERS_TABLE . "	(user_id, username, user_regdate, user_password, user_email, user_icq, user_website, user_occ, user_from, user_interests, user_sig, user_sig_bbcode_uid, user_avatar, user_avatar_type, user_viewemail, user_aim, user_yim, user_msnm, user_attachsig, user_allowsmile, user_allowhtml, user_allowbbcode, user_allow_viewonline, user_notify, user_notify_pm, user_popup_pm, user_timezone, user_dateformat, user_lang, user_style, user_level, user_allow_pm, user_active, user_actkey)
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+, user_interests
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+, user_xing
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 631
+
+				VALUES ($user_id, '" . str_replace("\'", "''", $username) . "', " . time() . ", '" . str_replace("\'", "''", $new_password) . "', '" . str_replace("\'", "''", $email) . "', '" . str_replace("\'", "''", $icq) . "', '" . str_replace("\'", "''", $website) . "', '" . str_replace("\'", "''", $occupation) . "', '" . str_replace("\'", "''", $location) . "', '" . str_replace("\'", "''", $interests) . "', '" . str_replace("\'", "''", $signature) . "', '$signature_bbcode_uid', $avatar_sql, $viewemail, '" . str_replace("\'", "''", str_replace(' ', '+', $aim)) . "', '" . str_replace("\'", "''", $yim) . "', '" . str_replace("\'", "''", $msn) . "', $attachsig, $allowsmilies, $allowhtml, $allowbbcode, $allowviewonline, $notifyreply, $notifypm, $popup_pm, $user_timezone, '" . str_replace("\'", "''", $user_dateformat) . "', '" . str_replace("\'", "''", $user_lang) . "', $user_style, 0, 1, ";
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+, '" . str_replace("\'", "''", $interests) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+, '" . str_replace("\'", "''", $xing) . "'
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 716
+
+					'INTERESTS' => $interests,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+					'XING' => $xing,
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 795
+
+	$signature = stripslashes($signature);
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------------------------
+#
+
+	$xing = stripslashes($xing);
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 819
+
+	$interests = $userdata['user_interests'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+	$xing = $userdata['user_xing'];
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 870
+
+	display_avatar_gallery($mode, $avatar_category, $user_id, $email, $current_email, $coppa, $username, $email, $new_password, $cur_password, $password_confirm, $icq, $aim, $msn, $yim, $website, $location, $occupation, $interests, $signature, $viewemail, $notifypm, $popup_pm, $notifyreply, $attachsig, $allowhtml, $allowbbcode, $allowsmilies, $allowviewonline, $user_style, $user_lang, $user_timezone, $user_dateformat, $userdata['session_id']);
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+, $interests
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+, $xing
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 1043
+
+		'LOCATION' => $location,
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------------------------
+#
+
+		'XING' => $xing,
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 1073
+
+		'SMILIES_STATUS' => $smilies_status,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+		'XING' => $xing,
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 1097
+
+		'L_INTERESTS' => $lang['Interests'],
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------------------------
+#
+
+		'L_XING' => $lang['Xing'],
+		'L_XING_EXPLAIN' => $lang['Xing_explain'],
+
+#
+#-----[ OPEN ]------------------------------------------------------------------
+#
+
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 159
+
+$aim = ( $profiledata['user_aim'] ) ? '<a href="aim:goim?screenname=' . $profiledata['user_aim'] . '&amp;message=Hello+Are+you+there?">' . $lang['AIM'] . '</a>' : '&nbsp;';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+$xing_img = ( $profiledata['user_xing'] ) ? '<a href="http://www.xing.com/profile/' . $profiledata['user_xing'] . '/" target="_blank"><img src="' . $images['icon_xing'] . '" alt="' . $lang['Xing_visit'] . '" title="' . $lang['Xing_visit'] . '" border="0" /></a>' : '&nbsp;';
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 213
+
+	'YIM' => $yim,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+	'XING_IMG' => $xing_img,
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 238
+
+	'L_INTERESTS' => $lang['Interests'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+	'L_XING' => $lang['Xing'],
+
+#
+#-----[ OPEN ]------------------------------------------------------------------
+#
+
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 1027
+
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------------------------
+#
+
+$lang['Xing'] = 'XING';
+$lang['Xing_explain'] = 'Enter your <a href="http://www.xing.com/" target="_blank" title="Visit XING.com">XING</a>/openBC username. It will be shown as a link to your XING profile.';
+$lang['Xing_visit'] = 'Visit user\'s XING profile';
+
+#
+#-----[ OPEN ]------------------------------------------------------------------
+#
+
+templates/subSilver/admin/user_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 95
+
+		<input class="post" type="text" name="interests" size="35" maxlength="150" value="{INTERESTS}" />
+	  </td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+	<tr> 
+	  <td class="row1"><span class="gen">{L_XING}</span></td>
+	  <td class="row2"> 
+		<input class="post" type="text" name="xing" size="35" maxlength="100" value="{XING}" />
+	  </td>
+	</tr>
+
+#
+#-----[ OPEN ]------------------------------------------------------------------
+#
+
+templates/subSilver/profile_add_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 122
+
+		<input type="text" class="post" style="width: 200px"  name="interests" size="35" maxlength="150" value="{INTERESTS}" />
+	  </td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+	<tr> 
+	  <td class="row1"><span class="gen">{L_XING}:</span><br /><span class="gensmall">{L_XING_EXPLAIN}</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 200px" name="xing" size="35" maxlength="100" value="{XING}" />
+	  </td>
+	</tr>
+
+#
+#-----[ OPEN ]------------------------------------------------------------------
+#
+
+templates/subSilver/profile_view_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 80
+
+		  //--></script><noscript>{ICQ_IMG}</noscript></td>
+		</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+		<tr> 
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_XING}:</span></td>
+		  <td class="row1" valign="middle"><span class="gen">{XING_IMG}</span></td>
+		</tr>
+
+#
+#-----[ OPEN ]------------------------------------------------------------------
+#
+
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 40
+
+$images['icon_msnm'] = "$current_template_images/{LANG}/icon_msnm.gif";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+
+$images['icon_xing'] = "$current_template_images/{LANG}/icon_xing.gif";
+
+#
+#-----[ OPEN ]------------------------------------------------------------------
+#
+
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 47
+
+				<td valign="middle" nowrap="nowrap">{postrow.PROFILE_IMG} {postrow.PM_IMG} {postrow.EMAIL_IMG} {postrow.WWW_IMG} {postrow.AIM_IMG} {postrow.YIM_IMG} {postrow.MSN_IMG}<script language="JavaScript" type="text/javascript"><!-- 
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+ {postrow.WWW_IMG}
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+ {postrow.XING_IMG}
+
+#
+#-----[ OPEN ]------------------------------------------------------------------
+#
+
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 390
+
+$sql = "SELECT u.username, u.user_id, u.user_posts, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_regdate, u.user_msnm, u.user_viewemail, u.user_rank, u.user_sig, u.user_sig_bbcode_uid, u.user_avatar, u.user_avatar_type, u.user_allowavatar, u.user_allowsmile, p.*,  pt.post_text, pt.post_subject, pt.bbcode_uid
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------------------------
+#
+
+, u.user_from
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------------------------
+#
+
+, u.user_xing
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 943
+		$www = ( $postrow[$i]['user_website'] ) ? '<a href="' . $postrow[$i]['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+		$xing_img = ( $postrow[$i]['user_xing'] ) ? '<a href="http://www.xing.com/profile/' . $postrow[$i]['user_xing'] . '/" target="_blank"><img src="' . $images['icon_xing'] . '" alt="' . $lang['Xing_visit'] . '" title="' . $lang['Xing_visit'] . '" border="0" /></a>' : '';
+
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 977
+		$www = '';
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+		$xing_img = '';
+		
+#
+#-----[ FIND ]------------------------------------------------------------------
+#
+# Line 1184
+		'WWW' => $www,
+#
+#-----[ AFTER, ADD ]------------------------------------------------------------
+#
+		'XING_IMG' => $xing_img,
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------------------------
+#
+# EoM

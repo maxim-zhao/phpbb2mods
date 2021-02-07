@@ -1,0 +1,145 @@
+##############################################################
+## MOD Title: Spacer BBCode Tag
+## MOD Author: pentapenguin < pentapenguin@bluebottle.com > (Jeremy Conley) http://www.pentapenguin.com
+## MOD Description: This MOD adds a [spacer] BBCode tag for creating a single space and a [spacer=n] 
+## (where n is between 1-99) BBCode. This tag would be helpful for indenting paragraphs, creating your own 
+## lists, and special effects.
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time:  5 Minutes
+##
+## Files To Edit: 2
+## includes/bbcode.php
+## language/lang_english/lang_bbcode.php
+##
+## Included Files: n/a
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## Instructions for use: simply type [spacer] in your posts for one space or [spacer=n] for n spaces.
+##
+## This MOD is EasyMOD friendly! (http://area51.phpbb.com/phpBB/viewforum.php?sid=&f=17)
+##
+## For additional language downloads, please visit http://www.pentapenguin.com/forum/viewtopic.php?t=1417
+##
+## Optional step: if you have CyberAlien's eXtreme Styles MOD (http://www.phpbb.com/phpBB/viewtopic.php?t=125251),
+## you can copy the file in contrib/admin/xs_spacer_bbcode.cfg to admin/xs_spacer_bbcode.cfg and you will
+## be automatically notified if there's an update available when you use the "check for updates" function. 
+##############################################################
+## MOD History:
+##   2005-11-12 - Version 1.0.1
+##      - Updated name
+##   2005-10-31 - Version 1.0.0
+##      - Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	// [i] and [/i] for italicizing text.
+	$text = str_replace("[i:$uid]", $bbcode_tpl['i_open'], $text);
+	$text = str_replace("[/i:$uid]", $bbcode_tpl['i_close'], $text);
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	// Start Spacer BBCode Tag MOD
+	// [spacer] for creating spaces
+	$text = str_replace("[spacer:$uid]", '&nbsp;', $text);
+
+	// [spacer=n] for creating n number of spaces
+	$text = preg_replace("#\[spacer=([0-9]?[0-9]):$uid\]#sie", "make_spaces('\\1')", $text);
+	// End Spacer BBCode Tag MOD
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	// [i] and [/i] for italicizing text.
+	$text = preg_replace("#\[i\](.*?)\[/i\]#si", "[i:$uid]\\1[/i:$uid]", $text);
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start Spacer BBCode Tag MOD
+	// [spacer] for creating spaces
+	$text = preg_replace("#\[spacer\]#si", "[spacer:$uid]", $text);
+
+	// [spacer=n] for creating n number of spaces
+	$text = preg_replace("#\[spacer=([0-9]?[0-9])\]#si", "[spacer=\\1:$uid]", $text);
+	// End Spacer BBCode Tag MOD
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+// Start Spacer BBCode Tag MOD
+// This function generates the required number of spaces for the [spacer=n] tag.
+function make_spaces($number)
+{
+	$retval = '';
+
+	for ($i = 1; $i <= $number; $i++)
+	{
+		$retval .= '&nbsp;';
+	}
+	
+	return $retval;
+}
+// End Spacer BBCode Tag MOD
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_bbcode.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$faq[] = array("Can I combine formatting tags?", "Yes, of course you can; for example to get someones attention you may write:<br /><br /><b>[size=18][color=red][b]</b>LOOK AT ME!<b>[/b][/color][/size]</b><br /><br />this would output <span style=\"color:red;font-size:18px\"><b>LOOK AT ME!</b></span><br /><br />We don't recommend you output lots of text that looks like this, though! Remember that it is up to you, the poster, to ensure that tags are closed correctly. For example, the following is incorrect:<br /><br /><b>[b][u]</b>This is wrong<b>[/b][/u]</b>");
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Start Spacer BBCode Tag MOD
+$faq[] = array("Can I make indents or add more than one space?", "Just use the <b>[spacer]</b> BBCode tag which makes one space. You may also use <b>[spacer=<i>n</i>]</b> BBCode tag where <i>n</i> is a number between 1 and 99 to make <i>n</i> spaces.");
+// End Spacer BBCode Tag MOD
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

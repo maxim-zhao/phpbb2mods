@@ -1,0 +1,393 @@
+##############################################################
+## MOD Title: Quick Search
+## MOD Author: Fountain of Apples < webmacster87@webmacster87.info > (Douglas Bell) http://mods.webmacster87.info
+## MOD Description: Adds a quick search field to the overall header which searches your forum, or an unlimited number of other search tools.
+## MOD Version: 3.0.1
+##
+## Installation Level: Easy
+## Installation Time: 5 Minutes
+## Files To Edit: admin/admin_board.php
+##		includes/constants.php
+##		includes/page_header.php
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/overall_header.tpl
+##		templates/subSilver/admin/board_config_body.tpl
+## Included Files: admin/admin_quicksearch.php
+##		admin/avc_mods/avc_quicksearch.php
+##		templates/subSilver/admin/quicksearch_body.tpl
+##		templates/subSilver/admin/quicksearch_edit.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## This MOD adds a search field to the overall header, which by default searches
+## your board. You can also allow it to search for an unlimited number of other
+## search tools using a simple ACP panel to manage them. A drop-down menu in the
+## search field will allow the end user to specify which tool to use.
+##
+## HOW TO ADD A SEARCH FIELD USING THIS MOD:
+## In the ACP, under General Admin, click on Quick Search list. Click on Add Search
+## and on the page that appears, add a name to the search. The next 2 boxes will
+## contain the link for the search. For example, if you search on Google for "worms,"
+## your browser will display:
+## http://www.google.com/search?biw=800&hl=en&q=worms&btnG=Google+Search
+## In the first box, you will add any part of the address before "worms," and in
+## the second box, any part of the address after "worms." So, in the first box:
+## http://www.google.com/search?biw=800&hl=en&q=
+## and in the second box:
+## &btnG=Google+Search
+## (Note that the second box may have nothing in it for some searches.) In the
+## General Configuration panel, you can also choose to hide the Quick Search.
+##
+## UPGRADES:
+## Upgrades to the MOD from 2.0.0a, the 2.1.x development line, and from
+## previous versions of 3.0.x can be found within the upgrades/ directory
+## located in the root folder of this zip. No upgrade is provided from the
+## 1.0.x line of Forum and Google Quick Search. Open upgrades/readme.txt to
+## determine which install file you should use to upgrade.
+##
+## DOWNLOAD & SUPPORT:
+## Until this MOD is approved, support may be offered at
+## < http://www.phpbb.com/phpBB/viewtopic.php?t=296691 >, as long as the MOD Team
+## allows the thread to remain open. Support is also offered at my site at
+## < http://mods.webmacster87.info >.
+##############################################################
+## MOD History:
+##
+##   2005-08-07 - Version 3.0.1
+##      - Made some minor technical changes at the request of the phpBB MOD Team.
+##      - Updated the MOD Install Template to the new changes set on July 23rd, 2005.
+##      - Tested the MOD on phpBB 2.0.17.
+##      - Made the update scripts EM compatible at the request of the phpBB MOD Team.
+##      - Re-wrote "Files to Edit" and "Included Files" list to be cleaner and easier to read.
+##
+##   2005-06-22 - Version 3.0.0
+##      - Search name character limit extended from 10 characters to 255 characters.
+##      - Re-wrote Author's Notes.
+##
+##   2005-06-11 - Version 2.1.1 (Release Candidate)
+##      - Ability to disable the Quick Search via the ACP.
+##      - [bugfix] The forum name is now listed in the Quick Search drop-down menu.
+##
+##   2005-06-05 - Version 2.1.0 (development)
+#       - New feature that allows admin to add any search they want to Forum and Google Quick Search (adapted from ycl6's EasySite MOD).
+##      - New ACP Panel to manage lists of searches (adapted from ycl6's EasySite MOD).
+##      - Renamed MOD from "Forum and Google Quick Search" to just "Quick Search", to relect the above feature additions.
+##      - Removed Google Advanced Search link to reflect the above feature additions.
+##      - Added a version checker for the MOD compatible with Advanced Version Check.
+##
+##   2005-05-03 - Version 2.0.0a
+##      - Google Advanced Search link now opens in a new window.
+##
+##   2005-04-10 - Version 2.0.0
+##      - Almost complete overhaul of Forum and Google Quick Search, with:
+##      - Re-organized to fit on 2 lines.
+##      - Gray background has been removed.
+##      - Code re-organized to separate Google Javascript from HTML code.
+##      - Search field more easier to understand.
+##      - Forum advanced search link now includes forum name.
+##      - Link to Google Advanced Search site.
+##      - Code re-organized to have less chance of compatibility issues with other MODs, including the Search Block for ezPortal MOD that this MOD is based on.
+##      - MOD now tested to be compatible with phpBB 2.0.13.
+##      - Re-wrote Author's Notes.
+##      - Revised some code in templates/subSilver/overall_header.tpl to fix a possible error that could occur in some web browsers.
+##
+##   2005-01-30 - Version 1.0.0
+##      - Initial release.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+CREATE TABLE `phpbb_quicksearch` (
+  `search_id` mediumint(8) unsigned NOT NULL auto_increment,
+  `search_name` varchar(255) NOT NULL default '',
+  `search_url1` varchar(255) NOT NULL default '',
+  `search_url2` varchar(255) NOT NULL default '',
+  PRIMARY KEY  (`search_id`)
+) TYPE=MyISAM;
+INSERT INTO `phpbb_quicksearch` VALUES (1, 'Google', 'http://www.google.com/search?hl=en&ie=UTF-8&oe=UTF-8&q=', '');
+INSERT INTO `phpbb_config` VALUES ('quick_search_enable', '1');
+#
+#-----[ COPY ]------------------------------------------
+#
+copy root/admin/admin_quicksearch.php to admin/admin_quicksearch.php
+copy root/templates/subSilver/admin/quicksearch_body.tpl to templates/subSilver/admin/quicksearch_body.tpl
+copy root/templates/subSilver/admin/quicksearch_edit.tpl to templates/subSilver/admin/quicksearch_edit.tpl
+#
+#-----[ COPY ]---------------------------------------------
+# This will add a version checker for this MOD compatible with the
+# Advanced Version Check MOD, if you do not have this MOD you do not
+# HAVE to upload this file
+#
+copy root/admin/avc_mods/avc_quicksearch.php to admin/avc_mods/avc_quicksearch.php
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$disable_board_no = ( !$new['board_disable'] ) ? "checked=\"checked\"" : "";
+#
+#-----[ AFTER, ADD ]--------------------------------------------
+#
+
+// MOD: Quick Search
+$quick_search_enable_yes = ( $new['quick_search_enable'] ) ? "checked=\"checked\"" : "";
+$quick_search_enable_no = ( !$new['quick_search_enable'] ) ? "checked=\"checked\"" : "";
+// END MOD: Quick Search
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_OVERRIDE_STYLE_EXPLAIN" => $lang['Override_style_explain'],
+#
+#-----[ AFTER, ADD ]--------------------------------------------
+#
+	// MOD: Quick Search
+	"L_QUICK_SEARCH_ENABLE" => $lang['Quick_search_enable'],
+	"L_QUICK_SEARCH_ENABLE_EXPLAIN" => $lang['Quick_search_enable_explain'],
+	// END MOD: Quick Search
+#
+#-----[ FIND ]------------------------------------------
+#
+	"OVERRIDE_STYLE_NO" => $override_user_style_no,
+#
+#-----[ AFTER, ADD ]--------------------------------------------
+#
+	// MOD: Quick Search
+	"S_QUICK_SEARCH_ENABLE_YES" => $quick_search_enable_yes,
+	"S_QUICK_SEARCH_ENABLE_NO" => $quick_search_enable_no,
+	// END MOD: Quick Search
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]--------------------------------------------
+#
+// MOD: Quick Search
+define('QUICKSEARCH_TABLE', $table_prefix.'quicksearch');
+// END MOD: Quick Search
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// The following assigns all _common_ variables that may be used at any point
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+// MOD: Quick Search
+// The following is adapted from the Search function of ycl6's EasySite MOD
+//
+// Get Search Box Information
+//
+$sql = "SELECT * FROM " . QUICKSEARCH_TABLE . "
+	ORDER BY search_name";
+if( !$result = $db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, "Couldn't obtain quick search data", "", __LINE__, __FILE__, $sql);
+}
+$search_count = $db->sql_numrows($result);
+$search_rows = array();
+$search_rows = $db->sql_fetchrowset($result);
+
+$search_list = '<option value="forum_search" selected="selected">' . $board_config['sitename'] . '</option>';
+$checkSearch = '';
+
+//
+// First Search Entry
+//
+if ( $search_count != '' )
+{
+	$search_name = $search_rows[0]['search_name'];
+	$search_url1 = $search_rows[0]['search_url1'];
+	$search_url2 = $search_rows[0]['search_url2'];
+
+	$search_list .= '<option value="' . $search_name . '">' . $search_name . '</option>';
+
+	// checkSearch() function, adapted from Smartor's ezPortal
+	$checkSearch .= "if (document.search_block.site_search.value == '$search_name') 
+         { 
+            window.open('$search_url1' + document.search_block.search_keywords.value + '$search_url2', '_$search_name', ''); 
+            return false; 
+         }\n";
+}
+
+//
+// Start from Second Entry
+//
+for($i = 1; $i < $search_count; $i++)
+{
+	$search_name = $search_rows[$i]['search_name'];
+	$search_url1 = $search_rows[$i]['search_url1'];
+	$search_url2 = $search_rows[$i]['search_url2'];
+
+	$search_list .= '<option value="' . $search_name . '">' . $search_name . '</option>';
+
+	// checkSearch() function, adapated from Smartor's ezPortal
+	$checkSearch .= "else if (document.search_block.site_search.value == '$search_name') 
+         { 
+            window.open('$search_url1' + document.search_block.search_keywords.value + '$search_url2', '_$search_name', ''); 
+            return false; 
+         }\n";
+	
+}
+
+//
+// Set $l_advanced_forum_search variable
+//
+$l_advanced_forum_search = sprintf($lang['Forum_advanced_search'], $board_config['sitename']);
+
+//
+// Is Quick Search enabled? If so, assign our vars for the template.
+//
+if ( $board_config['quick_search_enable'] == 1 )
+{
+	$template->assign_block_vars('switch_quick_search', array(
+		'L_QUICK_SEARCH_FOR' => $lang['Quick_search_for'],
+		'L_QUICK_SEARCH_AT' => $lang['Quick_search_at'],
+		'L_ADVANCED_FORUM_SEARCH' => $l_advanced_forum_search,
+		'CHECKSEARCH' => $checkSearch,
+		'SEARCHLIST' => $search_list)
+	);
+}
+// END MOD: Quick Search
+#
+#-----[ OPEN ]--------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]--------------------------------------------
+#
+//
+// That's all Folks!
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// MOD: Quick Search
+// Quick Search List Management Panel
+$lang['Must_select_search'] = 'You must select a quick search';
+$lang['Search_title'] = 'Quick Search Management';
+$lang['Search_explain'] = 'Using this facility, you can add, edit, and select search tools to add in the quick search.';
+$lang['Search_name'] = 'Search Name';
+$lang['Search_name_explain'] = 'The name display on the search drop down list. E.g. <b>Yahoo / Google</b>';
+$lang['Search_url'] = 'Search URL';
+$lang['Search_url_explain'] = 'The URL required for search to work. E.g.<br /><span style="color:red">http://search.yahoo.com/search?p=</span><b>Keyword</b><span style="color:blue">&ei=UTF-8&fr=fp-tab-web-t&cop=mss&tab=</span><br /><br /><span style="color:red">http://www.google.com/search?hl=en&ie=UTF-8&oe=UTF-8&q=</span><b>Keyword</b>';
+$lang['Must_enter_search_name'] = 'You must enter the search name';
+$lang['Search_updated'] = 'Search was updated successfully';
+$lang['Search_added'] = 'Search was added successfully';
+$lang['Click_return_addsearchadmin'] = 'Click %sHere%s to return to the Add-Search Management Panel'; // a href, /a tags
+$lang['Search_removed'] = 'Search was removed successfully';
+$lang['Add_new_search'] = 'Add a new search';
+// Quick Search Enable Setting for Board Configuration Panel
+$lang['Quick_search_enable'] = 'Enable Quick Search';
+$lang['Quick_search_enable_explain'] = 'Shows the Quick Search field in the overall header.';
+// END MOD: Quick Search
+
+#
+#-----[ OPEN ]--------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]--------------------------------------------
+#
+//
+// That's all, Folks!
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// MOD: Quick Search
+$lang['Quick_search_for'] = 'Search for';
+$lang['Quick_search_at'] = 'at';
+$lang['Forum_advanced_search'] = '%s Advanced Search'; // In this case, the %s displays the Site Name as defined in the ACP. e.g. phpBB.com Advanced Search
+// END MOD: Quick Search
+
+#
+#-----[ OPEN ]-----------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+#
+#-----[ FIND ]-------------------------------------------
+# This is the search for the subSilver theme; if this doesn't work,
+# simply go to the end of the document, and add this code to the last
+# line before the <br />. If there is no <br />, add the code to the last line.
+#
+					</tr>
+				</table></td>
+			</tr>
+		</table>
+#
+#-----[ AFTER, ADD ]----------------------------------------
+#
+<!-- Quick Search -->
+<!-- BEGIN switch_quick_search -->
+<script language="JavaScript" type="text/javascript">
+<!--
+function checkSearch()
+{
+	{switch_quick_search.CHECKSEARCH}
+	else
+	{
+		return true;
+	}
+}
+//-->
+</script>
+<center>
+<table width="100%" cellpadding="2" cellspacing="1" border="0"><form name="search_block" method="post" action="{U_SEARCH}" onSubmit="return checkSearch()">
+  <tr>			
+	<td align="center"><span class="gensmall" style="line-height=150%">
+	{switch_quick_search.L_QUICK_SEARCH_FOR} <input class="post" type="text" name="search_keywords" size="15" /> {switch_quick_search.L_QUICK_SEARCH_AT} <select class="post" name="site_search" />{switch_quick_search.SEARCHLIST}</select>
+	<input class="mainoption" type="submit" value="{L_SEARCH}" /></span></td>
+  </tr>
+  <tr>
+	<td align="center"><a href="{U_SEARCH}" class="gensmall">{switch_quick_search.L_ADVANCED_FORUM_SEARCH}</a></td>
+  </tr>
+<input type="hidden" name="search_fields" value="all" />
+<input type="hidden" name="show_results" value="topics" /></form>
+</table>
+</center>
+<!-- END switch_quick_search -->
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<td class="row2"><input type="radio" name="override_user_style" value="1" {OVERRIDE_STYLE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="override_user_style" value="0" {OVERRIDE_STYLE_NO} /> {L_NO}</td>
+	</tr>
+#
+#-----[ AFTER, ADD ]--------------------------------------------
+#
+	<!-- Quick Search -->
+	<tr>
+		<td class="row1">{L_QUICK_SEARCH_ENABLE}<br /><span class="gensmall">{L_QUICK_SEARCH_ENABLE_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="quick_search_enable" value="1" {S_QUICK_SEARCH_ENABLE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="quick_search_enable" value="0" {S_QUICK_SEARCH_ENABLE_NO} /> {L_NO}</td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

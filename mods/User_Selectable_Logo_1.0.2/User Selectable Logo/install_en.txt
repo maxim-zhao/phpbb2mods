@@ -1,0 +1,472 @@
+######################################################## 
+## MOD Title: User Selectable Logo
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This MOD will all user to choose a pre-defined set of Header logo images in their profile 
+##	Admin can configure the image path that stores the logo images in ACP 
+##	Admin can set to allow logo selection in ACP
+## MOD Version:	1.0.2
+##
+## Installation Level:	Intermediate 
+## Installation Time:	10 Minutes 
+##
+## Files To Edit:	9
+##	admin/admin_board.php
+##	language/lang_english/lang_admin.php
+##	language/lang_english/lang_main.php
+##	includes/page_header.php
+##	includes/functions_selects.php
+##	includes/usercp_register.php
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/overall_header.tpl
+##	templates/subSilver/profile_add_body.tpl
+##
+## Included Files: 	2
+##	images/userlogo/subBlack.gif
+##	images/userlogo/subSilver.gif
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on phpBB 2.0.17, however, should work on all phpBB 2.0.x versions
+##	
+##	Please Note: 
+#		When logo selection is OFF, the logo on overall header 
+##		will use the filename "logo_phpBB.gif" inside your template image folder
+##		Therefore, please ensure the logo image in every template have
+##		the same filename, i.e. template/{EVERY_TEMPLATE}/images/logo_phpBB.gif
+##
+############################################################## 
+## MOD History: 
+##
+##   2004-02-15 - Version 1.0.0
+##      - Initial Release
+##
+##   2004-02-18 - Version 1.0.1
+##      - Fix an error inside installation manual (a BRFORE, ADD/AFTER, ADD error)
+##
+##   2005-08-14 - Version 1.0.2
+##      - Re-submitted to MOD DB
+##	- Tested on 2.0.17 and use the latest MOD template
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+INSERT INTO `phpbb_config` VALUES ('allow_user_select_logo', '0');
+INSERT INTO `phpbb_config` VALUES ('user_select_logo_image_path', 'images/userlogo');
+ALTER TABLE `phpbb_users` ADD `user_selected_logo` VARCHAR( 32 );
+
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy images/userlogo/*.gif to images/userlogo/*.gif
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// User Selectable Logo
+$lang['User_logo_settings'] = 'User Selectable Logo Setting';
+$lang['User_logo_path'] = 'Logo Storage Path';
+$lang['User_logo_path_explain'] = 'Path under your phpBB root dir, e.g. images/userlogo';
+$lang['User_logo_allow'] = 'All User Select Own Logo';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// User Selectable Logo
+$lang['User_logo'] = 'Choose a Logo';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+admin/admin_board.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$smtp_no = ( !$new['smtp_delivery'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// User Selectable Logo
+$userlogo_yes = ( $new['allow_user_select_logo'] ) ? "checked=\"checked\"" : "";
+$userlogo_no = ( !$new['allow_user_select_logo'] ) ? "checked=\"checked\"" : "";
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"L_SMTP_PASSWORD_EXPLAIN" => $lang['SMTP_password_explain'], 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// User Selectable Logo
+	"L_USER_LOGO_SETTING" => $lang['User_logo_settings'],
+	"L_USER_LOGO_PATH" => $lang['User_logo_path'],
+	"L_USER_LOGO_PATH_EXPLAIN" => $lang['User_logo_path_explain'],
+	"L_USER_LOGO_ALLOW" => $lang['User_logo_allow'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"SMTP_PASSWORD" => $new['smtp_password'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// User Selectable Logo
+	"USERLOGO_YES" => $userlogo_yes,
+	"USERLOGO_NO" => $userlogo_no,
+	"USERLOGO_IMAGE_PATH" => $new['user_select_logo_image_path'],
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions_selects.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+//
+// User pick a forum logo ...
+//
+function userlogo_select($default, $select_name = "user_selected_logo", $dirname)
+{
+	global $phpEx, $phpbb_root_path;
+
+	$dir = opendir($phpbb_root_path . $dirname);
+	$user_selected_logo = array();
+	$count=0;
+	while( $file = @readdir($dir) )
+	{
+		if( !@is_dir(phpbb_realpath($phpbb_root_path . $dirname . '/' . $file)) )
+		{
+			if( preg_match('/(\.gif$|\.png$|\.jpg|\.jpeg)$/is', $file) )
+			{
+				$user_selected_logo[$count] = $file;
+				$count++;
+			}
+		}
+	}
+
+	closedir($dir);
+
+	@asort($user_selected_logo);
+	@reset($user_selected_logo);
+
+	$user_selected_logo_select = '<select name="' . $select_name . '" onchange="update_user_selected_logo(this.options[selectedIndex].value);">';
+
+	for( $i = 0; $i < count($user_selected_logo); $i++ )
+	{
+		if ($user_selected_logo[$i] == $default)
+		{
+			$user_selected_logo_select .= '<option value="' . $user_selected_logo[$i] . '" selected="selected">' . $user_selected_logo[$i] . '</option>'; 
+		}
+		else 
+		{
+			$user_selected_logo_select .= '<option value="' . $user_selected_logo[$i] . '">' . $user_selected_logo[$i] . '</option>';
+		}
+		$default_user_selected_logo = $user_selected_logo[0];
+	}
+	$user_selected_logo_select .= '</select>';
+	
+	$user_selected_logo_select .= ( $default ) ?  '&nbsp; <img name="user_selected_logo" src="'. $phpbb_root_path . $dirname . '/' . $default .'" border="0" alt="" /> &nbsp;' : '&nbsp; <img name="user_selected_logo" src="'. $phpbb_root_path . $dirname . '/' . $default_user_selected_logo .'" border="0" alt="" /> &nbsp;';
+
+	return $user_selected_logo_select;
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/usercp_register.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$user_timezone = ( isset($HTTP_POST_VARS['timezone']) ) ? doubleval($HTTP_POST_VARS['timezone']) : $board_config['board_timezone'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// User Selectable Logo
+	$user_selected_logo = ( !empty($HTTP_POST_VARS['user_selected_logo']) ) ? htmlspecialchars($HTTP_POST_VARS['user_selected_logo']) : '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql . "user_email
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, user_timezone = $user_timezone
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, user_selected_logo = '$user_selected_logo'
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			//
+			// Get current date
+			//
+			$sql = "INSERT INTO " . USERS_TABLE . "	
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, user_timezone
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, user_selected_logo
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				VALUES ($user_id, '" . str_replace("\'", "''", $username) . "'
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, $user_timezone
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, '$user_selected_logo'
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$user_timezone = $userdata['user_timezone'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// User Selectable Logo
+	$user_selected_logo = $userdata['user_selected_logo'];
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	display_avatar_gallery($mode, $avatar_category
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, $user_timezone
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, $user_selected_logo
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'TIMEZONE_SELECT' => tz_select($user_timezone, 'timezone'),
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// User Selectable Logo
+		'USERLOGO_SELECT' => userlogo_select($userdata['user_selected_logo'], 'user_selected_logo', $board_config['user_select_logo_image_path']),
+		'USERLOGO_BASEDIR' => $phpbb_root_path . $board_config['user_select_logo_image_path'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'L_EMAIL_ADDRESS' => $lang['Email_address'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// User Selectable Logo
+		'L_USERLOGO' => $lang['User_logo'],
+		'S_ALLOW_USERLOGO' => $board_config['allow_user_select_logo'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'S_FORM_ENCTYPE' => $form_enctype,
+		'S_PROFILE_ACTION' => append_sid("profile.$phpEx"))
+	);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// User Selectable Logo
+	if ( $mode != 'register' )
+	{
+		if ( $board_config['allow_user_select_logo'] )
+		{
+			$template->assign_block_vars('switch_user_selected_logo_block', array() );
+		}
+	}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/page_header.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$l_timezone = (count($l_timezone) > 1 && $l_timezone[count($l_timezone)-1] != 0) ? $lang[sprintf('%.1f', $board_config['board_timezone'])] : $lang[number_format($board_config['board_timezone'])];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// User Selectable Logo
+if ( !isset($board_config['allow_user_select_logo']) || empty($userdata['user_selected_logo']) )
+{
+	$user_selected_logo = 'templates/'.$theme['template_name'] .'/images/logo_phpBB.gif';
+}
+else
+{
+	$user_selected_logo = $board_config['user_select_logo_image_path'] . '/' . $userdata['user_selected_logo'];
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'SITE_DESCRIPTION' => $board_config['site_desc'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// User Selectable Logo
+	'USERLOGO_SELECT' => $user_selected_logo,
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				<td><a href="{U_INDEX}"><img src="templates/subSilver/images/logo_phpBB.gif" border="0" alt="{L_INDEX}" vspace="1" /></a></td>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+templates/subSilver/images/logo_phpBB.gif
+
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+{USERLOGO_SELECT}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/profile_add_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+<form action="{S_PROFILE_ACTION}" {S_FORM_ENCTYPE} method="post">
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+<script language="javascript" type="text/javascript">
+<!--
+function update_user_selected_logo(newimage)
+{
+	document.user_selected_logo.src = "{USERLOGO_BASEDIR}/" + newimage;
+}
+//-->
+</script>
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<!-- BEGIN switch_avatar_block -->
+	<tr> 
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	<!-- BEGIN switch_user_selected_logo_block -->
+	<tr> 
+	  <td class="row1"><span class="gen">{L_USERLOGO}:</span></td>
+	  <td class="row2"><span class="gensmall">{USERLOGO_SELECT}</span></td>
+	</tr>
+	<!-- END switch_user_selected_logo_block -->
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_AVATAR_SETTINGS}</th>
+	</tr>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_USER_LOGO_SETTING}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_USER_LOGO_ALLOW}</td>
+		<td class="row2"><input type="radio" name="allow_user_select_logo" value="1" {USERLOGO_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_user_select_logo" value="0" {USERLOGO_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_USER_LOGO_PATH} <br /><span class="gensmall">{L_USER_LOGO_PATH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="user_select_logo_image_path" value="{USERLOGO_IMAGE_PATH}" /></td>
+	</tr>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+#
+# EoM

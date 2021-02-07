@@ -1,0 +1,471 @@
+############################################################## 
+## MOD Title: Post Breakdown
+## MOD Author: TerraFrost < terrafrost@phpbb.com > (Jim Wigginton) http://www.frostjedi.com/terra/wordpress/
+## MOD Description: When the post count is clicked on in viewforum.php or index.php, a popup showing the frequency
+##                  with which people have posted in that topic or forum.  Also shows individual users post activity
+##                  (eg. how many posts they've made each month since the board went live).
+## MOD Version: 2.0.0
+##
+## Installation Level: easy
+## Installation Time: 20 Minutes
+##
+## Files To Edit: 10
+##      includes/constants.php
+##      includes/functions.php
+##      includes/usercp_viewprofile.php
+##      index.php
+##      language/lang_english/lang_main.php
+##      templates/subSilver/index_body.tpl
+##      templates/subSilver/profile_view_body.tpl
+##      templates/subSilver/viewforum_body.tpl
+##      viewforum.php
+##      viewtopic.php
+##
+## Included Files: 2
+##      templates/subSilver/breakdown_months_popup.tpl
+##      templates/subSilver/breakdown_users_popup.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##   The ability to view how many times someone has posted in a single thread was inspired
+##   by a similar feature in vBulletin.  The ability to view someone's overall post activity
+##   was inspired by a similar feature in Google Groups.
+##
+##   Requires MySQL 4.0+.  MySQL 3.x doesn't work due to the use of a UNION.  DBMSs other than
+##   MySQL don't work because this MOD uses the from_unixtime() aggregate function.
+##
+##   The latest version of this mod can be found here:
+##   http://www.frostjedi.com/terra/scripts/phpbb/breakdown.zip
+##
+##############################################################
+## MOD History: 
+##
+##   2007-02-24 - Version 2.0.0
+##      - added the ability to view "who has posted" in a forum (not just a topic; thanks, lefty74!)
+##      - added a "post breakdown (by date)" chart to profile.php and to index.php.
+##      - renamed mod from "topic breakdown" to "post breakdown"
+##   2006-11-16 - Version 1.0.1
+##      - fixed a bug affecting non-anonymous users with non-empty post_username fields (thanks, paul999!)
+##      - fixed a bug affecting, among other things, popular topics (thanks, paul999!)
+##   2006-10-31 - Version 1.0.0
+##      - initial release
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy templates/subSilver/breakdown_users_popup.tpl to templates/subSilver/breakdown_users_popup.tpl
+copy templates/subSilver/breakdown_months_popup.tpl to templates/subSilver/breakdown_months_popup.tpl
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+define('TOPIC_BREAKDOWN',0);
+define('FORUM_BREAKDOWN',1);
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+function breakdown_users($mode, $id)
+{
+	global $db, $lang, $template, $theme, $phpbb_root_path, $phpEx;
+
+	$gen_simple_header = TRUE;
+
+	$where_sql = ($mode == TOPIC_BREAKDOWN) ? "topic_id = $id" : "forum_id = $id";
+
+	$sql = "SELECT u.user_id, u.username, COUNT(p.poster_id) AS total, MIN(p.post_time) AS first_post 
+		FROM " . POSTS_TABLE . " AS p, " . USERS_TABLE . " AS u 
+		WHERE $where_sql 
+			AND u.user_id = p.poster_id
+			AND u.user_id <> " . ANONYMOUS . " 
+		GROUP BY u.user_id
+		UNION
+			SELECT " . ANONYMOUS . ", post_username AS username, COUNT(poster_id) AS total, MIN(post_time) AS first_post
+			FROM phpbb_posts
+			WHERE $where_sql
+				AND poster_id = " . ANONYMOUS . " 
+			GROUP BY post_username
+		ORDER BY total DESC, first_post ASC";
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not breakdown topic', '', __LINE__, __FILE__, $sql);
+	}
+
+	$i = 0;
+	$total_posts = 0;
+	while ( $row = $db->sql_fetchrow($result) )
+	{
+		if ( $row['user_id'] != ANONYMOUS )
+		{
+			$temp_url = append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $row['user_id']);
+			$username = '<a href="#" onclick="jump_to_profile(\'' . $temp_url . '\'); return false">' . $row['username'] . '</a>';
+		}
+		else
+		{
+			$username = ( empty($row['username']) ) ? $lang['Guest'] : $row['username'];
+		}
+
+		$template->assign_block_vars('posterrow', array(
+			'ROW_CLASS' => ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'],
+			'USERNAME' => $username,
+			'POSTS' => $row['total'])
+		);
+
+		$total_posts+= $row['total'];
+		$i++;
+	}
+
+	$template->assign_vars(array(
+		'L_CLOSE_WINDOW' => $lang['Close_window'],
+		'L_POST_BREAKDOWN' => $lang['Post_breakdown'],
+		'L_TOTAL' => sprintf($lang['Posts_total'], $total_posts),
+		'L_USERNAME' => $lang['Username'],
+		'L_POSTS' => $lang['Posts'])
+	);
+
+	$page_title = $lang['Post_breakdown'];
+	include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+
+	$template->set_filenames(array(
+		'body' => 'breakdown_users_popup.tpl')
+	);
+
+	$template->pparse('body');
+
+	include($phpbb_root_path . 'includes/page_tail.'.$phpEx);
+}
+
+function breakdown_months($poster_id = false)
+{
+	global $lang, $db, $board_config, $template;
+
+	$where_sql = ( $poster_id ) ? "WHERE poster_id = " . $poster_id : '';
+
+	$month_names = array(
+		$lang['datetime']['Jan'],
+		$lang['datetime']['Feb'],
+		$lang['datetime']['Mar'],
+		$lang['datetime']['Apr'],
+		$lang['datetime']['May'],
+		$lang['datetime']['Jun'],
+		$lang['datetime']['Jul'],
+		$lang['datetime']['Aug'],
+		$lang['datetime']['Sep'],
+		$lang['datetime']['Oct'],
+		$lang['datetime']['Nov'],
+		$lang['datetime']['Dec']
+	);
+
+	$sql = "SELECT from_unixtime(post_time, '%Y') AS post_year, from_unixtime(post_time, '%m') AS post_month, COUNT(*) AS post_total 
+		FROM " . POSTS_TABLE . " 
+		$where_sql
+		GROUP BY post_year, post_month";
+
+	$result = $db->sql_query($sql);
+
+	$activity = array();
+	while ($row = $db->sql_fetchrow($result))
+	{
+		$activity[(int) $row['post_year']][(int) $row['post_month']] = $row['post_total'];
+	}
+
+	$years = range(date('Y', $board_config['board_startdate']), date('Y'));
+
+	$template->assign_block_vars('yearrow',array());
+	$template->assign_block_vars('yearrow.monthrow', array(
+		'DATA' => '')
+	);
+	for ($j=0;$j<12;$j++)
+	{
+		$template->assign_block_vars('yearrow.monthrow', array(
+			'DATA' => $month_names[$j])
+		);
+	}
+	for ($i=0;$i<count($years);$i++)
+	{
+		$template->assign_block_vars('yearrow',array());
+		$template->assign_block_vars('yearrow.monthrow',array(
+			'DATA' => $years[$i])
+		);
+		for ($j=1;$j<13;$j++)
+		{
+			$template->assign_block_vars('yearrow.monthrow', array(
+				'DATA' => isset($activity[$years[$i]][$j]) ? $activity[$years[$i]][$j] : '')
+			);
+		}
+	}
+}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$temp_url = append_sid("privmsg.$phpEx?mode=post&amp;" . POST_USERS_URL . "=" . $profiledata['user_id']);
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+breakdown_months($profiledata['user_id']);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_INTERESTS' => $lang['Interests'],
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	'L_POST_BREAKDOWN' => $lang['Post_breakdown'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$viewcat = ( !empty($HTTP_GET_VARS[POST_CAT_URL]) ) ? $HTTP_GET_VARS[POST_CAT_URL] : -1;
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+if ( isset($HTTP_GET_VARS['mode']) && $HTTP_GET_VARS['mode'] == 'breakdown' )
+{
+	$gen_simple_header = TRUE;
+
+	breakdown_months();
+
+	$template->assign_vars(array(
+		'L_POST_BREAKDOWN' => $lang['Post_breakdown'],
+		'L_CLOSE_WINDOW' => $lang['Close_window'])
+	);
+
+	$page_title = $lang['Post_breakdown'];
+	include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+
+	$template->set_filenames(array(
+		'body' => 'breakdown_months_popup.tpl')
+	);
+
+	$template->pparse('body');
+
+	include($phpbb_root_path . 'includes/page_tail.'.$phpEx);
+}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_MARK_FORUMS_READ' => $lang['Mark_all_forums'], 
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		'L_POST_BREAKDOWN' => $lang['Post_breakdown'],
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+		'U_MARK_READ' =>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+		'U_POST_BREAKDOWN' => append_sid("index.$phpEx?mode=breakdown"),
+#
+#-----[ FIND ]------------------------------------------
+#
+							$posts = $forum_data[$j]['forum_posts'];
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+							$posts_popup = '<a href="#" onclick="breakdown_topic(\'' . append_sid("viewforum.$phpEx?mode=breakdown&amp;" . POST_FORUM_URL . '=' . $forum_id) . '\'); return false">' . $posts . '</a>';
+#
+#-----[ FIND ]------------------------------------------
+#
+								'POSTS' => $forum_data[$j]['forum_posts'],
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+								'POSTS' => $posts_popup,
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+$lang['Post_breakdown'] = 'Post Breakdown';
+$lang['Posts_total'] = 'Total posts: %s';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/index_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+<table width="100%" cellspacing="0" cellpadding="2" border="0" align="center">
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+<script language="javascript" type="text/javascript">
+function breakdown_topic(url) {
+	window.open(url, '_phpbbbreakdown', 'HEIGHT=225,resizable=yes,scrollbars=yes,WIDTH=300');
+	return false;
+}
+
+function breakdown_months() {
+	window.open('{U_POST_BREAKDOWN}', '_phpbbbreakdown', 'HEIGHT=225,resizable=yes,scrollbars=yes,WIDTH=600');
+	return false;
+}
+</script>
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<td align="right" valign="bottom" class="gensmall">
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		<a href="{U_POST_BREAKDOWN}" onclick="breakdown_months(); return false" class="gensmall">{L_POST_BREAKDOWN}</a><br />
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<td class="row1" valign="top"><table width="100%" border="0" cellspacing="1" cellpadding="3">
+		<tr> 
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_EMAIL_ADDRESS}:</span></td>
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	<td class="row1" rowspan="3" valign="top"><table width="100%" border="0" cellspacing="1" cellpadding="3">
+		<tr> 
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_EMAIL_ADDRESS}:</span></td>
+#
+#-----[ FIND ]------------------------------------------
+#
+</table>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr> 
+	<td align="right"><span class="nav"><br />{JUMPBOX}</span></td>
+  </tr>
+</table>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+  <tr> 
+	<td class="catRight" height="28"><b><span class="gen">{L_POST_BREAKDOWN}</span></b></td>
+  </tr>
+  <tr>
+	<td class="row1"><table width="100%" cellspacing="0" cellpadding="0" border="0" >
+		<!-- BEGIN yearrow -->
+		<tr>
+		  <!-- BEGIN monthrow -->
+		  <td nowrap="nowrap" align="center"><span class="gen">{yearrow.monthrow.DATA}</span></td>
+		  <!-- END monthrow -->
+		</tr>
+		<!-- END yearrow -->
+	</table></td>
+  </tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+<form method="post" action="{S_POST_DAYS_ACTION}">
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+<script language="javascript" type="text/javascript">
+function breakdown_topic(url) {
+	window.open(url, '_phpbbbreakdown', 'HEIGHT=225,resizable=yes,scrollbars=yes,WIDTH=300');
+	return false;
+}
+</script>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$tracking_topics = ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) : '';
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+if ( isset($HTTP_GET_VARS['mode']) && $HTTP_GET_VARS['mode'] == 'breakdown' )
+{
+	breakdown_users(FORUM_BREAKDOWN, $forum_id);
+}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$replies = $topic_rowset[$i]['topic_replies'];
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		$replies_popup =  '<a href="#" onclick="breakdown_topic(\'' . append_sid("viewtopic.$phpEx?mode=breakdown&amp;" . POST_TOPIC_URL . '=' . $topic_id) . '\'); return false">' . $replies . '</a>';
+#
+#-----[ FIND ]------------------------------------------
+#
+			'REPLIES' => $replies,
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+			'REPLIES' => $replies_popup,
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$forum_name = $forum_topic_data['forum_name'];
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+if ( isset($HTTP_GET_VARS['mode']) && $HTTP_GET_VARS['mode'] == 'breakdown' )
+{
+	breakdown_users(TOPIC_BREAKDOWN, $topic_id);
+}
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

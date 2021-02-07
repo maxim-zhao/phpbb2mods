@@ -1,0 +1,358 @@
+##############################################################
+## MOD Title: Slick Group Admin
+## MOD Author: damnian < damnian at phpbb dot cc > (Dmitry Shechtman) http://www.phpbb.cc
+## MOD Description: Better ACP group management
+## MOD Version: 1.2.0
+## 
+## Installation Level: Easy
+## Installation Time: 10 minutes
+## Files To Edit: 4
+##  admin/admin_groups.php
+##  admin/admin_ug_auth.php
+##  language/lang_english/lang_admin.php
+##  templates/subSilver/admin/group_edit_body.tpl
+##
+## Included Files: 1
+##  templates/subSilver/admin/group_admin_body.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##  N/A
+##############################################################
+## MOD History:
+## 
+## 2007-01-11 - Version 1.2.0
+##      - Added Attachment compatibility fix
+## 
+## 2006-11-09 - Version 1.0.0
+##      - Initial release
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy root/templates/subSilver/admin/group_admin_body.tpl to templates/subSilver/admin/group_admin_body.tpl
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_groups.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	$module['Groups']['Manage'] = 
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	// Start add - Slick Group Admin MOD
+	$module['Manage']['Groups'] = $filename;
+	// End add - Slick Group Admin MOD
+	// Slick Group Admin MOD: 1 line removed
+#
+#-----[ FIND ]------------------------------------------
+#
+require('./pagestart.' . $phpEx);
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Slick Group Admin MOD
+$confirm = ( isset($HTTP_POST_VARS['confirm']) ) ? TRUE : FALSE;
+$cancel = ( isset($HTTP_POST_VARS['cancel']) ) ? TRUE : FALSE;
+
+$no_page_header = $cancel;
+// End add - Slick Group Admin MOD
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Start add - Slick Group Admin MOD
+$confirm = ( isset($HTTP_POST_VARS['confirm']) ) ? TRUE : FALSE;
+$cancel = ( isset($HTTP_POST_VARS['cancel']) ) ? TRUE : FALSE;
+if ($cancel)
+{
+	redirect(append_sid("admin/admin_groups.$phpEx"));
+}
+// End add - Slick Group Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+if ( isset($HTTP_POST_VARS['edit'])
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+isset($HTTP_POST_VARS['edit'])
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$mode == 'edit'
+#
+#-----[ FIND ]------------------------------------------
+#
+if ( isset($HTTP_POST_VARS['edit'])
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+isset($HTTP_POST_VARS['edit'])
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$mode == 'edit'
+#
+#-----[ FIND ]------------------------------------------
+#
+else if ( isset($HTTP_POST_VARS['group_update'])
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+isset($HTTP_POST_VARS['group_update'])
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ || $mode == 'delete'
+#
+#-----[ FIND ]------------------------------------------
+#
+if ( isset($HTTP_POST_VARS['group_delete']) )
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+isset($HTTP_POST_VARS['group_delete'])
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$mode == 'delete'
+#
+#-----[ FIND ]------------------------------------------
+#
+{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// Start add - Slick Group Admin MOD
+		if( !$confirm )
+		{
+			$hidden_fields = '<input type="hidden" name="mode" value="delete" /><input type="hidden" name="'.POST_GROUPS_URL.'" value="'.$group_id.'" />';
+			
+			//
+			// Set template files
+			//
+			$template->set_filenames(array(
+				"confirm" => "admin/confirm_body.tpl")
+			);
+
+			$template->assign_vars(array(
+				"MESSAGE_TITLE" => $lang['Confirm'],
+				"MESSAGE_TEXT" => $lang['Confirm_delete_group'],
+
+				"L_YES" => $lang['Yes'],
+				"L_NO" => $lang['No'],
+
+				"S_CONFIRM_ACTION" => append_sid("admin_groups.$phpEx"),
+				"S_HIDDEN_FIELDS" => $hidden_fields)
+			);
+
+			$template->pparse("confirm");
+		}
+		else
+		{
+		// End add - Slick Group Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+message_die(GENERAL_MESSAGE, $message);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		// Start add - Slick Group Admin MOD
+		}
+		// End add - Slick Group Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT group_id, group_name
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+group_name
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, group_description
+#
+#-----[ FIND ]------------------------------------------
+#
+	$select_list = '';
+	if ( $row = $db->sql_fetchrow($result) )
+	{
+		$select_list .= '<select name="' . POST_GROUPS_URL . '">';
+		do
+		{
+			$select_list .= '<option value="' . $row['group_id'] . '">' . $row['group_name'] . '</option>';
+		}
+		while ( $row = $db->sql_fetchrow($result) );
+		$select_list .= '</select>';
+	}
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	// Start add - Slick Group Admin MOD
+	while ( $row = $db->sql_fetchrow($result) )
+	{
+		$group_id = $row['group_id'];
+		
+		$template->assign_block_vars('group', array(
+			"GROUP_NAME" => $row['group_name'],
+			"GROUP_DESCRIPTION" => $row['group_description'],
+			
+			"U_GROUP_VIEW" => append_sid("../groupcp.$phpEx?" . POST_GROUPS_URL . '=' . $group_id),
+			"U_GROUP_EDIT" => append_sid("admin_groups.$phpEx?mode=edit&" . POST_GROUPS_URL . '=' . $group_id),
+			"U_GROUP_PERMISSIONS" => append_sid("admin_ug_auth.$phpEx?mode=group&" . POST_GROUPS_URL . '=' . $group_id),
+			"U_GROUP_DELETE" => append_sid("admin_groups.$phpEx?mode=delete&" . POST_GROUPS_URL . '=' . $group_id))
+		);
+	}
+	
+	$db->sql_freeresult($result);
+	// End add - Slick Group Admin MOD
+	// Slick Group Admin MOD: 11 lines removed
+#
+#-----[ FIND ]------------------------------------------
+#
+'body' => 'admin/group_select_body.tpl')
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+group_select_body
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+group_admin_body
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_GROUP_SELECT' => $lang['Select_group'],
+		'L_LOOK_UP' => $lang['Look_up_group'],
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		// Start add - Slick Group Admin MOD
+		'L_EDIT' => $lang['Edit'],
+		'L_PERMISSIONS' => $lang['Permissions'],
+		'L_DELETE' => $lang['Delete'],
+		// End add - Slick Group Admin MOD
+		// Slick Group Admin MOD: 2 lines removed
+#
+#-----[ FIND ]------------------------------------------
+#
+'S_GROUP_ACTION' => 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+,
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+)
+#
+#-----[ FIND ]------------------------------------------
+#
+		'S_GROUP_SELECT' => $select_list)
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		// Slick Group Admin MOD: 1 line removed
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ( $select_list != '' )
+	{
+		$template->assign_block_vars('select_box', array());
+	}
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	// Slick Group Admin MOD: 3 lines removed
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_ug_auth.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$module['Groups']['Permissions'] = 
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	// Slick Group Admin MOD: 1 line removed
+#
+#-----[ FIND ]------------------------------------------
+#
+$l_auth_return = 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang['Click_return_groupauth']
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$lang['Click_return_groupsadmin']
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			$u_auth_return = ( $mode == 'user' ) ? append_sid("admin_ug_auth.$phpEx?mode=user") : append_sid("admin_groups.$phpEx");
+#
+#-----[ FIND ]------------------------------------------
+#
+$message = 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+append_sid("admin_ug_auth.$phpEx?mode=$mode")
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$u_auth_return
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Look_up_group'] = 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+$lang['Confirm_delete_group'] = 'Are you sure you want to delete this group?';
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/group_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr> 
+	  <td class="row1" width="38%"><span class="gen">{L_GROUP_DELETE}:</span></td>
+	  <td class="row2" width="62%"> 
+		<input type="checkbox" name="group_delete" value="1">
+		{L_GROUP_DELETE_CHECK}</td>
+	</tr>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

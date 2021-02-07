@@ -1,0 +1,149 @@
+##############################################################
+## MOD Title: RSS Feed
+## MOD Author: chyduskam < chuduskam@debilarius.ru > (Egor Naklonyaeff) N/A
+## MOD Description: Post-centric forum syndication using RSS
+## MOD Version: 2.2.4
+##
+## Installation Level: Easy
+## Installation Time: 2 Minute
+## Files To Edit: n/a
+## Included Files: rss.php,rss_config.php, rss_functions.php, rss.xsl,
+##				   rss_body.tpl, atom_body.tpl
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## Mod Features:
+## Support HTTP headers: If-Modified-Since and If-None-Match,
+## gzip compression,WWW-Authenticate for private forums,
+## RSS 2.0 and Atom 0.3 formats,
+## Last Visit MOD and Who Viewed topic Mod
+## Special thanks to Xpert for his help while developing this mod.
+##
+## For URL's the following arguments may be optionally passed (as applicable):
+##
+## f=x - forum id. Use data only from this forum to output RSS.
+## t=1 - only new topics (first messages in topic). Default - 0.
+## c=x - feed items count. If omitted, the value of DEFAULT_ITEMS constant (defined in mod's code) will be used. Admin can limit the maximal possible value of x by setting MAX_ITEMS constant at the beginning of mod's code.
+## topic=x - view topic 'x' only
+## nolimit - turn off "If-Modified-Since" record limit (by default)
+## styled - use XSLT style for RSS feed
+## atom - generate atom 0.3 feed instead of rss 2.0
+## login - turn WWW-Authenticate on. May not work on some hosts.
+## uid=x - set user id for WWW-Authenticate. Use it instead of "login" for Opera or Mozilla for cyrillic nicknames. You could than use any text for login but correct password in dialog box.
+## Examples of Usage and Syntax:
+## rss.php
+## Last 25 or less messages from public forums
+## rss.php?login&atom
+## Last 25 records from allowed forums in Atom 0.3 format
+## rss.php?login&f=1&c=10
+## Last 10 records from private forum number 1
+##
+## Fine tuning
+##
+## You will be able to configure this MOD by setting some constants at rss_config.php.
+##
+## If you use MOD Last visit [2.0.10/EM] http://mods.db9.dk/
+## change define('LV_MOD_INSTALLED',false); to define('LV_MOD_INSTALLED',true);
+##
+## To reduce server's payload on huge and large forums this mod uses only records from last 2 week by default.
+## (see MAX_WEEKS_AGO constant comments in mod's code)
+##
+## On some Apache servers PHP is running as CGI, meaning that Apache variables
+## $_SERVER['PHP_AUTH_USER'] and $_SERVER['PHP_AUTH_PW'] are empty,
+## and the credentials are not transmitted to the script.
+##
+## In this case you can try to modify the .htaccess file and add following text:
+##
+## <IfModule mod_rewrite.c>
+##	RewriteEngine on
+## 	RewriteRule .* - [E=REMOTE_USER:%{HTTP:Authorization},L]
+## </IfModule>
+##
+## This directive states, if mod_rewrite is available, that credentials get from
+## the HTTP header Authorization are put into the $_SERVER['REMOTE_USER'] variable.
+##
+## More info @ http://naklon.info/rss/about.htm
+##############################################################
+## MOD History:
+##
+##   2005-11-23 - Version 2.2.4
+##   Changed files: rss_functions.php
+##   - update to phpBB 2.0.18 code
+##   - clear temporary rss session after exit
+##   - add ìemory usage value to page stats
+##   2005-04-16 - Version 2.2.3
+##   Changed files: rss.php, rss_functions.php
+##   - update to phpBB 2.0.14 code
+##   - add new key 'topic'
+##   2005-03-25 - Version 2.2.2
+##   Changed files: rss.php, rss_config.php
+##   - minor fix, cosmetic only
+##   2005-03-10 - Version 2.2.1
+##   Changed files: rss.php,rss_functions.php, rss.xsl
+##   - formating post data in RSS using user preference
+##   - phpBB languages auto detect and set in RSS
+##   - some fix in code  
+##   2005-03-04 - Version 2.2.0
+##    Changed files: rss.php, rss.xsl
+##    New files: rss_config.php, rss_functions.php
+##   - Split code in 3 files for future Add-On
+##   - Add Page Generation time MOD by Smartor support
+##   - WWW-Authorization now is work then PHP is installed as CGI
+##   - Fix HTTP headers "304 OK" then PHP is installed as CGI
+##   - English and Russian languages support in XSLT transformation
+##   2005-02-04 - Version 2.1.4
+##	  Changed files: rss.php, rss.xsl, rss_body.tpl
+##    - Fix compatibility with PHP 3.0
+##	  - Include new key 'styled'
+##	  - Fix problem with non-ascii chars in message
+##	  - Optimise some SQL
+##	  - Allow/disallow login using cookie (Allow by default)
+##	  - Admin can disallow any forum for syndication
+##   2005-01-15 - Version 2.1.3
+##       - Fix compatibility with PHP 4.0-4.3 by exclude using html_entity_decode function in MOD
+##   2005-01-14 - Version 2.1.2
+##       - Fix bug with non well-formed XML then use '&' char in title
+##	  - Fix bug with f- key for Admin
+##	  - Fix bug in RSS Autodiscovery Add-On
+##   2005-01-12 - Version 2.1.0
+##       - Some fix
+##	  - Allow cache
+##   2005-01-09 - Version 2.0.1
+##       - Add time limit for RSS posts
+##   2005-01-08 - Version 2.0.0
+##	 - All code is rewrited and speed up in 2 or more times
+##	 - Support users ban list
+##       - some bugs fixed.
+##   2004-12-19 - Version 1.1.0
+##      - Support for Last Visit Mod and Who viewed a topic Mod
+##        Support Auth from Opera and Mozilla with Russian nicknames. Use uid=number
+##	  in command string nor login ant type any english login
+##   2004-11-05 - Version 1.0.5
+##      - gzip now use settings from phpBB, some minor fix
+##   2004-11-03 - Version 1.0.4
+##      - some minore changes in feeds and programs.
+##   2004-10-26 - Version 1.0.3
+##      - add atom 0.3 support. Use rss.php?atom to get atom feed
+##   2004-10-24 - Version 1.0.2
+##      - initial release of this modified iteration of the "RSS Content Syndicator" MOD
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy rss.php to rss.php
+copy includes/rss_config.php to includes/rss_config.php
+copy includes/rss_functions.php to includes/rss_functions.php
+copy templates/rss.xsl to templates/rss.xsl
+copy templates/subSilver/rss_body.tpl to templates/subSilver/rss_body.tpl
+copy templates/subSilver/atom_body.tpl to templates/subSilver/atom_body.tpl
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

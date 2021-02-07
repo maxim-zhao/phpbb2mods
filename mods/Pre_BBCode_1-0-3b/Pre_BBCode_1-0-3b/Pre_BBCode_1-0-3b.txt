@@ -1,0 +1,231 @@
+############################################################## 
+## MOD Title:		[Pre] BBCode to preserve columns and other formatting
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Description:	Adds [pre] BBCode button for preformatted text
+##			(preserves columns, spaces, etc. in text copied from a plain text editor)
+##
+## MOD Version: 1.0.3b
+## 
+## Installation Level:	Easy
+## Installation Time:	5 Minutes 
+##
+## Files To Edit:	includes/bbcode.php
+##			language/lang_english/lang_main.php
+##			language/lang_english/lang_bbcode.php
+##			templates/subSilver/bbcode.tpl
+##			templates/subSilver/posting_body.tpl
+##			templates/subSilver/overall_header.tpl
+##
+## Included Files:	none
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: This mod gives you a [pre] bbcode button that does the same things as the html tag '<pre>': it 
+##		 preserves text you have formatted in a plain text editor.
+##
+##		 This version word wraps if the text gets too long (although it will not break a single long word
+##		 but will only break between words).  If you do not want word wrap, leave out
+##		 the change to templates/subSilver/overall_header.tpl.
+##
+##		 IMPORTANT NOTE: you must have multiple bbcode mod version 1.4.0c installed before you install this mod...
+##		 you can find that mod here: www.phpbb.com/phpBB/viewtopic.php?t=145513
+##
+############################################################## 
+## MOD History:
+##
+##  05-21-2006  - Version 1.0.3b
+##		- no changes...just repacked so that it could be checked with phpbb2.0.20
+##
+##  04-24-2005  - Version 1.0.3
+##		- changed code (as per suggestion by HSorgYves ... thanks!) so that it no longer eats backslashes inside of [pre]; tags;
+##		  added a change to overall_header.tpl and bbcode.php to make pre word_wrap
+##		  (but note that is a trade-off since word wrap may mess up your columns if you go far enough on the screen to 
+##		  trigger a skipped line, so if you do not want this feature don't make the changes described for
+##		  templates/subSilver/overall_header.tpl)
+##
+##  12-16-2004  - Version 1.0.2
+##		- added an acknowledgement to another programmer, but no substantive changes from the prior version
+##
+##  12-05-2004  - Version 1.0.1
+##		- updated for multi bbcode mod version 1.4.0c
+##
+##  12-05-2004  - Version 1.0.0
+##		  initial version for use with multi bbcode version 1.2.1
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/bbcode.php 
+
+# 
+#-----[ FIND ]---------------------------------
+#
+	$EMBB_widths = array('') ;
+	$EMBB_values = array('') ;
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------
+#
+$EMBB_widths = array(''
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+,'40'
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------
+#
+$EMBB_values = array(''
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+#
+,'Pre'
+
+# 
+#-----[ FIND ]--------------------------------- 
+#
+	$text = str_replace("[/b:$uid]", $bbcode_tpl['b_close'], $text);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// start mod for adding [pre] button for posts (and end mod too)...added the following block of code:
+	// [pre] for preserving formatted text.
+	$text = preg_replace("#\[pre:$uid\](.*?)\[/pre:$uid\]#sie", "'${bbcode_tpl['pre_open']}' . str_replace('\\\"', '\"', str_replace(array('\r\n', '\n', '\r'), '<br />', '\\1')) . '${bbcode_tpl['pre_close']}'", $text);
+	$text = str_replace("<br /><br />", "<br />&nbsp;<br />", $text);
+
+# 
+#-----[ FIND ]--------------------------------- 
+# 
+	$text = preg_replace("#\[b\](.*?)\[/b\]#si", "[b:$uid]\\1[/b:$uid]", $text);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// start mod for adding [pre] button for posts (and end mod too)...added the following block of code (thanks to Montezuma here: http://www.phpbbhacks.com/forums/viewtopic.php?p=53238#53238 for the code that supresses the automatic double line return which the normal pre tag would otherwise give us):
+	// [pre] and [/pre] for preserving formatted text (<pre>).
+	$text = preg_replace("#\[pre\](.*?)\[/pre\]#si", "[pre:$uid]\\1[/pre:$uid]", $text);
+
+#
+#-----[ OPEN ]---------------------------------
+#
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]---------------------------------
+# 
+$lang['bbcode_help']['value'] = 'BBCode Name: Info (Alt+%s)';
+
+# 
+#-----[ AFTER, ADD ]---------------------------------
+# 
+$lang['bbcode_help']['pre'] = 'Preformatted text (preserves formatting): [pre]some text[/pre]  (alt+%s)';
+
+# 
+#-----[ OPEN ]---------------------------------
+# 
+language/lang_english/lang_bbcode.php
+
+#
+#-----[ FIND ]---------------------------------
+# 
+$faq[] = array("Can I combine formatting tags?", "Yes, of course you can; for example to get someones attention you may write:<br /><br /><b>[size=18][color=red][b]</b>LOOK AT ME!<b>[/b][/color][/size]</b><br /><br />this would output <span style=\"color:red;font-size:18px\"><b>LOOK AT ME!</b></span><br /><br />We don't recommend you output lots of text that looks like this, though! Remember that it is up to you, the poster, to ensure that tags are closed correctly. For example, the following is incorrect:<br /><br /><b>[b][u]</b>This is wrong<b>[/b][/u]</b>");
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------
+# 
+// start mod [pre] bbcode (and end mod too)...added the following line:
+$faq[] = array("What does the PRE BBCode do?", "The [pre] tag will preserve formatting that you may have from a regular text editor, so that tabs and spaces will show up in your posts");
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/bbcode.tpl
+
+# 
+#-----[ FIND ]--------------------------------- 
+# 
+<!-- BEGIN b_close --></span><!-- END b_close --> 
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+<!-- BEGIN pre_open --><pre><!-- END pre_open -->
+<!-- BEGIN pre_close --></pre><!-- END pre_close -->
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/posting_body.tpl
+
+# 
+#-----[ FIND ]---------------------------------
+#
+# NOTE: the actual line to find is longer, since it contains all the other bbcode tags
+#
+bbtags = new Array(
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------
+# 
+'[url]','[/url]'
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------
+# 
+,'[pre]','[/pre]'
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<style type="text/css">
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+/* Pre block */
+pre {
+white-space: -moz-pre-wrap; /* Mozilla, supported since 1999 */
+white-space: -pre-wrap; /* Opera 4 - 6 */
+white-space: -o-pre-wrap; /* Opera 7 */
+white-space: pre-wrap; /* CSS3 - Text module (Candidate Recommendation) http://www.w3.org/TR/css3-text/#white-space */
+font-family: {T_FONTFACE3}; 
+font-size: {T_FONTSIZE3}px;
+}
+</style>
+<!--[if gte IE 5]>
+	<style type="text/css">
+	pre {
+	white-space: normal;
+	word-wrap: break-word;
+	width="100%"; /* this assures that page 'haslayout' for IE so that you skip the IE bug where characters get repeated */
+	}
+	</style>
+<![endif]-->
+<style type="text/css">
+/* end of Pre block */
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

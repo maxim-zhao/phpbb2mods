@@ -1,0 +1,399 @@
+################################################################# 
+## MOD Title: phpBB 2.0.13 to phpBB 2.0.14 Code Changes
+## MOD Author: Acyd Burn < N/A > (Meik Sievertsen) N/A 
+## MOD Description: 
+##		
+##		
+##		These are the Changes from phpBB 2.0.13 to phpBB 2.0.14 summed up into a little
+##		Mod. This might be very helpful if you want to update your Board and have
+##		installed a bunch of Mods. Then it's normally easier to apply the Code Changes
+##		than to install all Mods again.
+##		
+##		When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last
+##		line quoted in the 'FIND'-Statement.
+##		When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the
+##		first line quoted in the 'FIND'-Statement.
+##		When you find a 'REPLACE WITH'-Statement, the Code quoted in the
+##		'FIND'-Statement have to be replaced completely with the quoted Code in the
+##		'REPLACE WITH'-Statement.
+##		
+##		After you have finished this tutorial, you have to upload the
+##		install/update_to_latest.php file, execute it and then delete it from your
+##		webspace.
+##		
+##		
+##		Furthermore, please remove the file db/oracle.php from your webspace.
+##		
+##		
+##		
+## MOD Version: 1.0.0 
+## 
+## Installation Level: Intermediate
+## Installation Time: 10-20 Minutes 
+## Files To Edit: 
+##		admin/admin_styles.php
+##		admin/page_header_admin.php
+##		admin/page_footer_admin.php
+##		db/postgres7.php
+##		includes/page_header.php
+##		includes/sessions.php
+##		modcp.php
+##		privmsg.php
+##		search.php
+##		viewtopic.php
+##
+## Included Files: install/update_to_latest.php
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##	
+############################################################## 
+## MOD History: 
+## 
+##   2005-04-15 - Version 1.0.0 
+##      - first release 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+admin/admin_styles.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 78
+			include($phpbb_root_path. "templates/" . $install_to . "/theme_info.cfg");
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+			include($phpbb_root_path. "templates/" . basename($install_to) . "/theme_info.cfg");
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 742
+			$fp = @fopen($phpbb_root_path . 'templates/' . $template_name . '/theme_info.cfg', 'w');
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+			$fp = @fopen($phpbb_root_path . 'templates/' . basename($template_name) . '/theme_info.cfg', 'w');
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+admin/page_header_admin.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 38
+	$useragent = (isset($_SERVER["HTTP_USER_AGENT"]) ) ? $_SERVER["HTTP_USER_AGENT"] : $HTTP_USER_AGENT;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	$useragent = (isset($HTTP_SERVER_VARS['HTTP_USER_AGENT'])) ? $HTTP_SERVER_VARS['HTTP_USER_AGENT'] : getenv('HTTP_USER_AGENT');
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+admin/page_footer_admin.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 36
+	'PHPBB_VERSION' => '2' . $board_config['version'], 
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	'PHPBB_VERSION' => ($userdata['user_level'] == ADMIN && $userdata['user_id'] != ANONYMOUS) ? '2' . $board_config['version'] : '', 
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+db/postgres7.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 125
+			$query = preg_replace("/LIMIT ([0-9]+),([ 0-9]+)/", "LIMIT \\2 OFFSET \\1", $query);
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+			$query = preg_replace('#(.*WHERE.*)(username|user_email|ban_email) = \'(.*)\'#ise', "\"\\1LOWER(\\2) = '\" . strtolower('\\3') . \"'\"", $query);
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/page_header.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 38
+	$useragent = (isset($_SERVER["HTTP_USER_AGENT"]) ) ? $_SERVER["HTTP_USER_AGENT"] : $HTTP_USER_AGENT;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	$useragent = (isset($HTTP_SERVER_VARS['HTTP_USER_AGENT'])) ? $HTTP_SERVER_VARS['HTTP_USER_AGENT'] : getenv('HTTP_USER_AGENT');
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 469
+if (!empty($_SERVER['SERVER_SOFTWARE']) && strstr($_SERVER['SERVER_SOFTWARE'], 'Apache/2'))
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+if (!empty($HTTP_SERVER_VARS['SERVER_SOFTWARE']) && strstr($HTTP_SERVER_VARS['SERVER_SOFTWARE'], 'Apache/2'))
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/sessions.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 53
+		$session_id = '';
+	}
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	$page_id = (int) $page_id;
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 92
+					// No match; don't login, set as anonymous user
+					$login = 0; 
+					$enable_autologin = 0; 
+					$user_id = $userdata['user_id'] = ANONYMOUS;
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+				
+					$sql = 'SELECT * FROM ' . USERS_TABLE . ' WHERE user_id = ' . ANONYMOUS;
+					$result = $db->sql_query($sql);
+					$userdata = $db->sql_fetchrow($result);
+					$db->sql_freeresult($result);
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 105
+				// Autologin is not set. Don't login, set as anonymous user
+				$login = 0;
+				$enable_autologin = 0;
+				$user_id = $userdata['user_id'] = ANONYMOUS;
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+
+				$sql = 'SELECT * FROM ' . USERS_TABLE . ' WHERE user_id = ' . ANONYMOUS;
+				$result = $db->sql_query($sql);
+				$userdata = $db->sql_fetchrow($result);
+				$db->sql_freeresult($result);
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 244
+	//
+	// Does a session exist?
+	//
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+# 
+	$thispage_id = (int) $thispage_id;
+
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+modcp.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 130
+		message_die(GENERAL_MESSAGE, 'Topic_post_not_exist');
+	}
+	$topic_row = $db->sql_fetchrow($result);
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	if (!$topic_row)
+	{
+		message_die(GENERAL_MESSAGE, 'Topic_post_not_exist');
+	}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 150
+		message_die(GENERAL_MESSAGE, 'Forum_not_exist');
+	}
+	$topic_row = $db->sql_fetchrow($result);
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+
+	if (!$topic_row)
+	{
+		message_die(GENERAL_MESSAGE, 'Forum_not_exist');
+	}
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+privmsg.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 566
+	if ( !$board_config['allow_html'] )
+ 	{
+		if ( $user_sig != '' && $privmsg['privmsgs_enable_sig'] && $userdata['user_allowhtml'] )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	if ( !$board_config['allow_html'] || !$userdata['user_allowhtml'])
+	{
+		if ( $user_sig != '')
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1531
+		if ( !$html_on )
+		{
+			if ( $user_sig != '' || !$userdata['user_allowhtml'] )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		if ( !$html_on || !$board_config['allow_html'] || !$userdata['user_allowhtml'] )
+		{
+			if ( $user_sig != '' )
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+search.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 200
+				$search_author = str_replace('*', '%', trim($search_author));
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+# 
+				if (preg_match('#^[\*%]+$#', trim($search_author)) || preg_match('#^[^\*]{1,2}$#', str_replace(array('*', '%'), '', trim($search_author))))
+				{
+					$search_author = '';
+				}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 269
+
+			for($i = 0; $i < count($split_search); $i++)
+			{
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+				if (preg_match('#^[\*%]+$#', trim($split_search[$i])) || preg_match('#^[^\*]{1,2}$#', str_replace(array('*', '%'), '', trim($split_search[$i]))))
+				{
+					$split_search[$i] = '';
+					continue;
+				}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 416
+		// Author name search 
+		//
+		if ( $search_author != '' )
+		{
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+ 			if (preg_match('#^[\*%]+$#', trim($search_author)) || preg_match('#^[^\*]{1,2}$#', str_replace(array('*', '%'), '', trim($search_author))))
+			{
+				$search_author = '';
+			}
+
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+viewtopic.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1052
+	if ( !$board_config['allow_html'] )
+	{
+		if ( $user_sig != '' && $userdata['user_allowhtml'] )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	if ( !$board_config['allow_html'] || !$userdata['user_allowhtml'])
+	{
+		if ( $user_sig != '' )
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1122
+			$user_sig = str_replace('\"', '"', substr(preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "preg_replace(\$orig_word, \$replacement_word, '\\0')", '>' . $user_sig . '<'), 1, -1));
+		}
+
+		$message = str_replace('\"', '"', substr(preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "preg_replace(\$orig_word, \$replacement_word, '\\0')", '>' . $message . '<'), 1, -1));
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+			$user_sig = str_replace('\"', '"', substr(@preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "@preg_replace(\$orig_word, \$replacement_word, '\\0')", '>' . $user_sig . '<'), 1, -1));
+		}
+
+		$message = str_replace('\"', '"', substr(@preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "@preg_replace(\$orig_word, \$replacement_word, '\\0')", '>' . $message . '<'), 1, -1));
+
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+
+# EoM

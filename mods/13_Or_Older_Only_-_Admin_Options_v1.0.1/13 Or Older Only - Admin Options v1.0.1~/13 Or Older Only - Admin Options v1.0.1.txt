@@ -1,0 +1,333 @@
+##############################################################
+## MOD Title: 13 Or Older Only - Admin Options
+## MOD Author: Matt Ratcliff < HYDE666JROCK@hotmail.com > (Matt Ratcliff) http://www.psanime.net
+## MOD Description: This MOD will add options in the ACP
+##			  to set the redirect website, delay,
+##			  and message.
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: ~15 Minutes
+## Files To Edit: admin/admin_board.php,
+##			includes/usercp_register.php,
+##			language/lang_english/lang_admin.php,
+##			language/lang_english/lang_main.php,
+##			templates/subSilver/overall_header.tpl,
+##			templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files: templates/subSilver/13_or_older_body.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##	- You must have the '13 or Older Only' MOD v1.0.4 installed.
+##	- If you do not have it installed it is found here:
+##	  - http://www.phpbb.com/phpBB/viewtopic.php?p=1252056#1252056
+##
+##	- Note: Not tested on previous versions.
+##
+##	- If you have Categories Hierarchy 2.0.x installed please
+##	  refer to the Add-on folder.
+##############################################################
+## MOD History:
+##
+##   2005-11-5 - Version 1.0.1
+##	  - Minor Fix: Replaced code within TPL File
+##   2005-10-27 - Version 1.0.0
+##      - Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]-------------------------------------------------
+# Execute these in phpMyAdmin
+INSERT INTO `phpbb_config` VALUES ('redirect_website', 'http://www.disney.com/kids/');
+INSERT INTO `phpbb_config` VALUES ('redirect_delay', '5');
+INSERT INTO `phpbb_config` VALUES ('redirect_message', 'We''re sorry. You must be over 13 years old to register. You are now being redirected to a more suitable website.');
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy templates/subSilver/13_or_older_body.tpl to templates/subSilver/13_or_older_body.tpl
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : 13 or older only - acp options --------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"L_COPPA_SETTINGS" => $lang['COPPA_settings'],
+	"L_COPPA_FAX" => $lang['COPPA_fax'],
+	"L_COPPA_MAIL" => $lang['COPPA_mail'],
+	"L_COPPA_MAIL_EXPLAIN" => $lang['COPPA_mail_explain'],
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : 13 or older only - acp options --------------------------------------
+//-- delete
+/*
+	"L_COPPA_SETTINGS" => $lang['COPPA_settings'],
+	"L_COPPA_FAX" => $lang['COPPA_fax'],
+	"L_COPPA_MAIL" => $lang['COPPA_mail'],
+	"L_COPPA_MAIL_EXPLAIN" => $lang['COPPA_mail_explain'],
+*/
+//-- add
+	"L_13_OR_OLDER_SETTINGS" => $lang['13_or_older_settings'],
+	"L_REDIRECT_WEBSITE" => $lang['Redirect_website'],
+	"L_REDIRECT_WEBSITE_EXPLAIN" => $lang['Redirect_website_explain'],
+	"L_REDIRECT_DELAY" => $lang['Redirect_delay'],
+	"L_REDIRECT_DELAY_EXPLAIN" => $lang['Redirect_delay_explain'],
+	"L_REDIRECT_DELAY_TIME" => $lang['Redirect_delay_time'],
+	"L_REDIRECT_MESSAGE" => $lang['Redirect_message'],
+	"L_REDIRECT_MESSAGE_EXPLAIN" => $lang['Redirect_message_explain'],
+//-- fin mod : 13 or older only - acp options ----------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"COPPA_MAIL" => $new['coppa_mail'],
+	"COPPA_FAX" => $new['coppa_fax'])
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : 13 or older only - acp options --------------------------------------
+//-- delete
+/*
+	"COPPA_MAIL" => $new['coppa_mail'],
+	"COPPA_FAX" => $new['coppa_fax'])
+*/
+//-- add
+	"REDIRECT_WEBSITE" => $new['redirect_website'],
+	"REDIRECT_DELAY" => $new['redirect_delay'],
+	"REDIRECT_MESSAGE" => $new['redirect_message'])
+//-- fin mod : 13 or older only - acp options ----------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : 13 or older only - acp options --------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+	
+	$template->set_filenames(array(
+		'body' => '13_or_older_body.tpl')
+	);
+
+	$template->assign_vars(array(
+		'U_REDIRECT' => ("http://disney.com/kids/"),
+		'L_REDIRECT_HEADER' => $lang['redirect_header'],
+		'L_REDIRECT_MESSAGE' => $lang['redirect_message'])
+	);
+
+
+#
+#-----[ REPLACE WITH ]---------------------------------------
+#
+//-- mod : 13 or older only - acp options --------------------------------------
+//-- delete
+/*
+	include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+	
+	$template->set_filenames(array(
+		'body' => '13_or_older_body.tpl')
+	);
+
+	$template->assign_vars(array(
+		'U_REDIRECT' => ("http://disney.com/kids/"),
+		'L_REDIRECT_HEADER' => $lang['redirect_header'],
+		'L_REDIRECT_MESSAGE' => $lang['redirect_message'])
+	);
+*/
+//-- add
+	$template->assign_block_vars('13_or_older', array(
+		'S_REDIRECT_DELAY' => $board_config['redirect_delay'],
+		'S_REDIRECT_WEBSITE' => $board_config['redirect_website'],
+	));
+
+	include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+
+	$template->set_filenames(array(
+		'body' => '13_or_older_body.tpl')
+	);
+
+	$template->assign_vars(array(
+		'L_REDIRECT_HEADER' => $lang['redirect_header'],
+		'L_REDIRECT_MESSAGE' => $board_config['redirect_message'])
+	);
+//-- fin mod : 13 or older only - acp options ----------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : 13 or older only - acp options --------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// That's all Folks!
+// -------------------------------------------------
+
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : 13 or older only - acp options --------------------------------------
+//-- add
+$lang['13_or_older_settings'] = '13 Or Older Only Settings';
+$lang['Redirect_website'] = 'Redirect Guest to:';
+$lang['Redirect_website_explain'] = 'Examples: <i>http://www.neopets.com</i>, <i>http://www.disney.com/kids/</i>';
+$lang['Redirect_delay'] = 'Delay Redirect';
+$lang['Redirect_delay_explain'] = 'This will give the guest enough time to read the message, just before they are redirected';
+$lang['Redirect_delay_time'] = 'Seconds';
+$lang['Redirect_message'] = 'Redirect Message';
+$lang['Redirect_message_explain'] = 'Enter a message that will be displayed as the guest is being redirected';
+//-- fin mod : 13 or older only - acp options ----------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : 13 or older only - acp options --------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// BEGIN 13 or Older Only MOD
+$lang['redirect_header'] = 'Registration Agreement Terms Not Met';
+$lang['redirect_message'] = 'We\'re sorry. You must be over 13 years old to register. You are being redirected to a more suitable website.';
+// END 13 or Older Only MOD
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : 13 or older only - acp options --------------------------------------
+//-- delete
+/*
+// BEGIN 13 or Older Only MOD
+$lang['redirect_header'] = 'Registration Agreement Terms Not Met';
+$lang['redirect_message'] = 'We\'re sorry. You must be over 13 years old to register. You are being redirected to a more suitable website.';
+// END 13 or Older Only MOD
+*/
+//-- add
+$lang['redirect_header'] = 'Registration Agreement Terms Not Met';
+//-- fin mod : 13 or older only - acp options ----------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+{META}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+<!-- BEGIN 13_or_older -->
+<meta http-equiv="refresh" content="{13_or_older.S_REDIRECT_DELAY}; url={13_or_older.S_REDIRECT_WEBSITE}">
+<!-- END 13_or_older -->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<!-- BEGIN 13 or Older Only MOD
+	<tr>
+	  <th class="thHead" colspan="2">{L_COPPA_SETTINGS}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_COPPA_FAX}</td>
+		<td class="row2"><input class="post" type="text" size="25" maxlength="100" name="coppa_fax" value="{COPPA_FAX}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_COPPA_MAIL}<br /><span class="gensmall">{L_COPPA_MAIL_EXPLAIN}</span></td>
+		<td class="row2"><textarea name="coppa_mail" rows="5" cols="30">{COPPA_MAIL}</textarea></td>
+	</tr>
+	 END 13 or Older Only MOD-->
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_13_OR_OLDER_SETTINGS}</th>
+	</tr>
+	<tr>
+		<td class="row1" width="38%">{L_REDIRECT_WEBSITE}<br /><span class="gensmall">{L_REDIRECT_WEBSITE_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="25" maxlength="100" name="redirect_website" value="{REDIRECT_WEBSITE}" /></td>
+	</tr>
+	<tr>
+		<td class="row1" width="38%">{L_REDIRECT_DELAY}<br /><span class="gensmall">{L_REDIRECT_DELAY_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="4" maxlength="100" name="redirect_delay" value="{REDIRECT_DELAY}" />&nbsp;{L_REDIRECT_DELAY_TIME}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_REDIRECT_MESSAGE}<br /><span class="gensmall">{L_REDIRECT_MESSAGE_EXPLAIN}</span></td>
+		<td class="row2"><textarea name="redirect_message" rows="5" cols="30">{REDIRECT_MESSAGE}</textarea></td>
+	</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

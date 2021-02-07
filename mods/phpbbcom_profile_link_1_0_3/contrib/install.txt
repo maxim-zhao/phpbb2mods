@@ -1,0 +1,630 @@
+##############################################################
+## MOD Title: phpBB.com Profile Link
+## MOD Author: eviL3 < evil@phpbbmodders.net > (Igor Wiedler) http://phpbbmodders.net
+## MOD Description: Allows users to enter their phpBB.com user id,
+##                  so you can easily link to it. This MOD will be
+##                  easy to customize, so it works with other boards
+##                  :)
+##
+## MOD Version: 1.0.2
+##
+## Installation Level: Intermediate
+##
+## Installation Time: 15 Minutes
+## Files To Edit: viewtopic.php,
+##                admin/admin_users.php,
+##                includes/usercp_avatar.php,
+##                includes/functions.php,
+##                includes/usercp_register.php,
+##                includes/usercp_viewprofile.php,
+##                language/lang_english/lang_main.php,
+##                templates/subSilver/profile_add_body.tpl,
+##                templates/subSilver/profile_view_body.tpl,
+##                templates/subSilver/subSilver.cfg,
+##                templates/subSilver/viewtopic_body.tpl,
+##                templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files: root/templates/subSilver/images/lang_english/icon_profile_phpbb.gif
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## This is really useful for phpBB-related Boards, as lots of
+## the members will also be members at phpBB.com, possibly with
+## an other name.
+##
+## If you don't know how to run the SQL, look here:
+## http://phpbbmodders.net/viewtopic.php?t=108
+##
+## Or copy db_update.php from the /contrb/ folder into your
+## phpBB root folder, and run it from there. Just visit the
+## page in your browser, for example:
+## http://yoursite.com/phpBB2/db_update.php
+## Then follow the instructions.
+##
+## I only offer support at phpBB.com and phpBBModders.net.
+##
+##############################################################
+## MOD History:
+##
+##   2006-11-06 - Version 0.1.0
+##      - Initial release
+##
+##   2006-11-11 - Version 1.0.0
+##      - Submitted to MODDB
+##
+##   2006-11-19 - Version 1.0.1
+##      - Fixed little errors :)
+##
+##   2007-02-25 - Version 1.0.2
+##      - MODx'd, slightly cleaned up
+##      - Moved url generation to a function
+##      - Added phpBB3 support (phpbb.com gone live)
+##
+##   2007-06-30 - Version 1.0.3
+##      - Some small fixing once again, thanks terrafrost and instadeny
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+
+ALTER TABLE phpbb_users ADD user_phpbbcom VARCHAR( 25 ) NULL DEFAULT NULL;
+
+#
+#-----[ COPY ]------------------------------------------
+#
+
+copy root/templates/subSilver/images/lang_english/icon_profile_phpbb.gif to templates/subSilver/images/lang_english/icon_profile_phpbb.gif
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT u.username, u.user_id, 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, u.user_msnm
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_phpbbcom
+#
+#-----[ FIND ]------------------------------------------
+#
+		$yim = ( $postrow[$i]['user_yim'] ) 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		$phpbbcom_img	= ( $postrow[$i]['user_phpbbcom'] ) ? '<a href="' . phpbbcom_profile_url ($postrow[$i]['user_phpbbcom']) . '"><img src="' . $images['icon_phpbbcom'] . '" alt="' . $lang['Profile_phpbbcom'] . '" title="' . $lang['Profile_phpbbcom'] . '" border="0" /></a>' : '';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$yim = '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		$phpbbcom_img = '';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+		'YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		'PHPBBCOM_IMG' => $phpbbcom_img,
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$yim = ( !empty($HTTP_POST_VARS['yim']) ) ? trim(strip_tags( $HTTP_POST_VARS['yim'] ) ) : '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		$phpbbcom = ( !empty($HTTP_POST_VARS['phpbbcom']) ) ? trim( $HTTP_POST_VARS['phpbbcom'] ) : '';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+			$yim = htmlspecialchars(stripslashes($yim));
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+			$phpbbcom = htmlspecialchars( stripslashes( $phpbbcom ) );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ($signature != '')
+		{
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		if ( $phpbbcom != '' )
+		{
+			$phpbbcom = urlencode( $phpbbcom );
+		}
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				SET " . $username_sql . $passwd_sql . 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_yim = '" . str_replace("\'", "''", $yim) . "'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_phpbbcom = '" . str_replace("\'", "''", $phpbbcom) . "'
+#
+#-----[ FIND ]------------------------------------------
+#
+			$yim = htmlspecialchars(stripslashes($yim));
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+			$phpbbcom = htmlspecialchars( stripslashes( $phpbbcom ) );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+		$yim = htmlspecialchars($this_userdata['user_yim']);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		$phpbbcom = htmlspecialchars( urldecode( $this_userdata['user_phpbbcom'] ) );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="yim" value="' . str_replace("\"", "&quot;", $yim) . '" />';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+			$s_hidden_fields .= '<input type="hidden" name="phpbbcom" value="' . str_replace("\"", "&quot;", $phpbbcom) . '" />';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+			'YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+			'PHPBBCOM' => $phpbbcom,
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+			'L_YAHOO' => $lang['YIM'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+			'L_PHPBBCOM'			=> $lang['Profile_phpbbcom'],
+			'L_PHPBBCOM_EXPLAIN'	=> $lang['Profile_phpbbcom_explain'],
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_avatar.php
+#
+#-----[ FIND ]------------------------------------------
+#
+function display_avatar_gallery(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, &$yim
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, &$phpbbcom
+#
+#-----[ FIND ]------------------------------------------
+#
+	$params = array(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, 'yim'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, 'phpbbcom'
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+/**
+ * Returns the URL to a users phpBB profile
+ * User id is either the users id, or his username
+ *
+ * @author	eviL3 <evil@phpbbmodders.net>
+ * @version	1.0.3
+ * @param	mixed $user_id
+ * @return	string URL to Profile
+ */
+function phpbbcom_profile_url ($user_id)
+{
+//	return ( $user_id ) ? 'http://www.phpbb.com/phpBB/profile.php?mode=viewprofile&amp;' . POST_USERS_URL . '=' . $user_id : '';
+	return ( $user_id ) ? 'http://www.phpbb.com/community/memberlist.php?mode=viewprofile&amp;' . ((is_numeric($user_id)) ? 'u' : 'un') . '=' . $user_id : '';
+}
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	$strip_var_list = array('email' => 'email',
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	$phpbbcom = ( isset($HTTP_POST_VARS['phpbbcom']) && !empty($HTTP_POST_VARS['phpbbcom']) ) ? $HTTP_POST_VARS['phpbbcom'] : '';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+		$yim = stripslashes($yim);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		$phpbbcom = stripslashes( $phpbbcom );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ( $website != '' )
+	{
+		rawurlencode($website);
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	if ( $phpbbcom != '' )
+	{
+		$phpbbcom = urlencode( $phpbbcom );
+	}
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				SET " . $username_sql . $passwd_sql
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_yim = '" . str_replace("\'", "''", $yim) . "'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_phpbbcom = '" . str_replace("\'", "''", $phpbbcom) . "'
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "INSERT INTO " . USERS_TABLE . "	
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_yim
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_phpbbcom
+#
+#-----[ FIND ]------------------------------------------
+#
+				VALUES ($user_id, '" . str_replace("\'", "''", $username)
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, '" . str_replace("\'", "''", $yim) . "'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, '" . str_replace("\'", "''", $phpbbcom) . "'
+#
+#-----[ FIND ]------------------------------------------
+#
+					'YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+					'PHPBBCOM' => $phpbbcom,
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+	$yim = stripslashes($yim);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	$phpbbcom = stripslashes ( $phpbbcom );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+	$yim = $userdata['user_yim'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	$phpbbcom = htmlspecialchars( urldecode( $userdata['user_phpbbcom'] ) );
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+	display_avatar_gallery(
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, $yim
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $phpbbcom
+#
+#-----[ FIND ]------------------------------------------
+#
+		'YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		'PHPBBCOM' => $phpbbcom,
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_YAHOO' => $lang['YIM'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+		'L_PHPBBCOM'			=> $lang['Profile_phpbbcom'],
+		'L_PHPBBCOM_EXPLAIN'	=> $lang['Profile_phpbbcom_explain'],
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$yim = ( $profiledata['user_yim'] )
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+$phpbbcom_img	= ( $profiledata['user_phpbbcom'] ) ? '<a href="' . phpbbcom_profile_url ($profiledata['user_phpbbcom']) . '"><img src="' . $images['icon_phpbbcom'] . '" alt="' . $lang['Profile_phpbbcom'] . '" title="' . $lang['Profile_phpbbcom'] . '" border="0" /></a>' : '';
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'YIM' => $yim,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	'PHPBBCOM_IMG' => $phpbbcom_img,
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_YAHOO' => $lang['YIM'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+	'L_PHPBBCOM' => $lang['Profile_phpbbcom'],
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+$lang += array(
+	'Profile_phpbbcom'			=> 'phpBB.com Profile',
+	'Profile_phpbbcom_explain'	=> 'Enter your user id or your username from phpBB.com',
+);
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<input type="text" class="post" style="width: 200px"  name="interests" size="35" maxlength="150" value="{INTERESTS}" />
+	  </td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+<!-- phpBB.com Profile Link -->
+	<tr> 
+		<td class="row1">
+			<span class="gen">
+				<label for="phpbbcom">{L_PHPBBCOM}</label>:
+			</span>
+			<br />
+			<span class="gensmall">{L_PHPBBCOM_EXPLAIN}</span>
+		</td>
+		<td class="row2"> 
+			<input type="text" class="post" style="width: 200px"  id="phpbbcom" name="phpbbcom" size="35" maxlength="150" value="{PHPBBCOM}" />
+		</td>
+	</tr>
+<!-- phpBB.com Profile Link -->
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		  <td class="row1" valign="middle"><b><span class="gen">{PM_IMG}</span></b></td>
+		</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+<!-- phpBB.com Profile Link -->
+		<tr> 
+			<td valign="middle" nowrap="nowrap" align="right">
+				<span class="gen">{L_PHPBBCOM}:</span>
+			</td>
+			<td class="row1" valign="middle">
+				<b><span class="gen">{PHPBBCOM_IMG}</span></b>
+			</td>
+		</tr>
+<!-- phpBB.com Profile Link -->
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//-- mod : phpBB.com Profile Link ------------------------------------------------------------
+//-- add
+$images['icon_phpbbcom'] = "$current_template_images/{LANG}/icon_profile_phpbb.gif";
+//-- fin mod : phpBB.com Profile Link --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+<noscript>{postrow.ICQ_IMG}</noscript>
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+</td>
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+ {postrow.PHPBBCOM_IMG}
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<input class="post" type="text" name="interests" size="35" maxlength="150" value="{INTERESTS}" />
+	  </td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+<!-- phpBB.com Profile Link -->
+	<tr> 
+		<td class="row1">
+			<span class="gen">
+				<label for="phpbbcom">{L_PHPBBCOM}</label>:
+			</span>
+			<br />
+			<span class="gensmall">{L_PHPBBCOM_EXPLAIN}</span>
+		</td>
+		<td class="row2"> 
+			<input type="text" class="post" style="width: 200px"  id="phpbbcom" name="phpbbcom" size="35" maxlength="150" value="{PHPBBCOM}" />
+		</td>
+	</tr>
+<!-- phpBB.com Profile Link -->
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,296 @@
+##############################################################
+## MOD Title:		Update: ADD-ON Portal Menu Manager on ezPortal
+## MOD Author: OXPUS < webmaster@oxpus.de > (Karsten Ude) http://www.oxpus.de
+## MOD Description:	Update the Add-On for the Portal Menu Manager from 1.4.0 to 1.4.1
+## MOD Version:		1.0.0
+##
+## Installation Level:	Easy
+## Installation Time:	1-2 Minutes
+## Files To Edit:	1
+##			portal.php
+##
+## Included Files:	N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2004-04-27 - Version 1.0.1
+##      - Fix typos in the HowTo
+##
+##   2004-04-24 - Version 1.0.0
+##      - First release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+portal.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// Create the personal board menu
+$fixlinks = array();
+
+include_once($phpbb_root_path . 'includes/functions_board_menu.'.$phpEx);
+
+$bl_level_access = get_bllink_access();
+$bl_fix = ( $bl_level_access == '' ) ? ' WHERE bl_fix = 1' : ' AND bl_fix = 1';
+
+$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . "
+	$bl_level_access
+	$bl_fix
+	ORDER BY bl_psort";
+if ( !$result = $db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+}
+
+while ( $row = $db->sql_fetchrow($result) )
+{
+	$fixlinks[] = $row['bl_id'];
+}
+
+$sql_cat = "SELECT * FROM " . BOARD_MENU_CAT_TABLE . "
+	    ORDER BY cat_sort";
+if ( !$result2 = $db->sql_query($sql_cat) )
+{
+	message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+}
+
+$portal_menu_links = '';
+
+while ( $row2 = $db->sql_fetchrow($result2) )
+{
+	$catname = $lang[$row2['cat_name']];
+	$cat = $row2['cat_id'];
+
+	if ( $userdata['session_logged_in'] && $userdata['portal_links'] != '' )
+	{
+		$pl_links = array();
+		$pl_sort = array();
+
+		for ( $i = 0; $i < count($fixlinks); $i++ )
+		{
+			$userdata['portal_sort'] = ($i*100) . ',' . $userdata['portal_sort'];
+			$userdata['portal_links'] = ($fixlinks[$i]) . ',' . $userdata['portal_links'];
+		}
+
+		$pl_links = explode(',', $userdata['portal_links']);
+		$pl_sort = explode(',', $userdata['portal_sort']);
+		
+		array_multisort($pl_sort, SORT_DESC, $pl_links);
+
+		$sql_order = 'ORDER BY';
+
+		for ( $i = 0; $i < count($pl_links); $i++ )
+		{
+			$sql_order .= ( $sql_order == 'ORDER BY' ) ? ' bl_id = '.$pl_links[$i] : ', bl_id = '.$pl_links[$i];
+		}
+
+		$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . " l, " . BOARD_MENU_MERGE_TABLE . " m
+			WHERE l.bl_id IN (".$userdata['portal_links'].")
+			AND l.bl_id = m.link_id
+			AND m.cat_id = $cat
+			$sql_order";
+		if ( !$result = $db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+		}
+	}
+	else
+	{
+		$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . " l, " . BOARD_MENU_MERGE_TABLE . " m
+			WHERE l.bl_level = " . ANONYMOUS . "
+			AND l.bl_id = m.link_id
+			AND m.cat_id = $cat
+			ORDER BY l.bl_psort, l.bl_id";
+		if ( !$result = $db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+		}
+	}
+
+	if ( $count = $db->sql_numrows($result) )
+	{
+		$portal_menu_links .= '<b>'.$catname.'</b><br />';
+		$board_config['bl_seperator_content'] = str_replace('SPACE', '&nbsp;&nbsp;&nbsp;', $board_config['bl_seperator_content']);
+		$i = 0;
+		while ( $row = $db->sql_fetchrow($result) )
+		{
+			if (substr($row['bl_link'],0,10) != 'javascript')
+			{
+				$phpext = '.'.$phpEx;
+				$sidext = ( $row['bl_parameter'] != '' ) ? '&amp;sid='.$userdata['session_id'] : '?sid='.$userdata['session_id'];
+			}
+			else
+			{
+				$phpext = '';
+				$sidext = '';
+			}
+
+			$portal_menu_links .= ( $board_config['bl_seperator'] == 1 ) ? '<img src="'.$board_config['bl_seperator_content'].'" border="0" />&nbsp;' : $board_config['bl_seperator_content'];
+			$portal_menu_links .= ( $row['bl_img'] != '' ) ? '<img src="'.get_bl_theme().$row['bl_img'].'" border="0" />&nbsp;' : '';
+			$portal_menu_links .= '<a href="'.$row[bl_link].$phpext.(( $row['bl_parameter'] != '') ? '?'.$row['bl_parameter'] : '').$sidext;
+			$portal_menu_links .= '" class="mainmenu" title="'.$lang[$row['bl_name']].'">'.$lang[$row['bl_name']].'</a>';
+			$portal_menu_links .= '<br />';
+
+			$i++;
+		}
+	}
+}
+
+$template->assign_vars(array(
+	'BOARD_MENU' => $portal_menu_links)
+);
+// Create the personal board menu
+//
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//
+// Create the personal board menu
+$fixlinks = array();
+
+include_once($phpbb_root_path . 'includes/functions_board_menu.'.$phpEx);
+
+$bl_level_access = get_bllink_access();
+$bl_fix = ( $bl_level_access == '' ) ? ' WHERE bl_fix = 1' : ' AND bl_fix = 1';
+
+$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . "
+	$bl_level_access
+	$bl_fix
+	ORDER BY bl_psort";
+if ( !$result = $db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+}
+
+$ubl = '';
+$ubs = '';
+$i = 1;
+
+while ( $row = $db->sql_fetchrow($result) )
+{
+	$ubl .= ',' . ($row['bl_id']);
+	$ubs .= ',' . ($i*100);
+	$i++;
+}
+
+$userdata['portal_links'] .= $ubl;
+$userdata['portal_sort'] .= $ubs;
+
+$sql_cat = "SELECT * FROM " . BOARD_MENU_CAT_TABLE . "
+	    ORDER BY cat_sort";
+if ( !$result2 = $db->sql_query($sql_cat) )
+{
+	message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+}
+
+$portal_menu_links = '';
+
+while ( $row2 = $db->sql_fetchrow($result2) )
+{
+	$category = $row2['cat_name'];
+	$catname = $lang[$category];
+	$cat = $row2['cat_id'];
+	$show_catname = $row2['show_cat_name'];
+	$show_seperator = $row2['show_seperator'];
+
+	if ( $userdata['session_logged_in'] && $userdata['portal_links'] != '' )
+	{
+		$pl_links = array();
+		$pl_sort = array();
+
+		$pl_links = explode(',', $userdata['portal_links']);
+		$pl_sort = explode(',', $userdata['portal_sort']);
+		
+		array_multisort($pl_sort, SORT_DESC, $pl_links);
+
+		$sql_order = 'ORDER BY';
+
+		for ( $i = 0; $i < count($pl_links); $i++ )
+		{
+			$sql_order .= ( $sql_order == 'ORDER BY' ) ? ' bl_id = '.$pl_links[$i] : ', bl_id = '.$pl_links[$i];
+		}
+
+		$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . " l, " . BOARD_MENU_MERGE_TABLE . " m
+			WHERE l.bl_id IN (".$userdata['portal_links'].")
+			AND l.bl_id = m.link_id
+			AND m.cat_id = $cat
+			$sql_order";
+		if ( !$result = $db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+		}
+	}
+	else
+	{
+		$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . " l, " . BOARD_MENU_MERGE_TABLE . " m
+			WHERE l.bl_level = " . ANONYMOUS . "
+			AND l.bl_id = m.link_id
+			AND m.cat_id = $cat
+			ORDER BY l.bl_psort, l.bl_id";
+		if ( !$result = $db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Could not read portal menu for user', '', __LINE__, __FILE__, $sql);
+		}
+	}
+
+	if ( $count = $db->sql_numrows($result) )
+	{
+		$portal_menu_links .= ( $show_seperator == TRUE ) ? '<hr>' : '';
+		$portal_menu_links .= ( $show_catname == TRUE ) ? '<b>'.$catname.'</b><br />' : '';
+		$board_config['bl_seperator_content'] = str_replace('SPACE', '&nbsp;&nbsp;&nbsp;', $board_config['bl_seperator_content']);
+		$i = 0;
+		while ( $row = $db->sql_fetchrow($result) )
+		{
+			if (substr($row['bl_link'],0,10) != 'javascript')
+			{
+				$phpext = '.'.$phpEx;
+				$sidext = ( $row['bl_parameter'] != '' ) ? '&amp;sid='.$userdata['session_id'] : '?sid='.$userdata['session_id'];
+			}
+			else
+			{
+				$phpext = '';
+				$sidext = '';
+			}
+
+			$portal_menu_links .= ( $board_config['bl_seperator'] == 1 ) ? '<img src="'.$board_config['bl_seperator_content'].'" border="0" />&nbsp;' : $board_config['bl_seperator_content'];
+			$portal_menu_links .= ( $row['bl_img'] != '' ) ? '<img src="'.get_bl_theme().$row['bl_img'].'" border="0" />&nbsp;' : '';
+			$portal_menu_links .= '<a href="'.$row[bl_link].$phpext.(( $row['bl_parameter'] != '') ? '?'.$row['bl_parameter'] : '').$sidext;
+			$portal_menu_links .= '" class="mainmenu" title="'.$lang[$row['bl_name']].'">'.$lang[$row['bl_name']].'</a>';
+			$portal_menu_links .= '<br />';
+
+			$i++;
+		}
+	}
+}
+
+$template->assign_vars(array(
+	'BOARD_MENU' => $portal_menu_links)
+);
+// Create the personal board menu
+//
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

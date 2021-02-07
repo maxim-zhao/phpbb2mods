@@ -1,0 +1,605 @@
+##############################################################
+## MOD Title: Topics a user has started
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com 
+## MOD Description: Updates this MOD to version 2.0.0a from version 1.6.0
+## MOD Version: 2.0.0a
+## 
+## Installation Level: Easy
+## Installation Time: ~ 30 Minutes 
+## Files To Edit: 
+##		includes/usercp_viewprofile.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/profile_view_body.tpl
+##		search.php
+##		memberlist.php
+##		templates/subSilver/memberlist_body.tpl
+##		index.php
+##		viewtopic.php
+##		
+##
+## Included Files: N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##
+############################################################## 
+## MOD History: 
+##
+##
+##   2005-08-21 - Version 2.0.0a
+##      - Changed location of db_update.php
+##	- Fixed error in MOD syntax
+##	- Fixed license error
+##	- Un-urlencoded user id for searching
+##
+##   2005-07-12 - Version 2.0.0
+##      - Totally re-wrote code. Now the MOD edits functions_post.php so that it writes the number of topics of a user to the
+##	  database, just like they have done for posts. It is a lot easier on certain files, like viewtopic and memberlist
+##	  because it only needs one sql query, instead of one for each user. Highly recommended to upgrade.
+##
+##   2005-03-09 - Version 1.6.0
+##      - Added French lanugage version, thanks to Fewe < a_ferre@hotmail.com > (http://hamac.hostonet.org)
+##
+##   2004-12-18 - Version 1.5.2
+##      - Fixed another minor error in mod syntax
+##
+##   2004-12-11 - Version 1.5.1
+##      - Fixed a few minor errors in the coding
+##
+##   2004-12-05 - Version 1.5.0
+##      - Now shows the number of topics the user has started in viewtopic.php, just under the avatar, and post total.
+##
+##   2004-12-04 - Version 1.4.0
+##      - Now shows the total amount of topics started on the homepage (index.php)
+##
+##   2004-11-29 - Version 1.3.2
+##      - Changed the position of the topics started column in the memberlist
+##
+##   2004-11-27 - Version 1.3.1
+##      - Forgot to modify the colspan at the bottom of the memberlist
+##
+##   2004-11-24 - Version 1.3.0
+##      - Now shows in the memberlist the number of topics the user had started
+##
+##   2004-11-20 - Version 1.2.0
+##      - Added statistics, showing the percentage of topics the user posted to the total topics, and the average topics per day.
+##
+##   2004-11-19 - Version 1.1.3
+##      - Some more minor mistakes fixed
+##
+##   2004-11-13 - Version 1.1.2
+##      - Fixed problem with dangerous retrieving of $user variable
+##
+##   2004-11-03 - Version 1.1.1
+##      - Tried to fix problem with dangerous retrieving of $user variable
+##
+##   2004-10-28 - Version 1.1.0
+##      - Added function to search for the topics started by the user
+## 
+##   2004-10-23 - Version 1.0.0
+##      - First version, seems to work fine.
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]------------------------------------------
+# 
+ALTER TABLE `phpbb_users` ADD `user_topics` MEDIUMINT (8) UNSIGNED DEFAULT '0' NOT NULL AFTER `user_posts`;
+
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------------
+# 
+Upload and run "db_update.php". This updates your database, setting the number of topics a user has. Delete the file once you've run it.
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+$posts_per_day = $profiledata['user_posts'] / $memberdays;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Topics a user has started MOD, By Manipe (Begin)
+$topics_per_day = $profiledata['user_topics'] / $memberdays;
+
+// Get the users percentage of total topics
+if ( $profiledata['user_topics'] != 0  )
+{
+	$total_topics = get_db_stat('topiccount');
+	$topics_percentage = ( $total_topics ) ? min(100, ($profiledata['user_topics'] / $total_topics) * 100) : 0;
+}
+else
+{
+	$topics_percentage = 0;
+}
+// Topics a user has started MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+// Topics a user has started MOD, By Manipe (Begin)
+$sql = "SELECT COUNT(*) as topic_count FROM " . TOPICS_TABLE . " WHERE topic_poster = '" . $profiledata['user_id'] . "'";
+if ( !($result = $db->sql_query($sql)) )
+{
+ 	message_die(GENERAL_ERROR, 'Could not obtain topics started information', '', __LINE__, __FILE__, $sql);
+}
+$row = $db->sql_fetchrow($result);
+$topics_started =  ( $row['topic_count'] ) ? $row['topic_count'] : 0;
+$db->sql_freeresult($result);
+$sql = "SELECT COUNT(*) as total_topic_count FROM " . TOPICS_TABLE;
+if ( !($result = $db->sql_query($sql)) )
+{
+ 	message_die(GENERAL_ERROR, 'Could not obtain topics started information', '', __LINE__, __FILE__, $sql);
+}
+$row = $db->sql_fetchrow($result);
+$total_topics =  ( $row['total_topic_count'] ) ? $row['total_topic_count'] : 0;
+$topics_percentage = ( $total_topics ) ? min(100, ($topics_started / $total_topics) * 100) : 0;
+$topics_per_day = $topics_started / $memberdays;
+$db->sql_freeresult($result);
+// Topics a user has started MOD, By Manipe (End)
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+ 
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+	'TOPICS_STARTED' => $topics_started,
+	'L_TOPICS_STARTED' => $lang['Topics_Started'],
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+	'TOPICS' => $profiledata['user_topics'],
+	'L_TOPICS' => $lang['Topics_Started'],
+
+#
+#-----[ OPEN ]------------------------------------------
+# 
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+$lang['Topics_Started'] = 'Topics started';
+$lang['Search_user_topics'] = 'Find all topics started by %s'; // Find all topics started by username
+$lang['User_topic_pct_stats'] = '%.2f%% of total'; // 1.25% of total
+$lang['User_topic_day_stats'] = '%.2f topics per day'; // 1.5 topics per day
+$lang['Memberlist_topics_started'] = 'Topics';
+$lang['Total_topics_started_index'] = ' in <b>%d</b> topics';
+$lang['Topics_viewtopic'] = 'Topics';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+$lang['Posted_topics_zero_total'] = ' in <b>0</b> topics'; // Number of topics
+$lang['Posted_topics_total'] = ' in <b>%d</b> topics'; // Number of topics
+$lang['Posted_topic_total'] = ' in <b>%d</b> topic'; // Number of topics
+$lang['Topics_Started'] = 'Topics started';
+$lang['Search_user_topics'] = 'Find all topics started by %s'; // Find all topics started by username
+$lang['User_topic_pct_stats'] = '%.2f%% of total'; // 1.25% of total
+$lang['User_topic_day_stats'] = '%.2f topics per day'; // 1.5 topics per day
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+templates/subSilver/profile_view_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+		<tr> 
+		  <td valign="top" align="right" nowrap="nowrap"><span class="gen">{L_TOPICS_STARTED}:&nbsp;</span></td>
+		  <td><b><span class="gen">{TOPICS_STARTED}</span></b><br /><span class="genmed">[{TOPIC_PERCENT_STATS} / {TOPIC_DAY_STATS}]</span> <br /><span class="genmed"><a href="{U_SEARCH_USER_TOPICS}" class="genmed">{L_SEARCH_USER_TOPICS}</a></span></td>
+		</tr>
+
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+		<tr> 
+		  <td valign="top" align="right" nowrap="nowrap"><span class="gen">{L_TOPICS}:&nbsp;</span></td>
+		  <td><b><span class="gen">{TOPICS}</span></b><br /><span class="genmed">[{TOPIC_PERCENT_STATS} / {TOPIC_DAY_STATS}]</span> <br /><span class="genmed"><a href="{U_SEARCH_USER_TOPICS}" class="genmed">{L_SEARCH_USER_TOPICS}</a></span></td>
+		</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+search.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+#Note: full line is longer
+	if ( $search_id == 'newposts' || $search_id == 'egosearch' || $search_id == 'unanswered'
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+)
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+# 
+ || $search_id == 'usertopics'
+
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+#Note: full line is longer
+		if ( $search_id == 'newposts' || $search_id == 'egosearch'
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+( $search_author !=
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+# 
+$search_id == 'usertopics' || 
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+				else
+				{
+					redirect(append_sid("login.$phpEx?redirect=search.$phpEx&search_id=newposts", true));
+				}
+
+				$show_results = 'topics';
+				$sort_by = 0;
+				$sort_dir = 'DESC';
+			}
+
+
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Topics a user has started MOD, By Manipe (Begin)
+			else if ( $search_id == 'usertopics' )
+			{
+				$user = ( !empty($HTTP_GET_VARS['user']) ) ? intval($HTTP_GET_VARS['user']) : '0';
+				$sql = "SELECT p.post_id
+					FROM " . POSTS_TABLE . " p, " . TOPICS_TABLE . " t
+					WHERE t.topic_poster = " . $user . " AND
+					p.post_id = t.topic_first_post_id";
+
+				$show_results = 'topics';
+				$sort_by = 0;
+				$sort_dir = 'DESC';
+			}
+// Topics a user has started MOD, By Manipe (End)
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+memberlist.php
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+	'L_TOPICS' => $lang['Memberlist_topics_started'],
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+	'L_TOPICS' => $lang['Topics'],
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+#Note: Full line is longer
+$mode_types_text = array($lang['Sort_Joined'], $lang['Sort_Username'], $lang['Sort_Location']
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+$lang['Sort_Posts']
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+# 
+, $lang['Sort_Topics']
+
+# 
+#-----[ FIND ]------------------------------------------
+#
+#Note: Full line is longer
+$mode_types = array('joindate', 'username', 'location'
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+'posts'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+# 
+, 'topics'
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+	case 'posts':
+		$order_by = "user_posts $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Topics a user has started MOD, By Manipe (Begin)
+	case 'topics':
+		$order_by = "user_topics $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+// Topics a user has started MOD, By Manipe (End)
+
+# 
+#-----[ FIND ]------------------------------------------
+#
+#Note: Full line is longer
+$sql = "SELECT username, user_id,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+user_posts
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+# 
+, user_topics
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+		$posts = ( $row['user_posts'] ) ? $row['user_posts'] : 0;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Topics a user has started MOD, By Manipe (Begin)
+		$topics = ( $row['user_topics'] ) ? $row['user_topics'] : 0;
+// Topics a user has started MOD, By Manipe (End)
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+// Topics a user has started MOD, By Manipe (Begin)
+		$sql2 = "SELECT COUNT(*) as topic_count FROM " . TOPICS_TABLE . " WHERE topic_poster = '" . $user_id . "'";
+		if ( !($result2 = $db->sql_query($sql2)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain topics started information', '', __LINE__, __FILE__, $sql);
+		}
+		$row2 = $db->sql_fetchrow($result2);
+		$topics_started =  ( $row2['topic_count'] ) ? $row2['topic_count'] : 0;
+		$db->sql_freeresult($result2);
+// Topics a user has started MOD, By Manipe (End)
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+ 
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+			'TOPICS_STARTED' => $topics_started,
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+			'TOPICS' => $topics,
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+templates/subSilver/memberlist_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+	  <td class="{memberrow.ROW_CLASS}" align="center" valign="middle"><span class="gen">{memberrow.TOPICS_STARTED}</span></td>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+{memberrow.TOPICS_STARTED}
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+# 
+{memberrow.TOPICS}
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+index.php
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+$sql = "SELECT COUNT(*) as topic_count FROM " . TOPICS_TABLE;
+if ( !($result = $db->sql_query($sql)) )
+{
+ 	message_die(GENERAL_ERROR, 'Could not obtain topics started information', '', __LINE__, __FILE__, $sql);
+}
+$row = $db->sql_fetchrow($result);
+$total_topics =  ( $row['topic_count'] ) ? $row['topic_count'] : 0;
+$db->sql_freeresult($result);
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+$total_topics = get_db_stat('topiccount');
+
+if( $total_topics == 0 )
+{
+	$l_total_topic_s = $lang['Posted_topics_zero_total'];
+}
+else if( $total_topics == 1 )
+{
+	$l_total_topic_s = $lang['Posted_topic_total'];
+}
+else
+{
+	$l_total_topic_s = $lang['Posted_topics_total'];
+}
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+		'TOTAL_TOPICS' => sprintf($lang['Total_topics_started_index'], $total_topics),	
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		'TOTAL_TOPICS' => sprintf($l_total_topic_s, $total_topics),
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+viewtopic.php
+
+# 
+#-----[ FIND ]------------------------------------------
+#
+#Note: full line is longer
+$sql = "SELECT u.username, u.user_id
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+u.user_posts
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+# 
+, u.user_topics
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+	$poster_posts = ( $postrow[$i]['user_id'] != ANONYMOUS ) ? $lang['Posts'] . ': ' . $postrow[$i]['user_posts'] : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Topics a user has started MOD, By Manipe (Begin)
+	$poster_topics = ( $postrow[$i]['user_id'] != ANONYMOUS ) ? $lang['Topics'] . ': ' . (( $postrow[$i]['user_topics'] ) ? $postrow[$i]['user_topics'] : '0') : '';
+// Topics a user has started MOD, By Manipe (End)
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+// Topics a user has started MOD, By Manipe (Begin)
+		$sql1 = "SELECT COUNT(*) AS topic_count FROM " . TOPICS_TABLE . " WHERE topic_poster = '" . $postrow[$i]['user_id'] . "'";
+		if ( !($result1 = $db->sql_query($sql1)) )
+		{
+		 	message_die(GENERAL_ERROR, 'Could not obtain topics started information', '', __LINE__, __FILE__, $sql);
+		}
+		$row1 = $db->sql_fetchrow($result1);
+		$topics_started =  $lang['Topics_viewtopic'] . ': ' . (( $row1['topic_count'] ) ? $row1['topic_count'] : 0);
+		$db->sql_freeresult($result1);
+// Topics a user has started MOD, By Manipe (End)
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+ 
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+// Topics a user has started MOD, By Manipe (Begin)
+		$topics_started = '';
+// Topics a user has started MOD, By Manipe (End)
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+ 
+
+# 
+#-----[ FIND ]------------------------------------------
+# 
+		'POSTER_TOPICS' => $topics_started,
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		'POSTER_TOPICS' => $poster_topics,
+
+#
+#-----[ OPEN ]------------------------------------------
+# 
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+		if ($mode == 'newtopic')
+		{
+			$topic_id = $db->sql_nextid();
+		}
+	}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Topics a user has started MOD, By Manipe (Begin)
+	if ($mode == 'newtopic')
+	{
+		$sql = "UPDATE " . USERS_TABLE . "
+			SET user_topics = user_topics + 1
+			WHERE user_id = '" . $userdata['user_id'] . "'";
+
+		if (!$db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+		}
+	}
+// Topics a user has started MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+			if ($post_data['first_post'])
+			{
+				$forum_update_sql .= ', forum_topics = forum_topics - 1';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Topics a user has started MOD, By Manipe (Begin)
+				$sql = "UPDATE " . USERS_TABLE . "
+					SET user_topics = user_topics_started - 1
+					WHERE user_id = '$user_id'";
+				if (!$db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Error in deleting post', '', __LINE__, __FILE__, $sql);
+				}
+// Topics a user has started MOD, By Manipe (End)
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+
+# EoM

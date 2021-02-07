@@ -1,0 +1,178 @@
+##############################################################
+## MOD Title: Administration Panel-link in navigation
+## MOD Author: Balint < balint@krizsan.de > (Balint Krizsan) http://www.krizsan.de 
+## MOD Description: Places "Administration Panel"-link on top of the page.
+## 					Only visible for admins.
+## MOD Version: 1.0.6a
+## 
+## Installation Level: Easy
+## Installation Time: 8 Minutes
+## Files To Edit: includes/page_header.php,
+## 				  language/lang_english/lang_main.php,
+## 				  templates/subSilver/overall_header.tpl,
+##				  templates/subSilver/subSilver.cfg,
+##				  templates/subSilver/overall_footer.tpl
+##
+## Included Files: icon_mini_admin.gif
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: The last instruction is only required when you want to remove the
+##				 "Go to Administration Panel"-link from the footer.
+##
+##############################################################
+## MOD History: 
+## 
+##   2007-09-28 - Version 1.0.6a
+##		- Packaging issue with MODX
+##	 2007-09-28 - Version 1.0.6
+##		- Updated to new MOD template
+##		- Hide table cells from non-admin with template switch
+##		- Remove ACP-link in footer (optional)
+##	 2003-11-10 - Version 1.0.5
+##		- removed hardcoded part from page_header.php
+##		- shortened find-instruction in overall_header.tpl
+##	 2003-08-11 - Version 1.0.4
+##		- cosmetical stuff in overall_header.tpl
+##		- removed additional version and images
+##	 2003-02-17 - Version 1.0.3
+##		- possibility to include just image without text (idea: JetJam) 
+##	 2003-02-07 - Version 1.0.2
+##		- updated for 2.0.4
+##		- shorter link text (thanks to JetJam)
+##		- possibility to include just image without text (thanks to JetJam)
+##	 2002-09-13 - Version 1.0.1
+##		- fixed image display bug (thanks to JetJam)
+##	 2002-08-06 - Version 1.0.0
+##		- Initial Release
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy contrib/icon_mini_admin.gif to templates/subSilver/images/icon_mini_admin.gif
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/page_header.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+// Parse and show the overall header.
+//
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$l_admin_top_link = '<a class="mainmenu" href="admin/index.' . $phpEx . '?sid=' . $userdata['session_id'] . '"><img src="' . $images['admin_panel'] . '" width="12" height="13" border="0" hspace="3" />' . $lang['Admin_panel_top'] . '</a>';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+'L_USERNAME' => $lang['Username'],
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+'L_ADMIN_TOP_LINK' => $l_admin_top_link,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+// Add no-cache control for cookies if they are set
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Visible for Admin only
+if ( $userdata['user_level'] == ADMIN )
+{
+     $template->assign_block_vars('switch_admin_acp', array() );
+}
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Admin_panel'] = 'Go to Administration Panel';
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+$lang['Admin_panel_top'] = 'Administration Panel';
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+</table></td>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+<!-- BEGIN switch_admin_acp -->
+<tr>
+	<td align="center"><span class="mainmenu">{L_ADMIN_TOP_LINK}</span></td>
+</tr>
+<!-- END switch_admin_acp -->
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.cfg
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$images['pm_no_new_msg'] = "";
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$images['admin_panel'] = "$current_template_images/icon_mini_admin.gif";
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# Optional: if you want to remove the link to the Administration panel from the
+# footer follow the following find&replace
+#
+templates/subSilver/overall_footer.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+<div align="center"><span class="copyright"><br />{ADMIN_LINK}<br />
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+<div align="center"><span class="copyright"><br /><br />
+
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

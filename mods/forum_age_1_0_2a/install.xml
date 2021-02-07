@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+  <header>
+    <license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+    <title lang="en-gb">Forum Age addon for Birthdays MOD</title>
+    <description lang="en-gb">Allows you to define what age is required to
+view a certain forum. Requires the birthdays
+MOD.</description>
+    <author-notes lang="en-gb">Credits of this MOD go to following people
+Ramon Fincken - He gave me the Links as tipps for what to use
+Doe Ray Me - He made the "View Forum Postcount Threshold" MOD, that i used as a Base for my own.
+Thanks a lot for this MOD! But you didn't secure posting.php
+Cyberalien - eXtreme Styles MOD is so awesome!
+Terrafrost - Birthdays MOD rocks! Thanks so much!
+RMcGirr83 - His "Profile Age Add-on" add-on for the birthday MOD was very usefull.
+I borrowed a little piece of code.
+filmn requested this MOD. ;)
+
+Following MODs are required for this to work
+eXtreme Styles: http://phpbbstyles.com/viewtopic.php?t=356
+Birthdays MOD: http://www.phpbb.com/phpBB/viewtopic.php?t=342028
+XS-Birthdays compatibility: http://www.phpbb.com/phpBB/viewtopic.php?p=2107785#2107785
+
+You can get support either at phpbb.com or at phpbbmodders.net</author-notes>
+    <author-group>
+      <author>
+        <realname>Igor Wiedler</realname>
+        <email>evil@phpbbmodders.net</email>
+        <username>eviL&lt;3</username>
+        <homepage>http://phpbbmodders.net</homepage>
+        <contributions />
+      </author>
+    </author-group>
+    <mod-version>
+      <major>1</major>
+      <minor>0</minor>
+      <revision>2</revision>
+    </mod-version>
+    <installation>
+      <level>intermediate</level>
+      <time>600</time>
+      <target-version>
+        <target-primary>2.0</target-primary>
+        <target-major allow="exact">2</target-major>
+        <target-minor allow="exact">0</target-minor>
+      </target-version>
+    </installation>
+    <history>
+      <entry>
+        <date>2006-06-13</date>
+        <rev-version>
+          <major>0</major>
+          <minor>1</minor>
+          <revision>0</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change>First release</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2006-06-19</date>
+        <rev-version>
+          <major>0</major>
+          <minor>1</minor>
+          <revision>1</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change>Fix for no birthdate entered (thanks to Sam England, the admin of ivirtua)</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2006-09-24</date>
+        <rev-version>
+          <major>1</major>
+          <minor>0</minor>
+          <revision>0</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change>Submitted to MODDB</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2006-11-23</date>
+        <rev-version>
+          <major>1</major>
+          <minor>0</minor>
+          <revision>1</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change>Cleaned up</change>
+          <change>Small bug fixed (thanks tariqkhan)</change>
+        </changelog>
+      </entry>
+      <entry>
+        <date>2006-11-23</date>
+        <rev-version>
+          <major>1</major>
+          <minor>0</minor>
+          <revision>2</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change>How about MODx?</change>
+        </changelog>
+      </entry>
+	  <entry>
+        <date>2007-02-07</date>
+        <rev-version>
+          <major>1</major>
+          <minor>0</minor>
+          <revision>2</revision>
+        </rev-version>
+        <changelog lang="en-gb">
+          <change>Changed SQL to SMALLINT(4)</change>
+		  <change>Enhanced permissions (as suggested by MOD team)</change>
+        </changelog>
+      </entry>
+    </history>
+    <meta name="generator" content="Phpbb.ModTeam.Tools (c#)" />
+  </header>
+  <action-group>
+    <sql>ALTER TABLE phpbb_forums ADD forum_view_age SMALLINT(4) NOT NULL default '0';</sql>
+    <open src="index.php">
+      <edit>
+        <find>							$posts = $forum_data[$j]['forum_posts'];</find>
+        <action type="before-add"><![CDATA[
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+							if ( $forum_data[$j]['forum_view_age'] && (!$is_auth_ary[$forum_data[$i]['forum_id']]['auth_mod']) )
+							{
+								$bday_month_day = floor($userdata['user_birthday'] / 10000);
+								$bday_year_age = $userdata['user_birthday'] - 10000*$bday_month_day;
+								$fudge = ( gmdate('md') < $bday_month_day ) ? 1 : 0;
+								$age = ( $bday_year_age ) ? (gmdate('Y')-$bday_year_age-$fudge) : '0';
+
+								if ($age < $forum_data[$j]['forum_view_age'] || !$age)
+								{
+									$age_hidden = 1;
+								}
+							}
+							else
+							{
+								$age_hidden = 0;
+							}
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+]]></action>
+      </edit>
+      <edit>
+        <find><![CDATA[								'L_FORUM_FOLDER_ALT' => $folder_alt,]]></find>
+        <action type="after-add"><![CDATA[//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+								'AGE_HIDDEN' => $age_hidden,
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------]]></action>
+      </edit>
+    </open>
+    <open src="posting.php">
+      <edit>
+        <find>//
+// The user is not authed, if they're not logged in then redirect</find>
+        <action type="before-add"><![CDATA[
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+$forum_view_age = $post_info['forum_view_age'];
+
+$bday_month_day = floor($userdata['user_birthday'] / 10000);
+$bday_year_age = $userdata['user_birthday'] - 10000*$bday_month_day;
+$fudge = ( gmdate('md') < $bday_month_day ) ? 1 : 0;
+$age = ( $bday_year_age ) ? (gmdate('Y')-$bday_year_age-$fudge) : '0';
+
+if ( (($age < $forum_view_age || !$age) && $userdata['user_level'] != ADMIN) && $forum_view_age )
+{
+        message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view_age));
+
+        // Added because of registered user and guest conflict
+        if (!$userdata['session_logged_in'])
+        {
+                 message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view_age));
+        }
+}
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+]]></action>
+      </edit>
+    </open>
+    <open src="viewtopic.php">
+      <edit>
+        <find>$sql = "SELECT t.topic_id,</find>
+        <inline-edit>
+          <inline-find>, f.forum_id</inline-find>
+          <inline-action type="after-add">, f.forum_view_age</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>$topic_time = $forum_topic_data['topic_time'];</find>
+        <action type="after-add"><![CDATA[
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+$forum_view_age = $forum_topic_data['forum_view_age'];
+
+$bday_month_day = floor($userdata['user_birthday'] / 10000);
+$bday_year_age = $userdata['user_birthday'] - 10000*$bday_month_day;
+$fudge = ( gmdate('md') < $bday_month_day ) ? 1 : 0;
+$age = ( $bday_year_age ) ? (gmdate('Y')-$bday_year_age-$fudge) : '0';
+
+if ( $forum_view_age && ($age < $forum_view_age || !$age) && $userdata['user_level'] != ADMIN )
+{
+        message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view_age));
+
+        // Added because of registered user and guest conflict
+        if (!$userdata['session_logged_in'])
+        {
+                 message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view_age));
+        }
+}
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+]]></action>
+      </edit>
+    </open>
+    <open src="viewforum.php">
+      <edit>
+        <find>// End session management
+//</find>
+        <action type="after-add"><![CDATA[
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+$sql = "SELECT forum_view_age 
+        FROM " . FORUMS_TABLE . "
+        WHERE forum_id = $forum_id";
+if(!$result = $db->sql_query($sql))
+{
+        message_die(GENERAL_ERROR, 'Could not query forum information.', '', __LINE__, __FILE__, $sql);
+}
+$forum_information = $db->sql_fetchrow($result);
+$forum_view = $forum_information['forum_view_age'];
+
+$bday_month_day = floor($userdata['user_birthday'] / 10000);
+$bday_year_age = $userdata['user_birthday'] - 10000*$bday_month_day;
+$fudge = ( gmdate('md') < $bday_month_day ) ? 1 : 0;
+$age = ( $bday_year_age ) ? (gmdate('Y')-$bday_year_age-$fudge) : '0';
+
+if ( $forum_view && ($age < $forum_view || !$age) && $userdata['user_level'] != ADMIN )
+{
+        message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view));
+
+        // Added because of registered user and guest conflict
+        if (!$userdata['session_logged_in'])
+        {
+                 message_die(GENERAL_MESSAGE, sprintf($lang['Forum_view_age_sorry'], $forum_view));
+        }
+}
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+]]></action>
+      </edit>
+    </open>
+    <open src="admin/admin_forums.php">
+      <edit>
+        <find>				$forumstatus = $row['forum_status'];</find>
+        <action type="after-add">//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+				$forumviewage = $row['forum_view_age'];
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------</action>
+      </edit>
+      <edit>
+        <find>				$forumstatus = FORUM_UNLOCKED;
+</find>
+        <action type="after-add">//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+				$forumviewage = '';
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------</action>
+        <action type="after-add"><![CDATA[				'L_FORUM_STATUS' => $lang['Forum_status'],
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+				'L_FORUM_VIEW_AGE' => $lang['Forum_view_age'],
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------]]></action>
+      </edit>
+      <edit>
+        <find><![CDATA[				'FORUM_NAME' => $forumname,]]></find>
+        <action type="after-add"><![CDATA[//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+				'FORUM_VIEW_AGE' => $forumviewage,
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------]]></action>
+      </edit>
+      <edit>
+        <find>$sql = "INSERT INTO " . FORUMS_TABLE</find>
+        <inline-edit>
+          <inline-find>forum_status</inline-find>
+          <inline-action type="after-add">, forum_view_age</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>VALUES ('" . $next_id .</find>
+        <inline-edit>
+          <inline-find>" . intval($HTTP_POST_VARS['forumstatus']) . "</inline-find>
+          <inline-action type="after-add">, " . intval($HTTP_POST_VARS['forumviewage']) . "</inline-action>
+        </inline-edit>
+      </edit>
+      <edit>
+        <find>SET forum_name</find>
+        <inline-edit>
+          <inline-find>, forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . "</inline-find>
+          <inline-action type="after-add">, forum_view_age = " . intval($HTTP_POST_VARS['forumviewage']) . "</inline-action>
+        </inline-edit>
+      </edit>
+    </open>
+    <open src="language/lang_english/lang_admin.php">
+      <edit>
+        <find>$lang['Forum_status'] = 'Forum status';</find>
+        <action type="after-add">//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+$lang['Forum_view_age'] = 'Required Age';
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------</action>
+      </edit>
+    </open>
+    <open src="language/lang_english/lang_main.php">
+      <edit>
+        <find><![CDATA[?>]]></find>
+        <action type="before-add"><![CDATA[
+//-- mod : Forum Age addon for Birthdays MOD ------------------------------------------------------------
+//-- add
+$lang['Forum_view_age_sorry'] = 'Sorry, you need to be <b>%d Years old</b> to view this forum';
+//-- fin mod : Forum Age addon for Birthdays MOD --------------------------------------------------------
+]]></action>
+      </edit>
+    </open>
+    <open src="templates/subSilver/index_body.tpl">
+      <edit>
+        <find><![CDATA[<!-- BEGIN forumrow -->]]></find>
+        <action type="after-add"><![CDATA[<!-- IF ! forumrow.AGE_HIDDEN -->]]></action>
+      </edit>
+      <edit>
+        <find><![CDATA[<!-- END forumrow -->]]></find>
+        <action type="before-add"><![CDATA[<!-- ENDIF -->]]></action>
+      </edit>
+    </open>
+    <open src="templates/subSilver/admin/forum_edit_body.tpl">
+      <edit>
+        <find><![CDATA[	<tr> 
+		<td class="row1">{L_FORUM_STATUS}</td>
+		<td class="row2"><select name="forumstatus">{S_STATUS_LIST}</select></td>
+	</tr>]]></find>
+        <action type="after-add"><![CDATA[	<tr> 
+		<td class="row1">{L_FORUM_VIEW_AGE}</td>
+		<td class="row2"><input type="text" size="25" name="forumviewage" value="{FORUM_VIEW_AGE}" class="post" /></td>
+	</tr>]]></action>
+      </edit>
+    </open>
+  </action-group>
+</mod>

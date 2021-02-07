@@ -1,0 +1,424 @@
+######################################################## 
+## MOD Title: Configure Member Profile Required Fields
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This mod allow admin to configure which information in member profile is required inside admin control panel. The required field will need to be filled in during registration and upon profile update.
+## MOD Version: 1.2.1
+## 
+## Installation Level: Easy 
+## Installation Time: 10 Minutes 
+##
+## Files To Edit: 6
+##	admin/admin_users.php
+##	includes/constants.php
+##	includes/usercp_register.php
+##	language/lang_english/lang_admin.php
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files: 2
+##	root/admin_profile_field.php
+##	root/admin_profile_field.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.18. Can be installed using EasyMOD 0.3.0
+##
+############################################################## 
+## MOD History: 
+##
+##   2004-01-22 - Version 1.0.0
+##      - Initial Release
+##
+##   2004-07-24 - Version 1.1.0
+##      - Bug fix & minor changes, added Visual Confirmation support
+##	- Edit the MOD template synthax
+##
+##   2005-01-23 - Version 1.1.1
+##	- Made for phpBB 2.0.11 (Since 2.0.11 has Visual Confirmation implemented)
+##	- Fix some bugs in usercp_register.php
+##
+##   2005-11-24 - Version 1.2.0
+##      - Re-worte many parts of this MOD, remove a lot of un-necessary codes.
+##
+##   2005-11-26 - Version 1.2.1
+##      - Include MOD in admin_users.php
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy root/admin_profile_field.php to admin/admin_profile_field.php
+copy root/admin_profile_field.tpl to templates/subSilver/admin/admin_profile_field.tpl
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+CREATE TABLE phpbb_profile_config (
+    config_name VARCHAR(255) NOT NULL DEFAULT '',
+    config_value VARCHAR(255) NOT NULL DEFAULT '',
+    PRIMARY KEY (config_name)
+);
+
+INSERT INTO phpbb_profile_config VALUES('icq','0');
+INSERT INTO phpbb_profile_config VALUES('website','0');
+INSERT INTO phpbb_profile_config VALUES('location','0');
+INSERT INTO phpbb_profile_config VALUES('signature','0');
+INSERT INTO phpbb_profile_config VALUES('aim','0');
+INSERT INTO phpbb_profile_config VALUES('yim','0');
+INSERT INTO phpbb_profile_config VALUES('msnm','0');
+INSERT INTO phpbb_profile_config VALUES('occupation','0');
+INSERT INTO phpbb_profile_config VALUES('interests','0');
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Configure Member Profile Required Fields
+$lang['Profile_config_updated'] = 'Required Field settings have been updated';
+$lang['Click_return_profile_config'] = 'Click %sHere%s to return to Profile Required Field Configuration';
+$lang['Profile_field_config'] = 'Profile Required Field Configuration';
+$lang['Profile_field_explain'] = 'Below are the options you can set to made the information optional or compulsory during user registration and profile update.';
+$lang['Settings'] = 'Settings';
+$lang['Reg_optional'] = 'Optional';
+$lang['Reg_compulsory'] = 'Compulsory';
+$lang['CMPRF_mod_version'] = 'Configure Member Profile Required Fields - Version 1.2.1 (2005-11-26)';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_users.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+{
+	$mode = '';
+}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// Configure Member Profile Required Fields
+$sql = "SELECT *
+		FROM " . PROFILE_CONFIG_TABLE;
+if( !($result = $db->sql_query($sql)) )
+{
+	message_die(CRITICAL_ERROR, "Could not query required field config information", "", __LINE__, __FILE__, $sql);
+}
+
+$required_field_config = array();
+while ( $row = $db->sql_fetchrow($result) )
+{
+	$required_field_config[$row['config_name']] = $row['config_value'];
+}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'L_ICQ_NUMBER' => $lang['ICQ'],
+		'L_MESSENGER' => $lang['MSNM'],
+		'L_YAHOO' => $lang['YIM'],
+		'L_WEBSITE' => $lang['Website'],
+		'L_AIM' => $lang['AIM'],
+		'L_LOCATION' => $lang['Location'],
+		'L_OCCUPATION' => $lang['Occupation'],
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_ICQ_NUMBER' => ($required_field_config['icq']) ? $lang['ICQ'] . ' * ' : $lang['ICQ'],
+		'L_MESSENGER' => ($required_field_config['msn']) ? $lang['MSNM'] . ' * ' : $lang['MSNM'],
+		'L_YAHOO' => ($required_field_config['yim']) ? $lang['YIM'] . ' * ' : $lang['YIM'],
+		'L_WEBSITE' => ($required_field_config['website']) ? $lang['Website'] . ' * ' : $lang['Website'],
+		'L_AIM' => ($required_field_config['aim']) ? $lang['AIM'] . ' * ' : $lang['AIM'],
+		'L_LOCATION' => ($required_field_config['location']) ? $lang['Location'] . ' * ' : $lang['Location'],
+		'L_OCCUPATION' => ($required_field_config['occupation']) ? $lang['Occupation'] . ' * ' : $lang['Occupation'],
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'L_INTERESTS' => $lang['Interests'],
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_INTERESTS' => ($required_field_config['interests']) ? $lang['Interests'] . ' * ' : $lang['Interests'],
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'L_SIGNATURE' => $lang['Signature'],
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_SIGNATURE' => ($required_field_config['signature']) ? $lang['Signature'] . ' * ' : $lang['Signature'],
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+includes/constants.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// Configure Member Profile Required Fields
+define('PROFILE_CONFIG_TABLE', $table_prefix.'profile_config');
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+includes/usercp_register.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$error = FALSE;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+$fields_empty = FALSE;
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$error_msg = $lang['Fields_empty'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$fields_empty = TRUE;
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	message_die(GENERAL_MESSAGE, $lang['Username_taken'], '', __LINE__, __FILE__);
+}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Configure Member Profile Required Fields
+$sql = "SELECT *
+		FROM " . PROFILE_CONFIG_TABLE;
+if( !($result = $db->sql_query($sql)) )
+{
+	message_die(CRITICAL_ERROR, "Could not query required field config information", "", __LINE__, __FILE__, $sql);
+}
+
+$required_field_config = array();
+while ( $row = $db->sql_fetchrow($result) )
+{
+	$required_field_config[$row['config_name']] = $row['config_value'];
+}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$fields_empty = TRUE;
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	if ($board_config['enable_confirm'] && $mode == 'register')
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	// Configure Member Profile Required Fields
+	if ( $required_field_config['yim'] && empty($yim))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['icq'] && empty($icq))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['msn'] && empty($msn))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['aim'] && empty($aim))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['occupation'] && empty($occupation))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['interests'] && empty($interests))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['location'] && empty($location))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['website'] && empty($website))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['signature'] && empty($signature))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'L_ICQ_NUMBER' => $lang['ICQ'],
+		'L_MESSENGER' => $lang['MSNM'],
+		'L_YAHOO' => $lang['YIM'],
+		'L_WEBSITE' => $lang['Website'],
+		'L_AIM' => $lang['AIM'],
+		'L_LOCATION' => $lang['Location'],
+		'L_OCCUPATION' => $lang['Occupation'],
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_ICQ_NUMBER' => ($required_field_config['icq']) ? $lang['ICQ'] . ' * ' : $lang['ICQ'],
+		'L_MESSENGER' => ($required_field_config['msn']) ? $lang['MSNM'] . ' * ' : $lang['MSNM'],
+		'L_YAHOO' => ($required_field_config['yim']) ? $lang['YIM'] . ' * ' : $lang['YIM'],
+		'L_WEBSITE' => ($required_field_config['website']) ? $lang['Website'] . ' * ' : $lang['Website'],
+		'L_AIM' => ($required_field_config['aim']) ? $lang['AIM'] . ' * ' : $lang['AIM'],
+		'L_LOCATION' => ($required_field_config['location']) ? $lang['Location'] . ' * ' : $lang['Location'],
+		'L_OCCUPATION' => ($required_field_config['occupation']) ? $lang['Occupation'] . ' * ' : $lang['Occupation'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'L_INTERESTS' => $lang['Interests'],
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_INTERESTS' => ($required_field_config['interests']) ? $lang['Interests'] . ' * ' : $lang['Interests'],
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'L_SIGNATURE' => $lang['Signature'],
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_SIGNATURE' => ($required_field_config['signature']) ? $lang['Signature'] . ' * ' : $lang['Signature'],
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_PROFILE_INFO}</th>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<tr> 
+		<td class="row2" colspan="2"><span class="gensmall">{L_ITEMS_REQUIRED}</span></td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/user_edit_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<tr> 
+	  <th class="thSides" colspan="2">{L_PROFILE_INFO}</th>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<tr> 
+	  <td class="row2" colspan="2"><span class="gensmall">{L_ITEMS_REQUIRED}</span></td>
+	</tr>
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+#
+# 
+# EoM 

@@ -1,0 +1,178 @@
+##############################################################
+## MOD Title:		Clone posts (upgrade from 1.0.3 to 1.0.3a)
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Description:	This upgrades an installation of the clone posts mod
+##			from version 1.0.3 to 1.0.3a
+##
+## MOD Version:		1.0.3a
+##
+## Installation Level:	(Easy)
+## Installation Time:	10 Minutes
+##
+## Files To Edit: 	posting.php
+##
+## Included Files: 	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 	Note: this is an upgrade mod that assumes you already have version 1.0.3 of the clone posts mod installed... 
+##			if you have version 1.0.2 installed you should instead use the upgrade_from_1-0-2_to_1-0-3a file to upgrade
+##
+##			Important: if you are running my tabulated survey at topic head mod, then after you install this upgrade you must find the following code in posting.php:
+##
+##			// start mod tabulated survey at topic head
+##			// if this is an existing topic with a survey in it, pass the survey_id to the template so it can be retrieved when the edited post is resubmitted
+##			if($post_info['topic_survey'])
+##			{
+##				// ok, this is in fact an existing topic with a survey in it, so retrieve the question data from the survey table
+##				// and store that data in $survey_info.  $survey_info gets used later on in this file (where the survey template in built) but meanwhile
+##				// we'll stick survey survey_id into the hidden fields to get passed on to the template (so that
+##				// it can be retrieved when the edited post gets resubmitted).
+##				$sql = "SELECT survey_id, survey_caption, group_ids, show_order, show_nonresponders, max_number_of_questions, lines_to_skip, survey_height, widths, questions, question_types, question_selections, question_sums, question_selected_text, question_response_caps, question_average_round
+##					FROM " . SURVEY_TABLE . "
+##					WHERE topic_id = $topic_id";
+##
+##				if ( !($result = $db->sql_query($sql)) )
+##				{
+##					message_die(GENERAL_ERROR, "Could not get survey info the survey table", '', __LINE__, __FILE__, $sql);
+##				}
+##				$survey_info = $db->sql_fetchrow($result);
+##				$db->sql_freeresult($result);
+##			}
+##			// end mod tabulated survey at topic head
+##
+##			and move that code up a few lines so that it appears right after:
+##			$hidden_form_fields .= '<input type="hidden" name="clonepost" value="TRUE" />';
+##
+##############################################################
+## MOD History:
+##
+##   2005-11-19	- Version 1.0.3a
+##		  fixed code so that when you create the new post in original poster's name and then try to preview the 
+##		  post, it remembers that you are posting in original poster's name
+##
+##   2005-11-13	- Version 1.0.3
+##		  added feature that allows admin to decide whether to create the new cloned post in the name of original poster
+##		  or in the name of the user doing the cloning
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// start mod clone posts: if the user is cloning a post, set $clonepost flag, fetch the target forum_id and find out if the post is in name of original user
+//
+if ( isset($HTTP_POST_VARS['clonepost']) )
+{
+	$clonepost = TRUE;
+	$clone_target_forum_id = intval($HTTP_POST_VARS['forum_id']);
+	// if post is supposed to be in the name of original poster, set $post_in_oriignal_poster_name to TRUE or, if we already have the user_id of the original user
+	// (because we are past our first pass in posting.php so we are now previewing or submitting the post), set $post_in_oriignal_poster_name to equal the user_id of original poster
+	if ( isset($HTTP_POST_VARS['post_in_original_poster_name']) )
+	{
+		$post_in_original_poster_name = ( $HTTP_POST_VARS['post_in_original_poster_name'] == 'TRUE' ) ? 'TRUE' : intval($HTTP_POST_VARS['post_in_original_poster_name']);
+	}
+}
+// end mod clone posts
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+//
+// start mod clone posts: if the user is cloning a post, set $clonepost flag, fetch the target forum_id and find out if the post is in name of original user
+//
+if ( isset($HTTP_POST_VARS['clonepost']) )
+{
+	$clonepost = TRUE;
+	$clone_target_forum_id = intval($HTTP_POST_VARS['forum_id']);
+	// if post is supposed to be in the name of original poster, set $post_in_original_poster_name to TRUE and, if we already have the user_id of the original user
+	// (because we are past our first pass in posting.php so we are now previewing or submitting the post), set $clone_user_id to equal the user_id of original poster
+	if ( isset($HTTP_POST_VARS['post_in_original_poster_name']) )
+	{
+		$post_in_original_poster_name = "TRUE";
+		$clone_user_id = ( isset($HTTP_POST_VARS['clone_user_id']) ) ? intval($HTTP_POST_VARS['clone_user_id']) : '';
+	}
+}
+// end mod clone posts
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+if ( $result = $db->sql_query($sql) )
+{
+	$post_info = $db->sql_fetchrow($result);
+	$db->sql_freeresult($result);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	// start mod clone posts ... if this is a clone and we are posting in name of original poster and we already
+	// have the id for the original poster (i.e. because this is a preview), set post_info and userdata variables the right
+	// way so that the info will be passed to the template if the user hits preview again and so the preview shows the right
+	// user_sig, etc.
+	if ( $clone_user_id )
+	{
+		$post_info['poster_id'] = $clone_user_id;
+		$post_info['username'] = ( isset($HTTP_POST_VARS['clone_username']) ) ? htmlspecialchars(stripslashes(trim($HTTP_POST_VARS['clone_username']))) : '';
+		$post_info['user_sig'] = ( isset($HTTP_POST_VARS['clone_user_sig']) ) ? htmlspecialchars(stripslashes(trim($HTTP_POST_VARS['clone_user_sig']))) : '';
+		$post_info['user_sig_bbcode_uid'] = ( isset($HTTP_POST_VARS['clone_user_sig_bbcode_uid']) ) ? htmlspecialchars($HTTP_POST_VARS['clone_user_sig_bbcode_uid']) : '';
+		$userdata['username'] = $post_info['username'];
+		$userdata['user_sig'] = $post_info['user_sig'];
+		$userdata['user_sig_bbcode_uid'] = $post_info['user_sig_bbcode_uid'];
+	}
+	// end mod clone posts
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					$post_data['user_id'] = $post_in_original_poster_name;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+					$post_data['user_id'] = $clone_user_id;
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$user_id = $post_in_original_poster_name;
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+				$user_id = $clone_user_id;
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$hidden_form_fields .= '<input type="hidden" name="post_in_original_poster_name" value="' . $post_info['poster_id'] . '" />';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+				$hidden_form_fields .= '<input type="hidden" name="post_in_original_poster_name" value="TRUE" />';
+				$hidden_form_fields .= '<input type="hidden" name="clone_user_id" value="' . $post_info['poster_id'] . '" />';
+				$hidden_form_fields .= '<input type="hidden" name="clone_username" value="' . $post_info['username'] . '" />';
+				$hidden_form_fields .= '<input type="hidden" name="clone_user_sig" value="' . $post_info['user_sig'] . '" />';
+				$hidden_form_fields .= '<input type="hidden" name="clone_user_sig_bbcode_uid" value="' . $post_info['user_sig_bbcode_uid'] . '" />';
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

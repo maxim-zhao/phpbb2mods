@@ -1,0 +1,85 @@
+##############################################################
+## MOD Title:           Advanced Posts Merging Add-On
+## MOD Author:          Xpert < xpert@phpbbguru.net > http://www.phpbbguru.net 
+## MOD Description:     Disables merging message at certain forums.
+##			Advanced Posts Merging MOD is need to be installed for this to work.
+##
+## MOD Version:         1.0.0
+## Installation Level:  Easy 
+## Installation Time:   1 min
+## Files to Edit:       (1)
+##                      functions_post.php
+## Included Files:      N/A
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbbguru.net/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbbguru.net/mods/ 
+##############################################################  
+## Author Notes: 
+## 
+##############################################################
+## MOD History:
+## 
+##   2005-02-09 - Version 1.0.0 
+##      - Initial Release
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################  
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	// Preparing separator
+	$merged_after = ($current_time - $last_post_time);
+	$merged_sec = $merged_after % 60;
+	$merged_min = ($merged_after/60) % 60;
+	$merged_hours = ($merged_after/3600) % 24 ;
+	$merged_days = ($merged_after/86400) % 31;
+
+	$s_st = ($merged_sec) ? seconds_st($merged_sec) : '';
+	$m_st = ($merged_min) ? minutes_st($merged_min) : '';
+	$h_st = ($merged_hours) ? hours_st($merged_hours) : '';
+	$d_st = ($merged_days) ? days_st($merged_days) : '';
+
+	$separator = sprintf($lang['Merge_separator'],$d_st,$h_st,$m_st,$s_st);
+	$separator .= ( !empty($subject) && ($subject != $last_subject) ) ? sprintf($lang['Merge_post_subject'], $subject) : '';
+	$separator = str_replace("'", "''", $separator);
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+	if ( $forum_id != 5)
+	{
+		// Preparing separator
+		$merged_after = ($current_time - $last_post_time);
+		$merged_sec = $merged_after % 60;
+		$merged_min = ($merged_after/60) % 60;
+		$merged_hours = ($merged_after/3600) % 24 ;
+		$merged_days = ($merged_after/86400) % 31;
+
+		$s_st = ($merged_sec) ? seconds_st($merged_sec) : '';
+		$m_st = ($merged_min) ? minutes_st($merged_min) : '';
+		$h_st = ($merged_hours) ? hours_st($merged_hours) : '';
+		$d_st = ($merged_days) ? days_st($merged_days) : '';
+
+		$separator = sprintf($lang['Merge_separator'],$d_st,$h_st,$m_st,$s_st);
+		$separator .= ( !empty($subject) && ($subject != $last_subject) ) ? sprintf($lang['Merge_post_subject'], $subject) : '';
+		$separator = str_replace("'", "''", $separator);
+	}
+	else
+	{
+		$separator = '';
+	}
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

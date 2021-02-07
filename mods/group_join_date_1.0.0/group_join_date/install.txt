@@ -1,0 +1,190 @@
+############################################################## 
+## MOD Title: Group Join Date
+## MOD Author: damnian < damnian at phpbb dot cc > (Dmitry Shechtman) http://www.phpbb.cc
+## MOD Description: Adds usergroup join dates
+## MOD Version: 1.0.0
+## 
+## Installation Level: Easy
+## Installation Time: 10 Minutes 
+## Files To Edit: 2
+##      groupcp.php, 
+##      templates/subSilver/groupcp_info_body.tpl 
+## Included Files: N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: 
+## 
+##      This version does not handle moderators' join dates.
+############################################################## 
+## MOD History: 
+## 
+##   2006-11-15 - Version 1.0.0
+##      - Adjusted to the current template
+## 
+##   2006-04-11 - Version 0.0.2
+##      - Fill in registration date for existing members
+##      - Display date only
+##      - Display date in smaller font
+## 
+##   2006-04-11 - Version 0.0.1
+##      - Initial release
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+ALTER TABLE phpbb_user_group ADD joined_date INT(11) UNSIGNED NOT NULL;
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+groupcp.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$joined = 
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	$joined = create_date($lang['DATE_FORMAT'], ( $row['joined_date'] > 0 ) ? $row['joined_date'] : $row['user_regdate'], $board_config['board_timezone']);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "INSERT INTO " . USER_GROUP_TABLE
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "INSERT INTO " . USER_GROUP_TABLE
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+user_pending
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, joined_date
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+VALUES (
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, 0
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, " . time() . "
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+SET user_pending = 0
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+= 0
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, joined_date = " . time() . "
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "SELECT u.username, 
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+ug.user_pending
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, ug.joined_date
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+'L_EMAIL' => $lang['Email'],
+# 
+#-----[ BEFORE, ADD ]-------------------------------------- 
+# 
+		'L_JOINED' => $lang['Joined'], 
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/groupcp_info_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<th class="thTop">{L_EMAIL}</th>
+# 
+#-----[ BEFORE, ADD ]-------------------------------------- 
+# 
+	  <th class="thTop">{L_JOINED}</th>
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<td class="catSides" colspan="{%:1}" height="28"><span class="cattitle">{L_GROUP_MODERATOR}</span></td>
+# 
+#-----[ INCREMENT ]------------------------------------------ 
+# 
+%:1
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<td class="row1" align="center" valign="middle"><span class="gen">{MOD_EMAIL_IMG}</span></td>
+# 
+#-----[ BEFORE, ADD ]-------------------------------------- 
+# 
+	  <td class="row1" align="center" valign="middle"><span class="gensmall">{MOD_JOINED}</span></td>
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<td class="catSides" colspan="{%:1}" height="28"><span class="cattitle">{L_GROUP_MEMBERS}</span></td>
+# 
+#-----[ INCREMENT ]------------------------------------------ 
+# 
+%:1
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<td class="{member_row.ROW_CLASS}" align="center" valign="middle"><span class="gen">{member_row.EMAIL_IMG}</span>
+# 
+#-----[ BEFORE, ADD ]-------------------------------------- 
+# 
+	  <td class="{member_row.ROW_CLASS}" align="center" valign="middle"><span class="gensmall">{member_row.JOINED}</span></td>
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<td class="row1" colspan="{%:1}" align="center"><span class="gen">{L_NO_MEMBERS}</span></td>
+# 
+#-----[ INCREMENT ]------------------------------------------ 
+# 
+%:1
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<td class="row1" colspan="{%:1}" align="center"><span class="gen">{L_HIDDEN_MEMBERS}</span></td>
+# 
+#-----[ INCREMENT ]------------------------------------------ 
+# 
+%:1
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<td class="catBottom" colspan="{%:1}" align="right">
+# 
+#-----[ INCREMENT ]------------------------------------------ 
+# 
+%:1
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

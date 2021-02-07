@@ -1,0 +1,526 @@
+############################################################## 
+## MOD Title: Hide Zero Posters
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/phpbb
+## MOD Description: Removes all traces of members with zero posts without removing their ability
+##                  to make posts.
+## MOD Version: 2.0.0
+##
+## Installation Level: Intermediate
+## Installation Time: 15 Minutes
+##
+## Files To Edit: 8
+##	includes/functions.php
+##      groupcp.php
+##      includes/function_posts.php
+##      admin/index.php
+##      memberlist.php
+##      language/lang_english/lang_admin.php
+##      admin/admin_board.php
+##      templates/subSilver/admin/board_config_body.tpl
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##   As the MOD Description says, this MOD removes all traces of members with zero posts without
+##   removing their ability to make posts.  A couple of reasons one might want to do this are as
+##   follows:
+##
+##     1. Bots often register for phpBB's without ever posting to advertise their website and to
+##        provide an inbound link that might increase their Google PageRank.  If these members aren't
+##        linked to, anywhere, there's less incentive to spam.
+##     2. A membercount isn't very meaningful if those who signed up months ago yet haven't posted
+##        once contribute to it.
+##
+##   It is strongly advised that the following MOD (Admin Userlist) be installed in addition to this
+##   one:
+##   http://www.phpbb.com/phpBB/viewtopic.php?t=117359
+##
+##   If you don't have the latest version of EasyMOD installed or if you don't want to run the 
+##   pre-install SQL by hand, you can run it through this page create a PHP script to run the SQL for
+##   you:
+##   http://www.phpbbhacks.com/forums/db_generator.php
+##
+##   Also, pre-2.0.5 phpBB users will need to replace the occurance of $sort_order after the edit
+##   memberlist.php line with ASC, and all occurances of joined with joindate.
+##
+##   Finally, users of the Categories Hierarchy mod will have to also follow the instructions in
+##   install_categories.txt, too.
+##
+##   The latest version of this mod can be found here:
+##   http://www.frostjedi.com/terra/scripts/phpbb/zero_users.zip
+##
+##   For support / comments / whatever, visit here:
+##   http://www.frostjedi.com/phpbb/viewforum.php?f=33
+##
+############################################################## 
+## MOD History: 
+##
+##     2.0.0: - removed admin user list (see Author Notes for more info.)
+##            - removed zero_install.php
+##            - improved sql (thanks, John Gilson!)
+##            - can be enabled / disabled on a selective basis (see Admin Config.)
+##            - zero posters can now be hid in groups (thanks, godknowsimbad!)
+##            - users with more than one post whose first post is deleted will no
+##              longer show up as having registered on 31 Dec 1969.
+##            - default sort for memberlist uses user_firstpost
+##     1.6.6: - uses user_regdate for users which have had all their
+##              posts pruned (thanks, queen0fsnake!)
+##     1.6.5: - Feature can be disabled / enabled from acp
+##              (it's enabled by default).
+##            - When enabled, Join Date shows the date of the first post
+##              (as opposed to the date of their registration).
+##            - Validates with phpBB's MOD validation tool.
+##            - Account List is now based off of wGEric's Admin Userlist
+##              (see admin_userlist_changes.txt for changes).
+##     1.6.2: - User Permissions can now be accessed through Account
+##              List
+##            - Previous sort method is now saved (thanks, Mia_J!)
+##     1.6.1: - now works with categories hierarchy mod.
+##     1.6.0: - Account List now is based off of Admin Mass Delete Users
+##              by Antony Bailey & Freakin' Booty ;-P.
+##            - clicking on usernames in "Admin Mass Delete Users" now
+##              redirects to admin user control panel (as it previously
+##              did in 1.50 of this hack)
+##            - fixed a bug that prevented users from being deleted in
+##              afore mentioned hack.
+##            - made more EasyMOD compliant.
+##     1.5.0: - added an account list that only admins can see
+##              to augment the member list that anyone can see
+##            - fixed a bug involving the number of pages one
+##              sees when viewing the member list.
+##            - fixed a bug that occured when non-admins tried
+##              to run zero_install.php
+##            - updated contact info
+##            - name changed to Hide Zero Posters (originally,
+##              it was Remove Zero Posters)
+##     1.0.0: - initial release
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+# STEP NUMBER I: Prepare phpBB
+#
+
+#
+#-----[ SQL ]-------------------------------------------
+#
+ALTER TABLE phpbb_users ADD user_firstpost int(11) NOT NULL;
+
+UPDATE phpbb_users AS u, phpbb_posts AS p1
+   LEFT OUTER JOIN
+   phpbb_posts AS p2
+   ON p1.poster_id = p2.poster_id AND
+      p2.post_time < p1.post_time
+   INNER JOIN
+   phpbb_posts AS p3
+   ON p3.post_time = p1.post_time
+SET u.user_firstpost=p3.post_time
+WHERE p2.post_time IS NULL AND
+   p1.poster_id = u.user_id;
+
+UPDATE phpbb_users
+SET user_firstpost = user_regdate
+WHERE user_posts <> 0 AND user_firstpost = 0;
+
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('zero_count',1),('zero_newest',1),('zero_group',1),('zero_list',1);
+
+#
+# STEP NUMBER II: Modify Files
+#
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+function get_db_stat($mode)
+{
+	global $db;
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+global $db
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+, $board_config
+
+#
+#-----[ FIND ]------------------------------------------
+# usercount
+#
+				WHERE user_id <> " . ANONYMOUS;
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+ANONYMOUS
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+ . ($board_config['zero_count'] ? " AND user_posts <> 0 " : "")
+
+#
+#-----[ FIND ]------------------------------------------
+# newestuser
+#
+				WHERE user_id <> " . ANONYMOUS . "
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+ANONYMOUS
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+ . ($board_config['zero_newest'] ? " AND user_firstpost <> 0" : "")
+
+#
+#-----[ FIND ]------------------------------------------
+# newestuser
+#
+				ORDER BY user_id DESC
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+ORDER BY " . ($board_config['zero_newest'] ? 'user_firstpost' : 'user_id') . " DESC
+#
+#-----[ OPEN ]------------------------------------------
+#
+groupcp.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			AND ug.user_pending = 0 
+			AND ug.user_id <> " . $group_moderator['user_id'] . " 
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+			" . ($board_config['zero_group'] ? " AND user_posts <> 0 " : "") . "
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					message_die(GENERAL_MESSAGE, $lang['Flood_Error']);
+				}
+			}
+		}
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		$sql = "UPDATE " . USERS_TABLE . " SET user_firstpost = " . $current_time . "
+			WHERE user_id = " . $userdata['user_id'] . " AND user_firstpost = 0;";
+
+		if ( !$db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Unable to update user_firstpost', '', __LINE__, __FILE__, $sql);
+		}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$sql = "DELETE FROM " . POSTS_TABLE . " 
+			WHERE post_id = $post_id";
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+		// if this is the users first post, set user_firstpost to 0.
+		$sql = "UPDATE " . USERS_TABLE . " AS u, " . POSTS_TABLE . " AS p1
+				INNER JOIN " . POSTS_TABLE . " AS p2
+				ON p2.post_id = " . $post_id . "
+			SET u.user_firstpost = 0
+			WHERE u.user_id = p2.poster_id AND u.user_firstpost = p2.post_time;";
+
+		if ( !$db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Unable to update user_firstpost', '', __LINE__, __FILE__, $sql);
+		}
+
+		$resync = $db->sql_affectedrows();
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$sql = "DELETE FROM " . POSTS_TEXT_TABLE . " 
+			WHERE post_id = $post_id";
+		if (!$db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, 'Error in deleting post', '', __LINE__, __FILE__, $sql);
+		}
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+		if ($resync)
+		{
+			// if the previously deleted post was the users first post, redefine user_firstpost.
+			$sql = "UPDATE " . USERS_TABLE . " AS u, " . POSTS_TABLE . " AS p1
+					LEFT OUTER JOIN " . POSTS_TABLE . " AS p2
+					ON p1.poster_id = p2.poster_id AND p2.post_time < p1.post_time
+					INNER JOIN " . POSTS_TABLE . " AS p3
+					ON p3.post_time = p1.post_time
+				SET u.user_firstpost = p3.post_time
+				WHERE p2.post_time IS NULL AND p1.poster_id = u.user_id AND u.user_id = " . $post_data['poster_id'] .";";
+
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Unable to update user_firstpost', '', __LINE__, __FILE__, $sql);
+			}
+		}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/index.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$total_users = get_db_stat('usercount');
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	$result = $db->sql_query("SELECT COUNT(user_id) AS total FROM " . USERS_TABLE . " WHERE user_id <> " . ANONYMOUS);
+	$row = $db->sql_fetchrow($result);
+	$total_users = $row['total'];
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+memberlist.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	case 'joined':
+		$order_by = "user_regdate $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	case 'joined':
+		$order_by = ($board_config['zero_list'] ? "user_firstpost" : "user_regdate") . " $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+#
+#-----[ FIND ]------------------------------------------
+#
+	default:
+		$order_by = "user_regdate $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	default:
+		$order_by = ($board_config['zero_list'] ? "user_firstpost" : "user_regdate") . " $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+$sql = "SELECT username, user_id
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+ user_regdate,
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+ user_firstpost,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	WHERE user_id <> " . ANONYMOUS . "
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+ANONYMOUS
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+ . ($board_config['zero_list'] ? " AND user_posts <> 0" : "")
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$joined = create_date($lang['DATE_FORMAT'], $row['user_regdate'], $board_config['board_timezone']);
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+$lang['DATE_FORMAT'],
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+ $board_config['zero_list'] ? $row['user_firstpost'] :
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		WHERE user_id <> " . ANONYMOUS;
+
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+ANONYMOUS
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+ . ($board_config['zero_list'] ? " AND user_posts <> 0" : "")
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+$lang['Install_No_PCRE']
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+$lang['zero_posters'] = 'Hide Zero Posters';
+$lang['zero_desc'] = 'Effectively hides users with zero posts without removing their ability to post. When any given option is disabled, the default behavior results.';
+$lang['zero_count'] = 'Membercount';
+$lang['zero_count_desc'] = 'Sets the number of registered users equal to the number of people with one or more posts.';
+$lang['zero_newest'] = 'Newest User';
+$lang['zero_newest_desc'] = 'Makes the newest member the person who\'s made their first post the most recently.';
+$lang['zero_group'] = 'Groups';
+$lang['zero_group_desc'] = 'When enabled, groups only show people with one or more posts as members.';
+$lang['zero_list'] = 'Memberlist';
+$lang['zero_list_desc'] = 'Forces the memberlist to only show members with one or more posts and sorts them by their firstpost.';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$cookie_secure_yes = ( $new['cookie_secure'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+$zero_count_yes = ( $new['zero_count'] ) ? "checked=\"checked\"" : "";
+$zero_count_no = ( !$new['zero_count'] ) ? "checked=\"checked\"" : "";
+$zero_newest_yes = ( $new['zero_newest'] ) ? "checked=\"checked\"" : "";
+$zero_newest_no = ( !$new['zero_newest'] ) ? "checked=\"checked\"" : "";
+$zero_group_yes = ( $new['zero_group'] ) ? "checked=\"checked\"" : "";
+$zero_group_no = ( !$new['zero_group'] ) ? "checked=\"checked\"" : "";
+$zero_list_yes = ( $new['zero_list'] ) ? "checked=\"checked\"" : "";
+$zero_list_no = ( !$new['zero_list'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_COOKIE_SETTINGS" => $lang['Cookie_settings'], 
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	"L_ZERO_POSTERS" => $lang['zero_posters'],
+	"L_ZERO_DESC" => $lang['zero_desc'],
+	"L_ZERO_COUNT" => $lang['zero_count'],
+	"L_ZERO_COUNT_DESC" => $lang['zero_count_desc'],
+	"L_ZERO_NEWEST" => $lang['zero_newest'],
+	"L_ZERO_NEWEST_DESC" => $lang['zero_newest_desc'],
+	"L_ZERO_GROUP" => $lang['zero_group'],
+	"L_ZERO_GROUP_DESC" => $lang['zero_group_desc'],
+	"L_ZERO_LIST" => $lang['zero_list'],
+	"L_ZERO_LIST_DESC" => $lang['zero_list_desc'],
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"COOKIE_DOMAIN" => $new['cookie_domain'],
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	"ZERO_COUNT_YES" => $zero_count_yes,
+	"ZERO_COUNT_NO" => $zero_count_no,
+	"ZERO_NEWEST_YES" => $zero_newest_yes,
+	"ZERO_NEWEST_NO" => $zero_newest_no,
+	"ZERO_GROUP_YES" => $zero_group_yes,
+	"ZERO_GROUP_NO" => $zero_group_no,
+	"ZERO_LIST_YES" => $zero_list_yes,
+	"ZERO_LIST_NO" => $zero_list_no,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_COOKIE_SETTINGS}</th>
+	</tr>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+<!-- Start Hide Zero Posters -->
+	<tr>
+		<th class="thHead" colspan="2">{L_ZERO_POSTERS}</th>
+	</tr>
+	<tr>
+		<td class="row2" colspan="2"><span class="gensmall">{L_ZERO_DESC}</span></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ZERO_COUNT}<br /><span class="gensmall">{L_ZERO_COUNT_DESC}</span></td>
+		<td class="row2"><input type="radio" name="zero_count" value="1" {ZERO_COUNT_YES} />{L_ENABLED}&nbsp; &nbsp;<input type="radio" name="zero_count" value="0" {ZERO_COUNT_NO} />{L_DISABLED}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ZERO_NEWEST}<br /><span class="gensmall">{L_ZERO_NEWEST_DESC}</span></td>
+		<td class="row2"><input type="radio" name="zero_newest" value="1" {ZERO_NEWEST_YES} />{L_ENABLED}&nbsp; &nbsp;<input type="radio" name="zero_newest" value="0" {ZERO_NEWEST_NO} />{L_DISABLED}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ZERO_GROUP}<br /><span class="gensmall">{L_ZERO_GROUP_DESC}</span></td>
+		<td class="row2"><input type="radio" name="zero_group" value="1" {ZERO_GROUP_YES} />{L_ENABLED}&nbsp; &nbsp;<input type="radio" name="zero_group" value="0" {ZERO_GROUP_NO} />{L_DISABLED}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ZERO_LIST}<br /><span class="gensmall">{L_ZERO_LIST_DESC}</span></td>
+		<td class="row2"><input type="radio" name="zero_list" value="1" {ZERO_LIST_YES} />{L_ENABLED}&nbsp; &nbsp;<input type="radio" name="zero_list" value="0" {ZERO_LIST_NO} />{L_DISABLED}</td>
+	</tr>
+<!-- End Hide Zero Posters -->
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

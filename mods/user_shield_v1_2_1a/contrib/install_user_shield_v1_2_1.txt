@@ -1,0 +1,810 @@
+##############################################################
+## MOD Title: User Shield
+## MOD Author: Wo1f < N/A > (J. C. Woof) N/A
+## MOD Description: Hides usernames and corresponding profile data from all except the Administrator until activated. Manage (activate or delete) non-activated members from the memberlist.
+## MOD Version: 1.2.1
+##
+## Installation Level: Easy
+## Installation Time: ~ 10 Minutes
+## Files To Edit: 11,
+##      index.php,
+##      memberlist.php,
+##      profile.php,
+##      admin/admin_board.php,
+##      includes/functions.php,
+##      includes/usercp_viewprofile.php,
+##      language/lang_english/lang_admin.php,
+##      language/lang_english/lang_main.php,
+##      templates/subSilver/index_body.tpl,
+##      templates/subSilver/memberlist_body.tpl,
+##      templates/subSilver/admin/board_config_body.tpl.
+## Included Files:
+##      
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##      - Ability to turn ON or OFF all features of this mod through the ACP.
+##      - Hides username references and profile data until activated - from guests, registered users and moderators.
+## For Administrators only:
+##      - Ability to fetch from the Index or Memberlist a filtered list of "non-activated" registered users.
+##      - Ability to manage "non-activated" registered users through this filtered list (activate or delete in bulk).
+## Additional MOD information:
+##      - Released for, and tested on, phpBB2 v2.0.21 [subSilver].
+##      - Tested on FF 1.5, Opera 8.5 and IE 6.
+##      - Numerous installations with EasyMOD version 0.3.0 were successful and took on average less than 30 seconds.
+##      - This mod is based on " defender-uk's " excellent "Active members Only" mod.
+##      - Ty! :) http://www.phpbb-amod.co.uk/
+##      - It includes proposed fixes/enhancements by CJ Greiner, ChrissySkyking and BlueRook.
+##      - Support is offered through this mod's release thread at phpbb.com.
+## Available languages:
+##      - English
+## Beta testers:
+##      - cherokee red
+##############################################################
+## MOD History:
+##
+##   2006-06-16 Version 1.2.1
+##      - Modified non-activated delete code to clean the "groups" and "user_groups" tables properly
+##      - Changed estimated installation time to 10 minutes
+##   2006-05-26 Version 1.2.0
+##      - Submitted to the MODS database for validation
+##   2006-05-26 Version 1.1.7c
+##      - Minor code adjustments in memberlist.php to comply with phpBB standards
+##      - Released as [RC2] User Shield
+##   2006-05-22 Version 1.1.7b
+##      - Minor miscellaneous wording adjustments (language/lang_english/lang_admin.php)
+##      - Released as [RC1] User Shield
+##   2006-05-10 Version 1.1.7a
+##      - Renamed Hide Username to User Shield (Suggested by shakey_1 - Ty!)
+##      - Minor miscellaneous wording adjustments
+##      - Default memberlist sort method (column) when in "non_active only" mode now visually identifiable
+##   2006-04-20 Version 1.1.7
+##      - First release as a stand alone mod (Re: Restrict Username)
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# IMPORTANT ***** Remember to change the default TABLE PREFIX below if your board does not use " phpbb_ ". ***** IMPORTANT 
+#
+INSERT INTO `phpbb_config` (`config_name`, `config_value`) 
+VALUES ('username_hide_inac', '1');
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+index.php
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		'body' => 'index_body.tpl')
+	);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+if ($board_config['username_hide_inac'] && $userdata['user_level'] == ADMIN)
+{
+	$fetched_rows = get_db_stat('inactive_total');
+}
+$username_inac_on = ( $board_config['username_hide_inac'] && $userdata['session_logged_in'] ) ? $lang['Newest_user_winac'] : $lang['Newest_user'];
+$non_active = ( $board_config['username_hide_inac'] && $userdata['user_level'] == ADMIN ) ? ( $fetched_rows == 1 ) ? $lang['Non_active_on_index'] : $lang['Non_actives_on_index'] : '';
+// User Stealth mod - end
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+# This is a partial line match
+#
+		'NEWEST_USER' => sprintf($lang['Newest_user'],
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang['Newest_user']
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$username_inac_on
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		'FORUM_IMG' => $images['forum'],
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// User Stealth mod - start (also replaced $lang['Newest_user'] with $username_inac_on on the line above)
+		'NON_ACTIVATED_FOR_ADMIN' => sprintf($non_active, '<b>' . $fetched_rows . '</b>', '<a href="' . append_sid("memberlist.$phpEx?mode=inactive") . '" . title="' . $lang['Non_active_explain'] . '". >', $lang['Non_active_link'], '</a>'),
+// User Stealth mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+memberlist.php
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+// End session management
+//
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+if ($board_config['username_hide_inac'] && $userdata['user_id'] == ANONYMOUS)
+{
+	redirect(append_sid("login.$phpEx?redirect=memberlist.$phpEx", true));
+}
+
+$select_inactive = (!empty($HTTP_POST_VARS['select_inactive'])) ? intval($HTTP_POST_VARS['select_inactive']) : 0;
+$activate_inactive = (isset($HTTP_POST_VARS['activate_inactive'])) ? TRUE : 0;
+$delete_inactive = (isset($HTTP_POST_VARS['delete_inactive'])) ? TRUE : 0;
+
+$nav_confirm = "<br /><br />" . sprintf($lang['Click_return_memberlist'], "<a href=\"" . append_sid("memberlist.$phpEx?mode=inactive") . "\">", "</a>") . "<br /><br />" . sprintf($lang['Click_return_index'], "<a href=\"" . append_sid("index.$phpEx") . "\">", "</a>");
+// User Stealth mod - end
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+$mode_types_text = array($lang['Sort_Joined'], $lang['Sort_Username'], $lang['Sort_Location'], $lang['Sort_Posts'], $lang['Sort_Email'],  $lang['Sort_Website'], $lang['Sort_Top_Ten']);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang['Sort_Top_Ten']);
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+( $board_config['username_hide_inac'] ) ? ( $userdata['user_level'] == ADMIN ) ? $lang['Sort_Inactive'] : $lang['Sort_Top_Ten'] : $lang['Sort_Top_Ten'],); // User Stealth mod - added "inactive" chained ternary operator
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+$mode_types = array('joined', 'username', 'location', 'posts', 'email', 'website', 'topten');
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'topten');
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+( $board_config['username_hide_inac'] ) ? ( $userdata['user_level'] == ADMIN ) ? 'inactive' : 'topten' : 'topten',); // User Stealth mod - added "inactive" chained ternary operator
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+$select_sort_order .= '</select>';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+if ($board_config['username_hide_inac'] && $userdata['user_level'] == ADMIN)
+{
+	$fetched_rows = get_db_stat('inactive_total');
+}
+// User Stealth mod - end
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_JOINED' => $lang['Joined'],
+
+#
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+// User Stealth mod - start
+	'L_JOINED' => ( $mode == 'inactive' && $fetched_rows != 0 ) ? '<span style="color:#efefef;">' . $lang['Joined'] . '</span>' : $lang['Joined'],
+	'L_NUM_OF_ROWS_RETURNED' => ($fetched_rows != 0) ? ($fetched_rows > 1) ? "<b>" . $fetched_rows . "</b>" . $lang['Rows_returned'] : "<b>" . $fetched_rows . "</b>" . $lang['Row_returned'] : '' ,
+	'L_SELECT_ALL' => ($fetched_rows > 1) ? $lang['Select_all'] : '',
+	'L_DIVIDER' => ($fetched_rows > 1) ? $lang['Divider'] : '',
+	'L_UNSELECT_ALL' => ($fetched_rows > 1) ? $lang['Unselect_all'] : '',
+
+	'ROW_NUMBER_TITLE' => ( $board_config['username_hide_inac'] ) ? ( $userdata['user_level'] == ADMIN && $mode == 'inactive'  && $fetched_rows > 0) ? $lang['Select'] : '#' : '#',
+	'ACTIVATE_INACTIVE' => ( $board_config['username_hide_inac'] ) ? ( $userdata['user_level'] == ADMIN && $mode == 'inactive' && $fetched_rows > 0) ? '<input type="submit" name="activate_inactive" value="' . $lang['Activate'] . '" class="mainoption" />&nbsp;&nbsp;' : '&nbsp;' : '&nbsp;',
+	'DELETE_INACTIVE' => ( $board_config['username_hide_inac'] ) ? ( $userdata['user_level'] == ADMIN && $mode == 'inactive' && $fetched_rows > 0) ? '<input type="submit" name="delete_inactive" value="' . $lang['Delete'] . '" class="mainoption" />' : '&nbsp;' : '&nbsp;',
+// User Stealth mod - end
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		$order_by = "user_website $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+	case 'inactive':
+		$order_by = "user_regdate $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		$non_activated = 'AND user_active != 1';
+		break;
+// User Stealth mod - end
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		break;
+}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+$hide_inactive_on = ( $board_config['username_hide_inac']) ? ( $userdata['user_level'] == ADMIN ) ? ( $mode == 'inactive') ? $non_activated : 'AND user_active >= 0' : 'AND user_active = 1' : 'AND user_active >= 0';
+// User Stealth mod - end
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	ORDER BY $order_by";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	$hide_inactive_on
+	ORDER BY $order_by";
+// User Stealth mod - added $hide_inactive_on above
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			'ROW_NUMBER' => $i + ( $start + 1 ),
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// User Stealth mod - start
+			'S_SELECT_INACTIVE' => $row['user_id'],				// Assign id to checkbox array
+			'ROW_NUMBER' => ( $board_config['username_hide_inac'] ) ? ( $userdata['user_level'] == ADMIN && $mode == 'inactive' ) ? '<input type="checkbox" name="select_inactive[]" value="' . $row['user_id'] . '" />' : $i + ( $start + 1 ) : $i + ( $start + 1 ),
+// User Stealth mod - end
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		WHERE user_id <> " . ANONYMOUS;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+		WHERE user_id <> " . ANONYMOUS . " $hide_inactive_on";
+// User Stealth mod - added  $hide_inactive_on above
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_GOTO_PAGE' => $lang['Goto_page'])
+);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// User Stealth mod - start
+if ($board_config['username_hide_inac'] && $userdata['user_level'] == ADMIN && $mode == 'inactive')
+{
+	if ($fetched_rows != 0)
+	{
+		$template->assign_block_vars('full_tb', array());
+	}
+	else
+	{
+		$template->assign_block_vars('no_inactive', array(
+			'NO_DATA' => $lang['No_data'])
+		);
+	}
+
+	$total_inactives = intval(sizeof($HTTP_POST_VARS['select_inactive']));
+
+	for ($i=0; $i < $total_inactives; $i++)											// Identify selected checboxes
+	{
+		$cb_ids .= intval($HTTP_POST_VARS['select_inactive'][$i]).',';
+	}
+
+	$cb_ids = rtrim($cb_ids,',');
+
+	if ($activate_inactive)														// Activate inactive
+	{
+		if ($select_inactive)
+		{
+			$sql = "UPDATE " . USERS_TABLE . " 
+			SET user_active = 1 
+				WHERE user_id IN ( $cb_ids ) ";
+
+			if($db->sql_query($sql))
+			{
+				$message = ($total_inactives > 1) ? $lang['Inactive_selected_num'] . "<b>" . $total_inactives . "</b>&nbsp;"  . $lang['Inactives_activated'] . $nav_confirm : $lang['Inactive_activated'] . $nav_confirm;
+				message_die(GENERAL_MESSAGE, $message);
+			}
+			else
+			{
+				message_die( GENERAL_ERROR, "Failed to update table", "", __LINE__, __FILE__, $sql );
+			}
+		}
+		else
+		{
+			$message = $lang['No_check_selected'] . $nav_confirm;
+			message_die(GENERAL_MESSAGE, $message);
+		}
+	}
+
+	if ($delete_inactive)														// Delete inactive
+	{
+		if ($select_inactive)
+		{
+			$i = 0;
+			while( $i < $total_inactives )
+			{
+				$sql = "SELECT g.group_id 
+					FROM " . USER_GROUP_TABLE . " ug, " . GROUPS_TABLE . " g  
+					WHERE ug.user_id IN ( $cb_ids )
+						AND g.group_id = ug.group_id 
+						AND g.group_single_user = 1";
+				if( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain group information for this user', '', __LINE__, __FILE__, $sql);
+				}
+
+				$row = $db->sql_fetchrow($result);
+
+				$sql = "DELETE FROM " . GROUPS_TABLE . "
+					WHERE group_id = " . $row['group_id'];
+
+				if( !$db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not delete group for this user', '', __LINE__, __FILE__, $sql);
+				}
+
+				$i++;
+			}
+
+			$sql = "DELETE 
+			FROM " . USERS_TABLE . " 
+				WHERE user_id IN ( $cb_ids ) ";
+
+			if(!$db->sql_query($sql))
+			{
+				message_die( GENERAL_ERROR, "Could not delete user from users table", "", __LINE__, __FILE__, $sql );
+			}
+
+			$sql = "DELETE 
+			FROM " . USER_GROUP_TABLE . "
+				WHERE user_id IN ( $cb_ids ) ";
+
+			if( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete user from user_group table', '', __LINE__, __FILE__, $sql);
+			}
+			else
+			{
+				$message = ($total_inactives > 1) ? $lang['Inactive_selected_num'] . "<b>" . $total_inactives . "</b>&nbsp;"  . $lang['Inactives_deleted'] . $nav_confirm : $lang['Inactive_deleted'] . $nav_confirm;
+				message_die(GENERAL_MESSAGE, $message);
+			}
+		}
+		else
+		{
+			$message = $lang['No_check_selected'] . $nav_confirm;
+			message_die(GENERAL_MESSAGE, $message);
+		}
+	}
+}
+// User Stealth mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+profile.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# first instance from the top of the page
+#
+		include($phpbb_root_path . 'includes/usercp_viewprofile.'.$phpEx);
+		exit;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// User Stealth mod - start
+		if ($board_config['username_hide_inac'])
+		{
+			( $userdata['user_id'] != ANONYMOUS ) ? include($phpbb_root_path . 'includes/usercp_viewprofile.'.$phpEx) : redirect(append_sid('login.' . $phpEx . '?redirect=profile.' . $phpEx . '&mode=viewprofile&' . POST_USERS_URL . '=' . intval($HTTP_GET_VARS[POST_USERS_URL]), true));
+			exit;
+		}
+		else
+		{
+			include($phpbb_root_path . 'includes/usercp_viewprofile.'.$phpEx);
+			exit;
+		}
+// User Stealth mod - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+redirect(append_sid("index.$phpEx", true));
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+if ($board_config['username_hide_inac'] && $userdata['user_level'] != ADMIN && $userdata[user_active] == 0)
+{
+     message_die(GENERAL_MESSAGE, $lang['Username_inactive_url_error']);
+}
+// User Stealth mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$namechange_no = ( !$new['allow_namechange'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+$username_hide_inac_yes = ( $new['username_hide_inac'] ) ? "checked=\"checked\"" : "";
+$username_hide_inac_no = ( !$new['username_hide_inac'] ) ? "checked=\"checked\"" : "";
+// User Stealth mod - end
+
+#
+#-----[ FIND ]------------------------------------------
+#
+"L_RESET" => $lang['Reset'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+	"L_USERNAME_HIDE_INAC" => $lang['Username_hide_inac'],
+	"L_USERNAME_HIDE_INAC_XPLAIN" => $lang['Username_hide_inac_xplain'],
+
+	"USERNAME_HIDE_INAC_YES" => $username_hide_inac_yes,
+	"USERNAME_HIDE_INAC_NO" => $username_hide_inac_no,
+// User Stealth mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	global $db;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	global $db, $board_config;
+// User Stealth mod - added $board_config above
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		case 'usercount':
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+	$hide_inactive_on = ( $board_config['username_hide_inac'] ) ? 'AND user_active = 1' : 'AND user_active >= 0';
+// User Stealth mod - end
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+				WHERE user_id <> " . ANONYMOUS;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+				WHERE user_id <> " . ANONYMOUS . " $hide_inactive_on ";
+// User Stealth mod - added $hide_inactive_on above
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		case 'newestuser':
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+	$hide_inactive_on = ( $board_config['username_hide_inac'] ) ? 'AND user_active = 1' : 'AND user_active >= 0';
+// User Stealth mod - end
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+				ORDER BY user_id DESC
+				LIMIT 1";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+				$hide_inactive_on
+				ORDER BY user_id DESC
+				LIMIT 1";
+// User Stealth mod - added $hide_inactive_on above
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+				FROM " . FORUMS_TABLE;
+			break;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+		case 'inactive_total':
+			$sql = "SELECT COUNT(user_active) as fetched_rows
+				FROM " . USERS_TABLE . "
+				WHERE user_active = " . 0 . "
+					AND user_id != " . ANONYMOUS ;
+			break;
+// User Stealth mod - end
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			return $row['topic_total'];
+			break;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+		case 'inactive_total':
+			return $row['fetched_rows'];
+			break;
+// User Stealth mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$profiledata = get_userdata($HTTP_GET_VARS[POST_USERS_URL]);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+if ($board_config['username_hide_inac'] && $userdata['user_level'] != ADMIN && !$profiledata[user_active])
+{
+     message_die(GENERAL_MESSAGE, $lang['Username_inactive_url_error']);
+}
+// User Stealth mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# near the end of file
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+$lang['Username_hide_inac'] = 'Enable User Shield. (Enable account activation must be set to admin for best protection)';
+$lang['Username_hide_inac_xplain'] = 'Hides any username references and profile data from all except the administrator until activated';
+// User Stealth mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# near the end of file
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// User Stealth mod - start
+$lang['Sort_Inactive'] = 'Non-active only';
+$lang['Select'] = 'Select';
+$lang['Select_all'] = 'Select All';
+$lang['Divider'] = '::';
+$lang['Unselect_all'] = 'Unselect All';
+$lang['Activate'] = 'Activate selected';
+$lang['Delete'] = 'Delete selected';
+$lang['Inactive_selected_num'] = 'A total of ';
+$lang['Inactive_activated'] = 'Selected inactive member has been activated successfully!';
+$lang['Inactives_activated'] = 'selected inactive members have been activated successfully!';
+$lang['Inactive_deleted'] = 'Selected inactive member has been deleted successfully!';
+$lang['Inactives_deleted'] = 'selected inactive members have been deleted successfully!';
+$lang['No_check_selected'] = 'Sorry for stating the obvious but, you must select at least 1 inactive member.';
+$lang['Click_return_memberlist'] = 'Click %sHere%s to return to the Memberlist';
+$lang['Click_return_index'] = 'Click %sHere%s to return to the Index';
+$lang['Row_returned'] = ' row fetched ...';
+$lang['Rows_returned'] = ' rows fetched ...';
+$lang['No_data'] = 'There is currently no "non-activated" members in the USERS table to display.';
+$lang['Non_active_on_index'] = ' and %s %s%s%s registered user';
+$lang['Non_actives_on_index'] = ' and %s %s%s%s registered users';
+$lang['Non_active_link'] = 'non-active';
+$lang['Non_active_explain'] = 'View non-active registered users only';
+$lang['Newest_user_winac'] = 'The newest activated registered user is <b>%s%s%s</b>';
+$lang['Username_inactive_url_error'] = 'This user is either inactive or non-existant.';
+// User Stealth mod - end
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/index_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# this is a partial line match
+#
+	{TOTAL_POSTS}<br />{TOTAL_USERS}
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+{TOTAL_USERS}
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+{NON_ACTIVATED_FOR_ADMIN}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/memberlist_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<form method="post" action="{S_MODE_ACTION}">
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+<script language="javascript" type="text/javascript">
+<!--
+	function select_switch(status)
+	{
+		for (i = 0; i < document.inactive_list.length; i++)
+		{
+			document.inactive_list.elements[i].checked = status;
+		}
+	}
+//-->
+</script>
+<form method="post" name="inactive_list" action="{S_MODE_ACTION}">
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <th height="25" class="thCornerL" nowrap="nowrap">#</th>
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+>#</th>
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+>{ROW_NUMBER_TITLE}</th>
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<!-- END memberrow -->
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<!-- BEGIN no_inactive -->
+	<tr> 
+		<td class="row1" align="center" colspan="8"><span class="genmed"><b>{no_inactive.NO_DATA}</b></span></td>
+	</tr>
+	<!-- END no_inactive -->
+	<!-- BEGIN full_tb -->
+	<tr>
+		<td class="row2" colspan="8">
+			<table align="center" cellspacing="0" cellpadding="0" width="100%" border="0">
+				<tr class="gensmall">
+					<td class="row2">
+						<a href="javascript:select_switch(true);">{L_SELECT_ALL}</a>
+							{L_DIVIDER}
+						<a href="javascript:select_switch(false);">{L_UNSELECT_ALL}</a>
+					</td>
+					<td class="row2" align="right">{L_NUM_OF_ROWS_RETURNED}</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
+	<!-- END full_tb -->
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="catBottom" colspan="8" height="28">&nbsp;</td>
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+>&nbsp;
+
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+ align="center">{ACTIVATE_INACTIVE}{DELETE_INACTIVE}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ALLOW_NAME_CHANGE}</td>
+		<td class="row2"><input type="radio" name="allow_namechange" value="1" {NAMECHANGE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_namechange" value="0" {NAMECHANGE_NO} /> {L_NO}</td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_USERNAME_HIDE_INAC}<br />{L_USERNAME_HIDE_INAC_XPLAIN}</td>
+		<td class="row2"><input type="radio" name="username_hide_inac" value="1" {USERNAME_HIDE_INAC_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="username_hide_inac" value="0" {USERNAME_HIDE_INAC_NO} /> {L_NO}</td>
+	</tr>
+
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------------
+#
+IMPORTANT ***** If you are NOT using EasyMOD to install User Shield, you MUST update the CONFIG table by following these instructions ***** IMPORTANT
+IMPORTANT ***** Remember to change the default TABLE PREFIX in file "update_config_v1_2_1.php" if your board does not use " phpbb_ ". ***** IMPORTANT
+
+1] Run this file: update_config_v1_2_1.php - located in the install folder off the root of your forum ( eg. In your browser URL field, type the following: http://yoursite.com/yourforumroot/install/update_config_v1_2_1.php )
+
+Once done a message confirming a successful update will be displayed along with a reminder to delete the "install" folder including it's content, before returning to your forum.
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

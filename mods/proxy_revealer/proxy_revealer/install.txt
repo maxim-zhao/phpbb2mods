@@ -1,0 +1,483 @@
+############################################################## 
+## MOD Title: Proxy Revealer
+## MOD Author: TerraFrost < terrafrost@phpbb.com > (Jim Wigginton) http://www.frostjedi.com/terra/wordpress/
+## MOD Description: Attempts to determine someone's "real" IP address, using a myriad of techniques, and "blocks" such people.
+## MOD Version: 2.0.1
+##
+## Installation Level: Intermediate
+## Installation Time: 10 Minutes
+##
+## Files To Edit: 9
+##      admin/admin_board.php
+##      includes/constants.php
+##      includes/functions.php
+##      includes/page_tail.php
+##      includes/sessions.php
+##      language/lang_english/lang_admin.php
+##      language/lang_english/lang_main.php
+##      templates/subSilver/admin/board_config_body.tpl
+##      templates/subSilver/overall_footer.tpl
+##
+## Included Files: 6
+##      admin/admin_speculative.php
+##      HttpRequestor.class
+##      probe.php
+##      templates/subSilver/admin/speculative_body.tpl
+##      templates/subSilver/admin/speculative_exclude_body.tpl
+##      templates/subSilver/admin/speculative_java_body.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##   Probably the easiest way to hide ones IP address is to use an open HTTP/SOCKS4/SOCKS5 proxy or
+##   to use a so-called CGI proxy.  These techniques, however, aren't full proof.  Transparent HTTP
+##   proxies, for instance, include an X-Forwarded-For header that usually includes the originating
+##   IP address.
+##
+##   Code can also be ran on the client-side to reveal more information.  Since Java's Socket object
+##   doesn't use the browsers connection settings when connecting to the network, we can use Java to
+##   attempt to make a connection to the server as well.  Also, some CGI proxies maintain anonymity
+##   by rewritting all all URLs to go through them.  Unfortunately, as XSS vulnerabilities often
+##   demonstrate, filtering HTML isn't as easy a task as one might initially think.
+##
+##   In theory, all one need do to thwart the XSS-like approach is to simply update their CGI proxy
+##   to account for it.  Of course, just because the developer of that CGI proxy updates doesn't mean
+##   that every website using that CGI proxy will update to the latest version.
+##
+##   The Java part of this mod will not work with boards that are password protected by a .htaccess file
+##   or whatever or boards running on SSL/TLS.
+##
+##   The source code to HttpRequestor.class can be found in the contrib directory.  If you're trying to
+##   compile that file, yourself, use "javac HttpRequestor.java -source 1.3 -target 1.1" for maximum
+##   compatability.
+##
+##   A stand-alone demo of the techniques employed by this MOD can be found here:
+##   http://www.frostjedi.com/terra/scripts/ip_unmasker.php
+##
+##   The latest version of this mod can be found here:
+##   http://www.frostjedi.com/terra/scripts/phpbb/proxy_revealer.zip
+##
+############################################################## 
+## MOD History:
+##
+##   ????-??-?? - Version x.x.x
+##      - why does IE ask for permission to use ActiveX?
+##   2008-09-07 - Version 2.0.1
+##      - no longer logs / blocks ip addresses whose first 24 bits are the same.  this is how phpbb sessions work
+##      - admin_speculative.php now displays the time and date of the activity.  note that subsequent activity from
+##        the same ip address will not be logged - just blocked (if you have so specified in the ACP) (thanks, hungrywolf!)
+##      - added a new XSS method - -moz-binding / expressions.  -moz-binding is for Firefox and expressions is for IE (thanks, hillbillyatheist!)
+##      - fixed a bug that affecting the pagination of ip addresses (thanks, beggers!)
+##      - fixed an issue involving the "display" of URL's caught via the XSS method
+##      - fixed an issue that resulted in "Avira AntiVir PersonalEdition Classic 7.06.00.270" (www.free-av.com) detecting
+##        pages as being infected with "HTML/Infected.WebPage.Gen - Malware" (not that i have a clue what that is).  more info:
+##         * http://www.avira.com/en/threats/section/fulldetails/id_vir/3684/html_infected.webpage.gen.html
+##         * http://www.frostjedi.com/terra/scripts/demo/avira.html
+##         * http://www.frostjedi.com/terra/scripts/demo/avira2.html
+##        (thanks, tormentor!)
+##      - fixed a bug that could result in 0.0.0.0 being logged as the IP address during message_die() calls (thanks, tormentor and diabolic.bg!)
+##      - fixed a few other small bugs (thanks, jasmineaura!)
+##   2007-08-10 - Version 2.0.0
+##      - added the ability to ban IP addresses revealed to be masked (thanks, Parasytic!)
+##      - added the ability to have logged IP addresses be deleted after x days (thanks, Parasytic!)
+##      - added the ability to exclude IP addresses from being subject to this MODs probes (thanks, deny!)
+##      - updated the XSS method.  the UTF-7 encoding is now generated on-the-fly, in tandum with UTF-16.
+##      - added a seperate page for internal addresses (see that pages description for more information)
+##      - more debug information is now collected
+##      - the "Your IP address has been blocked" now appears after the $lang variable has been inited (thanks, Parasytic!)
+##      - fixed a bug with the X-Forwarded-For masking block ACP setting (thanks, Parasytic!)
+##      - replaced all instances of isset with !empty in probe.php (thanks, roadhog!)
+##      - changed name from "IP Unmasker" to "Proxy Revealer"
+##   2006-09-02 - Version 1.0.0
+##      - initial release
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy admin/admin_speculative.php to admin/admin_speculative.php
+copy HttpRequestor.class to HttpRequestor.class
+copy probe.php to probe.php
+copy xss.xml to xss.xml
+copy templates/subSilver/admin/speculative_body.tpl to templates/subSilver/admin/speculative_body.tpl
+copy templates/subSilver/admin/speculative_java_body.tpl to templates/subSilver/admin/speculative_java_body.tpl
+copy templates/subSilver/admin/speculative_exclude_body.tpl to templates/subSilver/admin/speculative_exclude_body.tpl
+#
+#-----[ SQL ]-------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('ip_block','6');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('ip_ban','0');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('ip_prune','');
+ALTER TABLE phpbb_sessions ADD session_speculative_test tinyint(1) DEFAULT '-1' NOT NULL;
+ALTER TABLE phpbb_sessions ADD session_speculative_key char(10);
+CREATE TABLE phpbb_speculative_ips (
+   ip_address char(8) DEFAULT '0' NOT NULL,
+   method tinyint(1) DEFAULT '0' NOT NULL,
+   discovered int(11) DEFAULT '0' NOT NULL,
+   real_ip text,
+   info text,
+   KEY ip_address (ip_address)
+);
+CREATE TABLE phpbb_speculative_excludes (
+   ip_address char(8) DEFAULT '0' NOT NULL,
+   KEY ip_address (ip_address)
+);
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ($config_name == 'cookie_name')
+		{
+			$new['cookie_name'] = str_replace('.', '_', $new['cookie_name']);
+		}
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+		if ( $config_name == 'ip_block' && isset($HTTP_POST_VARS['submit']) )
+		{
+			// rather than have three seperate database entries, we have one bitmasked one.
+			$java_mask = isset($HTTP_POST_VARS['java_mask']) ? intval($HTTP_POST_VARS['java_mask']) : 0;
+			$xss_mask = isset($HTTP_POST_VARS['xss_mask']) ? intval($HTTP_POST_VARS['xss_mask']) : 0;
+			$x_forwarded_for_mask = isset($HTTP_POST_VARS['x_forwarded_for_mask']) ? intval($HTTP_POST_VARS['x_forwarded_for_mask']) : 0;
+			$new['ip_block'] = $java_mask | $xss_mask | $x_forwarded_for_mask;
+		}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$cookie_secure_yes = ( $new['cookie_secure'] ) ? "checked=\"checked\"" : "";
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+$java_enabled = ( $new['ip_block'] & JAVA ) ? "checked=\"checked\"" : "";
+$xss_enabled = ( $new['ip_block'] & XSS ) ? "checked=\"checked\"" : "";
+$x_forwarded_for_enabled = ( $new['ip_block'] & X_FORWARDED_FOR ) ? "checked=\"checked\"" : "";
+
+$ip_ban_yes = ( $new['ip_ban'] ) ? "checked=\"checked\"" : "";
+$ip_ban_no = ( !$new['ip_ban'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_COOKIE_SETTINGS" => $lang['Cookie_settings'], 
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	"L_IP_BLOCK" => $lang['IP_Block'],
+	"L_IP_BLOCK_DESC" => $lang['IP_Block_explain'],
+	"L_JAVA" => $lang['Java'],
+	"L_XSS" => $lang['XSS'],
+	"L_X_FORWARDED_FOR" => $lang['X-Forwarded-For'],
+	"L_IP_BAN" => $lang['IP_Ban'],
+	"L_IP_BAN_DESC" => $lang['IP_Ban_explain'],
+	"L_IP_PRUNE" => $lang['IP_Prune'],
+	"L_IP_PRUNE_DESC" => $lang['IP_Prune_explain'],
+	"L_DAYS" => $lang['days'],
+#
+#-----[ FIND ]------------------------------------------
+#
+	"COOKIE_DOMAIN" => $new['cookie_domain'],
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	"JAVA_ENABLED" => $java_enabled,
+	"XSS_ENABLED" => $xss_enabled,
+	"X_FORWARDED_FOR_ENABLED" => $x_forwarded_for_enabled,
+	"JAVA" => JAVA,
+	"XSS" => XSS,
+	"X_FORWARDED_FOR" => X_FORWARDED_FOR,
+	"IP_BAN_YES" => $ip_ban_yes,
+	"IP_BAN_NO" => $ip_ban_no,
+	"IP_PRUNE" => $new['ip_prune'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------
+#
+// Session parameters
+define('SESSION_METHOD_COOKIE', 100);
+define('SESSION_METHOD_GET', 101);
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+
+// detection methods (they're in powers of 2 so that bitwise operations can be used to block people)
+define('X_FORWARDED_FOR',1);
+define('XSS',2);
+define('JAVA',4);
+// this is used in admin_speculative.php
+define('JAVA_INTERNAL',3);
+#
+#-----[ FIND ]------------------------------------------
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+define('SPECULATIVE_TABLE',$table_prefix.'speculative_ips');
+define('SPECULATIVE_EXCLUDE_TABLE',$table_prefix.'speculative_excludes');
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_main.' . $phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+
+	// $userdata['session_speculative_test'] can be thought of as a combination of three bits.  the bits that are set
+	// represent the modes that tested positive for ip masking.  we compare that against the "blocking modes" by means
+	// of a 'bitwise and' and from there, block as appropriate.
+	if ( $userdata['session_speculative_test'] > 0 && (intval($userdata['session_speculative_test']) & intval($board_config['ip_block'])) )
+	{
+		message_die(GENERAL_MESSAGE,$lang['IP_Mask_Blocked']);
+	}
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_tail.php
+#
+#-----[ FIND ]------------------------------------------
+#
+global $do_gzip_compress;
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+// we declare $do_gzip_compress and $client_ip to be global because, when page_tail.php is included by message_die()
+// in functions.php, it's not, otherwise, going to know what those variables are set to.  we declare $user_ip and 
+// $board_config to be global since we do use them and since other MODs may include page_tail.php in a function, as well.
+// we also use $db, $template, and $userdata, but since those are concurrently used by page_tail.php, it's safe to assume
+// that they're being declared global, already.  if they weren't, the whole of page_tail.php wouldn't work.
+global $do_gzip_compress, $client_ip, $user_ip, $board_config;
+
+if ( $userdata['session_speculative_test'] < 0 )
+{
+	preg_match('/(..)(..)(..)(..)/', $user_ip, $user_ip_parts);
+
+	$sql = "SELECT ip_address 
+		FROM " . SPECULATIVE_EXCLUDE_TABLE . " 
+		WHERE ip_address IN ('" . $user_ip_parts[1] . $user_ip_parts[2] . $user_ip_parts[3] . $user_ip_parts[4] . "', '" . $user_ip_parts[1] . $user_ip_parts[2] . $user_ip_parts[3] . "ff', '" . $user_ip_parts[1] . $user_ip_parts[2] . "ffff', '" . $user_ip_parts[1] . "ffffff')";
+
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR,'Unable to query exclusion list','',__FILE__,__LINE__,$sql);
+	}
+
+	if ( $db->sql_numrows($result) == 0 )
+	{
+		$template->assign_block_vars('speculative_test',array());
+	}
+
+	$userdata['session_speculative_key'] = substr(dss_rand(),0,10);
+
+	$sql = "UPDATE ".SESSIONS_TABLE." 
+		SET session_speculative_test = 0, session_speculative_key = '{$userdata['session_speculative_key']}' 
+		WHERE session_id = '{$userdata['session_id']}'";
+	if ( !$db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR,'Unable to update session table','',__FILE__,__LINE__,$sql);
+	}
+
+	if ( !empty($board_config['ip_prune']) )
+	{
+		$sql = "DELETE FROM ".SPECULATIVE_TABLE." 
+			WHERE discovered < ".(time() - 86400 * $board_config['ip_prune']);
+		if ( !$db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR,'Unable to update session table','',__FILE__,__LINE__,$sql);
+		}
+	}
+}
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->assign_vars(array(
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+$board_config['server_port'] = trim($board_config['server_port']);
+
+$server_name = trim($board_config['server_name']);
+$server_protocol = ($board_config['cookie_secure']) ? 'https://' : 'http://';
+$server_port = ($board_config['server_port'] != 80) ? ':' .$board_config['server_port'] : '';
+$path_name = '/' . preg_replace('/^\/?(.*?)\/?$/', '\1', trim($board_config['script_path']));
+$path_name.= ($path_name != '') ? '/' : '';
+
+$server_url = $server_protocol . $server_name . $server_port . $path_name;
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	// add a hidden iframe from which we'll include other iframe's.  call it iframe1 and the iframe's within it 
+	// iframe2 and iframe3.  iframe2 and iframe3 add the IP address that was used to request them to the URL of yet 
+	// another iframe - iframe4.
+	'U_PROBE' => $server_url."probe.$phpEx?extra={$userdata['session_id']},{$userdata['session_speculative_key']}",
+	// say a CGI proxy didn't convert over the URLs of an iframe.  that means that the IP address iframe2 and iframe3 add
+	// is going to be the "real" IP address whereas normally it'd be the "masked" IP address.  to remedy that, we make a
+	// seperate request to iframe4 via an iframe we'll call iframe0 and add the IP address to that.  that way, even if 
+	// iframe2 and iframe3 pass on the "real" IP address to iframe4, iframe0 can still pass on the "masked" IP address.
+	'U_PROBE_XSS' => $server_url."probe.$phpEx?mode=xss&amp;ip=$client_ip&amp;extra={$userdata['session_id']},{$userdata['session_speculative_key']}",
+	'U_PROBE_XSS2' => $server_url."probe.$phpEx?mode=xss&ip=$client_ip&extra={$userdata['session_id']},{$userdata['session_speculative_key']}",
+	// -moz-binding only works on FireFox.  we'd have done this in probe.php were it not for the fact that expressions
+	// (only work in IE; they use U_PROBE_XSS and are used in the same style attribute where -moz-binding is used) don't
+	// seem to work in small iframe's.
+	'U_MOZ_BINDING' => $server_url . 'xss.xml#xss',
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/sessions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	$userdata['session_key'] = $sessiondata['autologinid'];
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	$userdata['session_speculative_test'] = -1;
+	$userdata['session_speculative_key'] = NULL;
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+$lang['Speculative_IPs'] = 'Proxy Revealer';
+$lang['Speculative_IP_external'] = 'Someone who hasn\'t taken care in masking their IP address risks revealing it through any number of mechanisms - mechanisms that although not entirely fool-proof, themselves, should be sufficient to "catch" the average IP-masker.  You can also view %sinternal IP addresses%s or %sdisable scanning%s for certain IP address (helpful if you\'re running your own proxy and are already logging stuff through that).';
+$lang['Speculative_IP_internal'] = 'The IP addresses on this page are, in most cases, going to be ones that only appear on LANs (10.*.*.*, 192.168.*.*, etc).  Under rare circumstances, external IP addresses may show up (eg. someone is using a http proxy and is plugged directly into their cable modem).  You can also view (purely) %sexternal IP addresses%s.';
+$lang['Speculative_IP_Java'] = '';
+$lang['Speculative_IP_Exclude'] = 'If you\'re running your own proxies, you might prefer to use those proxies logs over the logs this MOD produces';
+
+$lang['Spoofed_IP'] = 'Masked IP Address';
+$lang['Method_Used'] = 'Method Used';
+$lang['Real_IP'] = 'Real IP Address';
+$lang['Method_Used_explain'] = 'to detect the spoofing';
+$lang['Real_IP_explain'] = 'or atleast the best guess';
+$lang['View_List'] = 'View Complete List';
+$lang['Search_For'] = 'Search For';
+$lang['Most_Recent'] = 'Most Recent';
+$lang['Least_Recent'] = 'Least Recent';
+$lang['Show'] = 'Show';
+$lang['Return'] = 'Click %sHere%s to return to the previous page.';
+$lang['User-Agent'] = 'User-Agent';
+$lang['Java_Version'] = 'Java Version';
+
+// these are similar to $lang['Ban_IP'], $lang['Unban_IP'], $lang['No_banned_ip'], $lang['Ban_update_sucessful'], etc.
+$lang['Add_IP'] = 'Add one or more IP addresses or hostnames';
+$lang['Add_IP_explain'] = 'To specify several different IP addresses or hostnames separate them with commas. To specify a range of IP addresses, separate the start and end with a hyphen (-); to specify a wildcard, use an asterisk (*).';
+$lang['Remove_IP'] = 'Remove one or more IP addresses';
+$lang['Remove_IP_explain'] = 'You can remove multiple IP addresses in one go using the appropriate combination of mouse and keyboard for your computer and browser';
+$lang['No_ip'] = 'No IP addresses';
+$lang['Except_update_sucessful'] = 'The exception list has been updated successfully';
+$lang['Click_return_prevpage'] = 'Click %sHere%s to return to the previous page';
+
+$lang['External_IP'] = 'External IP Address';
+$lang['Internal_IP'] = 'Internal IP Address';
+
+// i'm not sure why anyone would want to translate the following, but whatever.
+$lang['Java'] = 'Java';
+$lang['X-Forwarded-For'] = 'X-Forwarded-For';
+$lang['XSS'] = 'XSS';
+
+$lang['IP_Block'] = 'IP Masking Block';
+$lang['IP_Block_explain'] = 'Select which detection methods you would like to have block users.  Users are blocked for the duration of their session.';
+$lang['IP_Ban'] = 'IP Masking Ban';
+$lang['IP_Ban_explain'] = 'Permanently bans people who were blocked by the above detection methods.';
+$lang['IP_Prune'] = 'Masked IP Age Limit';
+$lang['IP_Prune_explain'] = 'Determines when masked IPs will be automatically deleted.  Leave blank to disable.';
+$lang['days'] = 'days';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+$lang['IP_Mask_Blocked'] = 'Your IP address has been blocked for this session as it appears to be masked.';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ENABLE_PRUNE}</td>
+		<td class="row2"><input type="radio" name="prune_enable" value="1" {PRUNE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="prune_enable" value="0" {PRUNE_NO} /> {L_NO}</td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	<tr>
+		<td class="row1">{L_IP_BLOCK}<br /><span class="gensmall">{L_IP_BLOCK_DESC}</td>
+		<td class="row2">
+		  <input type="checkbox" name="java_mask" value="{JAVA}" {JAVA_ENABLED} /> {L_JAVA}&nbsp;&nbsp;
+		  <input type="checkbox" name="xss_mask" value="{XSS}" {XSS_ENABLED} /> {L_XSS}&nbsp;&nbsp;
+		  <input type="checkbox" name="x_forwarded_for_mask" value="{X_FORWARDED_FOR}" {X_FORWARDED_FOR_ENABLED} /> {L_X_FORWARDED_FOR}&nbsp;&nbsp;
+		</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_IP_BAN}<br /><span class="gensmall">{L_IP_BAN_DESC}</span></td>
+		<td class="row2"><input type="radio" name="ip_ban" value="1" {IP_BAN_YES} />{L_YES}&nbsp; &nbsp;<input type="radio" name="ip_ban" value="0" {IP_BAN_NO} />{L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_IP_PRUNE}<br /><span class="gensmall">{L_IP_PRUNE_DESC}</span></td>
+		<td class="row2"><input type="text" name="ip_prune" value="{IP_PRUNE}" size="3" > {L_DAYS}</td>
+	<tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_footer.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+<div align="center"><span class="copyright"><br />{ADMIN_LINK}<br />
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+<!-- BEGIN speculative_test -->
+<iframe src="{U_PROBE}" width="1" height="1" frameborder="0" id="iframe1"></iframe>
+<iframe src="{U_PROBE_XSS}" width="1" height="1" frameborder="0" id="iframe0" url="{U_PROBE_XSS}"></iframe>
+<div style="-moz-binding:url('{U_MOZ_BINDING}'); background:/**/expression(if(this.x!='x'){document.getElementById('iframe0').src='{U_PROBE_XSS}';this.x='x';})" x=""></div>
+<script language="Javascript" type="text/javascript">
+  document.getElementById("iframe1").src = "{U_PROBE_XSS2}&url="+escape(location.href);
+</script>
+<!-- END speculative_test -->
+
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------
+#
+If you are installing this MOD with a pre-0.4.0 EasyMOD installation, you will need to manually upload HttpRequestor.class with the BINARY transfer mode enabled.
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

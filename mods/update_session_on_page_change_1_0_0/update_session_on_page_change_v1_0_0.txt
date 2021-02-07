@@ -1,0 +1,62 @@
+##############################################################
+## MOD Title: Update Session on Page Change MOD
+## MOD Author: markus_petrux < nospam@phpmix.com > (Markus) http://www.phpmix.com
+## MOD Description: This MOD modifies the phpBB session management so it updates the user
+##     session information on page changes (so we get up to date info for viewonline).
+##     Note: By default, session information is only updated after 60 seconds.
+## MOD Version: 1.0.0
+##
+## Installation Level: (Easy)
+## Installation Time: 1 Minute
+## Files To Edit: 1
+##    includes/sessions.php
+## Included Files: 0
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## - MOD related comments:
+##   Tested with phpBB 2.0.15
+##   This MOD is EasyMOD friendly.
+##
+##############################################################
+## MOD History:
+##
+## 2005/01/31 - 1.0.0
+## - Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/sessions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+				//
+				// Only update session DB a minute or so after last update
+				//
+				if ( $current_time - $userdata['session_time'] > 60 )
+				{
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+				//
+				// Only update session DB a minute or so after last update OR...
+				// ...when user changes to another page (so we get up to date info for viewonline)
+				//
+				if ( $current_time - $userdata['session_time'] > 60 || $thispage_id != $userdata['session_page'] )
+				{
+					$userdata['session_page'] = $thispage_id;
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

@@ -1,0 +1,179 @@
+############################################################## 
+## MOD Title:		Post Icons : icons for topics and posts - Part 2
+## MOD Author:		Ptirhiik < ptirhiik@clanmckeen.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description:
+##			This mod will allow to add an icon in front of each topic title. This part
+##			is about the viewforum.php/viewforum_body.tpl if you haven't Split topic v2 mod
+##			installed.
+## MOD Version:		1.0.1
+## 
+## Installation Level:	Easy
+## Installation Time:	3 Minutes
+## Files To Edit:
+##			viewforum.php
+##			templates/subSilver/viewforum_body.tpl
+##
+## Included Files:(n/a)
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##
+##	You must have the part 1 of the mod installed.
+##
+############################################################## 
+## MOD History: 
+##
+##   2003-10-28 - Version 1.0.1
+##      - fix usage of image key entry in the configuration
+##	- add the lang settings
+## 
+##   2003-09-14 - Version 1.0.0
+##	- no change regarding 0.0.3
+##
+##   2003-09-07 - Version 0.0.3 (beta)
+##	- add the admin part
+##	- split the mod in two part for further add (split topic type v2)
+##
+##   2003-08-01 - Version 0.0.2 (alpha)
+##	- add the function get_icon_title() in functions.php
+##
+##   2003-08-01 - Version 0.0.1 (alpha)
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+include($phpbb_root_path . 'common.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+include($phpbb_root_path . 'includes/def_icons.'. $phpEx);
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$topic_type = $topic_rowset[$i]['topic_type'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+		$type = $topic_rowset[$i]['topic_type'];
+		if ($type == POST_NORMAL)
+		{
+			if (!empty($topic_rowset[$i]['topic_calendar_time']))
+			{
+				$type = POST_CALENDAR;
+			}
+			if (!empty($topic_rowset[$i]['topic_pic_url']))
+			{
+				$type = POST_PICTURE;
+			}
+		}
+		$icon = get_icon_title($topic_rowset[$i]['topic_icon'], 1, $type);
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			'ROW_COLOR' => $row_color,
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : post icon -------------------------------------------------------------------------------
+//-- add
+			'ICON'					=> $icon,
+//-- fin mod : post icon ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+<form method="post" action="{S_POST_DAYS_ACTION}">
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- mod : post icon -->
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+  <table
+	<tr>
+	  <th colspan="2"
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+colspan="2"
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+colspan="3"
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+	  <td class="row1" width="100%"><span class="topictitle">
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	  <td class="row1" align="center" valign="middle" width="20">{topicrow.ICON}</td>
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+	<!-- BEGIN switch_no_topics -->
+	<tr> 
+	  <td class="row1" colspan="6"
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+colspan="6"
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+colspan="7"
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+	<!-- END switch_no_topics -->
+	<tr> 
+	  <td class="catBottom"
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+colspan="6"
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+colspan="7"
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

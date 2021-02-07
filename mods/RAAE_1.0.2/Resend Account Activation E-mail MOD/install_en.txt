@@ -1,0 +1,139 @@
+######################################################## 
+## MOD Title: Resend Account Activation E-mail
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: Inactive users are able to request activation email to be re-sent to their mail box.
+## MOD Version:	1.0.2
+## 
+## Installation Level: Easy
+## Installation Time: 3 Minutes 
+##
+## Files To Edit: 3
+##	login.php
+##	language/lang_english/lang_main.php
+##	templates/subSilver/login_body.tpl
+##
+## Included Files: 3
+##	root/request_actmail.php
+##	root/request_actmail.tpl
+##	root/lang_english/resend_activation_email.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.21. Can be installed using EasyMOD 0.3.0
+##
+## 	Monitor update status: http://sourceforge.net/project/filemodule_monitor.php?filemodule_id=195274
+## 
+############################################################## 
+## MOD History: 
+##
+##   2005-06-24 - Version 1.0.0
+##      - Initial Release
+##
+##   2005-07-16 - Version 1.0.1
+##      - Include activation mode check
+##
+##   2005-09-02 - Version 1.0.2
+##      - Fixed initial $send_activation_interval setting
+##	- Added a switch to login_body.tpl
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+ALTER TABLE phpbb_users ADD user_actmail_last_checked INTEGER(11) NOT NULL DEFAULT 0;
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy root/request_actmail.php to request_actmail.php
+copy root/request_actmail.tpl to templates/subSilver/request_actmail.tpl
+copy root/lang_english/resend_activation_email.tpl to language/lang_english/email/resend_activation_email.tpl
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Resend Account Activation E-mail MOD
+$lang['Resend_activation_email'] = 'Resend Account Activation E-mail';
+$lang['Invalid_activation'] = 'User account activation can only be performed by administrators';
+$lang['Invalid_uaername'] = 'Invalid uaername';
+$lang['Invalid_email'] = 'Invalid Email';
+$lang['Already_activated'] = 'Your account has already been activated.';
+$lang['No_actkey'] = 'There is no activation key for your account.<br />Please contact the webmaster or board administrator for more information';
+$lang['Send_actmail_flood_error'] = 'You cannot make another request so soon after your last<br />Please try again in a short while.';
+$lang['Resend_activation_email_done'] = 'The activation email has been sent.<br />Please check your e-mail for details on how to activate your account.';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+login.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'L_SEND_PASSWORD' => $lang['Forgotten_password'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'L_RESEND_ACTIVATION_EMAIL' => $lang['Resend_activation_email'],	// Resend Account Activation E-mail MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'U_SEND_PASSWORD' => append_sid("profile.$phpEx?mode=sendpassword"),
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'U_RESEND_ACTIVATION_EMAIL' => append_sid("request_actmail.$phpEx"),	// Resend Account Activation E-mail MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			'S_HIDDEN_FIELDS' => $s_hidden_fields)
+		);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		if ( !isset($HTTP_GET_VARS['admin']) )
+		{
+			$template->assign_block_vars('switch_resend_activation_email_block', array() );
+		}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/login_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			<td colspan="2"><span class="gensmall"><a href="{U_SEND_PASSWORD}" class="gensmall">{L_SEND_PASSWORD}</a></span></td>
+		  </tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		<!-- BEGIN switch_resend_activation_email_block -->
+		  <tr align="center"> 
+			<td colspan="2"><span class="gensmall"><a href="{U_RESEND_ACTIVATION_EMAIL}" class="gensmall">{L_RESEND_ACTIVATION_EMAIL}</a></span></td>
+		  </tr>
+		<!-- END switch_resend_activation_email_block -->
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------------ 
+#
+Open request_actmail.php and change $send_activation_interval is you wish
+The current request interval is set as 3600 seconds, i.e. an user need to wait for 60 minutes for next request.
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

@@ -1,0 +1,246 @@
+##############################################################
+## MOD Title: Advanced Group Color Management - Upgrade Instructions 1.1.0 to 1.1.1
+## MOD Author: Phantomk <phantomk@modmybb.com> (N/A) http://www.modmybb.com/
+## MOD Description:
+##         Modify's the Group system to add colors.
+## MOD Version: 1.1.1
+##
+## Installation Level: Advanced
+## Installation Time: 3 Minutes
+## Files To Edit: 1
+##               admin/admin_groups.php
+## Included Files: 10
+##               admin/admin_color.php
+##               includes/class_color.php
+##               language/lang_english/lang_admin_color.php
+##               language/lang_english/lang_main_color.php
+##               templates/subSilver/admin/color_edit_body.tpl
+##               templates/subSilver/admin/color_style_select.tpl
+##               templates/subSilver/images/arrow_down.gif
+##               templates/subSilver/images/arrow_up.gif
+##               templates/subSilver/search_color.tpl
+##               templates/picker.js
+##               install_color/*.*
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##      - Inspired By Advanced Username Color by:
+##         - aUsTiN <austin_inc@hotmail.com> (N/A) http://phpbb-amod.com/
+##      - Tigra Color Picker provided by:
+##         - SoftComplex <N/A> (N/A) http://www.softcomplex.com/
+##      - Special thanks to ptirhiik for his time and patience in answering my barrage of questions.
+##      - Thanks to Rabbit and No-L for the german translation.
+##
+##############################################################
+## MOD History:
+##
+##   2005-12-5 - Version 1.1.1
+##      - Fixed a small issue in the installer.
+##      - Made a small change to functions_admin to help in resyncing topics.
+##      - Added the sync() function to admin_colors, groupcp and class_colors to help with the cache.
+##
+##   2005-12-3 - Version 1.1.0
+##      - Cleaned up the install instructions.
+##      - Modified some instructions so that get_user_color is always called.
+##      - Upgraded the installer to handle the upgrade process for pre 1.1.0
+##      - Changed the theme field for storeing group colors from 'groupX' to 'gx'.
+##      - Added a non-existant group for the anonymous user which will allow admin's to define a
+##        color for any anonymous user.
+##      - Completely modified the get_user_color function to handle user_session_time,
+##        the users color will now change if they have not been online for a admin defined time.
+##        This option can be disabled and the time period changed in the AGCM panel.
+##      - Added a new css definition for "username_color" which will now allow more control for
+##        template authors to alter how the username is displayed.
+##
+##   2005-11-21 - Version 1.0.3
+##      - Cleaned up admin interface.
+##      - Added colors to modcp.php
+##      - 3 minor versions were done under 1.0.3 which were bug fixes for the install process.
+##
+##   2005-11-17 - Version 1.0.2
+##      - Removed SQL from install, caused too many problems.
+##      - Fixed a language bug.
+##      - Added missing colors to privmsg.php preview.
+##
+##   2005-11-12 - Version 1.0.1
+##      - Fixed installer issues.
+##
+##   2005-11-07 - Version 1.0.0
+##      - Added group color's to admin/index.php and includes/topic_review.php
+##      - Cleaned up installer
+##      - Cleaned up Admin Interface
+##      - Cleaned up some install find's and replace's
+##      - Cleaned up popup window for tiagra color picker (Work's in FF, IE and Opera)
+##      - Fixed a minor issue with other mod compatibility's in viewtopic.php
+##      - Upgraded phpBB compatibility to 2.0.18
+##      - Upgraded CH compatibility to 2.1.4
+##
+##   2005-10-04 - Version 0.2.2
+##      - Fixed the install file, multiple errors
+##      - Removed some code going into groupcp.php
+##      - Modified install file for common.php
+##
+##   2005-10-03 - Version 0.2.1
+##      - Added install file's
+##         - Automatically installs the sql and updates the group tables, as well as regenerates
+##           necessary cache for Cat Hierarchy
+##
+##   2005-09-29 - Version 0.2.0
+##      - Bug Fixes and Code Cosmetic Changes (Thanks to Budman)
+##      - Added admin_color.php to modify the color settings
+##      - Added colors to the groupcp.php for the group name
+##      - Added colors to the moderator list if the moderator is a group
+##      - Added Tigra Color Picker (replaceing the Color Wheel)
+##      - Added support for colors that are style specific
+##
+##   2005-09-22 - Version 0.1.0-RC2
+##      - Bug Fixes
+##
+##   2005-09-12 - Version 0.1.0-RC1
+##      - Changed legend link from groupcp to memberlist for Cat Hierarchy.
+##      - Added support for sync function in functions_admin. (Fixes colors when a topic is deleted/split/moved in modcp)
+##      - Modified the Legend to look like phpBB3 (Thanks to AJ Riddle)
+##      - Added support for deleteing/adding users from/to a group or deleteing a group entirely in groupcp.php and admin_groups.php
+##
+##   2005-08-29 - Version 0.0.10-b
+##      - Fixed colors not being displayed when viewing a forum or in search for Cat Hierarchy Install
+##      - Fixed small find / replace in install instructions for Cat Hierarchy
+##      - Fixed bug in ACP -> User Management
+##      - Fixed bug in Vanilla phpBB where colors would not show up for non mod/admins in legend for whoisonline
+##      - Fixed Auto Select bug in usercp_register.php
+##      - Group_color_select now checks for pending.
+##      - Both versions of install are now compatiable with EasyMod
+##
+##   2005-08-27 - Version 0.0.9-b
+##      - Fixed markers for the install, as they created issues.  Shouldn't have anymore.
+##      - Moved $colors->display_legend(); in page_header.php to index.php for Vanilla Installation
+##      - Reformated class_colors.php fixing alot of bugs with the vanilla phpBB functions, and some minor CH functions.
+##      - Fixed a missing class in search_color.tpl
+##      - Fixed a problem with legend variable not changeing in ACP
+##      - Updated Cat Hierarchy instructions to support 2.1.1RC6a, instructions are not to be used on 2.1.1RC5 as they are different in some areas
+##      - Fixed alot of bugs with phpBB install
+##
+##   2005-08-26 - Version 0.0.8-b
+##      - Fixed Color wheel, now functioning properly, I hope.
+##      - Moved the colorwheel.png to the images folder. (Thanks to Cr@ter$)
+##
+##   2005-08-23 - Version 0.0.7-b
+##      - Added markers to the install. (Thanks to Cr@ter$)
+##      - Fixed a FIND in Cat Hierarchy install. (Thanks to Cr@ter$)
+##      - Updated some missing code for search.php in Cat Hierarchy install.
+##
+##   2005-08-22 - Version 0.0.6-b
+##      - Changed includes/class_stats.php install instructions for Cat Hierarchy.
+##      - Redefined get_user_color function.
+##
+##   2005-08-22 - Version 0.0.5-b
+##      - Minor Bug Fixes.
+##      - Renamed phpbb_user field group_id to user_group_id.
+##      - Fixed drop down user group menu issue when only in one group.
+##
+##   2005-08-21 - Version 0.0.4-b
+##      - Cleaned up install txt's to reduce size.
+##      - Moved code from top of files to common.php.
+##
+##   2005-08-21 - Version 0.0.3-b
+##      - Second Beta Release.
+##      - Added Vanilla phpBB Install.
+##      - Minor Bug fixes.
+##      - ACP User Management added.
+##      - Known Bugs:
+##          - Drop down box appears in profile/admin ACP even if only in one/no group('s).
+##
+##   2005-08-20 - Version 0.0.2-b
+##      - First Beta Release.
+##      - ACP Group Management Added.
+##      - Profile Group Management, for users in multiple groups.
+##      - Fully intergrated into Cat Hierarchy.
+##      - Known Bugs:
+##          - admin_user.php interface not completed.
+##          - Drop down box appears in profile even if only in one group.
+##
+##   2005-08-16 - Version 0.0.1-b
+##      - Initial Private Beta.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy root/admin/admin_color.php to admin/admin_color.php
+copy root/includes/class_color.php to includes/class_color.php
+copy root/language/lang_english/lang_admin_color.php to language/lang_english/lang_admin_color.php
+copy root/language/lang_english/lang_main_color.php to language/lang_english/lang_main_color.php
+copy root/templates/subSilver/admin/color_edit_body.tpl to templates/subSilver/admin/color_edit_body.tpl
+copy root/templates/subSilver/admin/color_style_select.tpl to templates/subSilver/admin/color_style_select.tpl
+copy root/templates/subSilver/images/arrow_down.gif to templates/subSilver/images/arrow_down.gif
+copy root/templates/subSilver/images/arrow_up.gif to templates/subSilver/images/arrow_up.gif
+copy root/templates/subSilver/search_color.tpl to templates/subSilver/search_color.tpl
+copy root/templates/picker.js to templates/picker.js
+copy root/install_color/*.* to install_color/*.*
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_groups.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Ok, they are submitting a group, let's save the data based on if it's new or editing
+	//
+
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+		// Read the users in the specified group
+		$colors->read_group_users($group_id);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+	// Read the users in the specified group
+	$colors->read_group_users($group_id);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+	//
+	// Ok, they are submitting a group, let's save the data based on if it's new or editing
+	//
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+			// Add the column and do various tasks when adding a new group
+			$colors->add_group($new_group_id);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Advanced Group Color Management -------------------------------------
+//-- add
+			// Add the column and do various tasks when adding a new group
+			$colors->add_group($new_group_id);
+
+			// reset the users in this group
+			$colors->set_group_users($new_group_id);
+//-- fin mod : Advanced Group Color Management ---------------------------------
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

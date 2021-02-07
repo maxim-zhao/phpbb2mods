@@ -1,0 +1,329 @@
+##############################################################
+## MOD Title: Deter Comment Spam
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/terra/wordpress/
+## MOD Description: Provides a deterence to so-called comment spammers by adding
+##      rel="nofollow" tags on a conditional basis.
+## MOD Version: 1.0.5
+##
+## Installation Level: Easy
+## Installation Time: 5 Minutes
+##
+## Files To Edit: 7
+##      templates/subSilver/bbcode.tpl
+##      includes/bbcode.php
+##      includes/functions.php
+##      includes/usercp_viewprofile.php
+##      memberlist.php
+##      viewtopic.php
+##      groupcp.php
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##     As explained on slashdot.org, comment spam's "defining characteristic is that spammers abuse
+##     websites where the public can add content (blogs, wikis, forums, and even top referrer lists)
+##     to increase their own ranking in search engines."
+##
+##     In January 2005, Google introduced a new attritube for anchor tags - rel="nofollow" - in an
+##     effort to combat comment spam.  This MOD adds Google's attribute on a conditional basis to
+##     links.
+##
+##     install-config.txt allows the conditions under which the rel="nofollow" attribute is added
+##     to be defined in the Administrator Control Panel.
+##
+##     The slashdot.org on Comment Spammers can be found here:
+##     http://it.slashdot.org/article.pl?sid=05/01/19/0516246&tid=111&tid=217
+##                  
+##     For support / comments / whatever, visit here:
+##     http://www.frostjedi.com/phpbb/viewforum.php?f=33
+##
+##     The latest version of this MOD can be found here:
+##     http://www.frostjedi.com/terra/scripts/phpbb/cspam.zip
+##
+############################################################## 
+## MOD History: 
+##
+##   2005-10-15 - Version 1.0.5
+##      - more tweaking of the afore mentioned bug fix (\\ would appear as \,
+##        \' would appear as ', etc)
+##   2005-07-20 - Version 1.0.4
+##      - tweaked the bug fix in 1.0.3.
+##   2005-07-16 - Version 1.0.3
+##      - fixed a bug whereby slashes were added to links (thanks, kulinar!)
+##   2005-05-12 - Version 1.0.2
+##      - works on phpBB 2.0.15 (thanks, SeraphicGate!)
+##   2005-03-22 - Version 1.0.1
+##      - rel="nofollow" is only added on a conditional basis (thanks, kulinar!)
+##      - groupcp.php adds rel="nofollow" to links (thanks, sanjo!)
+##   2005-01-27 - Version 1.0.0
+##      - initial release
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/bbcode.tpl
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+<!-- BEGIN url -->
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+href="{URL}"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+ {NOFOLLOW}
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	// We do URLs in several different ways..
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	$bbcode_tpl['url'] = 'str_replace("\\\'","\'","'.str_replace('{NOFOLLOW}', '".add_nofollow(str_replace("\\\'","\'","\\1"))."', addslashes($bbcode_tpl['url'])).'")';
+
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+$bbcode_tpl['url3'] = str_replace('{DESCRIPTION}'
+#
+#-----[ FIND ]------------------------------------------
+# This is a partial match
+#
+	$patterns[] = "#\[url
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+]#is
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+e
+#
+#-----[ FIND ]------------------------------------------
+# This is a partial match
+#
+	$patterns[] = "#\[url
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+]#is
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+e
+#
+#-----[ FIND ]------------------------------------------
+# This is a partial match
+#
+	$patterns[] = "#\[url
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+]#i
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+e
+#
+#-----[ FIND ]------------------------------------------
+# This is a partial match
+#
+	$patterns[] = "#\[url
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+]#i
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+e
+#
+#-----[ FIND ]------------------------------------------
+# This is a partial match
+#
+	$ret = preg_replace
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+", "\\1<a href=\"\\2\" target=\"_blank\">\\2</a>"
+#
+#-----[ IN-LINE REPLACE WITH ]-------------------------
+#
+e", '"\\1<a href=\"\\2\" ".add_nofollow("\\2")." target=\"_blank\">\\2</a>"'
+#
+#-----[ FIND ]------------------------------------------
+# This is a partial match
+#
+	$ret = preg_replace
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+", "\\1<a href=\"http://\\2\" target=\"_blank\">\\2</a>"
+#
+#-----[ IN-LINE REPLACE WITH ]-------------------------
+#
+e", '"\\1<a href=\"http://\\2\" ".add_nofollow("\\2")." target=\"_blank\">\\2</a>"'
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+function add_nofollow($url)
+{
+	global $board_config;
+
+	if ( preg_match('#^([\w]+?://)?'.trim($board_config['server_name']).'.*$#i',$url) )
+	{
+		return '';
+	}
+	return 'rel="nofollow"';
+}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+$www_img =
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+href="' . $profiledata['user_website'] . '"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+ ' . add_nofollow($profiledata['user_website']) . '
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+$www =
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+href="' . $profiledata['user_website'] . '"
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+ ' . add_nofollow($profiledata['user_website']) . '
+#
+#-----[ OPEN ]------------------------------------------
+#
+memberlist.php
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+		$www_img =
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+href="' . $row['user_website'] . '"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+ ' . add_nofollow($row['user_website']) . '
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+		$www =
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+href="' . $row['user_website'] . '"
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+ ' . add_nofollow($row['user_website']) . '
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+		$www_img =
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+href="' . $postrow[$i]['user_website'] . '"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+ ' . add_nofollow($postrow[$i]['user_website']) . '
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+		$www =
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+href="' . $postrow[$i]['user_website'] . '"
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+ ' . add_nofollow($postrow[$i]['user_website']) . '
+#
+#-----[ OPEN ]------------------------------------------
+#
+groupcp.php
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+   $www_img =
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+href="' . $row['user_website'] . '"
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+ ' . add_nofollow($row['user_website']) . '
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+   $www =
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+href="' . $row['user_website'] . '"
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+ ' . add_nofollow($row['user_website']) . '
+#
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------
+#
+# EoM

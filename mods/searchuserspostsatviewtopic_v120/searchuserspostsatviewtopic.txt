@@ -1,0 +1,138 @@
+############################################################## 
+## MOD Title: Search User's Posts At Viewtopic
+## MOD Author: maxJackal < maxoguzhan@yahoo.com > (Oguzhan E) http://www.turkbilgi.web.tr 
+## MOD Description: This mod changes the 'Post: #' line to a link under the user avatar at viewtopic page .
+##		   And adds a search icon after the profile icon under the message at viewtopic page.
+## 		   When you click the link or icon, you search the user's post witout going his/her profile page.
+## MOD Version: 1.2.0
+## 
+## Installation Level: Easy
+## Installation Time: 5 Minutes (1mn by EasyMOD of Nuttzy)
+## Files To Edit:	3
+##		viewtopic.php
+##		language/lang_english/lang_main.php
+## 		templates/subSilver/viewtopic_body.tpl
+## 		
+## Included Files: n/a
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+## 1. About This Mod
+## -----------
+## This mod changes the 'Post: #' line to a link under the user avatar at viewtopic page .
+## And adds a search icon after the profile icon under the message at viewtopic page.
+## When you click the link or icon, you search the user's post witout going his/her profile page.
+## A demo is at http://www.turkbilgi.web.tr (forum is Turkish but you can see link and icon)
+## 
+## 2. EasyMOD
+## -----------
+## This MOD is compatible and can be installed by EasyMOD
+## of Nuttzy (but is not officially EasyMOD Compliant)!
+## http://area51.phpbb.com/phpBB22/viewforum.php?sid=&f=15
+## 
+## 2.1 Translation are not managed
+## -----------
+## EM can not already manage actions for any other
+## language than English (but language intructions are proceed
+## to all installed languages in order to prevent errors).
+## So the translations provided with this MOD must be installed
+## manually if you need them.
+##
+## 3. Official last version link
+## -----------
+## Meanwhile the phpBB group validation and as the MOD is not yet
+## in the phpBB MOD database, check this official link for updates...
+## http://www.turkbilgi.web.tr
+##
+############################################################## 
+## MOD History: 
+## 
+##   2004-09-09 - Version 1.2.0 
+##      		- codes moved from .tpl to .php file
+##   2004-07-08 - Version 1.1.0 
+##      		- also adds a search icon next to the profile icon
+##   2004-07-06 - Version 1.0.0 
+##      		- very fist release 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewtopic.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$temp_url = append_sid("search.$phpEx?search_author=" . urlencode($postrow[$i]['username']) . "&amp;showresults=posts");
+	$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . $lang['Search_user_posts'] . '" title="' . $lang['Search_user_posts'] . '" border="0" /></a>';
+	$search = '<a href="' . $temp_url . '">' . $lang['Search_user_posts'] . '</a>';
+# 
+#-----[ REPLACE WITH ]---------------------------------------- 
+# 
+	// start : mod Search User's Posts at Viewtopic by maxJackal
+	if ( $poster_id != ANONYMOUS )
+	{
+		$temp_url = append_sid("search.$phpEx?search_author=" . urlencode($postrow[$i]['username']) . "&amp;showresults=posts");
+		$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . $lang['Search_u_posts'] . '" title="' . $lang['Search_u_posts'] . '" border="0" /></a>';
+		$search = '<a href="' . $temp_url . '" title="' . $lang['Search_u_posts'] . '">' . $lang['Posts'] . ': ' . $postrow[$i]['user_posts'] . '</a>';
+	}
+	else
+	{
+		$search_img = '';
+		$search = '';
+	}
+	// end : mod Search User's Posts at Viewtopic by maxJackal
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['Search_user_posts']
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// start : mod Search User's Posts at Viewtopic by maxJackal
+$lang['Search_u_posts'] = 'Search for posts by this user';
+// end : mod Search User's Posts at Viewtopic by maxJackal
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewtopic_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td width="150" align="left" valign="top" class="{postrow.ROW_CLASS}"><span class="name"><a name="{postrow.U_POST_ID}"></a><b>{postrow.POSTER_NAME}</b></span><br /><span class="postdetails">{postrow.POSTER_RANK}<br />{postrow.RANK_IMAGE}{postrow.POSTER_AVATAR}<br /><br />{postrow.POSTER_JOINED}<br />{postrow.POSTER_POSTS}<br />{postrow.POSTER_FROM}</span><br /></td>
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+{postrow.POSTER_POSTS}
+# 
+#-----[ IN-LINE REPLACE WITH ]---------------------------------- 
+# 
+#
+{postrow.SEARCH}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				<td valign="middle" nowrap="nowrap">{postrow.PROFILE_IMG} {postrow.PM_IMG} {postrow.EMAIL_IMG} {postrow.WWW_IMG} {postrow.AIM_IMG} {postrow.YIM_IMG} {postrow.MSN_IMG}<script language="JavaScript" type="text/javascript"><!-- 
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+# 
+{postrow.PROFILE_IMG}
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+# 
+# note that, here is an extra space before the code!
+ {postrow.SEARCH_IMG}
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

@@ -1,0 +1,215 @@
+######################################################## 
+## MOD Title: Configurable WhoIsOnline Reference Time
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This mod allow admin to set a reference time for the member online/offline status 
+##			in Who Is Online block. The default phpBB's time is five minutes and unconfigurable.
+## MOD Version:	1.0.2
+## 
+## Installation Level: Easy 
+## Installation Time: 10 Minutes 
+##
+## Files To Edit: 8
+##	index.php
+##	viewonline.php
+##	admin/admin_board.php
+##	admin/index.php
+##	includes/page_header.php
+##	language/lang_english/lang_main.php
+##	language/lang_english/lang_admin.php
+##	templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files: n/a
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 
+## 	Tested on 2.0.18. Can be installed using EasyMOD 0.3.0
+## 
+############################################################## 
+## MOD History: 
+##
+##   2005-01-27 - Version 1.0.0
+##      - Initial Release
+##
+##   2005-02-03 - Version 1.0.1
+##      - Fix viewonline.php's displayed time (Thanks to Doe Ray Me)
+##	- Add modification to admin/index.php
+##
+##   2005-12-11 - Version 1.0.2
+##	- Fix a error in viewonline.php (Thanks to vinnaboy)
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+INSERT INTO `phpbb_config` VALUES ('forum_online_time', '5');
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+index.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		'L_ONLINE_EXPLAIN' => $lang['Online_explain'], 
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$lang['Online_explain']
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+sprintf($lang['Online_explain'], $board_config['forum_online_time'])
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewonline.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	'L_ONLINE_EXPLAIN' => $lang['Online_explain'],
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$lang['Online_explain']
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+sprintf($lang['Online_explain'], $board_config['forum_online_time'])
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+		AND s.session_time >= ".( time() - 300 ) . "
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+300
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+($board_config['forum_online_time'] * 60)
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"L_SMTP_PASSWORD_EXPLAIN" => $lang['SMTP_password_explain'], 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	"L_WHOISONLINE_TIME" => $lang['WhoIsOnline_time'], 
+	"L_WHOISONLINE_TIME_EXPLAIN" => $lang['WhoIsOnline_time_explain'], 
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	"SMTP_PASSWORD" => $new['smtp_password'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	"WHOISONLINE_TIME" => $new['forum_online_time'],
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/index.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			AND s.session_time >= " . ( time() - 300 ) . " 
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+300
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+($board_config['forum_online_time'] * 60)
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			AND session_time >= " . ( time() - 300 ) . "
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+300
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+($board_config['forum_online_time'] * 60)
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/page_header.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			AND s.session_time >= ".( time() - 300 ) . "
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+300
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+($board_config['forum_online_time'] * 60)
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Online_explain'] = 'This data is based on users active over the past five minutes';
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+five
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+#
+%d
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$lang['WhoIsOnline_time'] = '"Who Is Online" Time (in minutes)';
+$lang['WhoIsOnline_time_explain'] = 'The "Who Is Online" status data will based on users active over the past <i>whatever</i> minutes you set here.';
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	<tr>
+		<td class="row1">{L_FLOOD_INTERVAL} <br /><span class="gensmall">{L_FLOOD_INTERVAL_EXPLAIN}</span></td>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+	<tr>
+		<td class="row1">{L_WHOISONLINE_TIME} <br /><span class="gensmall">{L_WHOISONLINE_TIME_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="forum_online_time" value="{WHOISONLINE_TIME}" /></td>
+	</tr>
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

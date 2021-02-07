@@ -1,0 +1,400 @@
+##############################################################
+## MOD Title: Subject Check
+## MOD Author: Thoul < thoul@phpbbsmith.com > (Jeremy Rogers) http://www.phpbbsmith.com
+## MOD Description: 
+##		Alerts posters when they try to create a topic that has a subject
+##		similar to an existing topic.
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit:
+##		posting.php,
+##		admin/admin_board.php,
+##		admin/admin_forums.php,
+##		includes/functions_post.php,
+##		templates/subSilver/admin/board_config_body.tpl,
+##		templates/subSilver/admin/forum_edit_body.tpl
+## Included Files:
+##		language/lang_english/lang_subchk.php,
+##		mods/subjectchk/admin.php,
+##		mods/subjectchk/subject_check.php,
+##		templates/subSilver/admin/subject_check.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## The messages displayed with the lists of topics can be changed in
+## lang_subchk.php.
+##
+## Words of less than three characters or more than twenty will not be detected
+## during subject checking.  This is a limitation of the phpBB search system.
+## The only workaround I can see could consume a great deal of server resources,
+## so we'll just have to live with this condition.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]--------------------------------------
+#
+
+copy root/*.* to *.*
+
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------------
+#
+
+Run install.php by visiting it in your web browser, for example
+http://www.yoursite.com/phpBB2/install.php
+This will install the database portions of the hack. If you prefer to run the
+queries manually, check the contrib/ directory for install.sql.
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+<?php
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+// This file modified for Subject Check
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+init_userprefs($userdata);
+//
+// End session management
+//
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Subject Check - Begin Code Alteration
+//
+require_once($phpbb_root_path . 'mods/subjectchk/subject_check.' . $phpEx);
+//
+// Subject Check - End Code Alteration
+//----------------------------------------------------------------------
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+$hidden_form_fields = '<input type="hidden" name="mode" value="' . $mode . '" />';
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Subject Check - Begin Code Alteration
+//
+$subject_check->add_bypass();
+//
+// Subject Check - End Code Alteration
+//----------------------------------------------------------------------
+
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+<?php
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+// This file modified for Subject Check
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+$template->pparse("body");
+
+#
+#-----[ BEFORE, ADD ]--------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Subject Check - Begin Code Alteration
+//
+include_once($phpbb_root_path . 'mods/subjectchk/admin.'.$phpEx);
+$subchk->print_config_fields();
+//
+// Subject Check - End Code Alteration
+//----------------------------------------------------------------------
+
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+admin/admin_forums.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+<?php
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+// This file modified for Subject Check
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+include($phpbb_root_path . 'includes/functions_admin.'.$phpEx);
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Subject Check - Begin Code Alteration
+//
+include_once($phpbb_root_path . 'mods/subjectchk/admin.'.$phpEx);
+//
+// Subject Check - End Code Alteration
+//----------------------------------------------------------------------
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+			$template->set_filenames(array(
+				"body" => "admin/forum_edit_body.tpl")
+			);
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Subject Check - Begin Code Alteration
+//
+			$subchk->print_forum_fields();
+//
+// Subject Check - End Code Alteration
+//----------------------------------------------------------------------
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+			while( list($field, $value) = each($forum_auth_ary) )
+			{
+				$field_sql .= ", $field";
+				$value_sql .= ", $value";
+
+			}
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Subject Check - Begin Code Alteration
+//
+			$subchk->add_to_insert();
+//
+// Subject Check - End Code Alteration
+//----------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This area may have already been edited and look a little different in
+# your file!
+#
+
+			$sql = "UPDATE " . FORUMS_TABLE . "
+				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', cat_id = " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", forum_desc = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . ", prune_enable = " . intval($HTTP_POST_VARS['prune_enable']) . "
+				WHERE forum_id = " . intval($HTTP_POST_VARS[POST_FORUM_URL]);
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Subject Check - Begin Code Alteration
+//
+			$subchk->add_to_update();
+//
+// Subject Check - End Code Alteration
+//----------------------------------------------------------------------
+
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+<?php
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+// This file modified for Subject Check
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+	// Check subject
+	if (!empty($subject))
+	{
+		$subject = htmlspecialchars(trim($subject));
+	}
+	else if ($mode == 'newtopic' || ($mode == 'editpost' && $post_data['first_post']))
+	{
+		$error_msg .= (!empty($error_msg)) ? '<br />' . $lang['Empty_subject'] : $lang['Empty_subject'];
+	}
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+
+//----------------------------------------------------------------------
+// Subject Check - Begin Code Alteration
+//
+	global $subject_check;
+	$subject_check->look_for_posts();
+//
+// Subject Check - End Code Alteration
+//----------------------------------------------------------------------
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+	include($phpbb_root_path . 'includes/functions_search.'.$phpEx);
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+
+/*----------------------------------------------------------------------
+// Subject Check - Begin Code Alteration
+//		Original phpBB Code:
+	include($phpbb_root_path . 'includes/functions_search.'.$phpEx);
+*/
+	include_once($phpbb_root_path . 'includes/functions_search.'.$phpEx);
+//
+// Subject Check - End Code Alteration
+//----------------------------------------------------------------------
+
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+<h1>{L_CONFIGURATION_TITLE}</h1>
+
+#
+#-----[ BEFORE, ADD ]--------------------------------------
+#
+
+<!-- This file modified for Subject Check -->
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+	<tr>
+		<td class="catBottom" colspan="2" align="center">{S_HIDDEN_FIELDS}<input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" />
+		</td>
+	</tr>
+
+#
+#-----[ BEFORE, ADD ]--------------------------------------
+#
+
+<!-- Subject Check - Begin Code Alteration -->
+{SUBJECT_CHECK}
+<!-- Subject Check - End Code Alteration -->
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/forum_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+<h1>{L_FORUM_TITLE}</h1>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+<!-- This file modified for Subject Check -->
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	<tr> 
+	  <td class="row1">{L_FORUM_STATUS}</td>
+	  <td class="row2"><select name="forumstatus">{S_STATUS_LIST}</select></td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+<!-- Subject Check - Begin Code Alteration -->
+	<tr> 
+		<td class="row1">{L_SUBJECT_CHECK}</td>
+		<td class="row2 genmed">
+			<input type="radio" name="forum_subject_check" id="forum_subject_check1" value="1" {SUBJECT_CHECK_YES} /><label for="forum_subject_check1"> {L_YES}</label>
+			<input type="radio" name="forum_subject_check" id="forum_subject_check0" value="0" {SUBJECT_CHECK_NO} /><label for="forum_subject_check0"> {L_NO}</label>
+		</td>
+	</tr>
+<!-- Subject Check - End Code Alteration -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

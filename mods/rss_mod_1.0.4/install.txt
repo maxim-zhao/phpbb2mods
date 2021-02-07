@@ -1,0 +1,221 @@
+##############################################################
+## MOD Title: RSS Syndication mod
+##
+## MOD Author: Lucky Luke < lucas@aoe3capitol.nl > (Lucas van Dijk) http://www.aoe3capitol.nl
+## MOD Description: This mod creates severval RSS feeds. For
+##                   every forum and topic is a seperate RSS
+##                   feed. Also, a RSS with the last topics on the whole
+##                   forum is available.
+##
+## MOD Version: 1.0.4
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit:
+##             includes/page_header.php
+##             language/lang_english/lang_main.php
+##             language/lang_english/lang_admin.php
+##             templates/subSilver/overall_header.tpl
+##             templates/subSilver/overall_footer.tpl
+##             templates/subSilver/subSilver.cfg
+##
+## Included Files:
+##             rss.php
+##             admin/admin_rss.php
+##             templates/subSilver/admin/rss_body.tpl
+##             templates/subSilverimages/rss2.png
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##     To do:
+##         - Disallow guest by IP
+##         - Disallow members
+##         - More config options
+##############################################################
+## MOD History:
+##
+##   2005-11-13 - Version 1.0.2
+##      - Fixed some $phpEx mistakes
+##      - Fixed small HTML mistake in rss_body.tpl
+##   2005-12-18 - Version 1.0.3
+##      - Author line now in official syntax
+##      - copy command fixed
+##      - FIND action with adding languages fixed
+##      - fixed link to user profile
+##   2005-12-24 - Version 1.0.4
+##      - Fixed year in RSS copyright line
+##      - Some other minor changes      
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value)
+VALUES ('rss_image', '');
+INSERT INTO phpbb_config (config_name, config_value)
+VALUES ('max_rss_topics', '15');
+
+#
+#-----[ COPY ]-----------------------------------------
+#
+copy rss.php to rss.php
+copy admin/admin_rss.php to admin/admin_rss.php
+copy templates/subSilver/admin/rss_body.tpl to templates/subSilver/admin/rss_body.tpl
+copy templates/subSilver/images/rss2.png to templates/subSilver/images/rss2.png
+
+#
+#-----[ OPEN ]-----------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]-----------------------------------------
+#
+$l_timezone = (count($l_timezone) > 1 && $l_timezone[count($l_timezone)-1] != 0) ? $lang[sprintf('%.1f', $board_config['board_timezone'])] : $lang[number_format($board_config['board_timezone'])];
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+//
+// RSS Button URL
+//
+if(isset($HTTP_GET_VARS[POST_FORUM_URL]))
+{
+        $rss_url = "rss.".$phpEx."?".POST_FORUM_URL."=".$HTTP_GET_VARS[POST_FORUM_URL];
+        $l_rss = $board_config['sitename']." ".$lang['rss_forum'];
+}
+else if(isset($HTTP_GET_VARS[POST_TOPIC_URL]))
+{
+        $rss_url = "rss.".$phpEx."?".POST_TOPIC_URL."=".$HTTP_GET_VARS[POST_TOPIC_URL];
+        $l_rss = $board_config['sitename']." ".$lang['rss_topic'];
+}
+else if(isset($HTTP_GET_VARS[POST_POST_URL]))
+{
+        $rss_url = "rss.".$phpEx."?".POST_POST_URL."=".$HTTP_GET_VARS[POST_POST_URL];
+        $l_rss = $board_config['sitename']." ".$lang['rss_topic'];
+}
+else
+{
+        $rss_url = "rss.".$phpEx."";
+        $l_rss = $board_config['sitename']." ".$lang['rss_latest'];
+}
+
+#
+#-----[ FIND ]-----------------------------------------
+#
+        'PRIVATE_MESSAGE_NEW_FLAG' => $s_privmsg_new,
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+        // RSS Mod
+        'U_RSS' => $rss_url,
+        'L_RSS' => $l_rss,
+        'RSS_IMAGE' => $images['icon_rss'],
+#
+#-----[ OPEN ]-----------------------------------------
+#
+# Note: apply the following to all languages!
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]-----------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+//
+// RSS
+//
+$lang['rss_forum'] = "forum RSS feed";
+$lang['rss_topic'] = "topic RSS feed";
+$lang['rss_latest'] = "latest topics RSS feed";
+#
+#-----[ OPEN ]------------------------------------------
+#
+# Note: apply the following to all languages!
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------
+#
+//
+// RSS
+//
+$lang['rss_image'] = "RSS Image";
+$lang['rss_image_exp'] = "This image will be shown in the RSS Reader. Enter a full path to the image.";
+$lang['rss_config'] = "RSS Configuration";
+$lang['rss_config_explain'] = "On this page you can change the RSS configuration.";
+$lang['rss_max_topics'] = "Maxium number of topics in the RSS";
+$lang['rss_config_updated'] = "The RSS Configuration is saved in database!";
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+# Note: the template may be different
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$images['icon_newest_reply'] = "$current_template_images/icon_newest_reply.gif";
+
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+$images['icon_rss'] = "$current_template_images/rss2.png";
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+# Note: the template may be different
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+</head>
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+<link rel="alternate" title="{L_RSS}" href="{U_RSS}" type="application/rss+xml">
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+# Note: the template may be different
+templates/subSilver/overall_footer.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<br />{ADMIN_LINK}<br />
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------
+#
+<a href="{U_RSS}" target="_blank"><img src="{RSS_IMAGE}" alt="{L_RSS}" border="0"></a>&nbsp;<br />
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

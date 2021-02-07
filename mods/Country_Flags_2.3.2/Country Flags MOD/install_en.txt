@@ -1,0 +1,524 @@
+########################################################
+## MOD Title: Country/Location Flags MOD
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Author: Nuttzy99 < n/a > (Nuttzy) http://www.spellingcow.com/
+## MOD Author: AbelaJohnB < n/a > (John B. Abela) n/a
+## MOD Description: This mod allows your registered board members to select the flag of their country/location.
+## MOD Version: 2.3.2
+## 
+## Installation Level: Intermediate
+## Installation Time: 15 - 20 Minutes
+##
+## Files To Edit: 12
+##	viewtopic.php
+##	memberlist.php
+##	admin/admin_users.php
+##	includes/constants.php
+##	includes/usercp_viewprofile.php
+##	includes/usercp_register.php
+##	includes/usercp_avatar.php
+##	language/lang_english/lang_main.php
+##	language/lang_english/lang_admin.php
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files: 9 + 261 images
+##	root/images/flags/*.gif
+##	root/admin/admin_flags.php
+##	root/templates/subSilver/admin/flags_list_body.tpl
+##	root/templates/subSilver/admin/flags_edit_body.tpl
+##	contrib/install/db_update_en.php
+##	contrib/install/db_update_en.txt
+##	contrib/install/db_update_tw.php
+##	contrib/install/db_update_tw.txt
+##	contrib/install/db_update_cn.php
+##	contrib/install/db_update_cn.txt
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+##
+## 	Tested on 2.0.21. Can be installed using EasyMOD 0.3.0
+##	Flag images are from CIA - The World Factbook - Flags of the World
+##	http://www.cia.gov/cia/publications/factbook/docs/flagsoftheworld.html
+##
+############################################################## 
+## Version History:
+##
+##   2002-02-28 - Version ???
+##      - Updated for phpBB 2.0 RC2 - Nuttzy
+##
+##   2002-04-01 - Version ???
+##      - Updated for phpBB 2.0 RC4
+##	- Right justified flags in members listing
+##
+##   2002-04-14 - Version 2.0.4
+##	- Release for phpBB 2.0 final
+##
+##   2002-05-18 - Version 2.0.5
+##	- Fixed a bug with edit profile sometimes reinitializing the settings - thanks sj26!
+##	- Display flag when selecting from edit profile - coded by sj26
+##	- Flags can be changed when editing a user in the admin panel
+##	- Upgrade script from 2.0.4 released
+##
+##   2002-08-13 - Version 2.0.6
+##	- Made for 2.0.2 of phpBB
+##	- Made EasyMod alpha 2 compliant
+##
+##   2003-02-20 - Version 2.2.0
+##	- Updated for phpBB 2.0.4
+##	- Added admin tools to edit/add/remove flags
+##
+##   2006-04-15 - Version 2.3.0
+##	- MOD took over by ycl6
+##	- Updated for phpBB 2.0.20
+##	- Added more countries/locations and flags
+##	- Rewrote some of the codes and fix a couple of bugs
+##
+##   2006-05-05 - Version 2.3.1
+##	- Fix a bug with flag setting become missing when profile is re-edited (thanks kenn)
+##
+##   2006-06-24 - Version 2.3.2
+##	- Include EasyMOD compatible SQL update script separately
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------ 
+#
+copy root/images/flags/*.gif to images/flags/
+copy root/admin/*.php to admin/
+copy root/templates/subSilver/admin/*.tpl to templates/subSilver/admin/
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------------ 
+#
+Method 1: Copy root/install/db_update_en.php to install/db_update_en.php. Execute and delete after it has been run
+Method 2: Use EasyMOD to run contrib/install/db_update_en.txt
+Method 3: Copy the SQL query from contrib/install/db_update_en.txt and execute it manually
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+define('FLAG_TABLE', $table_prefix.'flags');	// Country/Location Flags
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+$pm = '<a href="' . $temp_url . '">' . $lang['Send_private_message'] . '</a>';
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Country/Location Flags
+$location = ( $profiledata['user_from'] ) ? $profiledata['user_from'] : '&nbsp;';
+$flag = ( !empty($profiledata['user_from_flag']) ) ? '&nbsp;<img src="images/flags/' . $profiledata['user_from_flag'] . '" alt="' . $profiledata['user_from_flag'] . '" title="' . $profiledata['user_from_flag'] . '" border="1" />' : '';
+$location .= $flag;
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	'LOCATION' => ( $profiledata['user_from'] ) ? $profiledata['user_from'] : '&nbsp;',
+#
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	'LOCATION' => $location,	// Country/Location Flags
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	$user_timezone = ( isset($HTTP_POST_VARS['timezone']) ) ? doubleval($HTTP_POST_VARS['timezone']) : $board_config['board_timezone'];
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$user_flag = ( !empty($HTTP_POST_VARS['user_flag']) && $HTTP_POST_VARS['user_flag'] != 'blank.gif' ) ? htmlspecialchars($HTTP_POST_VARS['user_flag']) : '' ;	// Country/Location Flags
+#
+#-----[ FIND ]------------------------------------------ 
+# 
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_from = '" . str_replace("\'", "''", $location) . "',
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_from_flag = '" . str_replace("\'", "''", $user_flag) . "',
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "INSERT INTO " . USERS_TABLE . "	(user_id
+				VALUES ($user_id
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_from,
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_from_flag,
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+'" . str_replace("\'", "''", $location) . "',
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+'" . str_replace("\'", "''", $user_flag) . "',
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	$location = $userdata['user_from'];
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	$user_flag = $userdata['user_from_flag'];	// Country/Location Flags
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	display_avatar_gallery($mode,
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$location,
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ $user_flag,
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		$template->assign_block_vars('switch_edit_profile', array());
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Country/Location Flags
+	// Query to get the list of flags
+	$sql = "SELECT *
+		FROM " . FLAG_TABLE . "
+		ORDER BY flag_name";
+	if(!$flags_result = $db->sql_query($sql))
+	{
+		message_die(GENERAL_ERROR, "Couldn't obtain flags information.", "", __LINE__, __FILE__, $sql);
+	}
+
+	// Build the html select statement
+	$flag_start_image = 'blank.gif';
+	$flag_select = '<select name="user_flag" onChange="document.images[\'user_flag\'].src = \'images/flags/\' + this.value;">';
+	$flag_select .= '<option value="blank.gif">' . $lang['Select_country'] . '</option>';
+	while ( $flag_row = $db->sql_fetchrow($flags_result) )
+	{
+		$flag_name = $flag_row['flag_name'];
+		$flag_image = $flag_row['flag_image'];
+		$selected = ( $user_flag == $flag_image ) ? ' selected="selected"' : '';
+		$flag_select .= '&nbsp;&nbsp;&nbsp;<option value="' . $flag_image . '"' . $selected . '">' . $flag_name . '</option>';
+		if ( isset( $user_flag) && ($user_flag == $flag_image))
+		{
+			$flag_start_image = $flag_image;
+		}
+	}
+	$flag_select .= '</select>';
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		'LOCATION' => $location,
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		'L_FLAG' => $lang['Country_flag'],	// Country/Location Flags
+		'FLAG_SELECT' => $flag_select,		// Country/Location Flags
+		'FLAG_START' => $flag_start_image,	// Country/Location Flags
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_avatar.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+function display_avatar_gallery($mode,
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+&$location,
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ &$user_flag,
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	$params = array(
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+'location',
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ 'user_flag',
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "SELECT u.username,
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+u.user_from,
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ u.user_from_flag,
+#
+#-----[ FIND ]------------------------------------------ 
+#
+	$poster_from = ( $postrow[$i]['user_from'] && $postrow[$i]['user_id'] != ANONYMOUS ) ? $lang['Location'] . ': ' . $postrow[$i]['user_from'] : '';
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Country/Location Flags
+	$poster_from_flag = ( $postrow[$i]['user_from_flag'] && $postrow[$i]['user_id'] != ANONYMOUS ) ? '<br /><img src="images/flags/' . $postrow[$i]['user_from_flag'] . '" alt="' . $postrow[$i]['user_from_flag'] . '" border="1" /><br />' : '';
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		'POSTER_FROM' => $poster_from,
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$poster_from
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ . $poster_from_flag
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+memberlist.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "SELECT username,
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_from,
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_from_flag,
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		$from = ( !empty($row['user_from']) ) ? $row['user_from'] : '&nbsp;';
+#
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+		$from = ( !empty($row['user_from']) ) ? $row['user_from'] : '';
+		// Country/Location Flags
+		$from = ( !empty($row['user_from_flag']) ) ? $from . '&nbsp;<img src="images/flags/' . $row['user_from_flag'] . '" alt="' . $row['user_from_flag'] . '" border="1" />' : $from;
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		$user_timezone = ( isset( $HTTP_POST_VARS['timezone']) ) ? doubleval( $HTTP_POST_VARS['timezone'] ) : $board_config['board_timezone'];
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$user_flag = ( !empty($HTTP_POST_VARS['user_flag']) && $HTTP_POST_VARS['user_flag'] != 'blank.gif' ) ? htmlspecialchars($HTTP_POST_VARS['user_flag']) : '' ;	// Country/Location Flags
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql
+#
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+user_from = '" . str_replace("\'", "''", $location) . "',
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ user_from_flag = '" . str_replace("\'", "''", $user_flag) . "',
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			$location = htmlspecialchars(stripslashes($location));
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$user_flag = htmlspecialchars(stripslashes($user_flag));	// Country/Location Flags
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		$location = htmlspecialchars($this_userdata['user_from']);
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		$user_flag = htmlspecialchars($this_userdata['user_from_flag']);	// Country/Location Flags
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="location" value="' . str_replace("\"", "&quot;", $location) . '" />';
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$s_hidden_fields .= '<input type="hidden" name="user_flag" value="' . str_replace("\"", "&quot;", $user_flag) . '" />';	// Country/Location Flags
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		$form_enctype = ( !@$ini_val('file_uploads')
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Country/Location Flags
+		// Query to get the list of flags
+		$sql = "SELECT *
+			FROM " . FLAG_TABLE . "
+			ORDER BY flag_name";
+		if(!$flags_result = $db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, "Couldn't obtain flags information.", "", __LINE__, __FILE__, $sql);
+		}
+
+		// Build the html select statement
+		$flag_start_image = 'blank.gif';
+		$flag_select = '<select name="user_flag" onChange="document.images[\'user_flag\'].src = \'../images/flags/\' + this.value;">';
+		$flag_select .= '<option value="blank.gif">' . $lang['Select_country'] . '</option>';
+		while ( $flag_row = $db->sql_fetchrow($flags_result) )
+		{
+			$flag_name = $flag_row['flag_name'];
+			$flag_image = $flag_row['flag_image'];
+			$selected = ( $user_flag == $flag_image ) ? ' selected="selected"' : '';
+			$flag_select .= '&nbsp;&nbsp;&nbsp;<option value="' . $flag_image . '"' . $selected . '">' . $flag_name . '</option>';
+			if ( isset( $user_flag) && ($user_flag == $flag_image))
+			{
+				$flag_start_image = $flag_image;
+			}
+		}
+		$flag_select .= '</select>';
+#
+#-----[ FIND ]------------------------------------------ 
+#
+			'LOCATION' => $location,
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			'L_FLAG' => $lang['Country_flag'],	// Country/Location Flags
+			'FLAG_SELECT' => $flag_select,		// Country/Location Flags
+			'FLAG_START' => $flag_start_image,	// Country/Location Flags
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+$lang['Country_flag'] = 'Flag';				// Country/Location Flags
+$lang['Select_country'] = 'SELECT COUNTRY/LOCATION';	// Country/Location Flags
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// Country/Location Flags
+$lang['Flags'] = 'Flags';
+$lang['Flags_title'] = 'Flag Administration';
+$lang['Flags_explain'] = 'Using this form you can add, edit, view and delete flags. You can also create custom flags which can be applied to a user via the user management facility';
+$lang['Add_new_flag'] = 'Add new flag';
+$lang['Flag_name'] = 'Flag Name';
+$lang['Flag_pic'] = 'Image';
+$lang['Flag_image'] = 'Flag Image (in the images/flags/ directory)';
+$lang['Flag_image_explain'] = 'Use this to define a small image associated with the flag';
+$lang['Must_select_flag'] = 'You must select a flag';
+$lang['Flag_updated'] = 'The flag was successfully updated';
+$lang['Flag_added'] = 'The flag was successfully added';
+$lang['Flag_removed'] = 'The flag was successfully deleted';
+$lang['No_update_flags'] = 'The flag was successfully deleted. However, user accounts using this flag were not updated.  You will need to manually reset the flag on these accounts';
+$lang['Flag_confirm'] = 'Delete Flag';
+$lang['Confirm_delete_flag'] = 'Are you sure you want to remove the selected flag?';
+$lang['Click_return_flagadmin'] = 'Click %sHere%s to return to Flag Administration';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		<input type="text" class="post" style="width: 200px"  name="location" size="25" maxlength="100" value="{LOCATION}" />
+	  </td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_FLAG}:</span></td>
+	  <td class="row2"><span class="gensmall">
+		<table><tr>
+			<td>{FLAG_SELECT}&nbsp;&nbsp;&nbsp;</td>
+	  		<td><img src="images/flags/{FLAG_START}" name="user_flag" /></td>
+		</tr></table>
+	  </span></td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------ 
+#
+		<input class="post" type="text" name="location" size="35" maxlength="100" value="{LOCATION}" />
+	  </td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_FLAG}:</span></td>
+	  <td class="row2"><span class="gensmall">
+		<table><tr>
+			<td>{FLAG_SELECT}&nbsp;&nbsp;&nbsp;</td>
+	  		<td><img src="../images/flags/{FLAG_START}" name="user_flag" /></td>
+		</tr></table>
+	  </span></td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+#
+# EoM

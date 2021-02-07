@@ -1,0 +1,105 @@
+##############################################################
+## MOD Title:		Add-ON: phpBB Menu Manager Link Counter for Board Navigation
+## MOD Author: OXPUS < webmaster@oxpus.de > (Karsten Ude) http://www.oxpus.de
+## MOD Description:	Adds an link counter for all board menu links managed by the phpBB board manager mod
+## MOD Version:		1.0.6
+##
+## Installation Level:	Easy
+## Installation Time:	3-6 Minutes
+## Files To Edit:	1
+##			includes/page_header.php
+##
+## Included Files:	2
+##			bmm_link.php
+##			templates/subSilver/bmm_link_body.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+##
+## SQL / Database changes
+## ----------------------
+## Instead using the SQL commands you can upload the file
+##		add_on_link_counter_install.php
+## to your phpbb root directory and run this with your browser.
+## This file will do all nessassary changes in the database for you.
+## After using this file, please delete it to avoid errors.
+##
+## Attention!
+## ----------
+## The link counter could not count links created by javascript!
+##
+##############################################################
+## MOD History:
+##
+##   2005-11-26 - Version 1.0.6
+##      - Recheck Files for malfunctions SQL-Statements.
+##	  For update just replace the file bmm_link.php
+##
+##   2005-09-29 - Version 1.0.5
+##      - Re-recheck instructions for submitting in MOD Database on http://www.phpbb.com
+##	- Split instructions in part for board and portal navigation
+##
+##   2005-09-06 - Version 1.0.4
+##      - Re-recheck instructions for submitting in MOD Database on http://www.phpbb.com
+##
+##   2005-08-29 - Version 1.0.3
+##      - Recheck instructions for submitting in MOD Database on http://www.phpbb.com
+##
+##   2005-04-30 - Version 1.0.2
+##      - FIX prevent hijacking.
+##	  For update replace the file bmm_link.php and reinstall the part on board_menu_manager.php
+##
+##   2005-04-07 - Version 1.0.1
+##      - FIX Link for redirection if script path is only a single slash or empty
+##	  For update just replace the file bmm_link.php
+##
+##   2004-09-03 - Version 1.0.0
+##      - First release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+# // Run this query only, if you've not install the counter add on for the portal navigation!
+#
+ALTER TABLE phpbb_board_links ADD bl_click_counter MEDIUMINT(11) DEFAULT '0' NOT NULL;
+
+#
+#-----[ COPY ]------------------------------------------
+#
+# // Copy these files only, if you've not install the counter add on for the portal navigation!
+#
+copy add_on_link_counter/bmm_link.php to bmm_link.php
+copy add_on_link_counter/bmm_link_body.tpl to templates/subSilver/bmm_link_body.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$u_board_menu_links = append_sid($row['bl_link'].'.'.$phpEx.(($row['bl_parameter'] != '') ? '?'.$row['bl_parameter'] : ''));
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		$u_board_menu_links = append_sid("bmm_link.$phpEx?bl_id=".$row['bl_id']);
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

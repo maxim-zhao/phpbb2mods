@@ -1,0 +1,223 @@
+############################################################## 
+## MOD Title:  Change Forum Banner
+## MOD Author: MarioKnight < marioknight@smuncensored.com > (Dan Bednarski) http://www.smuncensored.com/
+## MOD Description: Allows the admin to change the forum banner in the admin panel
+## MOD Version : 1.0.8
+##
+## Installation Level : Easy
+## Installation Time  : ~5 Minutes 
+## Files To Edit :      includes/page_header.php
+##			admin/admin_board.php
+##                      templates/subSilver/overall_header.tpl
+##			templates/subSilver/admin/board_config_body.tpl
+##			language/lang_english/lang_admin.php
+##		  
+## Included Files :     images/banners/logo_phpBB.gif
+##                      admin/admin_banner.php
+##                      templates/subSilver/admin/banner_change.tpl
+##
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## This MOD was made to give admins the ability to change their forum banners
+## via the admin panel as opposed to having to edit the overall_header.tpl file
+## all the time.  This MOD will create a new section in the admin panel which will
+## show all the banners in the banner directory (images/banners by default), as well
+## as add fields in the general config module to change the banner directory and change
+## the number of columns in the change banner module table.
+##############################################################
+## MOD History:
+##
+##   2005-03-20 - Version 1.0.8
+##      - Code reworked, added width and height fields.  Credit goes to LPCA for the new code.
+##	- Note to all people who have used previous versions of the code, while you can probably
+##	  tell what the new code is in this TXT (just overwrite the included files), a couple
+##	  changes should be noted.  BANNER is now BANNER_SOURCE in includes/page_header.php and
+##	  templates/subSilver/overall_header.tpl , the phpbb_config field for the image has
+##	  changed from 'banner' to 'banner_source' and that change also needs to be made in
+##	  includes/page_header.php .
+##
+##   2004-11-29 - Version 1.0.7
+##      - Fixed a typo in one of the filenames listed below.
+##
+##   2004-11-29 - Version 1.0.6
+##      - Small security fix to prevent SQL injection
+##
+##   2004-11-21 - Version 1.0.5
+##      - Hardcoding that I overlooked has been fixed, likewise the ability to change the
+##        banner path in the general configuration module in the admin panel, as well as the
+##        number of columns in the table
+##
+##   2004-11-18 - Version 1.0.4
+##      - Got rid of redundant code that prevented images to be displayed for some people
+##
+##   2004-11-12 - Version 1.0.3
+##      - Fixed bug that caused images to not display for some people
+##
+##   2004-10-15 - Version 1.0.2
+##	- Current banner's radio box is now selected by default
+##
+##   2004-10-13 - Version 1.0.1
+##	- Finally got around to fixing possible security problems
+##
+##   2004-09-10 - Version 1.0.0
+##      - First release of the MOD
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+INSERT INTO phpbb_config values ('banner_source', 'logo_phpBB.gif');
+INSERT INTO phpbb_config values ('banner_path', 'images/banners');
+INSERT INTO phpbb_config values ('banner_cols', '2');
+INSERT INTO phpbb_config values ('banner_width', '200');
+INSERT INTO phpbb_config values ('banner_height', '91'); 
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy admin/admin_banner.php to admin/admin_banner.php
+copy images/banners/logo_phpBB.gif to images/banners/logo_phpBB.gif
+copy templates/subSilver/admin/banner_change.tpl to templates/subSilver/admin/banner_change.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Change Forum Banner MOD
+$lang['banner_title'] = 'Change forum banner';
+$lang['banner_text'] = 'This module will allow you to change the forum banner using images stored in the banner directory.';
+$lang['banner_caption'] = 'Choose banner';
+$lang['banner_choose'] = 'Change banner';
+$lang['banner_success'] = 'Banner has been successfully changed.';
+$lang['Click_return_banner'] = 'Click %sHere%s to return to the banner menu.';
+$lang['banner_settings'] = "Banner settings";
+$lang['banner_path'] = "Banner path";
+$lang['banner_path_explain'] = "The path where your forum banners are stored relative to the phpBB root directory";
+$lang['banner_cols'] = "Columns displayed in change banner module";
+$lang['banner_cols_explain'] = "The number of columns in the table of the change banner module";
+$lang['banner_size'] = 'Banner Dimensions';
+$lang['banner_size_explain'] = '(Width x Height in pixels)';
+// End add - Change Forum Banner MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_AVATAR_GALLERY_PATH_EXPLAIN" => $lang['Avatar_gallery_path_explain'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start - Change Forum Banner MOD
+	"L_BANNER_SETTINGS" => $lang['banner_settings'],
+	"L_BANNER_PATH" => $lang['banner_path'],
+	"L_BANNER_PATH_EXPLAIN" => $lang['banner_path_explain'],
+	"L_BANNER_COLS" => $lang['banner_cols'],
+	"L_BANNER_COLS_EXPLAIN" => $lang['banner_cols_explain'],
+	// End - Change Forum Banner MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"SMILIES_PATH" => $new['smilies_path'], 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start - Change Forum Banner MOD
+	"BANNER_PATH" => $new['banner_path'],
+	"BANNER_COLS" => $new['banner_cols'],
+	// End - Change Forum Banner MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'PRIVATE_MESSAGE_NEW_FLAG' => $s_privmsg_new,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start - Change Forum Banner MOD
+	'BANNER_SOURCE' => $board_config['banner_source'],
+	'BANNER_PATH' => $board_config['banner_path'],
+	'BANNER_WIDTH' => $board_config['banner_width'],
+	'BANNER_HEIGHT' => $board_config['banner_height'],
+	// End - Change Forum Banner MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_AVATAR_GALLERY_PATH} <br /><span class="gensmall">{L_AVATAR_GALLERY_PATH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="20" maxlength="255" name="avatar_gallery_path" value="{AVATAR_GALLERY_PATH}" /></td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+<!-- Start add - Change Forum Banner MOD -->
+	<tr>
+		<th class="thHead" colspan="2">{L_BANNER_SETTINGS}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_BANNER_PATH}<br /><span class="gensmall">{L_BANNER_PATH_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" maxlength="255" name="banner_path" value="{BANNER_PATH}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_BANNER_COLS}<br /><span class="gensmall">{L_BANNER_COLS_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" maxlength="5" size="5" name="banner_cols" value="{BANNER_COLS}" /></td>
+	</tr>
+<!-- End add - Change Forum Banner MOD -->
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				<td><a href="{U_INDEX}"><img src="templates/subSilver/images/logo_phpBB.gif" border="0" alt="{L_INDEX}" vspace="1" /></a></td>
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				<!-- Start add - Change Forum Banner MOD -->
+				<td><a href="{U_INDEX}"><img src="{BANNER_PATH}/{BANNER_SOURCE}" border="0" width="{BANNER_WIDTH}" height="{BANNER_HEIGHT}" alt="{L_INDEX}" vspace="1" /></a></td>
+				<!-- End add - Change Forum Banner MOD -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

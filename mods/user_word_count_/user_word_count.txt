@@ -1,0 +1,445 @@
+############################################################## 
+## MOD Title:          User Word Count MOD
+## MOD Author:         NoahK < Support@FFTrealm.com > ( Noah ) http://www.fftrealm.com
+## MOD Description:    This MOD stores a users total words posted
+##                     and can display the result on viewtopic or
+##                     viewprofile. The profile view also shows the 
+##                     average number of words per post.
+## MOD Version:        1.0.8a
+## Compatibility:      2.0.4-2.0.10 
+##
+## Installation Level: Easy
+## Installation Time:  10 Minutes
+## Files To Edit:      6
+##      viewtopic.php
+##      includes/usercp_viewprofile.php
+##      includes/functions_post.php
+##	language/lang_english/lang_main.php
+##      templates/subSilver/viewtopic_body.tpl
+##      templates/subSilver/profile_view_body.tpl
+##
+## Included Files:     2
+##      user_word_sync.php
+##      resync.php
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could
+## cause malicious code to enter into your phpBB Forum. As such,
+## phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##
+## Installing:
+## - You can install the viewtopic or the viewprofile sections of
+##   this mod with _or_ without the other. They both work individually.
+##   Don't forget to run word_count_sync.php!
+##
+## Thoughts:
+## - This MOD can be easily changed to simply replace the $user_posts variable
+##   in viewtopic.php. Or you can manually replace the user post count for
+##   the word count by editing the .tpl file. (e.g. using "{postrow.WORD_COUNT}"
+##   instead of "{postrow.POSTER_POSTS}").
+## 
+## Todo:
+## - Make mod not count words in a forum where post count is disabled.
+## - Finish off code for sorting in memberlist.php (finished on my forum, just
+##   need to take the time and make sure all the FIND > ADD's are perfect).
+##
+## About word_count_sync.php:
+## - This .php file will count all the text in posts for every user, then derive
+##   the total words the user has posted. This can take quite some time for
+##   large databases, and may on occasion time out. If this happens it is recommended
+##   you open the .php file and edit this line...
+##   $sql2 = "SELECT user_id,username FROM " . USERS_TABLE . " WHERE user_id>0 and user_posts > 10";
+##   Change the 10 on the end to 100. This will only count users who have more than
+##   100 posts, which will cut back on the execution time drastically. You may also edit
+##   the user_id>0 to user_id>50, 100, 500, et cetera. This will start the script on
+##   users who have more recently registered. If anyone has a better way of doing
+##   this please feel free to email me. Credit will be given of course.
+##
+## Demo: http://www.fftrealm.com/forum/profile.php?mode=viewprofile&u=2 (profile view)
+##
+############################################################## 
+## MOD History:
+##
+##   2004-8-16 - Version 1.0.8a
+##      - Minor Bug Fix.
+##
+##   2004-7-27 - Version 1.0.8
+##      - Condensed code and reduced SQL queries for faster runtime.
+##      - Added better error checking.
+##
+##   2004-5-26 - Version 1.0.7
+##      - Fixed two small template errors at the request of the phpbb MOD Team.
+##
+##   2004-3-01 - Version 1.0.6
+##      - Added a needed function in user_word_sync.php that was left out by
+##	  accident in the last update.
+##
+##   2004-2-12 - Version 1.0.5
+##      - Fixed a small bug in the [QUOTE] code.
+##	- Added resync.php for easy user access to re-sync their word count.
+##
+##   2004-1-31 - Version 1.0.4
+##      - Text inbetween [QUOTE] and [/QUOTE] is no longer counted towards total words.
+##	- Most BB Codes have been stripped for a more accurate count of total words.
+##
+##   2004-1-11 - Version 1.0.3
+##      - Changed "N/A" to a $lang variable at the request of the phpBB Mod Team.
+##
+##   2003-12-13 - Version 1.0.2
+##      - Changed [ RUN SQL QUERY ] to [ SQL ] at the request of the phpBB Mod Team.
+##      - Added a new $lang variable.
+##      - Changed the SQL query from a VARCHAR to INT for a possible future update.
+##
+##   2003-12-03 - Version 1.0.1
+##      - Added language variables.
+##      - Fixed a few SQL queries to grab only the information it needs.
+##
+##   2003-12-01 - Version 1.0.0
+##      - Version submitted to MOD database.
+##
+##   2003-11-26 - Version 0.0.5
+##      - Removed all instances of mysql_* to make the edits DBAL complient.
+##	- Change the /xxx/ instances to /subSilver/.
+##
+##   2003-11-24 - Version 0.0.4
+##      - Fixed word_count_sync.php script to make it DBAL complient.
+##
+##   2003-11-20 - Version 0.0.3
+##      - Added the word_count_sync.php script to the zip file. See above for details.
+##
+##   2003-11-19 - Version 0.0.2
+##      - Used fresh copy of 2.0.6 to correct some minor code changes.
+##	- Made sure the .TPL edits work for the default subSilver template.
+##	- Fixed tabbing in some areas of the code.
+##	- Replaced phpbb_users with USERS_TABLE, so different prefixes will work.
+##	- Stopped the counting of words on a post edit.
+##
+##   2003-11-18 - Version 0.0.1
+##      - First release.
+##      - Stores user word count in database table.
+##      - Retrives word count to be shown in either profile or viewtopic.
+##      - Also finds average words per post.
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+## Note: You must change phpbb_users to whatever your user table is named.
+## The prefix is normally what might be different. e.g. myforum_users.
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE `phpbb_users` ADD `user_wordcount` INT(255) DEFAULT '0' NOT NULL;
+
+## Note: Don't forget to run the file below after copying.
+#
+#-----[ COPY ]------------------------------------------------ 
+#
+copy word_count_sync.php to word_count_sync.php
+copy resync.php to resync.php
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$unhtml_specialchars_replace = array('>', '<', '"', '&');
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+function Remove($string, $sep1, $sep2)
+{
+  $string = strrev(substr($string, 0, strpos($string, $sep2)));
+  $string = strrev(substr($string,0,strpos($string, strrev($sep1))));
+  return $string;
+}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					message_die(GENERAL_MESSAGE, $lang['Flood_Error']);
+				}
+			}
+		}
+	}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	
+	// WORD COUNT START by NoahK
+	// This function takes the character count, and simply counts the
+	// spaces. Then adds one to account for the first word.
+	function count_words($str) { 
+		return substr_count($str, ' ') + 1; 
+	}
+	if ($mode == 'newtopic' || $mode == 'reply') 
+	{
+		// The below code takes the message, stores it into a new
+		// variable and strips all the standard BB Codes from being
+		// counted towards a users word count.
+			
+		// Setting of some Variables
+		$uid = $bbcode_uid;
+		$post_message2 = $post_message;
+		
+		// Removes [QUOTE] and [/QUOTE], as well as the text inbetween them!
+		$text = Remove($post_message2,"[quote:","[/quote:");
+		$post_message2 = str_replace($text, "", $post_message2);
+		$post_message2 = str_replace("[quote:$uid]", "", $post_message2);
+		$post_message2 = str_replace("[/quote:$uid]", "", $post_message2);
+		$post_message2 = preg_replace("/\[quote:$uid=\"(.*?)\"\]/si", "", $post_message2);
+						
+		// Removes li tags
+		$post_message2 = str_replace("[*:$uid]", "", $post_message2);
+
+		// Removes ending tags
+		$post_message2 = str_replace("[/list:u:$uid]", "", $post_message2);
+		$post_message2 = str_replace("[/list:o:$uid]", "", $post_message2);
+
+		// Removes ordered lists
+		$post_message2 = preg_replace("/\[list=([a1]):$uid\]/si", "", $post_message2);
+	
+		// Removes colors
+		$post_message2 = preg_replace("/\[color=(\#[0-9A-F]{6}|[a-z]+):$uid\]/si", "", $post_message2);
+		$post_message2 = str_replace("[/color:$uid]", "", $post_message2);
+			
+		// Removes size
+		$post_message2 = preg_replace("/\[size=([1-2]?[0-9]):$uid\]/si", "", $post_message2);
+		$post_message2 = str_replace("[/size:$uid]", "", $post_message2);
+	
+		// Removes [b] and [/b] for bolding text.
+		$post_message2 = str_replace("[b:$uid]", "", $post_message2);
+		$post_message2 = str_replace("[/b:$uid]", "", $post_message2);
+
+		// Removes [u] and [/u] for underlining text.
+		$post_message2 = str_replace("[u:$uid]", "", $post_message2);
+		$post_message2 = str_replace("[/u:$uid]", "", $post_message2);
+			
+		// Removes [i] and [/i] for italicizing text.
+		$post_message2 = str_replace("[i:$uid]", "", $post_message2);
+		$post_message2 = str_replace("[/i:$uid]", "", $post_message2);
+		
+		// The SQL command to take the current word count total, and add
+		// the new word count to store back into the database.
+		$howmany = count_words($post_message2);
+		$sql = "UPDATE " . USERS_TABLE . " SET user_wordcount = user_wordcount + $howmany WHERE user_id='{$userdata['user_id']}'";
+		$result2 = $db->sql_query($sql);	
+	}
+	// WORD COUNT END by NoahK
+
+
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// That's all, Folks!
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+$lang['Total_Words'] = 'Total Words: ';
+$lang['Word_NA'] = 'N/A';
+$lang['Word_Count'] = 'Word Count: ';
+$lang['Word_Text'] = 'average words per post';
+$lang['Word_Memberlist'] = 'Words'; // For future version
+
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Again this will be handled by the templating
+	// code at some point
+	//
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+	// WORD COUNT START by NoahK
+	$sql = "SELECT user_wordcount FROM " . USERS_TABLE . " WHERE user_id='$poster_id'";
+	$result = $db->sql_query($sql);
+	$words = $db->sql_fetchrow($result);
+	$wordcount = $words['user_wordcount'];
+	$rest3 = $wordcount;
+	// This next set of commands adds commas in the proper places for larger numbers. Up to 99,999,999.
+	$new_wordcount = strlen($wordcount);
+	if ($new_wordcount == "4" || $new_wordcount == "5" || $new_wordcount == "6")
+	{
+		$rest4 = $new_wordcount - 3;
+		$rest = substr($wordcount, $rest4);
+		$rest2 = substr($wordcount, 0, $rest4);
+		$rest3 = $rest2 . "," . $rest;
+	}
+	elseif (strlen($wordcount) == "7")
+	{
+		$rest = substr($wordcount, 4);
+		$rest1 = substr($wordcount, 1,3);
+		$rest2 = substr($wordcount, 0,1);
+		$rest3 = $rest2 . "," . $rest1 . "," . $rest;
+	}
+	elseif (strlen($wordcount) == "8")
+	{
+		$rest = substr($wordcount, 5);
+		$rest1 = substr($wordcount, 2,3);
+		$rest2 = substr($wordcount, 0,2);
+		$rest3 = $rest2 . "," . $rest1 . "," . $rest;
+	}
+	// The code below is not utilized in this mod for viewtopic, however the .TPL could easily be changed to include the word average by using WORD_AVG.
+	if ($wordcount == "0") { // Stop division by 0.
+		$avg_words = $lang['Word_NA']; // If a user has no posts. You may safely change N/A to 0 or any other text in the language file.
+	} else {
+		$avg_words = round(($wordcount / $postrow[$i]['user_posts']),2); // The 2 controls the numbers shown after the decimal. Use 0 if you want whole numbers.
+	}
+	// WORD COUNT END by NoahK
+	
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		'POSTER_NAME' => $poster,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		'WORD_COUNT' => $rest3,
+		'WORD_AVG' => $avg_words,
+		'TOTAL_WORDS_TEXT' => $lang['Total_Words'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+//
+// Generate page
+//
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------------
+#
+
+// WORD COUNT START by NoahK
+$sql = "SELECT user_wordcount FROM " . USERS_TABLE . " WHERE user_id='$profiledata[user_id]'";
+$result = $db->sql_query($sql);
+$words = $db->sql_fetchrow($result);
+$wordcount = $words['user_wordcount'];
+$rest3 = $wordcount;
+// This next set of commands adds commas in the proper places for larger numbers. Up to 99,999,999.
+$new_wordcount = strlen($wordcount);
+if ($new_wordcount == "4" || $new_wordcount == "5" || $new_wordcount == "6")
+{
+	$rest4 = $new_wordcount - 3;
+	$rest = substr($wordcount, $rest4);
+	$rest2 = substr($wordcount, 0, $rest4);
+	$rest3 = $rest2 . "," . $rest;
+}
+elseif ($new_wordcount == "7")
+{
+	$rest = substr($wordcount, 4);
+	$rest1 = substr($wordcount, 1,3);
+	$rest2 = substr($wordcount, 0,1);
+	$rest3 = $rest2 . "," . $rest1 . "," . $rest;
+}
+elseif ($new_wordcount == "8")
+{
+	$rest = substr($wordcount, 5);
+	$rest1 = substr($wordcount, 2,3);
+	$rest2 = substr($wordcount, 0,2);
+	$rest3 = $rest2 . "," . $rest1 . "," . $rest;
+}
+if (($wordcount == 0) || ($profiledata['user_posts'] == 0)) { // Stop division by 0.
+	$avg_words = $lang['Word_NA']; // If a user has no posts. You may safely change N/A to 0 or any other text in the language file.
+} else {
+	$avg_words = round(($wordcount / $profiledata['user_posts']),2); // The 2 controls the numbers shown after the decimal. Use 0 if you want whole numbers.
+}
+// WORD COUNT END by NoahK
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'POSTER_RANK' => $poster_rank,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	'WORD_COUNT' => $rest3,
+	'WORD_AVG' => $avg_words,
+	'WORD_COUNT_TEXT' => $lang['Word_Count'],
+	'WORD_TEXT' => $lang['Word_Text'],
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+templates/subSilver/viewtopic_body.tpl 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+{postrow.POSTER_POSTS}<br /> 
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------------ 
+# 
+{postrow.POSTER_POSTS}<br /> 
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+
+{postrow.TOTAL_WORDS_TEXT}{postrow.WORD_COUNT}<br />
+
+#
+#-----[ OPEN ]-------------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+      <tr> 
+        <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_LOCATION}:&nbsp;</span></td> 
+        <td><b><span class="gen">{LOCATION}</span></b></td> 
+      </tr>
+
+#
+#-----[ BEFORE, ADD ]-------------------------------------------------
+#
+		<tr> 
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{WORD_COUNT_TEXT}</span></td>
+		  <td><b><span class="genmed">{WORD_COUNT}<br>{WORD_AVG} {WORD_TEXT}</span></b></td>
+		</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]---------------------------------
+#
+# EoM

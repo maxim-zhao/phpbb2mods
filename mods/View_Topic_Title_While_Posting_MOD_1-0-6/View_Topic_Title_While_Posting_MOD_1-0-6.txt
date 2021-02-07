@@ -1,0 +1,145 @@
+############################################################## 
+## MOD Title: View Topic Title While Posting MOD
+## MOD Author: GPHemsley < gphemsley@gmail.com > (Gordon P. Hemsley) http://gpfactory.wyrihaximus.net/
+## MOD Description: This will allow you to see what topic you are replying to when you are 
+## posting a reply.
+## MOD Version: 1.0.6
+## 
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+## Files To Edit: posting.php
+##  templates/subSilver/posting_body.tpl
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: 
+##
+## The MOD shows you the title of the topic you are replying to and provides a link back if you 
+## want/need it. This does not show when posting a new topic or sending a private message.
+############################################################## 
+## MOD History:
+##
+##  2007-11-27 - Version 1.0.6
+##   - Brought the MOD template up to date.
+##   - Ensured compatibility with phpBB 2.0.22.
+##   - No need to update files if you have 1.0.5 installed.
+##
+##  2003-08-11 - Version 1.0.5
+##   - Fixed a bit of the MOD template.
+##   - Compatible with phpBB 2.0.6.
+##   - No need to update files if you have 1.0.4 installed.
+##
+##  2003-07-25 - Version 1.0.4
+##   - Fixed some more of the MOD template.
+##   - Made sure that it appeared during Quoting and Editing, as well.
+##   - Included upgrade MODs for previous versions. Take caution when using EasyMOD.
+##
+##  2003-07-25 - Version 1.0.3
+##   - Fixed the MOD template.
+##   - Added descriptive Author Notes.
+##   - No need to update files if you have Version 1.0.2 installed.
+##
+##  2003-06-01 - Version 1.0.2
+##   - Fixed the problem of the -> [Topic Title] not showing because of a typo.
+##   - Added a forgotten MOD Indentifier comment around inserted code.
+##
+##  2003-05-31 - Version 1.0.1
+##   - Fixed the problem of the -> showing when not posting a reply.
+##   - Added MOD Indentifier comments around inserted code.
+##
+##  2003-05-21 - Version 1.0.0
+##   - Allows for the showing of the topic name when posting.
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+############################################################## 
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Around Line 231
+	$forum_name = $post_info['forum_name'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin View Topic Title While Posting MOD
+	$topic_title = $post_info['topic_title'];
+// End View Topic Title While Posting MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Around Line 980
+	'FORUM_NAME' => $forum_name,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Begin View Topic Title While Posting MOD
+	'TOPIC_SUBJECT' => $topic_title,
+// End View Topic Title While Posting MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Around Line 984
+	'U_VIEW_FORUM' => append_sid("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id"))
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Begin View Topic Title While Posting MOD
+	'U_VIEW_TOPIC' => append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id"), 
+// End View Topic Title While Posting MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Around Line 991
+$template->assign_block_vars('switch_not_privmsg', array());
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Begin View Topic Title While Posting MOD
+if ( $mode == 'reply' || $mode == 'quote' || $mode == 'editpost' )
+{
+	$template->assign_block_vars('switch_not_privmsg.reply_mode', array());
+}
+// End View Topic Title While Posting MOD
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# Around Line 267
+		-> <a href="{U_VIEW_FORUM}" class="nav">{FORUM_NAME}</a></span></td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		-> <a href="{U_VIEW_FORUM}" class="nav">{FORUM_NAME}</a>
+<!-- Begin View Topic Title While Posting MOD -->
+		<!-- BEGIN reply_mode -->
+		-> <a href="{U_VIEW_TOPIC}" class="nav">{TOPIC_SUBJECT}</a>
+		<!-- END reply_mode -->
+<!-- End View Topic Title While Posting MOD -->
+		</span></td>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

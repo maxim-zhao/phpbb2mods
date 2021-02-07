@@ -1,0 +1,313 @@
+##############################################################
+## MOD Title: Search latest 24h 48h 72h
+## MOD Author: markus_petrux < nospam@phpmix.com > (Markus) http://www.phpmix.com
+## MOD Description: This MOD adds a new search feature so it allows to search for posts from
+##                  latest XX hours. The list of latest hours can be specified from the ACP,
+##                  also whether to show results as posts or topics.
+## MOD Version: 1.1.0
+##
+## Installation Level: (Easy)
+## Installation Time: 15 Minutes
+## Files To Edit: 7
+##		language/lang_english/lang_main.php
+##		language/lang_english/lang_admin.php
+##		index.php
+##		templates/subSilver/index_body.tpl
+##		search.php
+##		admin/admin_board.php
+##		templates/subSilver/admin/board_config_body.tpl
+## Included Files: none
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## - Tested with phpBB 2.0.15, 2.0.16 and 2.0.17
+## - This MOD is EasyMOD friendly.
+##
+##############################################################
+## MOD History:
+##
+## 2005/07/25 - 1.1.0
+##	- Added ability to specifiy the list of hours from the ACP,
+##    also whether to show results as posts or topics.
+##
+## 2005/06/17 - 1.0.2
+##	- Changed the way the links are constructed, so all HTML/CSS attributes
+##    are now moved to the template, for easy adaption to other styles.
+##
+## 2005/01/31 - 1.0.0
+##	- Initial release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#------[ SQL ]--------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('search_latest_hours', '24,48,72');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('search_latest_results', 'topics');
+#
+#------[ OPEN ]--------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#------[ FIND ]--------------------------------------
+#
+//
+// That's all, Folks!
+// -------------------------------------------------
+#
+#------[ BEFORE, ADD ]-----------------------------
+#
+//+MOD: Search latest 24h 48h 72h
+$lang['Search_latest'] = 'View latest';
+$lang['Search_latest_XXh'] = '%dh';
+//-MOD: Search latest 24h 48h 72h
+
+#
+#------[ OPEN ]--------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#------[ FIND ]--------------------------------------
+#
+//
+// That's all Folks!
+// -------------------------------------------------
+#
+#------[ BEFORE, ADD ]-----------------------------
+#
+//+MOD: Search latest 24h 48h 72h
+$lang['Search_latest_hours'] = 'Search latest (hours)';
+$lang['Search_latest_hours_explain'] = 'Specify a comma separated list of numbers. These numbers will be used to dynamically build the search latest hours links on top of your forum index.';
+$lang['Search_latest_hours_error'] = 'Invalid value entered in the \'Search latest (hours)\' field.<br /><br />Please, specify a comma separated list of numbers.';
+$lang['Search_latest_results'] = 'Search latest (results)';
+$lang['Search_latest_results_explain'] = 'Specify how results of the the search latest hours links should be shown.';
+//-MOD: Search latest 24h 48h 72h
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]-----------------------------------------
+#
+	$template->set_filenames(array(
+		'body' => 'index_body.tpl')
+	);
+#
+#-----[ AFTER, ADD ]----------------------------------
+#
+
+//+MOD: Search latest 24h 48h 72h
+	$search_latest_hours = explode(',', $board_config['search_latest_hours']);
+
+	for( $search_i = 0; $search_i < (count($search_latest_hours)-1); $search_i++ )
+	{
+		$template->assign_block_vars('search_latest', array(
+			'L_SEARCH_LATEST_XXH' => sprintf($lang['Search_latest_XXh'], $search_latest_hours[$search_i]),
+			'U_SEARCH_LATEST_XXH' => append_sid('search.'.$phpEx.'?search_id=latest&amp;hours=' . $search_latest_hours[$search_i])
+		));
+	}
+	$template->assign_vars(array(
+		'L_SEARCH_LATEST' => $lang['Search_latest'],
+		'L_SEARCH_LATEST_XXH' => sprintf($lang['Search_latest_XXh'], $search_latest_hours[$search_i]),
+		'U_SEARCH_LATEST_XXH' => append_sid('search.'.$phpEx.'?search_id=latest&amp;hours=' . $search_latest_hours[$search_i])
+	));
+//-MOD: Search latest 24h 48h 72h
+#
+#-----[ OPEN ]-----------------------------------------
+# NOTE --- Remember to do this for all your installed styles
+#
+templates/subSilver/index_body.tpl
+#
+#-----[ FIND ]-----------------------------------------
+# NOTE --- This is a partial match. The original line in subSilver looks something like this:
+#		<a href="{U_SEARCH_UNANSWERED}" class="gensmall">{L_SEARCH_UNANSWERED}</a></td>
+#
+{U_SEARCH_UNANSWERED}
+#
+#------[ BEFORE, ADD ]-----------------------------
+#
+		<!-- +MOD: Search latest 24h 48h 72h -->
+		{L_SEARCH_LATEST}:
+		<!-- BEGIN search_latest -->
+		<a href="{search_latest.U_SEARCH_LATEST_XXH}" class="gensmall">{search_latest.L_SEARCH_LATEST_XXH}</a>
+		<!-- END search_latest -->
+		<a href="{U_SEARCH_LATEST_XXH}" class="gensmall">{L_SEARCH_LATEST_XXH}</a><br />
+		<!-- -MOD: Search latest 24h 48h 72h -->
+#
+#-----[ OPEN ]------------------------------------------------
+#
+search.php
+# 
+#-----[ FIND ]----------------------------------------- 
+# 
+	//
+	// Cycle through options ...
+	//
+	if ( $search_id == 'newposts' ||
+#
+# NOTE --- the previous is a partial search. The line should something like this:
+#	if ( $search_id == 'newposts' || $search_id == 'egosearch' || $search_id == 'unanswered' || $search_keywords != '' || $search_author != '' ) 
+#
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+$search_id == 'newposts'
+# 
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ || $search_id == 'latest'
+# 
+#-----[ FIND ]----------------------------------------- 
+# 
+		if ( $search_id == 'newposts' ||
+#
+# NOTE --- the previous is a partial search. The line should something like this:
+#		if ( $search_id == 'newposts' || $search_id == 'egosearch' || ( $search_author != '' && $search_keywords == '' )  )
+#
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+$search_id == 'newposts'
+# 
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ || $search_id == 'latest'
+#
+#-----[ FIND ]------------------------------------------------
+#
+			else if ( $search_id == 'egosearch' )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//+MOD: Search latest 24h 48h 72h
+			else if ( $search_id == 'latest' )
+			{
+				$search_latest_hours = explode(',', $board_config['search_latest_hours']);
+
+				$latest_hours = intval( isset($HTTP_GET_VARS['hours']) ? $HTTP_GET_VARS['hours'] : $search_latest_hours[0] );
+				if( !in_array($latest_hours, $search_latest_hours) )
+				{
+					$latest_hours = $search_latest_hours[0];
+				}
+
+				$sql = "SELECT post_id 
+					FROM " . POSTS_TABLE . " 
+					WHERE post_time > " . ( time() - ($latest_hours * 60 * 60) );
+
+				$show_results = $board_config['search_latest_results'];
+				$sort_by = 0;
+				$sort_dir = 'DESC';
+			}
+//-MOD: Search latest 24h 48h 72h
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_board.php
+# 
+#-----[ FIND ]----------------------------------------- 
+# 
+		if ($config_name == 'cookie_name')
+#
+#------[ BEFORE, ADD ]-----------------------------
+#
+//+MOD: Search latest 24h 48h 72h
+		if ($config_name == 'search_latest_hours' && isset($HTTP_POST_VARS['submit']))
+		{
+			$temp = explode(',', $new['search_latest_hours']);
+			sort($temp);
+			for( $num = 0; $num < count($temp); $num++ )
+			{
+				if( ($temp[$num] = intval($temp[$num])) <= 0 )
+				{
+					message_die(GENERAL_ERROR, $lang['Search_latest_hours_error']);
+				}
+			}
+			$new['search_latest_hours'] = implode(',', $temp);
+			unset($temp, $num);
+		}
+//-MOD: Search latest 24h 48h 72h
+
+# 
+#-----[ FIND ]----------------------------------------- 
+# 
+$override_user_style_yes = ( $new['override_user_style'] ) ? "checked=\"checked\"" : "";
+#
+#------[ BEFORE, ADD ]-----------------------------
+#
+//+MOD: Search latest 24h 48h 72h
+$search_latest_results_posts = ( $new['search_latest_results'] == 'posts' ) ? ' checked="checked"' : '';
+$search_latest_results_topics = ( $new['search_latest_results'] != 'posts' ) ? ' checked="checked"' : '';
+//-MOD: Search latest 24h 48h 72h
+
+# 
+#-----[ FIND ]----------------------------------------- 
+# NOTE --- This is a partial match. The original line looks something like this:
+#	"L_TOPICS_PER_PAGE" => $lang['Topics_per_page'],
+# 
+"L_TOPICS_PER_PAGE" =>
+#
+#------[ BEFORE, ADD ]-----------------------------
+#
+//+MOD: Search latest 24h 48h 72h
+	'L_SEARCH_LATEST_HOURS' => $lang['Search_latest_hours'],
+	'L_SEARCH_LATEST_HOURS_EXPLAIN' => $lang['Search_latest_hours_explain'],
+	'L_SEARCH_LATEST_RESULTS' => $lang['Search_latest_results'],
+	'L_SEARCH_LATEST_RESULTS_EXPLAIN' => $lang['Search_latest_results_explain'],
+	'L_TOPICS' => $lang['Topics'],
+	'L_POSTS' => $lang['Posts'],
+//-MOD: Search latest 24h 48h 72h
+# 
+#-----[ FIND ]----------------------------------------- 
+# NOTE --- This is a partial match. The original line looks something like this:
+#	"TOPICS_PER_PAGE" => $new['topics_per_page'],
+# 
+"TOPICS_PER_PAGE" =>
+#
+#------[ BEFORE, ADD ]-----------------------------
+#
+//+MOD: Search latest 24h 48h 72h
+	'SEARCH_LATEST_HOURS' => $new['search_latest_hours'],
+	'SEARCH_LATEST_RESULTS_POSTS' => $search_latest_results_posts,
+	'SEARCH_LATEST_RESULTS_TOPICS' => $search_latest_results_topics,
+//-MOD: Search latest 24h 48h 72h
+#
+#-----[ OPEN ]------------------------------------------------
+# NOTE --- Remember to do this for all your installed styles
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]-----------------------------------------
+# NOTE --- This is a partial match. The original line in subSilver looks something like this:
+#	<tr>
+#		<td class="row1">{L_TOPICS_PER_PAGE}</td>
+#
+<tr>
+{L_TOPICS_PER_PAGE}
+#
+#------[ BEFORE, ADD ]-----------------------------
+#
+	<!-- +MOD: Search latest 24h 48h 72h -->
+	<tr>
+		<td class="row1">{L_SEARCH_LATEST_HOURS}:<br /><span class="gensmall">{L_SEARCH_LATEST_HOURS_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" name="search_latest_hours" size="30" maxlength="40" value="{SEARCH_LATEST_HOURS}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_SEARCH_LATEST_RESULTS}:<br /><span class="gensmall">{L_SEARCH_LATEST_RESULTS_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="search_latest_results" value="posts"{SEARCH_LATEST_RESULTS_POSTS} /> {L_POSTS}&nbsp;&nbsp;<input type="radio" name="search_latest_results" value="topics"{SEARCH_LATEST_RESULTS_TOPICS} /> {L_TOPICS}</td>
+	</tr>
+	<!-- -MOD: Search latest 24h 48h 72h -->
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

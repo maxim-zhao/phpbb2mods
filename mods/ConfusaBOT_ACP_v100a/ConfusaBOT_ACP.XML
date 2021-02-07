@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en-gb">ConfusaBOT ACP</title>
+		<description lang="en-gb"><![CDATA[Change &quot;agreed&quot; and &quot;coppa&quot; variables to confuse bots]]></description>
+		<author-notes><![CDATA[This MOD makes the "agreed" and "coppa" variables used in the registration screen more
+easily adjustable through the Admin Control Panel. This MOD requires phpBB v2.0.20 or later.
+Prior to installing this mod, you need to add the following configuration items to your
+phpbb_config table:
+
+INSERT INTO phpbb_config (config_name,config_value) VALUES ('agreed_var','IAmInAgreement');
+INSERT INTO phpbb_config (config_name,config_value) VALUES ('agreed_val','Yes');
+INSERT INTO phpbb_config (config_name,config_value) VALUES ('coppa_var','Under13');
+
+Of course, you need to substitute the names for YOUR config table and the variable names you
+want to use.
+IMPORTANT!!!!!!!!!!!!!
+If you are using any templates other than subSilver, overall_header.tpl, admin/board_config_body.tpl,
+and admin/styles_edit_body.tpl in each of them will need to be modified, as well.
+
+If you are using any languages other than English, lang_admin.php in each language will need to
+be modified, as well.]]></author-notes>
+		<author-group>
+			<author>
+				<realname>Jeff Brenton</realname>
+				<email>phpbb2mods@espi.com</email>
+				<username>espicom</username>
+				<homepage>N/A</homepage>
+				<contributions />
+			</author>
+		</author-group>
+		<mod-version>
+			<major>1</major>
+			<minor>0</minor>
+			<revision>0</revision>
+		</mod-version>
+		<installation>
+			<level>Easy</level>
+			<time>0</time>
+			<target-version>
+				<target-primary>2.0</target-primary>
+				<target-major allow="exact">2</target-major>
+				<target-minor allow="exact">0</target-minor>
+			</target-version>
+		</installation>
+		<history>
+			<entry>
+				<date>2005-05-11</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> mod created</change>
+				</changelog>
+			</entry>
+		</history>
+	</header>
+	<action-group>
+		<sql><![CDATA[INSERT INTO phpbb_config (config_name,config_value) VALUES ('agreed_var','IAmInAgreement');
+INSERT INTO phpbb_config (config_name,config_value) VALUES ('agreed_val','Yes');
+INSERT INTO phpbb_config (config_name,config_value) VALUES ('coppa_var','Under13');]]></sql>
+		<open src="admin/admin_board.php">
+			<edit>
+				<find><![CDATA[	"L_ALLOW_AUTOLOGIN_EXPLAIN" => $lang['Allow_autologin_explain'],]]></find>
+				<action type="after-add"><![CDATA[	'L_AGREED_VAR' => $lang['Agreed_Var'],
+	'L_AGREED_VAR_EXPLAIN' => $lang['Agreed_Var_explain'], 
+	'L_AGREED_VAL' => $lang['Agreed_Val'],
+	'L_AGREED_VAL_EXPLAIN' => $lang['Agreed_Val_explain'], 
+	'L_COPPA_VAR' => $lang['Coppa_Var'],
+	'L_COPPA_VAR_EXPLAIN' => $lang['Coppa_Var_explain'], ]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[	'AUTOLOGIN_TIME' => (int) $new['max_autologin_time'],]]></find>
+				<action type="after-add"><![CDATA[	"AGREED_VAR" => $new['agreed_var'],
+	"AGREED_VAL" => $new['agreed_val'],
+	"COPPA_VAR" => $new['coppa_var'],]]></action>
+			</edit>
+		</open>
+		<open src="admin/admin_users.php">
+			<edit>
+				<find><![CDATA[			$s_hidden_fields = '<input type="hidden" name="mode"]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[<input type="hidden" name="agreed" value="true" /><input type="hidden" name="coppa"]]></inline-find>
+					<inline-action type="replace-with"><![CDATA[<input type="hidden" name="'.$board_config['agreed_var'].'" value="'.$board_config['agreed_val'].'" /><input type="hidden" name="'.$board_config['coppa_var'].'"]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[		$s_hidden_fields = '<input type="hidden" name="mode" value="save"]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[<input type="hidden" name="agreed" value="true" /><input type="hidden" name="coppa"]]></inline-find>
+					<inline-action type="replace-with"><![CDATA[<input type="hidden" name="'.$board_config['agreed_var'].'" value="'.$board_config['agreed_val'].'" /><input type="hidden" name="'.$board_config['coppa_var'].'"]]></inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="includes/usercp_avatar.php">
+			<edit>
+				<find><![CDATA[	$s_hidden_vars = '<input type="hidden" name="sid"]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[<input type="hidden" name="agreed" value="true" />]]></inline-find>
+					<inline-action type="replace-with"><![CDATA[<input type="hidden" name="'.$board_config['agreed_var'].'" value="'.$board_config['agreed_val'].'" />]]></inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="includes/usercp_register.php">
+			<edit>
+				<find><![CDATA[function show_coppa()
+{
+	global $userdata, $template, $lang, $phpbb_root_path, $phpEx;]]></find>
+				<action type="after-add"><![CDATA[	global $board_config;]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[		"U_AGREE_OVER13" =>]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[&amp;agreed=true"]]></inline-find>
+					<inline-action type="replace-with"><![CDATA[&amp;". $board_config['agreed_var'] ."=".$board_config['agreed_val']]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[		"U_AGREE_UNDER13" =>]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[&amp;agreed=true&amp;coppa=true"]]></inline-find>
+					<inline-action type="replace-with"><![CDATA[&amp;". $board_config['agreed_var'] ."=". $board_config['agreed_val'] ."&amp;".$board_config['coppa_var']."=true"]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[$error_msg = '';]]></find>
+				<action type="after-add"><![CDATA[
+// change to test for new setting of agreed
+if ( isset($HTTP_POST_VARS[$board_config['agreed_var']]))
+{
+	if ($HTTP_POST_VARS[$board_config['agreed_var']] != $board_config['agreed_val'])
+		unset($HTTP_POST_VARS[$board_config['agreed_var']]);
+}
+if ( isset($HTTP_GET_VARS[$board_config['agreed_var']]))
+{
+	if ($HTTP_GET_VARS[$board_config['agreed_var']] != $board_config['agreed_val'])
+		unset($HTTP_GET_VARS[$board_config['agreed_var']]);
+}
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[if ( $mode == 'register' && !isset($HTTP_POST_VARS['agreed']) && !isset($HTTP_GET_VARS['agreed']) )]]></find>
+				<action type="replace-with"><![CDATA[if ( $mode == 'register' && !isset($HTTP_POST_VARS[$board_config['agreed_var']]) && !isset($HTTP_GET_VARS[$board_config['agreed_var']]) )]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[$coppa = ( empty($HTTP_POST_VARS['coppa']) && empty($HTTP_GET_VARS['coppa']) ) ? 0 : TRUE;]]></find>
+				<action type="replace-with"><![CDATA[$coppa = ( empty($HTTP_POST_VARS[$board_config['coppa_var']]) && empty($HTTP_GET_VARS[$board_config['coppa_var']]) ) ? 0 : TRUE;]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[	$s_hidden_fields = '<input type="hidden" name="mode" value="]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[<input type="hidden" name="agreed" value="true" /><input type="hidden" name="coppa"]]></inline-find>
+					<inline-action type="replace-with"><![CDATA[<input type="hidden" name="'.$board_config['agreed_var'].'" value="'.$board_config['agreed_val'].'" /><input type="hidden" name="'.$board_config['coppa_var'].'"]]></inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="language/lang_english/lang_admin.php">
+			<edit>
+				<find><![CDATA[$lang['Autologin_time_explain'] =]]></find>
+				<action type="after-add"><![CDATA[
+// ConfusaBOT variables
+$lang['Agreed_Var']= "Agreed variable";
+$lang['Agreed_Var_explain']= "Case-sensitive HTML form variable name for terms agreement"; 
+$lang['Agreed_Val']= "Agreed value";
+$lang['Agreed_Val_explain']= "Case-sensitive HTML form variable <i>value</i> for terms agreement";
+$lang['Coppa_Var']= "COPPA variable";
+$lang['Coppa_Var_explain']= "Case-sensitive HTML form variable name for COPPA compliance";]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/admin/board_config_body.tpl">
+			<edit>
+				<find><![CDATA[		<td class="row1">{L_AUTOLOGIN_TIME}]]></find>
+			</edit>
+			<edit>
+				<find><![CDATA[	</tr>]]></find>
+				<action type="after-add"><![CDATA[	<tr>
+		<td class="row1">{L_AGREED_VAR}<br /><span class="gensmall">{L_AGREED_VAR_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="40" maxlength="255" name="agreed_var" value="{AGREED_VAR}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_AGREED_VAL}<br /><span class="gensmall">{L_AGREED_VAL_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="40" maxlength="255" name="agreed_val" value="{AGREED_VAL}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_COPPA_VAR}<br /><span class="gensmall">{L_COPPA_VAR_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="40" maxlength="255" name="coppa_var" value="{COPPA_VAR}" /></td>
+	</tr>]]></action>
+			</edit>
+		</open>
+	</action-group>
+</mod>

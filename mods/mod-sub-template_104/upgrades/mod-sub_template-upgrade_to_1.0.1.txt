@@ -1,0 +1,413 @@
+############################################################## 
+## MOD Title: Sub-templates - upgrade from 1.0.0 to 1.0.1
+## MOD Author: Ptirhiik < admin@rpgnet-fr.com > (Pierre) http://www.rpgnet-fr.com
+## MOD Description: Upgrade from sub-template 1.0.0 to sub-template 1.0.1
+## MOD Version: 1.0.1
+## 
+## Installation Level: easy
+## Installation Time: 5 Minutes
+## Files To Edit: 
+##				includes/template.php
+## Included Files:
+##				admin_subtemplates.php
+##				admin_subtpl_edit_body.tpl
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##	This mod requires sub-templates v 1.0.0 to be installed on the board
+############################################################## 
+## MOD History: 
+## 
+##   2003-07-16 - Version 1.0.1
+##      - fix themes_id reference in calls on admin (thanks to FineWolf)
+##	- add the abity to set a sub-template on root level
+##	- upgrade the compliancy with categories hierarchy mod 2.0.0
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy admin_subtemplates.php to admin/admin_subtemplates.php
+copy admin_subtpl_edit_body.tpl to templates/subSilver/admin/admin_subtpl_edit_body.tpl
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/template.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+//-- add
+		global $HTTP_GET_VARS, $HTTP_POST_VARS, $db, $board_config, $images, $theme;
+
+		// Check if sub_templates are defined for this theme
+		$sub_templates_cfg = phpbb_realpath($this->root . '/sub_templates.cfg');
+		@include($sub_templates_cfg);
+		if ( isset($sub_templates) )
+		{
+			// search an id
+			$cat_id = 0;
+			$forum_id = 0;
+			$topic_id = 0;
+			$post_id = 0;
+
+			if ( isset($HTTP_GET_VARS[POST_POST_URL]) || isset($HTTP_POST_VARS[POST_POST_URL]) )
+			{
+				$post_id = isset($HTTP_GET_VARS[POST_POST_URL]) ? intval($HTTP_GET_VARS[POST_POST_URL]) : intval($HTTP_POST_VARS[POST_POST_URL]);
+			}
+
+			if ( isset($HTTP_GET_VARS[POST_TOPIC_URL]) || isset($HTTP_POST_VARS[POST_TOPIC_URL]) )
+			{
+				$topic_id = intval($HTTP_GET_VARS[POST_TOPIC_URL]) ? intval($HTTP_GET_VARS[POST_TOPIC_URL]) : intval($HTTP_POST_VARS[POST_TOPIC_URL]);
+			}
+
+			if ( isset($HTTP_GET_VARS[POST_FORUM_URL]) || isset($HTTP_POST_VARS[POST_FORUM_URL]) )
+			{
+				$forum_id = isset($HTTP_GET_VARS[POST_FORUM_URL]) ? intval($HTTP_GET_VARS[POST_FORUM_URL]) : intval($HTTP_POST_VARS[POST_FORUM_URL]);
+			}
+
+			if ( isset($HTTP_GET_VARS[POST_CAT_URL]) || isset($HTTP_POST_VARS[POST_CAT_URL]) )
+			{
+				$cat_id = isset($HTTP_GET_VARS[POST_CAT_URL]) ? intval($HTTP_GET_VARS[POST_CAT_URL]) : intval($HTTP_POST_VARS[POST_CAT_URL]);
+			}
+
+			// find the forum
+			if ( ($forum_id == 0) && ($cat_id == 0) )
+			{
+				if ($post_id != 0)
+				{
+					$sql = "select * from " . POSTS_TABLE . " where post_id=$post_id";			
+					if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Wasn\'t able to access posts', '', __LINE__, __FILE__, $sql);
+					if ( $row = $db->sql_fetchrow($result) ) $forum_id = $row['forum_id'];
+				}
+
+				if ($topic_id != 0)
+				{
+					$sql = "select * from " . TOPICS_TABLE . " where topic_id=$topic_id";			
+					if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Wasn\'t able to access topics', '', __LINE__, __FILE__, $sql);
+					if ( $row = $db->sql_fetchrow($result) ) $forum_id = $row['forum_id'];
+				}
+			}
+
+			// find the cat
+			if ($forum_id != 0)
+			{
+				$sql = "select * from " . FORUMS_TABLE . " where forum_id=$forum_id";
+				if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Wasn\'t able to access forums', '', __LINE__, __FILE__, $sql);
+				if ( $row = $db->sql_fetchrow($result) ) $cat_id = $row['cat_id'];
+			}
+
+			// check if the categories hierarchy mod is installed, if so get down the tree
+			if ( $cat_id !=0 )
+			{
+				$sql = "select * from " . CATEGORIES_TABLE . " where cat_id=$cat_id";
+				if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Wasn\'t able to access categories', '', __LINE__, __FILE__, $sql);
+				if ( ( $row = $db->sql_fetchrow($result) ) && isset($row['cat_main']) )
+				{
+					$cat_list = array();
+					$cat_list[] = $row['cat_id'];
+					$root_cat = ( ($row['cat_main'] == 0) || ($row['cat_main'] == $row['cat_id']) );
+					while ( !$root_cat )
+					{
+						$cat_main = $row['cat_main'];
+						$sql = "select * from " . CATEGORIES_TABLE . " where cat_id=$cat_main";
+						if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Wasn\'t able to access categories', '', __LINE__, __FILE__, $sql);
+						if ( $row = $db->sql_fetchrow($result) )
+						{
+							$cat_list[] = $row['cat_id'];
+							$root_cat = ( ($row['cat_main'] == 0) || ($row['cat_main'] == $row['cat_id']) );
+						}
+					}
+				}
+			}
+
+			// search if this file is part of a sub-template
+			$sub_tpl_file = '';
+			$sub_css_file = '';
+			$sub_img_file = '';
+			$sub_img_path = '';
+			if (substr($filename, 0, 1) != '/')
+			{
+				// search the file at a forum level
+				if ($forum_id != 0)
+				{
+					$key = 'f' . $forum_id;
+					if ( isset($sub_templates[$key]) )
+					{
+						// get the sub-template path
+						$cur_template_path = phpbb_realpath($this->root . '/' . $sub_templates[$key]['dir']);
+
+						// set the filename
+						if ( file_exists($cur_template_path . '/' . $filename) ) $sub_tpl_file = $sub_templates[$key]['dir'] . '/' . $filename;
+
+						// set the css file name
+						if ( isset($sub_templates[$key]['head_stylesheet']) && file_exists($cur_template_path . '/' . $sub_templates[$key]['head_stylesheet']) ) $sub_css_file = $sub_templates[$key]['dir'] . '/' . $sub_templates[$key]['head_stylesheet'];
+
+						// set the img file name
+						if ( isset($sub_templates[$key]['imagefile']) && file_exists($cur_template_path . '/' . $sub_templates[$key]['imagefile']) )
+						{
+							$sub_img_path = $sub_templates[$key]['dir'];
+							$sub_img_file = $sub_templates[$key]['imagefile'];
+						}
+					}
+				}
+
+				// search the file at a cat level
+				if ( ($cat_id != 0) && ( ($sub_tpl_file == '') || ($sub_css_file == '') || ($sub_img_file == '') ) )
+				{
+					if ( !isset($cat_list) )
+					{
+						// without the categories hierarchy mod
+						$key = 'c' . $cat_id;
+						if ( isset($sub_templates[$key]) )
+						{
+							// get the sub-template path
+							$cur_template_path = phpbb_realpath($this->root . '/' . $sub_templates[$key]['dir']);
+
+							// set the filename
+							if ( ($sub_tpl_file == '') && file_exists($cur_template_path . '/' . $filename) ) $sub_tpl_file = $sub_templates[$key]['dir'] . '/' . $filename;
+
+							// set the css file name
+							if ( ($sub_css_file == '') && isset($sub_templates[$key]['head_stylesheet']) && file_exists($cur_template_path . '/' . $sub_templates[$key]['head_stylesheet']) ) $sub_css_file = $sub_templates[$key]['dir'] . '/' . $sub_templates[$key]['head_stylesheet'];
+
+							// set the img file name
+							if ( ($sub_img_file == '') && isset($sub_templates[$key]['imagefile']) && file_exists($cur_template_path . '/' . $sub_templates[$key]['imagefile']) )
+							{
+								$sub_img_path = $sub_templates[$key]['dir'];
+								$sub_img_file = $sub_templates[$key]['imagefile'];
+							}
+						}
+					}
+					else
+					{
+						// with the categories hierarchy mod
+						$found = false;
+						for ($i=0; ( ($i < count($cat_list)) && !$found ); $i++)
+						{
+							$key = 'c' . $cat_list[$i];
+							if ( isset($sub_templates[$key]) )
+							{
+								// get the sub-template path
+								$cur_template_path = phpbb_realpath($this->root . '/' . $sub_templates[$key]['dir']);
+
+								// set the filename
+								if ( ($sub_tpl_file == '') && file_exists($cur_template_path . '/' . $filename) ) $sub_tpl_file = $sub_templates[$key]['dir'] . '/' . $filename;
+
+								// set the css file name
+								if ( ($sub_css_file == '') && isset($sub_templates[$key]['head_stylesheet']) && file_exists($cur_template_path . '/' . $sub_templates[$key]['head_stylesheet']) ) $sub_css_file = $sub_templates[$key]['dir'] . '/' . $sub_templates[$key]['head_stylesheet'];
+
+								// set the img file name
+								if ( ($sub_img_file == '') && isset($sub_templates[$key]['imagefile']) && file_exists($cur_template_path . '/' . $sub_templates[$key]['imagefile']) )
+								{
+									$sub_img_path = $sub_templates[$key]['dir'];
+									$sub_img_file = $sub_templates[$key]['imagefile'];
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// set the tpl file
+			if ($sub_tpl_file) $filename = $sub_tpl_file;
+
+			// set the css file
+			if ($sub_css_file != '') $theme['head_stylesheet'] = $sub_css_file;
+
+			// set the sub-template filename and get images
+			if ($sub_img_file != '')
+			{
+				// get the images file
+				$current_template_path = phpbb_realpath($this->root . '/' . $sub_img_path);
+				@include($current_template_path . '/' . $sub_img_file);
+				$img_lang = ( file_exists($current_template_path . '/images/lang_' . $board_config['default_lang']) ) ? $board_config['default_lang'] : 'english';
+				@reset($images);
+				while( list($key, $value) = @each($images) )
+				{
+					if ( !is_array($value) )
+					{
+						$images[$key] = str_replace('{LANG}', 'lang_' . $img_lang, $value);
+					}
+				}
+			}
+		}
+//-- fin mod : sub-template ------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+//-- add
+		global $HTTP_GET_VARS, $HTTP_POST_VARS, $db, $board_config, $images, $theme;
+		global $tree;
+
+		// Check if sub_templates are defined for this theme
+		$sub_templates_cfg = phpbb_realpath($this->root . '/sub_templates.cfg');
+		@include($sub_templates_cfg);
+		if ( isset($sub_templates) )
+		{
+			// search an id
+			$cat_id = 0;
+			$forum_id = 0;
+			$topic_id = 0;
+			$post_id = 0;
+
+			if ( isset($HTTP_GET_VARS[POST_POST_URL]) || isset($HTTP_POST_VARS[POST_POST_URL]) )
+			{
+				$post_id = isset($HTTP_GET_VARS[POST_POST_URL]) ? intval($HTTP_GET_VARS[POST_POST_URL]) : intval($HTTP_POST_VARS[POST_POST_URL]);
+			}
+
+			if ( isset($HTTP_GET_VARS[POST_TOPIC_URL]) || isset($HTTP_POST_VARS[POST_TOPIC_URL]) )
+			{
+				$topic_id = intval($HTTP_GET_VARS[POST_TOPIC_URL]) ? intval($HTTP_GET_VARS[POST_TOPIC_URL]) : intval($HTTP_POST_VARS[POST_TOPIC_URL]);
+			}
+
+			if ( isset($HTTP_GET_VARS[POST_FORUM_URL]) || isset($HTTP_POST_VARS[POST_FORUM_URL]) )
+			{
+				$forum_id = isset($HTTP_GET_VARS[POST_FORUM_URL]) ? intval($HTTP_GET_VARS[POST_FORUM_URL]) : intval($HTTP_POST_VARS[POST_FORUM_URL]);
+			}
+
+			if ( isset($HTTP_GET_VARS[POST_CAT_URL]) || isset($HTTP_POST_VARS[POST_CAT_URL]) )
+			{
+				$cat_id = isset($HTTP_GET_VARS[POST_CAT_URL]) ? intval($HTTP_GET_VARS[POST_CAT_URL]) : intval($HTTP_POST_VARS[POST_CAT_URL]);
+			}
+
+			// find the forum
+			if ( ($forum_id <= 0) && ($cat_id <= 0) )
+			{
+				if ($post_id > 0)
+				{
+					$sql = "select * from " . POSTS_TABLE . " where post_id=$post_id";			
+					if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Wasn\'t able to access posts', '', __LINE__, __FILE__, $sql);
+					if ( $row = $db->sql_fetchrow($result) ) $forum_id = $row['forum_id'];
+				}
+
+				if ($topic_id > 0)
+				{
+					$sql = "select * from " . TOPICS_TABLE . " where topic_id=$topic_id";			
+					if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Wasn\'t able to access topics', '', __LINE__, __FILE__, $sql);
+					if ( $row = $db->sql_fetchrow($result) ) $forum_id = $row['forum_id'];
+				}
+			}
+
+			// is the categories hierarchy v 2 installed ?
+			$cat_hierarchy = function_exists(get_auth_keys);
+
+			// get the ids (forums and cats)
+			$fids = array();
+			if (!$cat_hierarchy)
+			{
+				if ($forum_id > 0)
+				{
+					// add the forum_id
+					$fids[] = POST_FORUM_URL . $forum_id;
+
+					// get the cat_id
+					$sql = "select * from " . FORUMS_TABLE . " where forum_id=$forum_id";
+					if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Wasn\'t able to access forums', '', __LINE__, __FILE__, $sql);
+					if ( $row = $db->sql_fetchrow($result) ) $cat_id = $row['cat_id'];
+				}
+
+				// add the cat_id
+				if ($cat_id > 0)
+				{
+					$fids[] = POST_CAT_URL . $cat_id;
+				}
+
+				// add the root level
+				$fids[] = 'Root';
+			}
+			else
+			{
+				// categories hierarchy v 2 compliancy
+				$cur = 'Root';
+				if ($forum_id > 0)
+				{
+					$cur = POST_FORUM_URL . $forum_id;
+				}
+				else if ($cat_id > 0)
+				{
+					$cur = POST_CAT_URL . $cat_id;
+				}
+
+				// add start
+				$fids[] = $cur;
+				$i= 0;
+				while (($cur != 'Root') && ($cur != ''))
+				{
+					// get parent level
+					$cur = (isset($tree['main'][ $tree['keys'][$cur] ])) ? $tree['main'][ $tree['keys'][$cur] ] : 'Root';
+					// add the parent level
+					$fids[] = $cur;
+				}
+			}
+
+			// search if this file is part of a sub-template
+			$sub_tpl_file = '';
+			$sub_css_file = '';
+			$sub_img_file = '';
+			$sub_img_path = '';
+			if (substr($filename, 0, 1) != '/')
+			{
+				$found = false;
+				for ($i=0; ( ($i < count($fids)) && !$found ); $i++)
+				{
+					$key = $fids[$i];
+
+					// convert root into c0 category
+					if ($key == 'Root') $key = 'c0';
+
+					if ( isset($sub_templates[$key]) )
+					{
+						// get the sub-template path
+						$cur_template_path = phpbb_realpath($this->root . '/' . $sub_templates[$key]['dir']);
+
+						// set the filename
+						if ( ($sub_tpl_file == '') && file_exists($cur_template_path . '/' . $filename) ) $sub_tpl_file = $sub_templates[$key]['dir'] . '/' . $filename;
+
+						// set the css file name
+						if ( ($sub_css_file == '') && isset($sub_templates[$key]['head_stylesheet']) && file_exists($cur_template_path . '/' . $sub_templates[$key]['head_stylesheet']) ) $sub_css_file = $sub_templates[$key]['dir'] . '/' . $sub_templates[$key]['head_stylesheet'];
+
+						// set the img file name
+						if ( ($sub_img_file == '') && isset($sub_templates[$key]['imagefile']) && file_exists($cur_template_path . '/' . $sub_templates[$key]['imagefile']) )
+						{
+							$sub_img_path = $sub_templates[$key]['dir'];
+							$sub_img_file = $sub_templates[$key]['imagefile'];
+						}
+					}
+				}
+			}
+
+			// set the tpl file
+			if ($sub_tpl_file) $filename = $sub_tpl_file;
+
+			// set the css file
+			if ($sub_css_file != '') $theme['head_stylesheet'] = $sub_css_file;
+
+			// set the sub-template filename and get images
+			if ($sub_img_file != '')
+			{
+				// get the images file
+				$current_template_path = phpbb_realpath($this->root . '/' . $sub_img_path);
+				@include($current_template_path . '/' . $sub_img_file);
+				$img_lang = ( file_exists($current_template_path . '/images/lang_' . $board_config['default_lang']) ) ? $board_config['default_lang'] : 'english';
+				@reset($images);
+				while( list($key, $value) = @each($images) )
+				{
+					if ( !is_array($value) )
+					{
+						$images[$key] = str_replace('{LANG}', 'lang_' . $img_lang, $value);
+					}
+				}
+			}
+		}
+//-- fin mod : sub-template ------------------------------------------------------------------------
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

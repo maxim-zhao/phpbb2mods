@@ -1,0 +1,160 @@
+##############################################################
+## MOD Title: Profile Views
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com 
+## MOD Description: Updates this MOD to 1.1.1 from 1.0.0.
+## MOD Version: 1.1.1 
+## 
+## Installation Level: Easy
+## Installation Time: ~3 Minutes 
+## Files To Edit: 
+##		includes/usercp_viewprofile.php
+##		includes/constants.php
+##
+## Included Files: N/A
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##	Made by request from this topic: http://www.phpbb.com/phpBB/viewtopic.php?t=242939
+##	
+############################################################## 
+## MOD History: 
+##
+##
+##   2004-12-22 - Version 1.1.1
+##      - Fixed a few mistakes to make it Easy Mod compliant
+##
+##   2004-12-13 - Version 1.1.0
+##      - Now only shows individual visitors. Visitors who visit the same profile more than once in a day are only counted as one view.
+##
+##   2004-11-28 - Version 1.0.0
+##      - First version, seems to work perfectly
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ SQL ]-------------------------------------------
+# 
+CREATE TABLE phpbb_profile_views (	user_id		mediumint( 8 )	NOT NULL,
+					time		int( 11 )	NOT NULL,
+					ip_address	char( 20 )	NOT NULL );
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+$sql = "UPDATE " . USERS_TABLE . "
+	SET user_profile_views = user_profile_views + 1
+	WHERE user_id = " . $profiledata['user_id'];
+if ( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, 'Could not update profile views', '', __LINE__, __FILE__, $sql);
+}
+
+$sql = "SELECT user_profile_views
+	FROM " . USERS_TABLE . "
+	WHERE user_id = " . $profiledata['user_id'];
+if ( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, 'Could not retreive profile views', '', __LINE__, __FILE__, $sql);
+}
+$row = $db->sql_fetchrow($result);
+$total_profile_views =  ( $row['user_profile_views'] ) ? $row['user_profile_views'] : 0;
+$db->sql_freeresult($result);
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+# 
+$current_time = time();
+$deleting_time = ($current_time - 86400);  // Change this if you want a different time span (In seconds)
+
+//
+// Delete old entries
+//
+$sql = "DELETE FROM " . PROFILE_VIEWS_TABLE . "
+	WHERE time <= '$deleting_time'";
+if ( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, 'Could not update profile views', '', __LINE__, __FILE__, $sql);
+}
+
+//
+// Find out if the same person has visited the same user profile
+//
+$sql = "SELECT ip_address
+	FROM " . PROFILE_VIEWS_TABLE . "
+	WHERE ip_address = '$user_ip'
+		AND user_id = '" . $profiledata['user_id'] . "'";
+if ( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, 'Could not update profile views', '', __LINE__, __FILE__, $sql);
+}
+$is_ip_there = $db->sql_fetchrow($result);
+$db->sql_freeresult($result);
+
+//
+// If so, don't incriment the profile views counter
+//
+if ( empty($is_ip_there['ip_address'][0]))
+{
+	$sql = "INSERT INTO " . PROFILE_VIEWS_TABLE . " (user_id, time, ip_address)
+		VALUES ('" . $profiledata['user_id'] . "', '$current_time', '$user_ip')";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not update profile views', '', __LINE__, __FILE__, $sql);
+	}
+
+	$sql = "UPDATE " . USERS_TABLE . "
+		SET user_profile_views = user_profile_views + 1
+		WHERE user_id = '" . $profiledata['user_id'] . "'";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not update profile views', '', __LINE__, __FILE__, $sql);
+	}
+}
+
+//
+// Retrieve the number of views
+//
+$sql = "SELECT user_profile_views
+	FROM " . USERS_TABLE . "
+	WHERE user_id = " . $profiledata['user_id'];
+if ( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, 'Could not retreive profile views', '', __LINE__, __FILE__, $sql);
+}
+$row = $db->sql_fetchrow($result);
+$total_profile_views =  ( $row['user_profile_views'] ) ? $row['user_profile_views'] : 0;
+$db->sql_freeresult($result);
+
+# 
+#-----[ OPEN ]------------------------------------------
+# 
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------
+# 
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+# 
+// Profile Views MOD, By Manipe (Begin)
+define('PROFILE_VIEWS_TABLE', $table_prefix.'profile_views');
+// Profile Views MOD, By Manipe (End)
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+
+# EoM

@@ -1,0 +1,164 @@
+##############################################################
+## MOD Title: Complete Database Backup
+## MOD Author: ultima528 < ultima528@yahoo.com > (Allen S.) N/A
+## MOD Description: This MOD makes it so that the "Backup Database" module in the ACP
+##                  will backup all the forum-related database tables (including non-default
+##                  tables, such as tables added by other MODs), and optionally, the entire
+##                  database (including non-forum-related tables).
+## MOD Version: 1.0.1
+## 
+## Installation Level: Easy
+## Installation Time: ~3 Minutes
+## Files To Edit: (3) admin/admin_db_utilities.php
+##                    languages/lang_english/lang_admin.php
+##                    templates/subSilver/admin/db_utils_backup_body.tpl
+## Included Files: N/A
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+## - The idea for this MOD was based on the original MOD, `db_utils`, by Garold W. Robinson
+## - The switch only checks for mysql, mysql4, and postgresql because database backup only works
+##   with those database types listed
+##############################################################
+## MOD History:
+##
+##   2004-09-25 - Version 1.0.1
+##      - Corrected typo ('postgres' is now 'postgresql'). If you do not use that database type,
+##        then you do not have to install this version. [Thanks sph (Stephan)]
+##
+##   2004-07-09 - Version 1.0.0
+##      - Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_db_utilities.php
+#
+#-----[ FIND ]------------------------------------------
+#
+			$tables = array('auth_access', 'banlist', 'categories', 'config', 'disallow', 'forums', 'forum_prune', 'groups', 'posts', 'posts_text', 'privmsgs', 'privmsgs_text', 'ranks', 'search_results', 'search_wordlist', 'search_wordmatch', 'sessions', 'smilies', 'themes', 'themes_name', 'topics', 'topics_watch', 'user_group', 'users', 'vote_desc', 'vote_results', 'vote_voters', 'words');
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+			$phpbb_only = (!empty($HTTP_POST_VARS['phpbb_only'])) ? $HTTP_POST_VARS['phpbb_only'] : ( (!empty($HTTP_GET_VARS['phpbb_only'])) ? $HTTP_GET_VARS['phpbb_only'] : 0 );
+			switch ( SQL_LAYER )
+			{
+				case 'mysql':
+				case 'mysql4':
+					$sql = 'SHOW TABLES';
+					$field = "Tables_in_{$dbname}";
+					break;
+				case 'postgresql':
+					$sql = "SELECT relname
+						FROM pg_class
+						WHERE relkind = 'r'
+						AND relname NOT LIKE 'pg\_%'";
+					$field = "relname";
+					break;
+			}
+			$result = $db->sql_query($sql);
+			while ($row = $db->sql_fetchrow($result))
+			{
+				$current_table = $row[$field];
+				$current_prefix = substr($current_table, 0, strlen($table_prefix));
+				if ($phpbb_only && $current_prefix != $table_prefix)
+				{
+					continue;
+				}
+				else
+				{
+					$tables[] = $current_table;
+				}
+			}
+#
+#-----[ FIND ]------------------------------------------
+#
+					"L_BACKUP_OPTIONS" => $lang['Backup_options'],
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+					"L_PHPBB_ONLY" => $lang['phpBB_only'],
+#
+#-----[ FIND ]------------------------------------------
+#
+					"META" => '<meta http-equiv="refresh" content="2;url=' . append_sid("admin_db_utilities.$phpEx?perform=backup&additional_tables=" . quotemeta($additional_tables) . "&backup_type=$backup_type&drop=1&amp;backupstart=1&gzipcompress=$gzipcompress&startdownload=1") . '">',
+#
+#-----[ IN-LINE FIND ]----------------------------------
+#
+backupstart=1
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------
+#
+&phpbb_only=$phpbb_only
+#
+#-----[ FIND ]------------------------------------------
+#
+				if($backup_type != 'data')
+				{
+					echo "#\n# TABLE: " . $table_prefix . $table_name . "\n#\n";
+					echo $table_def_function($table_prefix . $table_name, "\n") . "\n";
+				}
+
+				if($backup_type != 'structure')
+				{
+					$table_content_function($table_prefix . $table_name, "output_table_content");
+				}
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+				if($backup_type != 'data')
+				{
+					echo "#\n# TABLE: " . $table_name . "\n#\n";
+					echo $table_def_function($table_name, "\n") . "\n";
+				}
+
+				if($backup_type != 'structure')
+				{
+					$table_content_function($table_name, "output_table_content");
+				}
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Additional_tables'] = 'Additional tables';
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+$lang['phpBB_only'] = 'Only phpBB-related tables';
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/db_utils_backup_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ADDITIONAL_TABLES}</td>
+		<td class="row1"><input class="post" type="text" name="additional_tables" /></td>
+	</tr>
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	<tr>
+		<td class="row1">{L_PHPBB_ONLY}</td>
+		<td class="row1">{L_NO} <input type="radio" name="phpbb_only" value="0" />  &nbsp;{L_YES} <input type="radio" name="phpbb_only" value="1" checked /></td>
+	</tr>
+	<tr>
+		<td class="row2">{L_ADDITIONAL_TABLES}</td>
+		<td class="row2"><input class="post" type="text" name="additional_tables" /></td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

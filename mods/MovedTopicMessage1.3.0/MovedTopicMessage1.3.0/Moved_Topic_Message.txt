@@ -1,0 +1,501 @@
+############################################################## 
+## MOD Title:       Moved_Topic_Message
+## MOD Author:      Wicher < N/A > (N/A) http://www.detecties.com/modforum
+## MOD Description: This mod will send an e-mail or a PM or both to the topicstarter when an admin or moderater 
+##                  moveds his topic to another location on the board. 
+##                  The mail and / or PM contains the topic title, the old forum where it was and the 
+##                  new forum where it went. 
+##                  Also the mail and / or PM contains a link to the users profile so they can set the preferences 
+##                  for this mail.
+## 
+## MOD Version:     1.3.0 
+## 
+## Installation Level: Easy 
+## Installation Time: 10 Minutes 
+## 
+## Files To Edit:  modcp.php 
+##                 admin/admin_board.php
+##                 language/lang_main.php
+##                 includes/usercp_register.php
+##                 templates/subSilver/profile_add_body.tpl
+##                 templates/subSilver/admin/board_config_body.tpl
+## 
+## Included Files:   root/language/lang_english/email/topic_moved.tpl
+##                   root/includes/function_pm.php 
+## 
+## License:      http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+## 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:   
+##		   This mod has been tested on phpbb 2.0.21 and 2.0.22 
+## 
+############################################################## 
+## MOD History: 
+## 
+## 1.3.0 19-06-2007
+## - pm's and mails now are send in users choosen language.
+## 1.2.0 14-01-2007
+## - fixed some more stuff in some files
+## - added admin choice wether to override usersettings yes or no.
+## 1.1.0 12-11-2006
+## - fixed some stuff in some files
+##
+## Fixed some stuff and resubmitted 1.0.8 to phpbb 31-10-2006
+##
+## Submitted to phpbb 1.0.0 under the mod name Moved Topic Mail 26-09-2006
+##
+## DEVelopment state 0.0.1 12-09-2006
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ DIY INSTRUCTIONS ]------------------------------------------ 
+# 
+If you want a dutch or spanish translation of Moved_Topic_Message look in the install folder, you will find it in the directory Contrib
+Spanish translation was done by joseal2648 at phpbb.com.
+.
+chmod root/cache to 777
+# 
+#-----[ SQL ]------------------------------------------ 
+# If you dont know how to add these lines with phpmyadmin or some program like phpmyadmin,
+# you can also execute root/db_install.php from your browser.
+# change phpbb_ to the database prefix you use
+#
+ALTER TABLE phpbb_users ADD user_topic_moved_mail TINYINT(1) DEFAULT '0';
+ALTER TABLE phpbb_users ADD user_topic_moved_pm TINYINT(1) DEFAULT '1';
+ALTER TABLE phpbb_users ADD user_topic_moved_pm_notify TINYINT(1) DEFAULT '1';
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('board_email_moved_topic', '0');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('board_topic_moved_mail', '0');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('board_topic_moved_pm', '1');
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy root/language/lang_english/email/topic_moved.tpl to language/lang_english/email/topic_moved.tpl
+copy root/includes/function_pm.php to includes/function_pm.php
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+modcp.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$message = $lang['Topics_Moved'] . '<br /><br />';
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+				// begin topic moved mailer by Wicher
+				// old forumname
+				$sql = "SELECT f.forum_name, c.cat_title
+					FROM " . FORUMS_TABLE . " f, " . CATEGORIES_TABLE . " c 
+					WHERE f.forum_id = $old_forum_id
+					AND c.cat_id = f.cat_id";
+				if ( !($result = $db->sql_query($sql, BEGIN_TRANSACTION)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select from forums or catagory table', '', __LINE__, __FILE__, $sql);
+				}
+				if ($oldnamerow = $db->sql_fetchrow($result))
+				{
+					$oldcatname = $oldnamerow['cat_title'];
+					$oldforumname = $oldnamerow['forum_name'];
+				}
+				$db->sql_freeresult($result);		
+
+				// new forumname
+				$sql = "SELECT f.forum_name, c.cat_title
+					FROM " . FORUMS_TABLE . " f, " . CATEGORIES_TABLE . " c 
+					WHERE f.forum_id = $new_forum_id
+					AND c.cat_id = f.cat_id";
+				if ( !($result = $db->sql_query($sql, BEGIN_TRANSACTION)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select from forums or catagory table', '', __LINE__, __FILE__, $sql);
+				}
+				if ($newnamerow = $db->sql_fetchrow($result))
+				{
+					$newcatname = $newnamerow['cat_title'];
+					$newforumname = $newnamerow['forum_name'];
+				}
+				$db->sql_freeresult($result);
+
+				$script_path = preg_replace('/^\/?(.*?)\/?$/', "\\1", trim($board_config['script_path']));
+				$server_name = trim($board_config['server_name']);
+				$server_protocol = ( $board_config['cookie_secure'] ) ? 'https://' : 'http://';
+				$server_port = ( $board_config['server_port'] <> 80 ) ? ':' . trim($board_config['server_port']) . '/' : '/';
+
+				// topictitle, user_id, username, useremail
+				$sql = "SELECT t.topic_id, t.topic_title, u.user_id, u.username, u.user_email, u.user_lang, user_topic_moved_mail, user_topic_moved_pm, u.user_topic_moved_pm_notify 
+						FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u 
+						WHERE t.topic_id IN ($topic_list)
+						AND t.topic_poster = u.user_id";
+				if ( !($result = $db->sql_query($sql, BEGIN_TRANSACTION)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select from topic or users table', '', __LINE__, __FILE__, $sql);
+				}
+				$mailrow = $db->sql_fetchrowset($result);
+				$db->sql_freeresult($result);
+				for($i = 0; $i < count($mailrow); $i++)
+				{
+					$m_topic_id = $mailrow[$i]['topic_id'];
+					$m_topic_title = $mailrow[$i]['topic_title'];
+					$m_user_id = $mailrow[$i]['user_id'];
+					$m_username = $mailrow[$i]['username'];
+					$m_user_email = $mailrow[$i]['user_email'];
+					$m_user_lang = $mailrow[$i]['user_lang'];
+					$m_user_topic_moved_mail = $mailrow[$i]['user_topic_moved_mail'];
+					$m_user_topic_moved_pm = $mailrow[$i]['user_topic_moved_pm'];
+					$m_user_topic_moved_pm_notify = $mailrow[$i]['user_topic_moved_pm_notify'];
+
+					include_once($phpbb_root_path . 'includes/function_pm.'.$phpEx);
+					include_once($phpbb_root_path . 'includes/functions_post.'.$phpEx);
+					get_user_lang_vars($m_user_lang);
+					include_once($phpbb_root_path . 'cache/templang.'.$phpEx);
+					@unlink($phpbb_root_path . 'cache/templang.'.$phpEx);
+					if ((($m_user_topic_moved_mail == 1) && ($board_config['board_email_moved_topic'] != 1)) || (($board_config['board_email_moved_topic'] == 1) && ($board_config['board_topic_moved_mail'])))
+					{
+							//emailer
+							include_once($phpbb_root_path . 'includes/emailer.'.$phpEx);
+							$emailer = new emailer($board_config['smtp_delivery']);
+							$emailer->from($board_config['board_email']);
+							$emailer->replyto($board_config['board_email']);
+							$emailer->use_template('topic_moved', $m_user_lang);
+							$emailer->email_address($m_user_email);
+							$emailer->set_subject($lang['m_topic_moved']);
+							$emailer->assign_vars(array(
+								'SUBJECT' => $lang['m_topic_moved'],
+								'SITENAME' => $board_config['sitename'], 
+								'BOARD_URL' => $server_protocol.$server_name.$server_port.$script_path,
+								'TOPICPOSTER' => $m_username, 
+								'TOPICTITLE' => $m_topic_title,
+								'OLD_CATAGORIE_NAME' => $oldcatname, 
+								'OLD_FORUM_NAME' => $oldforumname,
+								'NEW_CATAGORIE_NAME' => $newcatname, 
+								'NEW_FORUM_NAME' => $newforumname,
+								'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
+								'MOVED_URL' => $server_protocol.$server_name.$server_port.$script_path.'/viewtopic.'.$phpEx.'?'.POST_TOPIC_URL.'='.$m_topic_id,
+								'PROFILE_LINK' => $server_protocol.$server_name.$server_port.$script_path.'/profile.'.$phpEx.'?mode=editprofile')
+								);
+							$emailer->send();
+							$emailer->reset();
+					}
+					if ((($m_user_topic_moved_pm == 1) && ($board_config['board_email_moved_topic'] != 1)) || (($board_config['board_email_moved_topic'] == 1) && ($board_config['board_topic_moved_pm'])))
+					{
+						//pm-er
+						$moved_url = $server_protocol.$server_name.$server_port.$script_path.'/viewtopic.'.$phpEx.'?'.POST_TOPIC_URL.'='.$m_topic_id;
+						$profile_link = $server_protocol.$server_name.$server_port.$script_path.'/profile.'.$phpEx.'?mode=editprofile';
+						$pm_subject = $lang['m_topic_moved'];
+						$pm_message = $lang['m_hello'].$m_username.'\n\n'.$lang['m_pmtext1'].'\"'.$m_topic_title.'\"'.$lang['m_pmtext2'].'\n'.$lang['m_pmtext3'].'\"'.$oldforumname.'"'.$lang['m_pmtext4'].'\"'.$oldcatname.'\"\n'.$lang['m_pmtext5'].'\"'.$newcatname.'"'.$lang['m_pmtext6'].'\"'.$newforumname.'\".\n\n\n'.$lang['m_pmtext7'].'\n'.$moved_url.'\n\n\n'.$lang['m_profiletext'].'\n'.$profile_link;
+						send_moved_topic_pm($userdata['user_id'], $m_user_id, $pm_subject, $pm_message, $m_user_topic_moved_pm_notify);
+					}
+				}
+				if ($board_config['board_email_moved_topic'] != 1)
+				{
+					if (($m_user_topic_moved_mail == 1) && ($m_user_topic_moved_pm != 1))
+					{
+						$mailmess = $lang['mail_send'] . '<br /><br />';
+					}
+					else if (($m_user_topic_moved_mail != 1) && ($m_user_topic_moved_pm == 1))
+					{
+						$mailmess = $lang['pm_send'] . '<br /><br />';
+					}
+					else if (($m_user_topic_moved_mail == 1) && ($m_user_topic_moved_pm == 1))
+					{
+						$mailmess = $lang['mail_pm_send'] . '<br /><br />';
+					}
+				}
+				else
+				{
+					$mailmess = $lang['mail_pm_send'] . '<br /><br />';
+				}
+				$message = $lang['Topics_Moved'] . '<br /><br />' . $mailmess;
+				// end topic moved mailer by Wicher
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$board_email_form_yes = ( $new['board_email_form'] ) ? "checked=\"checked\"" : "";
+$board_email_form_no = ( !$new['board_email_form'] ) ? "checked=\"checked\"" : "";
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// begin topic moved mailer by Wicher
+$board_email_moved_topic_yes = ( $new['board_email_moved_topic'] ) ? "checked=\"checked\"" : "";
+$board_email_moved_topic_no = ( !$new['board_email_moved_topic'] ) ? "checked=\"checked\"" : "";
+$board_topic_moved_mail_yes = ( $new['board_topic_moved_mail'] ) ? "checked=\"checked\"" : "";
+$board_topic_moved_mail_no = ( !$new['board_topic_moved_mail'] ) ? "checked=\"checked\"" : "";
+$board_topic_moved_pm_yes = ( $new['board_topic_moved_pm'] ) ? "checked=\"checked\"" : "";
+$board_topic_moved_pm_no = ( !$new['board_topic_moved_pm'] ) ? "checked=\"checked\"" : "";
+// end topic moved mailer by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"L_BOARD_EMAIL_FORM" => $lang['Board_email_form'], 
+	"L_BOARD_EMAIL_FORM_EXPLAIN" => $lang['Board_email_form_explain'], 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// begin topic moved mailer by Wicher
+	"I_WICHERMOD" => $images['folder_hot'],
+	"U_WICHERMOD" => $lang['url_to_modforum'],
+	"L_WICHERMOD" => $lang['mymod'],
+	"L_BOARD_EMAIL_MOVED_TOPIC" => $lang['Board_email_moved_topic'], 
+	"L_BOARD_EMAIL_MOVED_TOPIC_EXPLAIN" => $lang['Board_email_moved_topic_explain'], 
+	"L_SENDMAIL" => $lang['send_mail'], 
+	"L_SENDPM" => $lang['send_pm'], 
+	// end topic moved mailer by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	"BOARD_EMAIL_FORM_ENABLE" => $board_email_form_yes, 
+	"BOARD_EMAIL_FORM_DISABLE" => $board_email_form_no, 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// begin topic moved mailer by Wicher
+	"BOARD_EMAIL_MOVED_TOPIC_ENABLE" => $board_email_moved_topic_yes, 
+	"BOARD_EMAIL_MOVED_TOPIC_DISABLE" => $board_email_moved_topic_no, 
+	"BOARD_TOPIC_MOVED_MAIL_YES" => $board_topic_moved_mail_yes, 
+	"BOARD_TOPIC_MOVED_MAIL_NO" => $board_topic_moved_mail_no, 
+	"BOARD_TOPIC_MOVED_PM_YES" => $board_topic_moved_pm_yes, 
+	"BOARD_TOPIC_MOVED_PM_NO" => $board_topic_moved_pm_no, 
+	// begin topic moved mailer by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_register.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	if ( $mode == 'register' )
+	{
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	// begin topic moved mailer by Wicher
+	$mail_on_topic_moved = ( isset($HTTP_POST_VARS['topic_moved_mail']) ) ? ( ($HTTP_POST_VARS['topic_moved_mail']) ? TRUE : 0 ) : 0;
+	$pm_on_topic_moved = ( isset($HTTP_POST_VARS['topic_moved_pm']) ) ? ( ($HTTP_POST_VARS['topic_moved_pm']) ? TRUE : 0 ) : TRUE;
+	$pm_on_topic_moved_notify = ( isset($HTTP_POST_VARS['topic_moved_pm_notify']) ) ? ( ($HTTP_POST_VARS['topic_moved_pm_notify']) ? TRUE : 0 ) : TRUE;
+	// end topic moved mailer by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# note: this is a partal search, the full line is longer.
+SET " . $username_sql . $passwd_sql . "user_email = '"
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+user_email = '" . str_replace("\'", "''", $email) ."'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, user_topic_moved_mail = $mail_on_topic_moved, user_topic_moved_pm = $pm_on_topic_moved, user_topic_moved_pm_notify = $pm_on_topic_moved_notify
+# 
+#-----[ FIND ]------------------------------------------ 
+# note: this is a partal search, the full line is longer.
+$sql = "INSERT INTO " . USERS_TABLE . "	(user_id, username,
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, user_email
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, user_topic_moved_mail, user_topic_moved_pm, user_topic_moved_pm_notify
+# 
+#-----[ FIND ]------------------------------------------ 
+# note: this is a partal search, the full line is longer.
+VALUES ($user_id, '" . str_replace("\'", "''", $username
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, '" . str_replace("\'", "''", $email) . "'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, $mail_on_topic_moved, $pm_on_topic_moved, $pm_on_topic_moved_notify
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		} // if mode == register
+	}
+} // End of submit
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+if ($board_config['board_email_moved_topic'] == 1)
+{
+	$template->assign_block_vars('switch_email_moved_topic', array());
+}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$popup_pm = $userdata['user_popup_pm'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// begin topic moved mailer by Wicher
+	$mail_on_topic_moved = $userdata['user_topic_moved_mail'];
+	$pm_on_topic_moved = $userdata['user_topic_moved_pm'];
+	$pm_on_topic_moved_notify = $userdata['user_topic_moved_pm_notify'];
+	// end topic moved mailer by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'POPUP_PM_YES' => ( $popup_pm ) ? 'checked="checked"' : '',
+		'POPUP_PM_NO' => ( !$popup_pm ) ? 'checked="checked"' : '',
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		// begin topic moved mailer by Wicher
+		'TOPIC_MOVED_MAIL_YES' => ( $mail_on_topic_moved ) ? 'checked="checked"' : '',
+		'TOPIC_MOVED_MAIL_NO' => ( !$mail_on_topic_moved ) ? 'checked="checked"' : '',
+		'TOPIC_MOVED_PM_YES' => ( $pm_on_topic_moved ) ? 'checked="checked"' : '',
+		'TOPIC_MOVED_PM_NO' => ( !$pm_on_topic_moved ) ? 'checked="checked"' : '',
+		'TOPIC_MOVED_PM_NOTIFY_YES' => ( $pm_on_topic_moved_notify ) ? 'checked="checked"' : '',
+		'TOPIC_MOVED_PM_NOTIFY_NO' => ( !$pm_on_topic_moved_notify ) ? 'checked="checked"' : '',
+		// end topic moved mailer by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'L_POPUP_ON_PRIVMSG_EXPLAIN' => $lang['Popup_on_privmsg_explain'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		// begin topic moved mailer by Wicher
+		'L_NO_USE' => $lang['no_use'],
+		'L_TOPIC_MOVED_MAIL' => $lang['topic_moved_mail'],
+		'L_TOPIC_MOVED_PM' => $lang['topic_moved_pm'],
+		'L_TOPIC_MOVED_PM_NOTIFY' => $lang['topic_moved_pm_notify'],
+		// end topic moved mailer by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<input type="radio" name="popup_pm" value="0" {POPUP_PM_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<!-- begin topic moved mailer by Wicher -->
+	<tr> 
+	  <td colspan="2" class="row3" height="5"></td>
+	</tr>
+	<!-- BEGIN switch_email_moved_topic -->
+	<tr> 
+	  <td colspan="2" class="row3" align="center"><span class="gen">{L_NO_USE}</span></td>
+	</tr>
+	<!-- END switch_email_moved_topic -->
+	<tr> 
+	  <td class="row1"><span class="gen">{L_TOPIC_MOVED_MAIL}:</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="topic_moved_mail" value="1" {TOPIC_MOVED_MAIL_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="topic_moved_mail" value="0" {TOPIC_MOVED_MAIL_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_TOPIC_MOVED_PM}:</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="topic_moved_pm" value="1" {TOPIC_MOVED_PM_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="topic_moved_pm" value="0" {TOPIC_MOVED_PM_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_TOPIC_MOVED_PM_NOTIFY}:</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="topic_moved_pm_notify" value="1" {TOPIC_MOVED_PM_NOTIFY_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="topic_moved_pm_notify" value="0" {TOPIC_MOVED_PM_NOTIFY_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+	<tr> 
+	  <td colspan="2" class="row3" height="5"></td>
+	</tr>
+	<!-- end topic moved mailer by Wicher -->
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_BOARD_EMAIL_FORM}<br /><span class="gensmall">{L_BOARD_EMAIL_FORM_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="board_email_form" value="1" {BOARD_EMAIL_FORM_ENABLE} /> {L_ENABLED}&nbsp;&nbsp;<input type="radio" name="board_email_form" value="0" {BOARD_EMAIL_FORM_DISABLE} /> {L_DISABLED}</td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<!-- begin topic moved mailer by Wicher -->
+	<tr> 
+	  <td colspan="2" class="row3" height="5"></td>
+	</tr>
+	<tr>
+		<td class="row1" valign="top"><a href="{U_WICHERMOD}" target="_blank"><img src="../{I_WICHERMOD}" alt="{L_WICHERMOD}" title="{L_WICHERMOD}" border="0" align="left" /></a>{L_BOARD_EMAIL_MOVED_TOPIC}<br /><span class="gensmall">{L_BOARD_EMAIL_MOVED_TOPIC_EXPLAIN}</span></td>
+		<td class="row2" valign="top">
+			<input type="radio" name="board_email_moved_topic" value="1" {BOARD_EMAIL_MOVED_TOPIC_ENABLE} /> {L_ENABLED}&nbsp;&nbsp;<input type="radio" name="board_email_moved_topic" value="0" {BOARD_EMAIL_MOVED_TOPIC_DISABLE} /> {L_DISABLED}
+			<br />{L_SENDMAIL}<input type="radio" name="board_topic_moved_mail" value="1" {BOARD_TOPIC_MOVED_MAIL_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="board_topic_moved_mail" value="0" {BOARD_TOPIC_MOVED_MAIL_NO} /> {L_NO}
+			<br />{L_SENDPM}<input type="radio" name="board_topic_moved_pm" value="1" {BOARD_TOPIC_MOVED_PM_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="board_topic_moved_pm" value="0" {BOARD_TOPIC_MOVED_PM_NO} /> {L_NO}
+		</td>
+	</tr>
+	<tr> 
+	  <td colspan="2" class="row3" height="5"></td>
+	</tr>
+	<!-- end topic moved mailer by Wicher -->
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['Total_votes'] = 'Total Votes';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// begin topic moved mailer by Wicher
+$lang['topic_moved'] = 'A topic you created has been moved.';
+$lang['mail_send'] = 'The topicstarter has been / are notified through e-mail .';
+$lang['pm_send'] = 'The topicstarter has been / are notified through pm.';
+$lang['mail_pm_send'] = 'The topicstarter has been / are notified through e-mail and pm.';
+$lang['no_use'] = 'No use making changes to below 3 settings at this time, admin is overriding them';
+$lang['topic_moved_mail'] = 'Mail me when a topic, started by me, has been moved';
+$lang['topic_moved_pm'] = 'PM me when a topic, started by me, has been moved';
+$lang['topic_moved_pm_notify'] = 'Send me also a notify mail when i get a Moved topic PM<br />(Dont select this when you also selected "Mail me when a topic, started by me, has been moved")';
+$lang['url_to_modforum'] = 'http://www.detecties.com/phpbb2018'; // Never ever change this
+$lang['mymod'] = 'One of Wicher\'s Mods'; // Never ever change this
+$lang['Board_email_moved_topic'] = 'Use boardsettings for Topic Moved Message'; 
+$lang['Board_email_moved_topic_explain'] = 'If set to Enabled, this will override the usersettings for this option.<br />If you use \'Send PM\' it might be better not to use \'Send mail\' because if the user has the setting to recieve a notification if he gets a new PM he would then gert two mails for the same subject.';
+$lang['send_mail'] = 'Send mail';
+$lang['send_pm'] = 'Send PM';
+$lang['hello'] = 'Hello ';
+$lang['pmtext1'] = 'This PM has been send to you because the topic ';
+$lang['pmtext2'] = ' you started';
+$lang['pmtext3'] = 'has been moved from forum ';
+$lang['pmtext4'] = ' in the catagory ';
+$lang['pmtext5'] = ' to the catagory ';
+$lang['pmtext6'] = ' in forum ';
+$lang['pmtext7'] = 'You can go directly to your moved topic by clicking below url:';
+$lang['profiletext'] = 'You can set future warnings on topicmoves off in your profile';
+// end topic moved mailer by Wicher
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

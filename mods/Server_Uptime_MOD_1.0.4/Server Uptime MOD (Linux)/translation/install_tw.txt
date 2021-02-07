@@ -1,0 +1,165 @@
+######################################################## 
+## 外掛名稱: 主機運作時間外掛 (只可在 Linux 上使用)
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 在討論版尾端顯示主機已運作時間和負載值. 這個外掛只能在 linux 主機上使用.
+## 外掛版本: 1.0.4
+## 
+## 安裝難度: 簡單
+## 安裝時間: 3 分鐘 
+##
+## 需要編輯的檔案: 3
+##	includes/page_tail.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	templates/subSilver/overall_footer.tpl
+##
+## 附加的檔案: 0
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.20 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##
+##	你的 Linux 主機必須安裝 "uptime" 這個外掛才能有作用
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2005-09-29 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2005-10-02 - 版本 1.0.1
+##      - 修正了缺少 ")" 的問題
+##
+##   2005-10-06 - 版本 1.0.2
+##      - 改變了 uptime 的擷取方式，讓翻譯能夠更完整
+##
+##   2005-11-03 - 版本 1.0.3
+##      - 改變了 uptime 時間的處理方式，讓外掛能夠把日/時/分正確顯示出來
+##
+##   2006-05-07 - 版本 1.0.4
+##      - 再次更新 uptime 時間的處理方式
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_main.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Server Uptime MOD (For Linux Only)
+$lang['Server_uptime'] = '主機運作時間: %s 日 %s 小時 %s 分鐘';
+$lang['Server_load'] = '平均負載值: %s';
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/page_tail.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$template->set_filenames(array(
+	'overall_footer' => ( empty($gen_simple_header) ) ? 'overall_footer.tpl' : 'simple_footer.tpl')
+);
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+/*
+Idea taken from Andrew Walsh
+*/
+// Server Uptime MOD (For Linux Only)
+$uptime = @exec('uptime');
+if ( strstr($uptime, 'day') )
+{
+	if ( strstr($uptime, 'min') )
+	{
+		preg_match("/up\s+(\d+)\s+(days,|days|day,|day)\s+(\d{1,2})\s+min/", $uptime, $times);
+		$days = $times[1];
+		$hours = 0;
+		$mins = $times[3];
+	}
+	else
+	{
+		preg_match("/up\s+(\d+)\s+(days,|days|day,|day)\s+(\d{1,2}):(\d{1,2}),/", $uptime, $times);
+		$days = $times[1];
+		$hours = $times[3];
+		$mins = $times[4];
+	}
+}
+else
+{
+	if ( strstr($uptime, 'min') )
+	{
+		preg_match("/up\s+(\d{1,2})\s+min/", $uptime, $times);
+		$days = 0;
+		$hours = 0;
+		$mins = $times[1];
+	}
+	else
+	{
+		preg_match("/up\s+(\d+):(\d+),/", $uptime, $times);
+		$days = 0;
+		$hours = $times[1];
+		$mins = $times[2];
+	}
+}
+preg_match("/averages?: ([0-9\.]+),[\s]+([0-9\.]+),[\s]+([0-9\.]+)/", $uptime, $avgs);
+$load = $avgs[1].", ".$avgs[2].", ".$avgs[3]."";
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'ADMIN_LINK' => $admin_link)
+);
+
+# 
+#-----[ 取代為 ]------------------------------------------ 
+#
+	'ADMIN_LINK' => $admin_link,
+
+	// Server Uptime MOD (For Linux Only)
+	'SERVER_UPTIME' => sprintf($lang['Server_uptime'], $days, $hours, $mins),
+	'SERVER_LOAD' => sprintf($lang['Server_load'], $load))
+);
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/overall_footer.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+Powered by <a href="http://www.phpbb.com/" target="_phpbb" class="copyright">phpBB</a> &copy; 2001, 2005 phpBB Group<br />{TRANSLATION_INFO}</span></div>
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+{TRANSLATION_INFO}</span>
+
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+<br /><span class="gensmall">{SERVER_UPTIME} | {SERVER_LOAD}</span>
+
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

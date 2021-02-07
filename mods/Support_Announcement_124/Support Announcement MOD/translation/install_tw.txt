@@ -1,0 +1,263 @@
+######################################################## 
+## 外掛名稱: Support Announcement MOD
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: This mod allow admin to show support status and details on forum. Most useful for webmasters hosting support forums
+## 外掛版本: 1.2.4
+## 
+## 安裝難度: 簡單 
+## 安裝時間: 3 分鐘 
+##
+## 需要編輯的檔案: 4
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	includes/page_header.php
+##	templates/subSilver/overall_header.tpl
+##
+## 附加的檔案: 3
+##	root/images/support.gif
+##	root/admin/admin_support.php
+##	root/templates/subSilver/admin/admin_support.tpl
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.20 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##	外掛圖例可以在 screenshots 文件夾中找到
+##	荷蘭語系翻譯由 carloclaessen, phpBB 提供 (dutch translation.txt)
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2004-01-18 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2004-01-23 - 版本 1.1.0
+##      - 荷蘭語系翻譯由 carloclaessen 提供
+##	- 提交到 phpBB 外掛資料庫
+##
+##   2004-01-30 - 版本 1.2.0
+##      - 增加離線服務和在線服務時的服務員
+##
+##   2004-03-15 - 版本 1.2.1
+##      - 可在 phpBB 2.0.7 上使用
+##	- 一些程式修改和修正
+##	- 再次提交到 phpBB 外掛資料庫
+##
+##   2004-05-21 - 版本 1.2.2
+##      - 可在 phpBB 2.0.8 上使用
+##	- 修正了由 phpBB 檢驗小組指出的外掛說明問題
+##	- 修改了本在 template 裡的版本聲明至語系檔內
+##
+##   2005-08-14 - 版本 1.2.3
+##      - 重新提交 phpbb.com 認證
+##	- 在 2.0.17 上測試並且使用最新的 MOD template
+##
+##   2006-05-20 - 版本 1.2.4
+##	- 增加了是否顯示服務狀態區塊的選項
+##	- 在 2.0.20 上測試
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+# 
+#-----[ 複製 ]------------------------------------------ 
+#
+copy root/images/support.gif to images/support.gif
+copy root/admin/admin_support.php to admin/admin_support.php
+copy root/templates/subSilver/admin/admin_support.tpl to templates/subSilver/admin/admin_support.tpl
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# 請記得修改成你的資料表名稱
+INSERT INTO `phpbb_config` VALUES ('support_display','1');
+INSERT INTO `phpbb_config` VALUES ('support_status','0');
+INSERT INTO `phpbb_config` VALUES ('support_online_admin','');
+INSERT INTO `phpbb_config` VALUES ('support_offline_admin','');
+INSERT INTO `phpbb_config` VALUES ('support_onlinetext','');
+INSERT INTO `phpbb_config` VALUES ('support_onlinecontact','');
+INSERT INTO `phpbb_config` VALUES ('support_offlinetext','');
+INSERT INTO `phpbb_config` VALUES ('support_offlinecontact','');
+INSERT INTO `phpbb_config` VALUES ('support_image','images/support.gif');
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+language/lang_chinese_traditional_taiwan/lang_admin.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Support Announcement MOD
+$lang['Support'] = '服務組態';
+$lang['Support_config_updated'] = '服務組態更新完成';
+$lang['Click_return_support_config'] = '點選 %這裡%s 返回服務狀態顯示控制台';
+$lang['Support_config'] = '服務狀態顯示控制台';
+$lang['Support_config_explain'] = '以下表格可以讓你編輯服務狀態顯示的設定';
+$lang['Support_settings'] = '服務狀態顯示設定';
+$lang['Support_display'] = '顯示服務狀態區塊';
+$lang['Support_display_explain'] = '啟用這個選項讓服務狀態區塊顯示在討論版上方';
+$lang['Support_status'] = '服務狀態';
+$lang['Support_status_explain'] = '您目前的服務狀態';
+$lang['Support_online_admin'] = '<b>服務中</b> 的服務人員';
+$lang['Support_offline_admin'] = '<b>暫停服務</b> 的服務人員';
+$lang['Support_online_admin_explain'] = '服務中時將提供服務的人員名稱, i.e. 系統管理員或網管<BR>可以使用 HTML 代碼, 最大限制 255 個字元';
+$lang['Support_offline_admin_explain'] = '暫停服務時將提供服務的人員名稱, i.e. 系統管理員或網管<BR>可以使用 HTML 代碼, 最大限制 255 個字元';
+$lang['Support_online_detail'] = '服務中的資訊';
+$lang['Support_offline_detail'] = '暫停服務的資訊';
+$lang['Support_deatil_explain'] = '可以使用 HTML 代碼, 最大限制 255 個字元';
+
+$lang['Support_onlinetext'] = '<b>服務中</b>的詳情';
+$lang['Support_onlinetext_explain'] = '在討論版中顯示服務的訊息';
+$lang['Support_offlinetext'] = '<b>暫停服務</b>的詳情';
+$lang['Support_offlinetext_explain'] = '在討論版中顯示服務的訊息"';
+$lang['Support_onlinecontact'] = '<b>服務中</b>聯絡方式';
+$lang['Support_onlinecontact_explain'] = '在討論版中顯示聯絡的方式';
+$lang['Support_offlinecontact'] = '<b>暫停服務</b>的聯絡方式';
+$lang['Support_offlinecontact_explain'] = '在討論版中顯示聯絡的方式';
+$lang['Support_image'] = '服務圖示路徑';
+$lang['Support_image_explain'] = '在您 phpBB 2 根目錄底下的路徑, e.g. images/support.gif';
+$lang['Support_version'] = 'Support Announcement MOD 版本 1.2.4 (2006-05-20)';
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+language/lang_chinese_traditional_taiwan/lang_main.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Support Announcement MOD
+$lang['support_na'] = 'n/a';
+$lang['Support_status_f'] = '服務狀態';
+$lang['Support_admin_name_f'] = '服務人員';
+$lang['Support_text_f'] = '詳情';
+$lang['Support_contact_f'] = '聯絡方式';
+$lang['On'] = '服務中';
+$lang['Off'] = '服務暫停';
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/page_header.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+//
+// Generate HTML required for Mozilla Navigation bar
+//
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+$support_display = $board_config['support_display'];
+$support_status = $board_config['support_status'];
+$support_online_admin = ($board_config['support_online_admin']) ? $board_config['support_online_admin'] : $lang['support_online_admin'];
+$support_offline_admin = ($board_config['support_offline_admin']) ? $board_config['support_offline_admin'] : $lang['support_offline_admin'];
+$support_image = ($board_config['support_image']) ? '<img src="' . $phpbb_root_path. '/' . $board_config['support_image'] . '" border="0" />' : $lang['support_na'];
+$online_text = ($board_config['support_onlinetext']) ? $board_config['support_onlinetext'] : $lang['support_na'];
+$online_contact = ($board_config['support_onlinecontact']) ? $board_config['support_onlinecontact'] : $lang['support_na'];
+$offline_text = ($board_config['support_offlinetext']) ? $board_config['support_offlinetext'] : $lang['support_na'];
+$offline_contact = ($board_config['support_offlinecontact']) ? $board_config['support_offlinecontact'] : $lang['support_na'];
+
+// Check status
+if ($support_display == 1)
+{
+	$template->assign_block_vars('switch_support_display_block', array() );
+
+	if ($support_status == 1) 
+	{
+		$support_status = $lang['On'];
+		$support_text = $online_text;
+		$support_contact = $online_contact;
+		$support_admin_name = $support_online_admin;
+	}
+	else
+	{
+		$support_status = $lang['Off'];
+		$support_text = $offline_text;
+		$support_contact = $offline_contact;
+		$support_admin_name = $support_offline_admin;		
+	}
+	$support_admin_name = ($support_admin_name) ? $support_admin_name : $lang['support_na'];
+}
+// END Support Announcement MOD
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'PRIVMSG_IMG' => $icon_pm,
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// BEGIN Support Announcement MOD
+	'SUPPORT_STATUS' => $support_status,
+	'SUPPORT_ADMIN_NAME' => $support_admin_name,
+	'SUPPORT_TEXT' => $support_text,
+	'SUPPORT_CONTACT' => $support_contact,
+	'SUPPORT_IMAGE' => $support_image,
+
+	'L_SUPPORT_STATUS' => $lang['Support_status_f'],
+	'L_SUPPORT_ADMIN_NAME' => $lang['Support_admin_name_f'],
+	'L_SUPPORT_TEXT' => $lang['Support_text_f'],
+	'L_SUPPORT_CONTACT' => $lang['Support_contact_f'],
+	// END Support Announcement MOD
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+					</tr>
+				</table></td>
+			</tr>
+		</table>
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+<!-- BEGIN switch_support_display_block -->
+<br />
+
+<table width="100%" border="0" class="forumline">
+	<tr> 
+		<td class="row1" rowspan="2" align="center" nowrap="nowrap"><span class="gensmall">{SUPPORT_IMAGE}</span></th>
+		<td class="row1" align="center" height="28"><span class="topictitle">&nbsp;{L_SUPPORT_STATUS}&nbsp;</span></td>
+		<td class="row1" align="center" height="28"><span class="topictitle">&nbsp;{L_SUPPORT_ADMIN_NAME}&nbsp;</span></td>
+		<td class="row1" align="center" height="28"><span class="topictitle">&nbsp;{L_SUPPORT_TEXT}&nbsp;</span></td> 
+		<td class="row1" align="center" height="28"><span class="topictitle">&nbsp;{L_SUPPORT_CONTACT}&nbsp;</span></td> 
+	</tr>
+	<tr> 
+		<td class="row2" align="center" valign="middle" height="28"><span class="gensmall">{SUPPORT_STATUS}</span></td>
+		<td class="row2" align="center" valign="middle" height="28"><span class="gensmall">{SUPPORT_ADMIN_NAME}</span></td>
+		<td class="row2" align="center" valign="middle" height="28"><span class="gensmall">{SUPPORT_TEXT}</span></td>
+		<td class="row2" align="center" valign="middle" height="28"><span class="gensmall">{SUPPORT_CONTACT}</span></td>
+	</tr>
+</table>
+<!-- END switch_support_display_block -->
+
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

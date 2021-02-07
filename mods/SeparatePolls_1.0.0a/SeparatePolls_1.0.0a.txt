@@ -1,0 +1,151 @@
+##############################################################
+## MOD Title: Separate Polls
+## MOD Author: Aiencran < cranportal@katamail.com > (N/A) N/A
+## MOD Description: This hack separates Polls from other topics in viewforum page and put it after Announcements 
+##		    and Sticky Topics. It requires Separate Announcements and Sticky Topics 2.x or higher.
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: 2 Minutes
+## Files To Edit: viewforum.php,
+##		  includes/constants.php, 
+##		  includes/functions_separate.php, 
+##		  language/lang_english/lang_main.php 
+## Included Files: n/a
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##   This MOD requires Separate Announcements and Sticky Topics 2.x or higher.
+##   Go to: http://www.phpbb.com/phpBB/viewtopic.php?p=1286576#1286576	
+##
+##############################################################
+## MOD History:
+##
+##   2005-04-16 - Version 1.0.0
+##      - First Version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewforum.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+ORDER BY t.topic_type DESC, t.topic_last_post_id DESC  
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+t.topic_last_post_id DESC
+
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+# 
+t.topic_vote DESC,
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/constants.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+define('POST_GLOBAL_ANNOUNCE', 3);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+define('POST_POLL', 4);
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions_separate.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$total_by_type = array (POST_GLOBAL_ANNOUNCE => 0, POST_ANNOUNCE => 0, POST_STICKY => 0, POST_NORMAL => 0);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+POST_NORMAL => 0);
+
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+# 
+POST_POLLS => 0, 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$total_by_type[$topics[$i]['topic_type']]++;
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+if ( $topics[$i]['topic_type'] == POST_NORMAL && $topics[$i]['topic_vote'] )
+{
+	$total_by_type[POST_POLL]++;
+	$total_by_type[POST_NORMAL]--;
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if ( ( $total_by_type[POST_GLOBAL_ANNOUNCE] + $total_by_type[POST_ANNOUNCE] + $total_by_type[POST_STICKY] ) != 0 )
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+# 
+$total_by_type[POST_STICKY]
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+# 
++ $total_by_type[POST_POLL] 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$dividers[$count_topics] = $lang['Sticky_Topics'];
+$count_topics += $total_by_type[POST_STICKY];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+$dividers[$count_topics] = $lang['Polls'];
+$count_topics += $total_by_type[POST_POLL];
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// That's all, Folks!
+// -------------------------------------------------
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------
+#
+$lang['Polls'] = 'Polls';
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM 

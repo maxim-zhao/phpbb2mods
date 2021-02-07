@@ -1,0 +1,435 @@
+##############################################################
+## MOD Title:		phpBB Menu Manager
+## MOD Author: OXPUS < webmaster@oxpus.de > (Karsten Ude) http://www.oxpus.de
+## MOD Description:	Allow your users to manage their own board menu for aviable links sets by an admin.
+## MOD Version:		2.2.12
+##
+## Installation Level:	Easy
+## Installation Time:	2-5 Minutes
+## Files To Edit:	5
+##			common.php
+##			includes/constants.php
+##			includes/page_header.php
+##			language/lang_english/lang_main.php
+##			templates/subSilver/overall_header.tpl
+##
+## Included Files:	9
+##			root/board_menu_manager.php
+##			root/includes/functions_board_menu.php
+##			root/language/lang_english/lang_board_menu.php
+##			root/templates/subSilver/board_menu_config.tpl
+##			root/templates/subSilver/board_menu_links_admin.tpl
+##			root/templates/subSilver/board_menu_links_edit.tpl
+##			root/templates/subSilver/board_menu_links_set.tpl
+##			root/templates/subSilver/board_menu_links_sort.tpl
+##			root/templates/subSilver/board_menu_welcome.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+##
+## SQL / Database changes
+## ----------------------
+## Instead using the SQL commands you can upload the file
+##		board_menu_install.php
+## to your phpbb root directory and run this with your browser.
+## This file will do all nessassary changes in the database for you.
+## After using this file, please delete it to avoid errors.
+##
+## More Board Menu Links
+## ---------------------
+## While adding more Links to the board menu manager you should delete them from overall_header.tpl.
+## For the ezPortal from Smartor look into the folder add-on.
+##
+## Attention
+## ---------
+## You could not create links with variable parameters like $userdata['user_level']. There are only
+## fix parameters allowed. You also can use a javascript function. The syntax is explained on the
+## links management of the board menu manager.
+##
+##############################################################
+## MOD History:
+##
+##   2006-08-17 - Version 2.2.12
+##      - FIX Some HTML validations
+##	  For update look into the folder updates
+##
+##   2006-04-11 - Version 2.2.11
+##      - FIX Some bugs on SQL part and closing the manager
+##	  For update replace the file templates/subSilver/board_menu_welcome.tpl
+##
+##   2006-01-03 - Version 2.2.10
+##      - FIX Security issue
+##	  For update replace the file board_menu_manager.php
+##
+##   2006-01-01 - Version 2.2.9
+##      - FIX Layout issue
+##	  For update replace the files
+##		- board_menu_manager.php
+##		- templates/subSilver/board_menu_welcome.tpl
+##
+##   2005-12-17 - Version 2.2.8
+##      - FIX several security bugs
+##	  For update replace the files
+##	  - includes/functions_board_menu.php
+##	  - board_menu_manager.php
+##	  - templates/subSilver/board_menu_welcome.tpl
+##
+##   2005-12-07 - Version 2.2.7
+##      - FIX little syntax error on menu manager.
+##	  For update replace the file board_menu_manager.php.
+##
+##   2005-11-26 - Version 2.2.6
+##      - Recheck Files for malfunctions SQL-Statements.
+##	  For update just replace the file board_menu_manager.php.
+##
+##   2005-11-08 - Version 2.2.5
+##      - Re-recheck instructions and files for submitting in MOD Database on http://www.phpbb.com
+##
+##   2005-10-18 - Version 2.2.4
+##      - Re-recheck instructions and files for submitting in MOD Database on http://www.phpbb.com
+##	  For Update replace the file board_menu_manager.php.
+##	  Also check the Add-Ons for ezPortal and Link Counter!
+##
+##   2005-09-29 - Version 2.2.3
+##      - Re-recheck instructions and files for submitting in MOD Database on http://www.phpbb.com
+##	  For Update replace the file board_menu_manager.php, each .tpl-file and reinstall the part
+##	  for includes/page_header.php and templates/subSilver/overall_header.tpl.
+##	  Also check the Add-Ons for ezPortal and Link Counter!
+##
+##   2005-09-06 - Version 2.2.2
+##      - Re-recheck instructions and files for submitting in MOD Database on http://www.phpbb.com
+##	  For Update replace all files!
+##
+##   2005-08-29 - Version 2.2.1
+##      - Recheck instructions for submitting in MOD Database on http://www.phpbb.com
+##
+##   2005-06-23 - Version 2.2.0
+##      - Add some statistic data
+##	  For update replace the files lang_board_menu.php, board_menu_manager.php and
+##	  board_menu_links_admin.tpl.
+##	  If you have installed the portal add-on, you must update the file
+##	  board_menu_manager.php from this add-on!
+##
+##   2005-04-30 - Version 2.1.1
+##      - Fix possible hijacking on the click counter add-on.
+##	  For update reinstall this add-on!!!
+##
+##   2004-09-03 - Version 2.1.0
+##      - Add fix link sorting by user switch on/off (add-on for ezPortal)
+##	- Add new add_on for link counting (add-on link counter)
+##
+##   2004-07-16 - Version 2.0.2
+##      - Fix access level for guests.
+##	  For update replace includes/functions_board_menu.php
+##	  This is also nessassary, if you have installed the add-on!
+##
+##   2004-07-07 - Version 2.0.1
+##      - Display all links for the userlevel a registered user will be have
+##	  For update look into the folder update
+##	  If you also have install the add-on, you must update this add-on, too.
+##
+##   2004-06-21 - Version 2.0.0
+##      - Recode data struktur to avoid errors on user menu
+##	  For update look into the folder update
+##	  If you also have install the add-on, you must update this add-on, too.
+##
+##   2004-06-01 - Version 1.5.6
+##      - Fix compability to memberlist of the Profile Control Panel
+##	  For update replace the complete code in page_header.php
+##	  If you also have install the add-on, you must look there, too.
+##
+##   2004-05-31 - Version 1.5.5
+##      - Fix auth changes on links might produce errors.
+##	  For update replace board_menu_manager.php
+##	  (If you have installed the add-on, then use the file from the add-on-folder!)
+##
+##   2004-05-22 - Version 1.5.4
+##      - Fix auth changes on links will not affect portal navigation
+##	  For update replace board_menu_manager.php from add-on.
+##
+##   2004-05-17 - Version 1.5.3
+##      - Fix sorting on older PHP
+##	  For update replace (if you had installed add-on use the files from there!)
+##		board_menu_manager.php
+##		includes/functions_board_menu.php
+##
+##   2004-04-30 - Version 1.5.2
+##      - Add new function on sorting: set link to first/last position
+##	  For update replace (if you had installed add-on look there, too!)
+##		board_menu_manager.php
+##		language/lang_english/lang_board_menu.php
+##		language/lang_german/lang_board_menu.php
+##		templates/subSilver/board_menu_links_sort.tpl
+##
+##   2004-04-24 - Version 1.5.1
+##      - Renaming Mod to phpBB Menu Manager
+##	  No code changes here.
+##
+##   2004-04-21 - Version 1.5.0
+##      - Adding mark/unmark all chooseable links
+##	- Adding reorder links like default sorting
+##	  For update replace (for installed add-on look there, too!)
+##		board_menu_manager.php
+##		language/lang_english/lang_board_menu.php
+##		language/lang_german/lang_board_menu.php
+##		templates/subSilver/board_menu_links_set.tpl
+##		templates/subSilver/board_menu_links_sort.tpl
+##
+##   2004-04-20 - Version 1.4.0
+##      - Adding LESS_ADMIN
+##	  For update replace (for installed add-on look there!)
+##		board_menu_manager.php
+##		includes/function_board_menu.php
+##		language/lang_english/lang_board_menu.php
+##		language/lang_german/lang_board_menu.php
+##
+##   2004-04-18 - Version 1.3.0
+##      - Seperates the settings for the portal navigation
+##	  For update reinstall the add-on for the ezPortal
+##	- Fix disabled link sorting button while missing user menu settings
+##	  For update replace
+##		board_menu_manager.php
+##		templates/subSilver/board_menu_welcome.tpl
+##
+##   2004-04-16 - Version 1.2.1
+##      - Fix using default template for guest users
+##	  For update replace includes/functions_board_menu.php
+##
+##   2004-04-15 - Version 1.2.0
+##      - Delete seperator in front on each line
+##	- Add possibility to set default sorting for all links
+##	  For update look into the updates folder
+##
+##   2004-04-13 - Version 1.1.0
+##      - Fix a bugs on sorting links if new links will choosen
+##	- Disable sorting button till user have set any links
+##	- Add new method to change access level of links
+##	  For update replace
+##		board_menu_manager.php
+##		templates/subSilver/board_menu_links_edit.tpl
+##
+##   2004-04-12 - Version 1.0.1
+##      - Fix some bugs and improve management for access level
+##
+##   2004-04-11 - Version 1.0.0
+##      - First release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+CREATE TABLE phpbb_board_links (
+	bl_id MEDIUMINT( 8 ) NOT NULL auto_increment,
+	bl_img VARCHAR( 150 ) NOT NULL ,
+	bl_name VARCHAR( 50 ) NOT NULL ,
+	bl_parameter VARCHAR( 50 ) NOT NULL ,
+	bl_link VARCHAR( 50 ) NOT NULL ,
+	bl_level TINYINT( 1 ) NOT NULL ,
+	bl_dsort MEDIUMINT( 8 ) DEFAULT '0' NOT NULL ,
+PRIMARY KEY (bl_id)
+);
+
+CREATE TABLE phpbb_user_board_links (
+	user_id MEDIUMINT( 8 ) NOT NULL ,
+	board_link MEDIUMINT( 8 ) NOT NULL ,
+	board_sort MEDIUMINT( 8 ) NOT NULL
+);
+
+INSERT INTO phpbb_board_links ( bl_img , bl_name , bl_parameter , bl_link , bl_level , bl_dsort ) VALUES ('icon_mini_login.gif', 'Forum', '', 'index', -1, 10);
+INSERT INTO phpbb_board_links ( bl_img , bl_name , bl_parameter , bl_link , bl_level , bl_dsort ) VALUES ('icon_mini_faq.gif', 'FAQ', '', 'faq', -1, 20);
+INSERT INTO phpbb_board_links ( bl_img , bl_name , bl_parameter , bl_link , bl_level , bl_dsort ) VALUES ('icon_mini_search.gif', 'Search', '', 'search', -1, 30);
+INSERT INTO phpbb_board_links ( bl_img , bl_name , bl_parameter , bl_link , bl_level , bl_dsort ) VALUES ('icon_mini_members.gif', 'Memberlist', '', 'memberlist', -1, 40);
+INSERT INTO phpbb_board_links ( bl_img , bl_name , bl_parameter , bl_link , bl_level , bl_dsort ) VALUES ('icon_mini_groups.gif', 'Usergroups', '', 'groupcp', -1, 50);
+
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('bl_seperator', '0');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('bl_seperator_content', 'SPACE');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('bl_break', '5');
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy root/board_menu_manager.php to board_menu_manager.php
+copy root/includes/functions_board_menu.php to includes/functions_board_menu.php
+copy root/language/lang_english/lang_board_menu.php to language/lang_english/lang_board_menu.php
+copy root/templates/subSilver/board_menu_config.tpl to templates/subSilver/board_menu_config.tpl
+copy root/templates/subSilver/board_menu_links_admin.tpl to templates/subSilver/board_menu_links_admin.tpl
+copy root/templates/subSilver/board_menu_links_edit.tpl to templates/subSilver/board_menu_links_edit.tpl
+copy root/templates/subSilver/board_menu_links_set.tpl to templates/subSilver/board_menu_links_set.tpl
+copy root/templates/subSilver/board_menu_links_sort.tpl to templates/subSilver/board_menu_links_sort.tpl
+copy root/templates/subSilver/board_menu_welcome.tpl to templates/subSilver/board_menu_welcome.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+common.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+include($phpbb_root_path . 'includes/db.'.$phpEx);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+include($phpbb_root_path . 'includes/functions_board_menu.'.$phpEx);
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+define('BOARD_LINKS_TABLE', $table_prefix.'board_links');
+define('USER_BOARD_LINKS_TABLE', $table_prefix.'user_board_links');
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// The following assigns all _common_ variables that may be used at any point
+// in a template.
+//
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//
+// Create the personal board menu
+if ( $userdata['session_logged_in'] )
+{
+	$sql = "SELECT bl.* FROM " . USER_BOARD_LINKS_TABLE . " ub, " . BOARD_LINKS_TABLE . " bl
+		WHERE ub.user_id = " . $userdata['user_id'] . "
+		AND ub.board_link = bl.bl_id
+		ORDER BY ub.board_sort";
+	if ( !$result = $db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, 'Could not read board menu for user', '', __LINE__, __FILE__, $sql);
+	}
+	$user_links_count = $db->sql_numrows($result);
+}
+$sqlwhereaccess = get_bllink_access();
+if ( !$userdata['session_logged_in'] || $user_links_count == 0 )
+{
+	$sql = "SELECT * FROM " . BOARD_LINKS_TABLE . "
+		$sqlwhereaccess
+		ORDER BY bl_dsort, bl_id";
+	if ( !$result = $db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, 'Could not read board menu for user', '', __LINE__, __FILE__, $sql);
+	}
+}
+
+$bl_theme_path = get_bl_theme();
+$board_config['bl_seperator_content'] = str_replace('SPACE', '&nbsp;&nbsp;&nbsp;', $board_config['bl_seperator_content']);
+$i = 0;
+while ( $row = $db->sql_fetchrow($result) )
+{
+	$board_menu_link_name = $lang[$row['bl_name']];
+	$board_menu_break = ( $i % $board_config['bl_break'] ) ? '' : ( ( $i != 0 ) ? '<br />' : '');
+	$board_menu_seperator = ( $i % $board_config['bl_break'] ) ? ( ( $board_config['bl_seperator'] == 1 ) ? '&nbsp;<img src="'.$board_config['bl_seperator_content'].'" border="0" alt="'.$board_menu_link_name.'" title="'.$board_menu_link_name.'" />&nbsp;' : $board_config['bl_seperator_content'] ) : '';
+	$board_menu_img = ( $row['bl_img'] != '' ) ? '<img src="'.$bl_theme_path.$row['bl_img'].'" border="0" alt="'.$board_menu_link_name.'" title="'.$board_menu_link_name.'" />&nbsp;' : '';
+
+	if (substr($row['bl_link'],0,10) != 'javascript')
+	{
+		$u_board_menu_links = append_sid($row['bl_link'].'.'.$phpEx.(($row['bl_parameter'] != '') ? '?'.$row['bl_parameter'] : ''));
+	}
+	else
+	{
+		$u_board_menu_links = $row['bl_link'];
+	}
+
+	$template->assign_block_vars('board_menu_link', array(
+		'BOARD_MENU_BREAK' => $board_menu_break,
+		'BOARD_MENU_SEPERATOR' => $board_menu_seperator,
+		'BOARD_MENU_IMG' => $board_menu_img,
+		'BOARD_MENU_LINK_NAME' => $board_menu_link_name,
+		'U_BOARD_MENU_LINKS' => $u_board_menu_links)
+	);
+
+	$i++;
+}
+
+$u_board_menu = append_sid("board_menu_manager.$phpEx");
+$l_board_menu = '<b>'.$lang['Board_menu_manager'].'</b>';
+// Create the personal board menu
+//
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'PRIVATE_MESSAGE_NEW_FLAG' => $s_privmsg_new,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'L_BOARD_MENU' => $l_board_menu,
+	'U_BOARD_MENU' => $u_board_menu,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Board Menu
+$lang['Board_menu_manager'] = 'Board Menu Manager';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# // The whole line may be longer!
+#
+						<td align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_FAQ}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_faq.gif" width="12" height="13" border="0" alt="{L_FAQ}" hspace="3" />{L_FAQ}</a>&nbsp; &nbsp;<a href="{U_SEARCH}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_search.gif" width="12" height="13" border="0" alt="{L_SEARCH}" hspace="3" />{L_SEARCH}</a>&nbsp; &nbsp;<a href="{U_MEMBERLIST}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_members.gif" width="12" height="13" border="0" alt="{L_MEMBERLIST}" hspace="3" />{L_MEMBERLIST}</a>&nbsp; &nbsp;<a href="{U_GROUP_CP}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_groups.gif" width="12" height="13" border="0" alt="{L_USERGROUPS}" hspace="3" />{L_USERGROUPS}</a>&nbsp; 
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+						<td align="center" valign="top" nowrap="nowrap"><span class="mainmenu">
+						<!-- BEGIN board_menu_link -->
+						{board_menu_link.BOARD_MENU_BREAK}{board_menu_link.BOARD_MENU_SEPERATOR}{board_menu_link.BOARD_MENU_IMG}<a href="{board_menu_link.U_BOARD_MENU_LINKS}" class="mainmenu">{board_menu_link.BOARD_MENU_LINK_NAME}</a>
+						<!-- END board_menu_link -->
+						<!-- BEGIN switch_user_logged_in -->
+						&nbsp;&raquo;&nbsp;<a href="{U_BOARD_MENU}" class="mainmenu">{L_BOARD_MENU}</a>
+						<!-- END switch_user_logged_in -->
+						</span>
+
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

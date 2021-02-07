@@ -1,0 +1,216 @@
+############################################################## 
+## MOD Title:		Save posts as drafts (upgrade from 1.0.15 to 1.0.16)
+## MOD Author:		asinshesq < N/A > (Alan) N/A
+## MOD Description:	Allow users to save their posts as drafts so they can begin a post and finish it later.
+##			Since it is a draft, others will not see it until it is done.
+##
+## MOD Version:		upgrade from 1.0.15 to 1.0.16
+## 
+## Installation Level:	Easy
+## Installation Time:	5 Minutes ( 1 minute with easymod) 
+## Files To Edit:
+##			posting.php
+##			admin/admin_forum_prune.php
+##			includes/functions_post.php
+##			templates/subSilver/admin/forum_prune_select_body.tpl
+##
+## Included Files:	N/A
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:	This is an upgrade mod.  You must already have version 1.0.15 installed in order to use this mod.
+##
+############################################################## 
+## MOD History:
+##
+##   2004-11-15	- Version 1.0.16
+##		  fixed the treatment of polls in drafts so that they do not get lost when the draft is submitted as a real post;
+##		  corrected small error in prune.php that would result in pruning deleting drafts; and simplified posting_body.tpl so that
+##		  it no longer uses a <!-- END switch_not_save_as_draft_button --> concept (so that privmsg.php will not get messed up for people with PCP mod); as a result, got rid of all changes to privmsg.php 
+##
+##   2004-10-04	- Version 1.0.15
+##		  corrected small error in functions_admin.php that counted drafts as posts when it tries to sync a single topic.
+##
+##   2004-09-18	- Version 1.0.14
+##		  corrected small error in search.php that allowed it to count a draft as a new post when you click the new posts link on the index page;
+##		  also corrected problem in functions_admin.php that counted drafts as posts when it tries to sync a forum or topic (e.g. when you hit 'resync' in the forum management part of the ACP);
+##		  and modified things so that a user who isn't generally authorized to delete his own posts can now delete his own drafts
+##
+##   2004-09-05	- Version 1.0.13
+##		  no change in functionality...just changed method of inserting draft as a new post when you finally submit a draft (since method used in version 1.0.11 had some unnecessary steps in it); 
+##
+##   2004-09-02	- Version 1.0.12
+##		  broke up large find and replace blocks in mod to smaller bits as needed to get validation...no change in the coding from version 1.1.11; 
+##
+##   2004-08-29	- Version 1.0.11
+##		  changed mod so that it in effect creates a brand new post (with a new post_id and, if the post is a new topic, a brand new topic_id) when a draft finally gets submitted;
+##		  the old draft post (and topic if the draft is a new topic) get deleted when the new one is created;
+##		  since post_id now will always fall in same order as post_time, got rid of the changes that had been in prior drafts to places where sorts were done by post_id;
+##		  as a result, the order of post_id of all final posts is now the same as the order of post_time of all final posts (not critical but nice);
+##		  also fixed a minor error where a BEGIN_TRANSACTION statement did not have a corresponding END_TRANSACTION statement when the user saved the post as a draft (which
+##		  could have slowed up the board a bit when a user saves a draft)
+##
+##   2004-08-22	- Version 1.0.10
+##		  tweaked the mod so that post_id and topic_id get updated at the time the draft is finally submitted as real (so that there are never any 'sort' bugs)
+##
+##   2004-08-20	- Version 1.0.9
+##		  corrected the fix in 1.0.8
+##
+##   2004-08-20	- Version 1.0.8
+##		  fixed an error that prevented any regular users who are not moderators from deleting their own drafts
+##
+##   2004-08-06	- Version 1.0.7
+##		  fixed aditional errors in viewtopic that could have caused wrong displays when user hits newest or previous or next in a topic where there are unsubmitted drafts
+##
+##   2004-08-05	- Version 1.0.6
+##		  fixed an error in viewtopic that caused wrong pagination on occassion when there were umsubmitted drafts in a topic
+##
+##   2004-07-24	- Version 1.0.5
+##		  fixed a number of minor bugs and cleaned up code
+##
+##   2004-07-23	- Version 1.0.4
+##		  fixed privmsg.php so that submit and preview buttons show up on pm posts
+##
+##   2004-07-23	- Version 1.0.3
+##		  fixed minor problem where reply notifications didn't go out and post didn't get marked as new when you finally submit draft as a live post
+##
+##   2004-07-23	- Version 1.0.2
+##		  fixed minor problem where board stats didn't get updated after you finally submit a draft as a live post
+##
+##   2004-07-18	- Version 1.0.1
+##		  first release
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	// start mod save posts as drafts...tell template not to show the save as draft button
+			$template->assign_block_vars('switch_not_save_as_draft_button', array());
+	// end mod save posts as drafts
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+//
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// start mod save posts as drafts
+// in the below added code, we delete the old topic from the topics table if the post was a draft getting finally submitted as a real post and it is the first post of the topic; and we also in that case reset $topic_id to match the new $topic_id of the new topic inserted above
+		if ($was_a_draft && !$save_as_draft && $post_data['first_post'])
+		{
+			$relevant_topic_id = $topic_id;
+			$topic_id = $db->sql_nextid();
+			$sql = "DELETE FROM " . TOPICS_TABLE . " WHERE topic_id = $relevant_topic_id";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+			}
+		}
+// end mod save posts as drafts
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+// start mod save posts as drafts
+// in the below added code, we delete the old topic from the topics table if the post
+// was a draft getting finally submitted as a real post and it is the first post of the topic;
+// and we also in that case reset $topic_id to match the new $topic_id of the new topic inserted above;
+// and finally if there is a poll in the topic we change the vote_desc_table so that it now points to the new topic_id rather than the old one...
+		if ($was_a_draft && !$save_as_draft && $post_data['first_post'])
+		{
+			$relevant_topic_id = $topic_id;
+			$topic_id = $db->sql_nextid();
+			$sql = "DELETE FROM " . TOPICS_TABLE . " WHERE topic_id = $relevant_topic_id";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+			}
+
+			if ( $topic_vote == 1 )
+			{
+				$sql = "UPDATE " . VOTE_DESC_TABLE . "
+					SET topic_id = $topic_id
+					WHERE topic_id = $relevant_topic_id";
+				if (!$db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Error in posting', '', __LINE__, __FILE__, $sql);
+				}
+			}
+		}
+// end mod save posts as drafts
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/prune.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			AND ( p.post_id = t.topic_last_post_id
+				OR t.topic_last_post_id = 0 )";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+			AND p.post_id = t.topic_last_post_id";
+// start mod save posts as drafts (and end mod too)...revised the foregoing sql definition so that it does not delete a topic if last_post_id = 0 (the way it used to)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<!-- start mod save posts as drafts -->
+	<!-- original language was the language between the !switch_save_as_draft lines -->
+	  <!-- BEGIN switch_save_as_draft_button -->
+	  <td class="catBottom" colspan="3" align="center" height="28"> {S_HIDDEN_FORM_FIELDS}<input type="submit" tabindex="4" name="save_as_draft" class="mainoption" value="{L_SAVE_AS_DRAFT}" />&nbsp;<input type="submit" tabindex="5" name="preview" class="mainoption" value="{L_PREVIEW}" />&nbsp;<input type="submit" accesskey="s" tabindex="6" name="post" class="mainoption" value="{L_SUBMIT}" /></td>
+	  <!-- END switch_save_as_draft_button -->
+	  <!-- BEGIN switch_not_save_as_draft_button -->
+	  <td class="catBottom" colspan="2" align="center" height="28"> {S_HIDDEN_FORM_FIELDS}<input type="submit" tabindex="5" name="preview" class="mainoption" value="{L_PREVIEW}" />&nbsp;<input type="submit" accesskey="s" tabindex="6" name="post" class="mainoption" value="{L_SUBMIT}" /></td>
+	  <!-- END switch_not_save_as_draft_button -->	  
+	<!-- end mod save posts as drafts -->
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+	<!-- start mod save posts as drafts -->
+	<!-- added begin and end switch_save_as_draft and stuff between it -->
+	  <td class="catBottom" colspan="3" align="center" height="28"> {S_HIDDEN_FORM_FIELDS}
+	  <!-- BEGIN switch_save_as_draft_button -->
+	  <input type="submit" tabindex="4" name="save_as_draft" class="mainoption" value="{L_SAVE_AS_DRAFT}" />&nbsp;
+	  <!-- END switch_save_as_draft_button -->
+	  <input type="submit" tabindex="5" name="preview" class="mainoption" value="{L_PREVIEW}" />&nbsp;<input type="submit" accesskey="s" tabindex="6" name="post" class="mainoption" value="{L_SUBMIT}" /></td>
+	<!-- end mod save posts as drafts -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM
+

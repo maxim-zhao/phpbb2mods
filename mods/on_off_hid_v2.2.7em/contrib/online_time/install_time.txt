@@ -1,0 +1,184 @@
+##############################################################
+## MOD Title:		Online Time
+## MOD Author:		kooky < [nospam]kooky@altern.org > (n/a) http://www.myphpbb.zaup.org
+## MOD Description:	This mod will base online time in index and viewonline
+##			on the online status time.
+## MOD Version:		1.0.1
+##
+## Installation Level:	Easy
+## Installation Time:	2-5 Minutes
+## Files To Edit:	5
+##			index.php
+##			viewonline.php
+##			admin/index.php
+##			includes/page_header.php
+##			language/lang_english/lang_main.php
+## Included Files:	N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## 1. Copyright and special thanks!
+## -----------
+## This program is free software, you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation.
+##
+## If you want to add this Mod to any database, please don't add
+## my e-mail address to a topic, just point to my website (see above).
+## (for spamming prevention)
+##
+## 2. Feature list
+## -----------
+## MOD Required: Online/Offline/Hidden
+## kooky < [nospam]kooky@altern.org > (n/a) http://www.myphpbb.zaup.org/
+##
+## This MOD tries to enhance the online time.
+## You need the Online/Offline/Hidden Mod to make this add-on working.
+##
+## 3. Compatibility / EasyMOD
+## -----------
+## This MOD is compatible with phpBB 2.0.3 - 2.0.18
+##
+## It is also compatible with EasyMOD of Nuttzy and can be
+## installed by it but is not yet certified EMC (EasyMOD Compliant)!
+## http://area51.phpbb.com/phpBB22/viewforum.php?sid=&f=15
+##
+## 4. Official last version link
+## -----------
+## Contact with email address quoted above without [nospam]
+## Check this official link for latest updates...
+## http://www.myphpbb.zaup.org/
+##
+##############################################################
+## MOD History:
+##
+## 2005/11/07 - Version 1.0.1
+##	- Updated code
+##
+## 2004/02/14 - Version 1.0.0
+##	- Final Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Online_explain'] = 'This data is based on users active over the past five minutes';
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+five
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+%s
+#
+#-----[ OPEN ]------------------------------------------
+#
+index.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_ONLINE_EXPLAIN' => $lang['Online_explain'], 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang['Online_explain']
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+sprintf($lang['Online_explain'], ($board_config['online_time']/60)%60)
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewonline.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_ONLINE_EXPLAIN' => $lang['Online_explain'], 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang['Online_explain']
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+sprintf($lang['Online_explain'], ($board_config['online_time']/60)%60)
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT u.user_id, u.username
+	FROM ".USERS_TABLE." u, ".SESSIONS_TABLE." s
+	WHERE u.user_id = s.session_user_id
+		AND s.session_time >= ".( time() - 300 ) . "
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+300
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$board_config['online_time']
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/index.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$sql = "SELECT u.user_id, u.username
+		FROM " . USERS_TABLE . " u, " . SESSIONS_TABLE . " s
+		WHERE s.session_logged_in = " . TRUE . " 
+			AND u.user_id = s.session_user_id 
+			AND u.user_id <> " . ANONYMOUS . " 
+			AND s.session_time >= " . ( time() - 300 ) . "
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+300
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$board_config['online_time']
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$sql = "SELECT u.username
+		FROM ".USERS_TABLE." u, ".SESSIONS_TABLE." s
+		WHERE u.user_id = s.session_user_id
+			AND s.session_time >= ".( time() - 300 ) . "
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+300
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$board_config['online_time']
+#
+#-----[ SAVE/CLOSE ALL FILES ]----------------------------------------
+#
+# EoM

@@ -1,0 +1,432 @@
+##############################################################
+## MOD Title: Auto Lock MOD
+## MOD Author: Sune Trudslev < sune.trudslev@tanis.dk > (Sune Trudslev) http://www.tanis.dk
+## MOD Description: Adds auto locking ability to your forum. Pick a number of days of inactivity
+## per forum and the topics will be automatically locked.
+## MOD Version: 1.0.0
+## 
+## Installation Level: Intermediate
+## Installation Time: 30 minutes
+## Files To Edit: viewforum.php
+##                admin/admin_board.php
+##                admin/admin_forums.php
+##                includes/constants.php
+##                language/lang_english/lang_admin.php
+##                templates/subSilver/admin/board_config_body.tpl
+##                templates/subSilver/admin/forum_edit_body.tpl
+## Included Files: 
+##                includes/auto_lock.php
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes: 
+## Adds auto locking ability to your forum. Pick a number of days of inactivity
+## per forum and the topics will be automatically locked.
+##############################################################
+## MOD History:
+## 
+##   2004-12-01 - Version 1.0.0
+## 
+##      - First Stable release
+## 
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy auto_lock.php to includes/auto_lock.php
+
+#
+#-----[ SQL ]------------------------------------------
+#
+# Remember to change the prefix if you use something
+# different than phpbb_
+# 
+CREATE TABLE phpbb_forum_auto_lock (
+  auto_lock_id mediumint(8) unsigned NOT NULL auto_increment,
+  forum_id smallint(5) unsigned NOT NULL default '0',
+  auto_lock_days smallint(5) unsigned NOT NULL default '0',
+  auto_lock_freq smallint(5) unsigned NOT NULL default '0',
+  PRIMARY KEY  (auto_lock_id),
+  KEY forum_id (forum_id)
+) TYPE=MyISAM;
+
+ALTER TABLE phpbb_forums 
+ADD auto_lock_enable TINYINT( 1 ) NOT NULL DEFAULT '0',
+ADD auto_lock_next INT( 11 );
+
+INSERT INTO phpbb_config ( config_name , config_value ) VALUES ('auto_lock_enable', '0');
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// End of forum prune
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Auto Lock MOD Begin
+if ( $is_auth['auth_mod'] && $board_config['auto_lock_enable'] )
+{
+	if ( $forum_row['auto_lock_next'] < time() && $forum_row['auto_lock_enable'] )
+	{
+		include($phpbb_root_path . 'includes/auto_lock.'.$phpEx);
+		require($phpbb_root_path . 'includes/functions_admin.'.$phpEx);
+		auto_lock($forum_id);
+	}
+}
+// Auto Lock MOD End
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$prune_no = ( !$new['prune_enable'] ) ? "checked=\"checked\"" : "";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Auto Lock MOD Begin
+$auto_lock_yes = ( $new['auto_lock_enable'] ) ? "checked=\"checked\"" : "";
+$auto_lock_no = ( !$new['auto_lock_enable'] ) ? "checked=\"checked\"" : "";
+// Auto Lock MOD End
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_ENABLE_PRUNE" => $lang['Enable_prune'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Auto Lock MOD Begin
+	"L_ENABLE_AUTO_LOCK" => $lang['Enable_auto_lock'],
+	// Auto Lock MOD End
+#
+#-----[ FIND ]------------------------------------------
+#
+	"PRUNE_NO" => $prune_no, 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Auto Lock MOD Begin
+	"AUTO_LOCK_YES" => $auto_lock_yes,
+	"AUTO_LOCK_NO" => $auto_lock_no, 
+	// Auto Lock MOD End
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+admin/admin_forums.php
+#
+#-----[ FIND ]------------------------------------------
+#
+				else
+				{
+					$prune_enabled = '';
+				}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+				// Auto Lock MOD Begin
+				if( $row['auto_lock_enable'] )
+				{
+					$auto_lock_enabled = "checked=\"checked\"";
+					$sql = "SELECT *
+               			FROM " . AUTO_LOCK_TABLE . "
+               			WHERE forum_id = $forum_id";
+					if(!$pr_result = $db->sql_query($sql))
+					{
+						 message_die(GENERAL_ERROR, "Auto-Lock: Couldn't read auto_lock table.", __LINE__, __FILE__);
+        			}
+
+					$pr_row = $db->sql_fetchrow($pr_result);
+				}
+				else
+				{
+					$auto_lock_enabled = '';
+				}
+				// Auto Lock MOD End
+#
+#-----[ FIND ]------------------------------------------
+#
+				$prune_enabled = '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Auto Lock MOD Begin
+				$auto_lock_enabled = '';
+				// Auto Lock MOD End
+#
+#-----[ FIND ]------------------------------------------
+#
+				'S_PRUNE_ENABLED' => $prune_enabled,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Auto Lock MOD Begin
+				'S_AUTO_LOCK_ENABLED' => $auto_lock_enabled,
+				// Auto Lock MOD End
+#
+#-----[ FIND ]------------------------------------------
+#
+				'L_DAYS' => $lang['Days'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Auto Lock MOD Begin
+				'L_AUTO_LOCK' => $lang['Auto_lock'],
+				'L_AUTO_LOCK_DAYS' => $lang['auto_lock_days'],
+				'L_AUTO_LOCK_FREQ' => $lang['auto_lock_freq'],
+				// Auto Lock MOD End
+#
+#-----[ FIND ]------------------------------------------
+#
+				'PRUNE_FREQ' => ( isset($pr_row['prune_freq']) ) ? $pr_row['prune_freq'] : 1,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Auto Lock MOD Begin
+				'AUTO_LOCK_DAYS' => ( isset($pr_row['auto_lock_days']) ) ? $pr_row['auto_lock_days'] : 7,
+				'AUTO_LOCK_FREQ' => ( isset($pr_row['auto_lock_freq']) ) ? $pr_row['auto_lock_freq'] : 1,
+				// Auto Lock MOD End
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "INSERT INTO " . FORUMS_TABLE . " (forum_id, forum_name, cat_id, forum_desc, forum_order, forum_status, prune_enable
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, prune_enable
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, auto_lock_enable
+#
+#-----[ FIND ]------------------------------------------
+#
+				VALUES ('" . $next_id . "', '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) .
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+", " . intval($HTTP_POST_VARS['prune_enable']) .
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+", " . intval($HTTP_POST_VARS['auto_lock_enable']) . 
+#
+#-----[ FIND ]------------------------------------------
+#
+				if( !$result = $db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, "Couldn't insert row in prune table", "", __LINE__, __FILE__, $sql);
+				}
+			}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			// Auto Lock MOD Begin
+			if( $HTTP_POST_VARS['auto_lock_enable'] )
+			{
+
+				if( $HTTP_POST_VARS['auto_lock_days'] == "" || $HTTP_POST_VARS['auto_lock_freq'] == "")
+				{
+					message_die(GENERAL_MESSAGE, $lang['Set_auto_lock_data']);
+				}
+
+				$sql = "INSERT INTO " . AUTO_LOCK_TABLE . " (forum_id, auto_lock_days, auto_lock_freq)
+					VALUES('" . $next_id . "', " . intval($HTTP_POST_VARS['auto_lock_days']) . ", " . intval($HTTP_POST_VARS['auto_lock_freq']) . ")";
+				if( !$result = $db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, "Couldn't insert row in auto lock table", "", __LINE__, __FILE__, $sql);
+				}
+			}
+			// Auto Lock MOD End
+#
+#-----[ FIND ]------------------------------------------
+#
+					$HTTP_POST_VARS['prune_enable'] = 0;
+				}
+			}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// Auto Lock MOD Begin
+			if( isset($HTTP_POST_VARS['auto_lock_enable']))
+			{
+				if( $HTTP_POST_VARS['auto_lock_enable'] != 1 )
+				{
+					$HTTP_POST_VARS['auto_lock_enable'] = 0;
+				}
+			}
+			// Auto Lock MOD End
+#
+#-----[ FIND ]------------------------------------------
+#
+				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', cat_id = " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", forum_desc = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . ", prune_enable = " . intval($HTTP_POST_VARS['prune_enable'])
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+", prune_enable = " . intval($HTTP_POST_VARS['prune_enable'])
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ . ", auto_lock_enable = " . intval($HTTP_POST_VARS['auto_lock_enable'])
+#
+#-----[ FIND ]------------------------------------------
+#
+				if( !$result = $db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, "Couldn't Update Forum Prune Information","",__LINE__, __FILE__, $sql);
+				}
+			}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			// Auto Lock MOD Begin
+			if( $HTTP_POST_VARS['auto_lock_enable'] == 1 )
+			{
+				if( $HTTP_POST_VARS['auto_lock_days'] == "" || $HTTP_POST_VARS['auto_lock_freq'] == "" )
+				{
+					message_die(GENERAL_MESSAGE, $lang['Set_auto_lock_data']);
+				}
+
+				$sql = "SELECT *
+					FROM " . AUTO_LOCK_TABLE . "
+					WHERE forum_id = " . intval($HTTP_POST_VARS[POST_FORUM_URL]);
+				if( !$result = $db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, "Couldn't get forum Auto Lock Information","",__LINE__, __FILE__, $sql);
+				}
+
+				if( $db->sql_numrows($result) > 0 )
+				{
+					$sql = "UPDATE " . AUTO_LOCK_TABLE . "
+						SET	auto_lock_days = " . intval($HTTP_POST_VARS['auto_lock_days']) . ",	auto_lock_freq = " . intval($HTTP_POST_VARS['auto_lock_freq']) . "
+				 		WHERE forum_id = " . intval($HTTP_POST_VARS[POST_FORUM_URL]);
+				}
+				else
+				{
+					$sql = "INSERT INTO " . AUTO_LOCK_TABLE . " (forum_id, auto_lock_days, auto_lock_freq)
+						VALUES(" . intval($HTTP_POST_VARS[POST_FORUM_URL]) . ", " . intval($HTTP_POST_VARS['auto_lock_days']) . ", " . intval($HTTP_POST_VARS['auto_lock_freq']) . ")";
+				}
+
+				if( !$result = $db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, "Couldn't Update Forum Auto Lock Information","",__LINE__, __FILE__, $sql);
+				}
+			}
+			// Auto Lock MOD End
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Auto Lock MOD Begin
+define('AUTO_LOCK_TABLE', $table_prefix.'forum_auto_lock');
+// Auto Lock MOD End
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all Folks!
+// -------------------------------------------------
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Auto Lock MOD Begin
+$lang['Auto_lock'] = 'Auto-locking';
+$lang['auto_lock_freq'] = 'Check for topic age every';
+$lang['auto_lock_days'] = 'Lock topics that have not been posted to in';
+$lang['Set_auto_lock_data'] = 'You have turned on auto-lock for this forum but did not set a frequency or number of days to lock. Please go back and do so.';
+$lang['Enable_auto_lock'] = 'Enable Forum Auto-Locking';
+// Auto Lock MOD End
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ENABLE_PRUNE}</td>
+		<td class="row2"><input type="radio" name="prune_enable" value="1" {PRUNE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="prune_enable" value="0" {PRUNE_NO} /> {L_NO}</td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<!-- Auto Lock MOD Begin -->
+	<tr>
+		<td class="row1">{L_ENABLE_AUTO_LOCK}</td>
+		<td class="row2"><input type="radio" name="auto_lock_enable" value="1" {AUTO_LOCK_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="auto_lock_enable" value="0" {AUTO_LOCK_NO} /> {L_NO}</td>
+	</tr>
+	<!-- Auto Lock MOD End -->
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+templates/subSilver/admin/forum_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		  </tr>
+	  </table></td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<!-- Auto Lock MOD Begin -->
+	<tr> 
+	  <td class="row1">{L_AUTO_LOCK}</td>
+	  <td class="row2"><table cellspacing="0" cellpadding="1" border="0">
+		  <tr> 
+			<td align="right" valign="middle">{L_ENABLED}</td>
+			<td align="left" valign="middle"><input type="checkbox" name="auto_lock_enable" value="1" {S_AUTO_LOCK_ENABLED} /></td>
+		  </tr>
+		  <tr> 
+			<td align="right" valign="middle">{L_AUTO_LOCK_DAYS}</td>
+			<td align="left" valign="middle">&nbsp;<input type="text" name="auto_lock_days" value="{AUTO_LOCK_DAYS}" size="5" class="post" />&nbsp;{L_DAYS}</td>
+		  </tr>
+		  <tr> 
+			<td align="right" valign="middle">{L_AUTO_LOCK_FREQ}</td>
+			<td align="left" valign="middle">&nbsp;<input type="text" name="auto_lock_freq" value="{AUTO_LOCK_FREQ}" size="5" class="post" />&nbsp;{L_DAYS}</td>
+		  </tr>
+	  </table></td>
+	</tr>
+	<!-- Auto Lock MOD End -->
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

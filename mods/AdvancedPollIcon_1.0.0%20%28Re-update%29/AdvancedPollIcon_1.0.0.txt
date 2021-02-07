@@ -1,0 +1,303 @@
+##############################################################
+## MOD Title: Advanced Poll Icon
+## MOD Author: Aiencran < cranportal@katamail.com > 
+## MOD Description: This hack gives polls 3 different icons according to 3 different cases:
+##		    - User hasn't voted yet
+##		    - User has already voted
+##		    - User can't vote
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit: search.php,
+##		  viewforum.php,
+##		  language/lang_english/lang_main.php,
+##      	  templates/subSilver/subSilver.cfg,
+##                templates/subSilver/viewforum_body.tpl
+## Included Files: templates/subSilver/images/folder_poll_not_voted.gif,
+##		   templates/subSilver/images/folder_poll_not_voted_new.gif,
+##		   templates/subSilver/images/folder_poll_no_permission.gif,
+##		   templates/subSilver/images/folder_poll_no_permission_new.gif,
+##		   templates/subSilver/images/folder_poll_voted.gif,
+##		   templates/subSilver/images/folder_poll_voted_new.gif
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2004-12-28 - Version 1.0.0
+##      - First Version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy templates/subSilver/images/folder_poll_not_voted.gif to templates/subSilver/images/folder_poll_not_voted.gif
+copy templates/subSilver/images/folder_poll_not_voted_new.gif to templates/subSilver/images/folder_poll_not_voted_new.gif
+copy templates/subSilver/images/folder_poll_no_permission.gif to templates/subSilver/images/folder_poll_no_permission.gif
+copy templates/subSilver/images/folder_poll_no_permission_new.gif to templates/subSilver/images/folder_poll_no_permission_new.gif
+copy templates/subSilver/images/folder_poll_voted.gif to templates/subSilver/images/folder_poll_voted.gif
+copy templates/subSilver/images/folder_poll_voted_new.gif to templates/subSilver/images/folder_poll_voted_new.gif
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/search.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+else if ( $searchset[$i]['topic_type'] == POST_STICKY )
+{
+	$folder = $images['folder_sticky'];
+	$folder_new = $images['folder_sticky_new'];
+}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+else if ( $searchset[$i]['topic_vote'] )
+{
+	$folder = $images['folder_poll_no_permission'];
+	$folder_new = $images['folder_poll_no_permission_new'];
+}	
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	}
+	else
+	{
+		$folder_image = $folder;
+		$folder_alt = ( $searchset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+		$newest_post_img = '';
+	}
+}
+
+
+$topic_author = ( $searchset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $searchset[$i]['user_id']) . '">' : '';
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------
+#
+$auth_vote = auth(AUTH_VOTE, $forum_id, $userdata);
+if ( $searchset[$i]['topic_vote'] && $auth_vote['auth_vote'] && $searchset[$i]['topic_status'] != TOPIC_LOCKED && $searchset[$i]['topic_type'] != POST_STICKY && $searchset[$i]['topic_type'] != POST_ANNOUNCE ) 
+{
+	$sql = "SELECT * FROM " . VOTE_DESC_TABLE . " WHERE topic_id = $topic_id";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+	}
+	if ( $row = $db->sql_fetchrow($result) )
+	{
+		$vote_id = $row['vote_id'];
+		$poll_expired = ( $row['vote_length'] ) ? ( ( $row['vote_start'] + $row['vote_length'] < time() ) ? TRUE : 0 ) : 0;
+	}
+	$db->sql_freeresult($result);
+
+	$sql = "SELECT * FROM " . VOTE_USERS_TABLE . " 
+		WHERE vote_id = $vote_id AND vote_user_id = " . intval($userdata['user_id']);
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+	}
+	
+	if ( $row = $db->sql_fetchrow($result) )
+	{
+		$folder_image = ($folder_image == $folder) ? $images['folder_poll_voted'] : $images['folder_poll_voted_new'];
+		$folder_alt .= " - " . $lang['Already_voted'];
+	}
+	else if ( !$poll_expired )
+	{
+		$folder_image = ($folder_image == $folder) ? $images['folder_poll_not_voted'] : $images['folder_poll_not_voted_new'];
+		$folder_alt .= " - " . $lang['Have_not_voted_yet'] ;
+	}
+	else
+	{
+		$folder_alt .= " - " . $lang['Poll_has_expired'];
+	}
+
+	$db->sql_freeresult($result);
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/viewforum.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+'FOLDER_ANNOUNCE_NEW_IMG' => $images['folder_announce_new'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+'FOLDER_POLL_NOT_VOTED_IMG' => $images['folder_poll_not_voted'],
+'FOLDER_POLL_NO_PERMISSION_IMG' => $images['folder_poll_no_permission'],
+'FOLDER_POLL_VOTED_IMG' => $images['folder_poll_voted'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+'L_AUTHOR' => $lang['Author'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+'L_POLL_NOT_VOTED' => $lang['Poll_not_voted'],
+'L_POLL_NO_PERMISSION' => $lang['Poll_no_permission'],
+'L_POLL_VOTED' => $lang['Poll_voted'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+else if( $topic_rowset[$i]['topic_type'] == POST_STICKY )
+{
+	$folder = $images['folder_sticky'];
+	$folder_new = $images['folder_sticky_new'];
+}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+else if( $topic_rowset[$i]['topic_vote'] )
+{
+	$folder = $images['folder_poll_no_permission'];
+	$folder_new = $images['folder_poll_no_permission_new'];
+}
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	}
+	else
+	{
+		$folder_image = $folder;
+		$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+		
+		$newest_post_img = '';
+	}
+}
+
+if( ( $replies + 1 ) > $board_config['posts_per_page'] )
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------
+#
+if ( $topic_rowset[$i]['topic_vote'] && $is_auth['auth_vote'] && $topic_rowset[$i]['topic_status'] != TOPIC_LOCKED && $topic_rowset[$i]['topic_type'] != POST_STICKY && $topic_rowset[$i]['topic_type'] != POST_ANNOUNCE ) 
+{
+	$sql = "SELECT * FROM " . VOTE_DESC_TABLE . " WHERE topic_id = $topic_id";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+	}
+	if ( $row = $db->sql_fetchrow($result) )
+	{
+		$vote_id = $row['vote_id'];
+		$poll_expired = ( $row['vote_length'] ) ? ( ( $row['vote_start'] + $row['vote_length'] < time() ) ? TRUE : 0 ) : 0;
+	}
+	$db->sql_freeresult($result);
+
+	$sql = "SELECT * FROM " . VOTE_USERS_TABLE . " 
+		WHERE vote_id = $vote_id AND vote_user_id = " . intval($userdata['user_id']);
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+	}
+	
+	if ( $row = $db->sql_fetchrow($result) )
+	{
+		$folder_image = ($folder_image == $folder) ? $images['folder_poll_voted'] : $images['folder_poll_voted_new'];
+		$folder_alt .= " - " . $lang['Already_voted'];
+	}
+	else if ( !$poll_expired )
+	{
+		$folder_image = ($folder_image == $folder) ? $images['folder_poll_not_voted'] : $images['folder_poll_not_voted_new'];
+		$folder_alt .= " - " . $lang['Have_not_voted_yet'] ;
+	}
+	else
+	{
+		$folder_alt .= " - " . $lang['Poll_has_expired'];
+	}
+
+	$db->sql_freeresult($result);
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$lang['No_vote_option'] = 'You must specify an option when voting.';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+$lang['Have_not_voted_yet'] = 'You haven\'t voted yet.';
+$lang['Poll_has_expired'] = 'Poll has expired.';
+$lang['Poll_no_permission'] = 'Poll - You can\'t vote';
+$lang['Poll_voted'] = 'Poll - You voted';
+$lang['Poll_not_voted'] = 'Poll - You haven\'t voted';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/templates/subSilver/subSilver.cfg
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$images['folder_announce_new'] = "$current_template_images/folder_announce_new.gif";
+
+# 
+#-----[ AFTER, ADD ]------------------------------------
+#
+$images['folder_poll_not_voted'] = "$current_template_images/folder_poll_not_voted.gif";
+$images['folder_poll_not_voted_new'] = "$current_template_images/folder_poll_not_voted_new.gif";
+$images['folder_poll_no_permission'] = "$current_template_images/folder_poll_no_permission.gif";
+$images['folder_poll_no_permission_new'] = "$current_template_images/folder_poll_no_permission_new.gif";
+$images['folder_poll_voted'] = "$current_template_images/folder_poll_voted.gif";
+$images['folder_poll_voted_new'] = "$current_template_images/folder_poll_voted_new.gif";
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+/templates/subSilver/viewforum_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+</table></td>
+<td align="right"><span class="gensmall">{S_AUTH_LIST}</span></td>
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------
+#
+<tr> 
+	<td width="20" align="center"><img src="{FOLDER_POLL_VOTED_IMG}" alt="{L_POLL_VOTED}" width="19" height="18" /></td>
+	<td class="gensmall">{L_POLL_VOTED}</td>
+	<td>&nbsp;&nbsp;</td>
+	<td width="20" align="center"><img src="{FOLDER_POLL_NOT_VOTED_IMG}" alt="{L_POLL_NOT_VOTED}" width="19" height="18" /></td>
+	<td class="gensmall">{L_POLL_NOT_VOTED}</td>
+	<td>&nbsp;&nbsp;</td>
+	<td width="20" align="center"><img src="{FOLDER_POLL_NO_PERMISSION_IMG}" alt="{L_POLL_NO_PERMISSION}" width="19" height="18" /></td>
+	<td class="gensmall">{L_POLL_NO_PERMISSION}</td>
+</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM 

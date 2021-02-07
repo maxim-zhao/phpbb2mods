@@ -1,0 +1,374 @@
+[size=18]phpBB 2.0.13 to phpBB 2.0.14 Code Changes[/size]
+
+
+
+These are the Changes from phpBB 2.0.13 to phpBB 2.0.14 summed up into a little Mod. This might be very helpful if you want to update your Board and have installed a bunch of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.
+
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in the 'REPLACE WITH'-Statement.
+
+After you have finished this tutorial, you have to upload the install/update_to_latest.php file, execute it and then delete it from your webspace.
+
+
+Furthermore, please remove the file db/oracle.php from your webspace.
+
+[size=18][color=blue][list][*]admin/admin_styles.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 78[/color]
+[code]
+
+			include($phpbb_root_path. "templates/" . $install_to . "/theme_info.cfg");
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			include($phpbb_root_path. "templates/" . basename($install_to) . "/theme_info.cfg");
+[/code]
+
+[*]
+[color=blue]FIND - Line 742[/color]
+[code]
+
+			$fp = @fopen($phpbb_root_path . 'templates/' . $template_name . '/theme_info.cfg', 'w');
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			$fp = @fopen($phpbb_root_path . 'templates/' . basename($template_name) . '/theme_info.cfg', 'w');
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/page_header_admin.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 38[/color]
+[code]
+
+	$useragent = (isset($_SERVER["HTTP_USER_AGENT"]) ) ? $_SERVER["HTTP_USER_AGENT"] : $HTTP_USER_AGENT;
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$useragent = (isset($HTTP_SERVER_VARS['HTTP_USER_AGENT'])) ? $HTTP_SERVER_VARS['HTTP_USER_AGENT'] : getenv('HTTP_USER_AGENT');
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/page_footer_admin.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 36[/color]
+[code]
+
+	'PHPBB_VERSION' => '2' . $board_config['version'], 
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	'PHPBB_VERSION' => ($userdata['user_level'] == ADMIN && $userdata['user_id'] != ANONYMOUS) ? '2' . $board_config['version'] : '', 
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]db/postgres7.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 125[/color]
+[code]
+
+			$query = preg_replace("/LIMIT ([0-9]+),([ 0-9]+)/", "LIMIT \\2 OFFSET \\1", $query);
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+			$query = preg_replace('#(.*WHERE.*)(username|user_email|ban_email) = \'(.*)\'#ise', "\"\\1LOWER(\\2) = '\" . strtolower('\\3') . \"'\"", $query);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/page_header.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 38[/color]
+[code]
+
+	$useragent = (isset($_SERVER["HTTP_USER_AGENT"]) ) ? $_SERVER["HTTP_USER_AGENT"] : $HTTP_USER_AGENT;
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$useragent = (isset($HTTP_SERVER_VARS['HTTP_USER_AGENT'])) ? $HTTP_SERVER_VARS['HTTP_USER_AGENT'] : getenv('HTTP_USER_AGENT');
+[/code]
+
+[*]
+[color=blue]FIND - Line 469[/color]
+[code]
+
+if (!empty($_SERVER['SERVER_SOFTWARE']) && strstr($_SERVER['SERVER_SOFTWARE'], 'Apache/2'))
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+if (!empty($HTTP_SERVER_VARS['SERVER_SOFTWARE']) && strstr($HTTP_SERVER_VARS['SERVER_SOFTWARE'], 'Apache/2'))
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/sessions.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 53[/color]
+[code]
+
+		$session_id = '';
+	}
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$page_id = (int) $page_id;
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 92[/color]
+[code]
+
+					// No match; don't login, set as anonymous user
+					$login = 0; 
+					$enable_autologin = 0; 
+					$user_id = $userdata['user_id'] = ANONYMOUS;
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+				
+					$sql = 'SELECT * FROM ' . USERS_TABLE . ' WHERE user_id = ' . ANONYMOUS;
+					$result = $db->sql_query($sql);
+					$userdata = $db->sql_fetchrow($result);
+					$db->sql_freeresult($result);
+[/code]
+
+[*]
+[color=blue]FIND - Line 105[/color]
+[code]
+
+				// Autologin is not set. Don't login, set as anonymous user
+				$login = 0;
+				$enable_autologin = 0;
+				$user_id = $userdata['user_id'] = ANONYMOUS;
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+
+				$sql = 'SELECT * FROM ' . USERS_TABLE . ' WHERE user_id = ' . ANONYMOUS;
+				$result = $db->sql_query($sql);
+				$userdata = $db->sql_fetchrow($result);
+				$db->sql_freeresult($result);
+[/code]
+
+[*]
+[color=blue]FIND - Line 244[/color]
+[code]
+
+	//
+	// Does a session exist?
+	//
+[/code]
+
+[color=blue]BEFORE, ADD[/color]
+[code]
+
+	$thispage_id = (int) $thispage_id;
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]modcp.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 130[/color]
+[code]
+
+		message_die(GENERAL_MESSAGE, 'Topic_post_not_exist');
+	}
+	$topic_row = $db->sql_fetchrow($result);
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	if (!$topic_row)
+	{
+		message_die(GENERAL_MESSAGE, 'Topic_post_not_exist');
+	}
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 150[/color]
+[code]
+
+		message_die(GENERAL_MESSAGE, 'Forum_not_exist');
+	}
+	$topic_row = $db->sql_fetchrow($result);
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+
+	if (!$topic_row)
+	{
+		message_die(GENERAL_MESSAGE, 'Forum_not_exist');
+	}
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]privmsg.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 566[/color]
+[code]
+
+	if ( !$board_config['allow_html'] )
+ 	{
+		if ( $user_sig != '' && $privmsg['privmsgs_enable_sig'] && $userdata['user_allowhtml'] )
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	if ( !$board_config['allow_html'] || !$userdata['user_allowhtml'])
+	{
+		if ( $user_sig != '')
+[/code]
+
+[*]
+[color=blue]FIND - Line 1531[/color]
+[code]
+
+		if ( !$html_on )
+		{
+			if ( $user_sig != '' || !$userdata['user_allowhtml'] )
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		if ( !$html_on || !$board_config['allow_html'] || !$userdata['user_allowhtml'] )
+		{
+			if ( $user_sig != '' )
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]search.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 200[/color]
+[code]
+
+				$search_author = str_replace('*', '%', trim($search_author));
+[/code]
+
+[color=blue]BEFORE, ADD[/color]
+[code]
+
+				if (preg_match('#^[\*%]+$#', trim($search_author)) || preg_match('#^[^\*]{1,2}$#', str_replace(array('*', '%'), '', trim($search_author))))
+				{
+					$search_author = '';
+				}
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 269[/color]
+[code]
+
+
+			for($i = 0; $i < count($split_search); $i++)
+			{
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+				if (preg_match('#^[\*%]+$#', trim($split_search[$i])) || preg_match('#^[^\*]{1,2}$#', str_replace(array('*', '%'), '', trim($split_search[$i]))))
+				{
+					$split_search[$i] = '';
+					continue;
+				}
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 416[/color]
+[code]
+
+		// Author name search 
+		//
+		if ( $search_author != '' )
+		{
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+ 			if (preg_match('#^[\*%]+$#', trim($search_author)) || preg_match('#^[^\*]{1,2}$#', str_replace(array('*', '%'), '', trim($search_author))))
+			{
+				$search_author = '';
+			}
+
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]viewtopic.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 1052[/color]
+[code]
+
+	if ( !$board_config['allow_html'] )
+	{
+		if ( $user_sig != '' && $userdata['user_allowhtml'] )
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	if ( !$board_config['allow_html'] || !$userdata['user_allowhtml'])
+	{
+		if ( $user_sig != '' )
+[/code]
+
+[*]
+[color=blue]FIND - Line 1122[/color]
+[code]
+
+			$user_sig = str_replace('\"', '"', substr(preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "preg_replace(\$orig_word, \$replacement_word, '\\0')", '>' . $user_sig . '<'), 1, -1));
+		}
+
+		$message = str_replace('\"', '"', substr(preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "preg_replace(\$orig_word, \$replacement_word, '\\0')", '>' . $message . '<'), 1, -1));
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			$user_sig = str_replace('\"', '"', substr(@preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "@preg_replace(\$orig_word, \$replacement_word, '\\0')", '>' . $user_sig . '<'), 1, -1));
+		}
+
+		$message = str_replace('\"', '"', substr(@preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "@preg_replace(\$orig_word, \$replacement_word, '\\0')", '>' . $message . '<'), 1, -1));
+[/code]
+
+[/list]

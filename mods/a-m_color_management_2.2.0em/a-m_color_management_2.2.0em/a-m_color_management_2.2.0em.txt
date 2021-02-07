@@ -1,0 +1,1440 @@
+############################################################## 
+## MOD Title:          Admins/mods color management
+## MOD Author:         -=ET=- < N/A > (N/A) http://www.golfexpert.net/phpbb
+## MOD Description:    This MOD allows to customizing the color of admins'
+##                     and mods' names displayed in the Who is Online
+##                     list on the index page, and to apply these new colors
+##                     to the other places where these names are displayed.
+##                     You can apply these new colors to the...
+##                     - Forums moderators on the index page
+##                     - Last Post column on the index page
+##                     - Newest registered user on the index page
+##                     - Forums moderators on the viewforum page
+##                     - Users browsing this forum list on the viewforum page
+##                     - Author & Last Post column on the viewforum page
+##                     - Username column on the memberlist page
+##                     - Username on the viewtopic page
+##                     - Users who have visited this site today list
+##                       of the Last visit >=1.2.5 MOD
+##                     - Username column on the topic_view_users
+##                       page of the Who viewed a topic >= 1.0.0 MOD 
+##                     - Author & Last Post column on the search page
+##                     - Top Posting Members list of the Top X
+##                       posters >=1.0.1 MOD
+##                     - Author & Last Post column of announcements
+##                       of the Global announcement >= 1.2.8 MOD
+## MOD Version:        2.2.0
+##
+## Installation Level: Intermediate
+## Installation Time:  5 to 15 minutes (1mn by EasyMOD)
+## Files To Edit:
+##      admin/admin_styles.php
+##      includes/functions.php
+##      includes/page_header.php
+##      templates/subSilver/overall_header.tpl
+##      templates/subSilver/simple_header.tpl
+##      templates/subSilver/subSilver.css
+##      templates/subSilver/admin/page_header.tpl
+##      templates/subSilver/admin/styles_edit_body.tpl
+##
+##      index.php (optional)
+##      memberlist.php (optional)
+##      search.php (optional)
+##      viewforum.php (optional)
+##      viewonline.php (optional)
+##      viewtopic.php (optional)
+##      templates/subSilver/memberlist_body.tpl (optional)
+## Included Files:
+##      optional_features/fading_links.txt (optional)
+##      optional_features/global_announcement.txt (optional)
+##      optional_features/last_visit.txt (optional)
+##      optional_features/top_x_posters.txt (optional)
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+## 
+## This MOD was created and first developed by Dr DLP
+## < UKC@wanadoo.fr >. But since the 1.2.1 release, he decided
+## to stop developing this MOD so with it's agreement I now
+## continue his job and fully take charge of it.
+##
+## 1. EasyMOD
+## -----------
+## This MOD is compatible with EasyMOD and can be installed
+## by it but is not yet certified EMC (EasyMOD Compliant)!
+## http://area51.phpbb.com/phpBB22/viewforum.php?sid=&f=15
+##
+## Warning 1! At the minimum, you need EasyMOD beta 1 (0.2.1a) or
+## more recent to install this MOD by EM!
+##
+## Warning 2! At the present time, EM is not able to install
+## automatically other languages than English.
+## This gap will be solved in future releases but in the meantime,
+## if you need to install any other language than English provides
+## with this MOD, please proceed manually (cf. comments in
+## the DIY section).
+##
+## Warning 3! At the present time, EM is not able to take into
+## account optional modules and give admins the choice to instal
+## them or not.
+## So if you want to install only some modules but not all, install
+## the MOD manually.
+## If you have already installed one of these MODs...
+## - Fading links
+## - Global announcement
+## - Last visit
+## - Top X posters
+## ...you must install manually its specific module at the
+## end of the MOD. For the Who viewed a topic 1.0.0 MOD, you
+## just need to have installed the "Username column on the
+## memberlist page" module.
+##
+## 2. Compatibility
+## -----------
+## - This MOD is phpBB 2.0.17 compliant (prior release not tested)
+##
+## 3. How to use the MOD
+## -----------
+## This MOD add 2 new font colors (#5 for admins & #6 for mods)
+## for each style in the ACP > Styles Admin > Management > Edit.
+## So install the MOD, and go edit each style to set your colors
+## in Font color 5 & Font color 6.
+##
+## 4. Official last version link
+## -----------
+## Meanwhile the phpBB group validation and as the MOD is not yet
+## in the phpBB MOD database, check this official link for updates...
+## http://www.golfexpert.net/phpBB
+##
+############################################################## 
+## MOD History: 
+## 
+##   2005-07-30 - Version 2.2.0
+##      - New version number & security disclaimer to be compliant
+##        with the new MOD template
+##      - No code change, no upgrade needed!
+##      - Add uninstall DB modifications file
+##
+##   2004-08-15 - Version 2.1.1
+##      - SQL instructions now performed by EM beta 1 (0.1.13)
+##        or more recent.
+##
+##   2004-02-15 - Version 2.1.0
+##      - Add Newest registered user on the index page module
+##      - Add Global announcement >=1.2.8 specific module
+##      - Add Top X posters >=1.0.1 specific module
+##      - Fix issue with Fading links 1.0.2 (2 solutions provided)
+##      - Fix a minor variable name error
+##      - Improve MOD instructions
+##
+##   2003-11-13 - Version 2.0.1
+##      - Fix db update queries for the English language: addslashes()
+##      - Fix color display on Mozilla/Netscape in css definitions
+##
+##   2003-11-07 - Version 2.0.0
+##      - Instructions rewrite for a-m_color_db_update.php use
+##      - DB update file now provide with English, French, German,
+##        Italian and Spanish translations
+##      - DB queries updated to add a default name for the new font colors
+##      - New CSS style add to simple_header.tpl & admin/page_header.tpl
+##
+##   2003-09-28 - Version 2.0.0 Release Candidate 1
+##      - MOD fully rewrite to use CSS style
+##      - MOD now fully multilingual - no more translation needed
+##      - Add Author & Last Post column on the search page module
+##      - Fix an issue with Fading links MOD
+##
+##   2003-08-02 - Version 1.6.0
+##      - Add Username on the viewtopic page module
+##      - MOD rewrite to be more EM compatible
+##
+##   2003-07-22 - Version 1.5.0
+##      - Add Who viewed a topic >=1.0.0 specific module
+##
+##   2003-07-21 - Version 1.4.2
+##      - Fix: colors not displayed for announcements in viewforum
+##
+##   2003-07-14 - Version 1.4.1
+##      - The MOD can now be installed by EasyMOD of Nuttzy
+##        (but is not yet an officially EasyMOD Compliant MOD)!
+##      - Add "add" or "replacement" delimiters in .tpl files:
+##          <!-- Start add - Admins/mods color management MOD -->
+##          <!-- End add - Admins/mods color management MOD -->
+##      - Add MOD history
+## 
+##   2003-07-01 - Version 1.4.0
+##      - Add Forums moderators on the index page module
+##      - Add Forums moderators on the viewforum page module
+##      - Add Username column on the memberlist page module
+## 
+##   2003-06-20 - Version 1.3.1
+##      - Add the second MOD author name
+##      - Add MOD compatibility
+##      - Add "add" or "replacement" delimiters:
+##          // Start add - Admins/mods color management MOD
+##          // End add - Admins/mods color management MOD
+## 
+##   2003-06-20 - Version 1.3.0
+##      - Re-writing of the MOD to become modular
+##      - Add Last Post column on the index page module
+##      - Add Author & Last Post column on the viewforum page module
+##      - Add Last visit >=1.2.5 specific module
+##      - AM_colors_db_update.php update (support English & French)
+## 
+##   2003-06-19 - Version 1.2.2
+##      - Little spelling corrections
+##      - Minor messages updates
+##      - End the adaptation of the MOD to the phpBB MOD tutorial
+##      - Fix minor instructions errors
+##      - Simplify some "Find/replace with"
+##      - Add AM_colors_db_update.php file to facilitate db update
+##      - Add French translation
+## 
+##   2003-06-18 - Version 1.2.1
+##      - This release and all previous ones were developt
+##        by Dr DLP < UKC@wanadoo.fr >
+##        I have no details of this MOD history part.
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_themes ADD fontcolor5 VARCHAR (6);
+ALTER TABLE phpbb_themes ADD fontcolor6 VARCHAR (6);
+ALTER TABLE phpbb_themes_name ADD fontcolor5_name CHAR (50) DEFAULT 'Administrators colour';
+ALTER TABLE phpbb_themes_name ADD fontcolor6_name CHAR (50) DEFAULT 'Moderators colour';
+
+#
+#-----[ DIY INSTRUCTIONS ]------------------------------------
+#
+Warning! At the present time, the current release of EM is not able to install automatically other languages than English. This gap will be solved in the future but in the meantime, if you want to install this MOD in any other language than English, please run the 2 queries in the language you want...
+
+For French:
+ALTER TABLE phpbb_themes_name ADD fontcolor5_name CHAR (50) DEFAULT 'Couleur des administrateurs';
+ALTER TABLE phpbb_themes_name ADD fontcolor6_name CHAR (50) DEFAULT 'Couleur des modérateurs';
+
+For German:
+ALTER TABLE phpbb_themes_name ADD fontcolor5_name CHAR (50) DEFAULT 'Administratoren';
+ALTER TABLE phpbb_themes_name ADD fontcolor6_name CHAR (50) DEFAULT 'Moderatoren';
+
+For Italian:
+ALTER TABLE phpbb_themes_name ADD fontcolor5_name CHAR (50) DEFAULT 'Administratore';
+ALTER TABLE phpbb_themes_name ADD fontcolor6_name CHAR (50) DEFAULT 'Moderatore';
+
+For Spanish:
+ALTER TABLE phpbb_themes_name ADD fontcolor5_name CHAR (50) DEFAULT 'Administradores';
+ALTER TABLE phpbb_themes_name ADD fontcolor6_name CHAR (50) DEFAULT 'Moderatores';
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+admin/admin_styles.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $updated_name['fontcolor3_name'] = $HTTP_POST_VARS['fontcolor3_name'];
+#
+$updated_name['fontcolor3_name'] =
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Admins/mods color management MOD
+$updated['fontcolor5'] = $HTTP_POST_VARS['fontcolor5'];
+$updated_name['fontcolor5_name'] = $HTTP_POST_VARS['fontcolor5_name'];
+$updated['fontcolor6'] = $HTTP_POST_VARS['fontcolor6'];
+$updated_name['fontcolor6_name'] = $HTTP_POST_VARS['fontcolor6_name'];
+// End add - Admins/mods color management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# "L_FONTCOLOR_3" => $lang['fontcolor3'],
+#
+"L_FONTCOLOR_3" =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Admins/mods color management MOD
+"L_FONTCOLOR_5" => str_replace("3", "5", $lang['fontcolor3']),
+"L_FONTCOLOR_6" => str_replace("3", "6", $lang['fontcolor3']),
+// End add - Admins/mods color management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# "FONTCOLOR3" => $selected['fontcolor3'],
+#
+"FONTCOLOR3" =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Start add - Admins/mods color management MOD
+"FONTCOLOR5" => $selected['fontcolor5'],
+"FONTCOLOR6" => $selected['fontcolor6'],
+// End add - Admins/mods color management MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# "FONTCOLOR3_NAME" => $selected['fontcolor3_name'],
+#
+"FONTCOLOR3_NAME" =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Admins/mods color management MOD
+"FONTCOLOR5_NAME" => $selected['fontcolor5_name'],
+"FONTCOLOR6_NAME" => $selected['fontcolor6_name'],
+// End add - Admins/mods color management MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+includes/functions.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# case 'newestuser':
+# 	$sql = "SELECT user_id, username
+#
+case 'newestuser':
+$sql =
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+username
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, user_level
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+includes/page_header.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+$style_color = 'style="color:#' . $theme['fontcolor3'] . '"';
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+'fontcolor3'
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+'fontcolor5'
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+$style_color = 'style="color:#' . $theme['fontcolor2'] . '"';
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+'fontcolor2'
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+'fontcolor6'
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'L_WHOSONLINE_ADMIN' => sprintf($lang['Admin_online_color'], '<span style="color:#' . $theme['fontcolor3'] . '">', '</span>'),
+#
+<span style="color:#' . $theme['fontcolor3'] . '">
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+'fontcolor3'
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+'fontcolor5'
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'L_WHOSONLINE_MOD' => sprintf($lang['Mod_online_color'], '<span style="color:#' . $theme['fontcolor2'] . '">', '</span>'),
+#
+<span style="color:#' . $theme['fontcolor2'] . '">
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+'fontcolor2'
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+'fontcolor6'
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'T_FONTCOLOR3' => '#'.$theme['fontcolor3'],
+#
+'T_FONTCOLOR3' =>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Admins/mods color management MOD
+'T_FONTCOLOR5' => '#'.$theme['fontcolor5'],
+'T_FONTCOLOR6' => '#'.$theme['fontcolor6'],
+// End add - Admins/mods color management MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+/* The register, login, search etc links at the top of the page */
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+#
+
+/* Start add - Admins/mods color management MOD */
+.admincolor         { color: {T_FONTCOLOR5}; }
+.admincolor:link    { color: {T_FONTCOLOR5}; }
+.admincolor:active  { color: {T_FONTCOLOR5}; }
+.admincolor:visited { color: {T_FONTCOLOR5}; }
+.modcolor           { color: {T_FONTCOLOR6}; }
+.modcolor:link      { color: {T_FONTCOLOR6}; }
+.modcolor:active    { color: {T_FONTCOLOR6}; }
+.modcolor:visited   { color: {T_FONTCOLOR6}; }
+/* End add - Admins/mods color management MOD */
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+templates/subSilver/simple_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+/* The register, login, search etc links at the top of the page */
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+#
+
+/* Start add - Admins/mods color management MOD */
+.admincolor         { color: {T_FONTCOLOR5}; }
+.admincolor:link    { color: {T_FONTCOLOR5}; }
+.admincolor:active  { color: {T_FONTCOLOR5}; }
+.admincolor:visited { color: {T_FONTCOLOR5}; }
+.modcolor           { color: {T_FONTCOLOR6}; }
+.modcolor:link      { color: {T_FONTCOLOR6}; }
+.modcolor:active    { color: {T_FONTCOLOR6}; }
+.modcolor:visited   { color: {T_FONTCOLOR6}; }
+/* End add - Admins/mods color management MOD */
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+templates/subSilver/subSilver.css
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+/* The register, login, search etc links at the top of the page */
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+#
+
+/* Start add - Admins/mods color management MOD */
+.admincolor         { color: {T_FONTCOLOR5}; }
+.admincolor:link    { color: {T_FONTCOLOR5}; }
+.admincolor:active  { color: {T_FONTCOLOR5}; }
+.admincolor:visited { color: {T_FONTCOLOR5}; }
+.modcolor           { color: {T_FONTCOLOR6}; }
+.modcolor:link      { color: {T_FONTCOLOR6}; }
+.modcolor:active    { color: {T_FONTCOLOR6}; }
+.modcolor:visited   { color: {T_FONTCOLOR6}; }
+/* End add - Admins/mods color management MOD */
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+templates/subSilver/admin/page_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+/* The register, login, search etc links at the top of the page */
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+#
+
+/* Start add - Admins/mods color management MOD */
+.admincolor         { color: {T_FONTCOLOR5}; }
+.admincolor:link    { color: {T_FONTCOLOR5}; }
+.admincolor:active  { color: {T_FONTCOLOR5}; }
+.admincolor:visited { color: {T_FONTCOLOR5}; }
+.modcolor           { color: {T_FONTCOLOR6}; }
+.modcolor:link      { color: {T_FONTCOLOR6}; }
+.modcolor:active    { color: {T_FONTCOLOR6}; }
+.modcolor:visited   { color: {T_FONTCOLOR6}; }
+/* End add - Admins/mods color management MOD */
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+templates/subSilver/admin/styles_edit_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 	<td class="row2"><input class="post" type="text" size="25" maxlength="100" name="fontcolor3_name" value="{FONTCOLOR3_NAME}">
+# </tr>
+#
+{FONTCOLOR3_NAME}
+</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+<!-- Start add - Admins/mods color management MOD -->
+<tr>
+	<td class="row1">{L_FONTCOLOR_5}:</td>
+	<td class="row2"><input class="post" type="text" size="6" maxlength="6" name="fontcolor5" value="{FONTCOLOR5}"></td>
+	<td class="row2"><input class="post" type="text" size="25" maxlength="100" name="fontcolor5_name" value="{FONTCOLOR5_NAME}">
+</tr>
+
+<tr>
+	<td class="row1">{L_FONTCOLOR_6}:</td>
+	<td class="row2"><input class="post" type="text" size="6" maxlength="6" name="fontcolor6" value="{FONTCOLOR6}"></td>
+	<td class="row2"><input class="post" type="text" size="25" maxlength="100" name="fontcolor6_name" value="{FONTCOLOR6_NAME}">
+</tr>
+<!-- End add - Admins/mods color management MOD -->
+
+############################################################## 
+# Start - Changes for the Last Post column on the index page
+#============================================================= 
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+index.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# case 'postgresql':
+# 	$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id
+#
+case 'postgresql':
+$sql =
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+u.user_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_level
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# case 'oracle':
+# 	$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id
+#
+case 'oracle':
+$sql =
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+u.user_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_level
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# default:
+# 	$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id
+#
+default:
+$sql =
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+u.user_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_level
+
+############################################################## 
+# Start - Changes for forums moderators on the index page
+# Index.php must still be open. If not, open or re-open it.
+#============================================================= 
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "SELECT aa.forum_id, u.user_id, u.username
+#
+$sql = "SELECT aa.forum_id, u.user_id
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+u.user_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_level
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '">' . $row['username'] . '</a>';
+#
+$forum_moderators[$row['forum_id']][] = '<a href="' . append_sid("profile
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $row['user_level'] ) {
+case ADMIN:
+	$forum_mod_color = 'class="admincolor"';
+	break;
+case MOD:
+	$forum_mod_color = 'class="modcolor"';
+	break;
+default:
+	$forum_mod_color = '';
+	break;
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<a ' . $forum_mod_color . '
+
+#
+#============================================================= 
+# End - Changes for forums moderators on the index page
+############################################################## 
+
+
+############################################################## 
+# Start - Changes for the Newest registered user on the index page
+# Index.php must still be open. If not, open or re-open it.
+#============================================================= 
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Start output of page
+
+# 
+#-----[ BEFORE, ADD ]----------------------------------------- 
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $newest_userdata['user_level'] ) {
+case ADMIN:
+	$newest_user_color = 'class="admincolor"';
+	break;
+case MOD:
+	$newest_user_color = 'class="modcolor"';
+	break;
+default:
+	$newest_user_color = '';
+	break;
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'NEWEST_USER' => sprintf($lang['Newest_user'], '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$newest_uid") . '">', $newest_user, '</a>'), 
+#
+'NEWEST_USER' =>
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<a ' . $newest_user_color . '
+
+#============================================================= 
+# End - Changes for the Newest registered user on the index page
+############################################################## 
+
+
+############################################################## 
+# Continuation - Changes for the Last Post column on the index page
+# Index.php must still be open. If not, open or re-open it.
+#============================================================= 
+#
+#-----[ FIND ]------------------------------------------------
+#
+$topics = $forum_data[$j]['forum_topics'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $forum_data[$j]['user_level'] ) {
+case ADMIN:
+	$last_post_color = 'class="admincolor"';
+	break;
+case MOD:
+	$last_post_color = 'class="modcolor"';
+	break;
+default:
+	$last_post_color = '';
+	break;
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $last_post .= ( $forum_data[$j]['user_id'] == ANONYMOUS ) ? ( ($forum_data[$j]['post_username'] != '' ) ? $forum_data[$j]['post_username']...
+#
+$last_post .= ( $forum_data[$j]
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<a ' . $last_post_color . '
+
+#
+#============================================================= 
+# End - Changes for the Last Post column on the index page
+############################################################## 
+
+
+############################################################## 
+# Start - Changes for forums moderators on the viewforum page
+#============================================================= 
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+viewforum.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "SELECT u.user_id, u.username
+#
+$sql = "SELECT u.user_id
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+u.user_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_level
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $moderators[] = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '">' . $row['username'] . '</a>';
+#
+$moderators[] = '<a href="' . append_sid("profile
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $row['user_level'] ) {
+case ADMIN:
+	$mod_color = 'class="admincolor"';
+	break;
+case MOD:
+	$mod_color = 'class="modcolor"';
+	break;
+default:
+	$mod_color = '';
+	break;
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<a ' . $mod_color . '
+
+#
+#============================================================= 
+# End - Changes for forums moderators on the viewforum page
+############################################################## 
+
+
+############################################################## 
+# Start - Changes for the Author & Last Post columns on the viewforum page
+# Viewforum.php must still be open. If not, re-open it.
+#============================================================= 
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_time, p.post_username
+# 	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . USERS_TABLE . " u2
+# 	WHERE t.forum_id = $forum_id 
+# 		AND t.topic_poster = u.user_id
+# 		AND p.post_id = t.topic_last_post_id
+# 		AND p.poster_id = u2.user_id
+# 		AND t.topic_type = " . POST_ANNOUNCE . "
+#
+$sql =
+FROM
+WHERE
+AND
+AND
+AND
+AND t.topic_type = " . POST_ANNOUNCE . "
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+u2.user_id as id2
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_level AS author_level, u2.user_level AS LP_author_level
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_username, p2.post_username AS post_username2, p2.post_time 
+# 	FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . POSTS_TABLE . " p2, " . USERS_TABLE . " u2
+# 	WHERE t.forum_id = $forum_id
+# 		AND t.topic_poster = u.user_id
+# 		AND p.post_id = t.topic_first_post_id
+# 		AND p2.post_id = t.topic_last_post_id
+# 		AND u2.user_id = p2.poster_id 
+# 		AND t.topic_type <> " . POST_ANNOUNCE . "
+#
+$sql =
+FROM
+WHERE
+AND
+AND
+AND
+AND
+AND t.topic_type <> " . POST_ANNOUNCE . "
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+u2.user_id as id2
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_level AS author_level, u2.user_level AS LP_author_level
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $topic_author = ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $topic_rowset[$i]['user_id']) . '">' : '';
+# $topic_author .= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? $topic_rowset[$i]['username'] : ( ( $topic_rowset[$i]['post_username'] != '' ) ? $topic_rowset[$i]['post_username'] : $lang['Guest'] );
+#
+$topic_author =
+$topic_author .=
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $topic_rowset[$i]['author_level'] ) {
+	case ADMIN:
+		$topic_author_color = 'class="admincolor"';
+		break; 
+	case MOD:
+		$topic_author_color = 'class="modcolor"';
+		break; 
+	default:
+		$topic_author_color = '';
+		break; 
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<a ' . $topic_author_color . '
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $last_post_author = ( $topic_rowset[$i]['id2'] == ANONYMOUS ) ? ( ($topic_rowset[$i]['post_username2'] != '' ) ? $topic_rowset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' ...
+#
+$last_post_author =
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $topic_rowset[$i]['LP_author_level'] ) {
+	case ADMIN:
+		$last_post_author_color = 'class="admincolor"';
+		break; 
+	case MOD:
+		$last_post_author_color = 'class="modcolor"';
+		break; 
+	default:
+		$last_post_author_color = '';
+		break; 
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<a ' . $last_post_author_color . '
+
+#
+#============================================================= 
+# End - Changes for the Author & Last Post columns on the viewforum page
+############################################################## 
+
+
+############################################################## 
+# Start - Changes for the Users browsing this forum: list on the viewonline page
+#============================================================= 
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+viewonline.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $username = '<b style="color:#' . $theme['fontcolor3'] . '">' . $username . '</b>';
+#
+$theme['fontcolor3']
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+'fontcolor3'
+
+# 
+#-----[ IN-LINE REPLACE WITH ]-------------------------------- 
+#
+'fontcolor5'
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $username = '<b style="color:#' . $theme['fontcolor2'] . '">' . $username . '</b>';
+#
+$theme['fontcolor2']
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+'fontcolor2'
+
+# 
+#-----[ IN-LINE REPLACE WITH ]-------------------------------- 
+#
+'fontcolor6'
+
+#
+#============================================================= 
+# Start - Changes for the Users browsing this forum: list on the viewonline page
+############################################################## 
+
+
+############################################################## 
+# Start - Changes for the Username column on the memberlist page
+#============================================================= 
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+memberlist.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "SELECT username, user_id, user_viewemail, user_posts, user_regdate, user_from, user_website, user_email, user_icq, user_aim, user_yim, user_msnm, user_avatar, user_avatar_type, user_allowavatar
+#
+$sql = "SELECT username
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+user_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, user_level
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$template->assign_block_vars('memberrow', array(
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $row['user_level'] ) {
+	case ADMIN:
+		$viewprofile_color = 'class="admincolor"';
+		break; 
+	case MOD:
+		$viewprofile_color = 'class="modcolor"';
+		break; 
+	default:
+		$viewprofile_color = '';
+		break; 
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# 'U_VIEWPROFILE' => append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=$user_id"))
+#
+'U_VIEWPROFILE' =>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+// Start add - Admins/mods color management MOD
+'U_VIEWPROFILE_COLOR' => $viewprofile_color,
+// End add - Admins/mods color management MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+templates/subSilver/memberlist_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# <td class="{memberrow.ROW_CLASS}" align="center"><span class="gen"><a href="{memberrow.U_VIEWPROFILE}" {memberrow.U_VIEWPROFILE_COLOR}>{memberrow.USERNAME}</a></span></td>
+#
+{memberrow.U_VIEWPROFILE}
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+"{memberrow.U_VIEWPROFILE}" class="gen"
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+"{memberrow.U_VIEWPROFILE}" {memberrow.U_VIEWPROFILE_COLOR}
+
+#
+#============================================================= 
+# End - Changes for the Username column on the memberlist page
+############################################################## 
+
+
+############################################################## 
+# Start - Changes for the the Author & Last Post columns on the search page
+#============================================================= 
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+search.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "SELECT pt.post_text, pt.bbcode_uid, pt.post_subject, p.*, f.forum_id, f.forum_name, t.*, u.username, u.user_id, u.user_sig, u.user_sig_bbcode_uid
+#
+$sql = "SELECT pt.post_text
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+u.user_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_level
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "SELECT t.*, f.forum_id, f.forum_name, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_username, p2.post_username AS post_username2, p2.post_time
+#
+$sql = "SELECT t.*
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+u.user_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_level
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+id2
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u2.user_level as level2
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $poster = ( $searchset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $searchset[$i]['user_id']) . '">' : '';
+#
+$poster =
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $searchset[$i]['user_level'] ) {
+	case ADMIN:
+		$poster_color = 'class="admincolor"';
+		break; 
+	case MOD:
+		$poster_color = 'class="modcolor"';
+		break; 
+	default:
+		$poster_color = '';
+		break; 
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<a ' . $poster_color . '
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $topic_author = ( $searchset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $searchset[$i]['user_id']) . '">' : '';
+#
+$topic_author =
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $searchset[$i]['user_level'] ) {
+	case ADMIN:
+		$topic_author_color = 'class="admincolor"';
+		break; 
+	case MOD:
+		$topic_author_color = 'class="modcolor"';
+		break; 
+	default:
+		$topic_author_color = '';
+		break; 
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<a ' . $topic_author_color . '
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $last_post_author = ( $searchset[$i]['id2'] == ANONYMOUS ) ? ( ($searchset[$i]['post_username2'] != '' ) ? $searchset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' ...
+#
+$last_post_author =
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $searchset[$i]['level2'] ) {
+	case ADMIN:
+		$last_post_author_color = 'class="admincolor"';
+		break; 
+	case MOD:
+		$last_post_author_color = 'class="modcolor"';
+		break; 
+	default:
+		$last_post_author_color = '';
+		break; 
+}
+// End add - Admins/mods color management MOD
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+<a
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+<a ' . $last_post_author_color . '
+
+#
+#============================================================= 
+# End - Changes for the the Author & Last Post columns on the search page
+############################################################## 
+
+
+############################################################## 
+# Start - Changes for the Username on the viewtopic page
+#============================================================= 
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $sql = "SELECT u.username, u.user_id, u.user_posts, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_regdate, ...
+#
+$sql = "SELECT u.username
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+u.user_id
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_level
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$l_edited_by = '';
+}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Start add - Admins/mods color management MOD
+switch ( $postrow[$i]['user_level'] ) {
+	case ADMIN:
+		$poster = '<span class="admincolor">' . $poster . '</span>';
+		break; 
+	case MOD:
+		$poster = '<span class="modcolor">' . $poster . '</span>';
+		break; 
+	default:
+		break; 
+}
+// End add - Admins/mods color management MOD
+
+#
+#============================================================= 
+# End - Changes for the Username on the viewtopic page
+############################################################## 
+# 
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------- 
+# 
+# EoM 

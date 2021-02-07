@@ -1,0 +1,670 @@
+############################################################## 
+## MOD Title:		Sub-templates
+## MOD Author:		Ptirhiik < ptirhiik@clanmckeen.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description: 
+##			This mod allows you to set a different template - or parts of template -
+##			for a forum or an entire category
+## MOD Version:		1.0.4
+## 
+## Installation Level:	easy
+## Installation Time:	15 Minutes
+## Files To Edit: 
+##			privmsg.php
+##			viewtopic.php
+##			includes/functions.php
+##			includes/functions_post.php
+##			includes/functions_search.php
+##			includes/template.php
+##			includes/topic_review.php
+##
+## Included Files:
+##			admin_subtemplates.php
+##			admin_subtpl_edit_body.tpl
+##			admin_subtpl_list_body.tpl
+##			admin_subtpl_styles_body.tpl
+##			lang_extend_sub_template.php
+##			sub_templates.cfg
+##
+##			mod-lang_settings/lang_extend_mac.php
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##			The time mentions on the descro doesn't includes the choose and install
+##				of the various sub-templates you can set :)
+##
+##
+##	 / \
+##	/ ! \
+##	About sub-templates.cfg :
+##		This file will contain the sub-templates links and configuration. It has to be
+##		placed in each main templates directory (here subSilver :)) and be writable (CHMOD 666)
+##
+##
+##	How-to set a sub-template :
+##
+##		A sub-template is basicly a standard templates, but most of the files can be removed, 
+##		as the sub-template process use the main template files by default (if not found in 
+##		the sub-templates dir, the same-name main template file will be used).
+##
+##		A sub-template dir is always set in a main template dir (ie: templates/subSilver/subColor
+##		for the sub-template subColor)
+##
+##		In each main template directory you are using, you have to create an empty file named 
+##		sub_templates.cfg being writable (CHMOD 666).
+##		In this file will be stored the sub-template configuration (links to forums and cats, 
+##		the css file name (.css), and the images file name (.cfg) ).
+##
+##		You can set many images set for the same sub-template, only by having different images 
+##		config file in the same sub-template. A sub-template can be also only a reduce images 
+##		set (ie only a logo ).
+##
+##		The mod only requires to use in the overall_header.tpl's the external css sheet, 
+##		rather than the ugly style redifining. So you'll have to :
+##
+##			* inhibate all the redifined "<style></style>" 
+##			(deleting all the lines within those tags will be perfect, 
+##			and will decrease the bandwidth usage of your board),
+##
+##			* activate in overall_header.tpl the line : 
+##		<link rel="stylesheet" href="templates/subSilver/{T_HEAD_STYLESHEET}" type="text/css"> 
+##
+##		When your sub-templates will be ready, just go to the admin control panel, 
+##		choose "Sub-template", create a new sub-template ref, then link it to the forums 
+##		or categories you want it to appear.
+##
+##
+############################################################## 
+## MOD History: 
+## 
+##   2003-10-28 - Version 1.0.4
+##	- fix the use of a sub-template while reading a pm,
+##      - fix an images bug in the acp,
+##	- add propagation of sub-template system vars for client functions,
+##	- add the lang settings tool
+## 
+##   2003-07-27 - Version 1.0.3
+##	- remove phpbb_realpath() func usage (only working in phpbb 2.0.4)
+## 
+##   2003-07-25 - Version 1.0.2
+##	- add two global var to be used with Qbar mod
+##
+##   2003-07-16 - Version 1.0.1
+##      - fix themes_id reference in calls on admin (thanks to FineWolf)
+##	- add the abity to set a sub-template on root level
+##	- upgrade the compliancy with categories hierarchy mod 2.0.0
+## 
+##   2003-04-14 - Version 1.0.0
+##	- first release
+##	- add the abilities to set many css files 
+##	 (avoid having to duplicate overall_header.tpl when not needed)
+## 
+##   2003-04-04 - Version 0.0.2 (beta)
+##	- add the admin part,
+##	- free the directory names
+## 
+##   2003-03-31 - Version 0.0.1 (beta)
+##	- first beta
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy admin_subtemplates.php to admin/admin_subtemplates.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy lang_extend_sub_template.php to language/lang_english/lang_extend_sub_template.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+# Don't forget to apply a CHMOD 666 to this file
+#
+copy sub_templates.cfg to templates/subSilver/sub_templates.cfg
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy admin_subtpl_edit_body.tpl to templates/subSilver/admin/admin_subtpl_edit_body.tpl
+copy admin_subtpl_list_body.tpl to templates/subSilver/admin/admin_subtpl_list_body.tpl
+copy admin_subtpl_styles_body.tpl to templates/subSilver/admin/admin_subtpl_styles_body.tpl
+#
+#-----[ COPY ]------------------------------------------------
+#
+# Lang settings
+#
+copy mod-lang_settings/lang_extend_mac.php to includes/lang_extend_mac.php
+#
+#-----[ OPEN ]------------------------------------------------
+#
+privmsg.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('IN_PHPBB', true);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+//-- add
+define('IN_PRIVMSG', true);
+//-- fin mod : sub-template ------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+//-- add
+$reply_img = ( $forum_topic_data['forum_status'] == FORUM_LOCKED || $forum_topic_data['topic_status'] == TOPIC_LOCKED ) ? $images['reply_locked'] : $images['reply_new'];
+$post_img = ( $forum_topic_data['forum_status'] == FORUM_LOCKED ) ? $images['post_locked'] : $images['post_new'];
+//-- fin mod : sub-template ------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# This part can already be existing : if so, just skip it
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+//-- mod : language settings -----------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Set up style
+	//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+# This part can already be existing : if so, just skip it
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+	include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if(defined('HAS_DIED'))
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+//-- add
+//-- fix
+	global $sub_template_key_image, $sub_templates;
+//-- fin mod : sub-template ------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		}
+
+		if ( empty($template) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+# This part can already be existing : if so, just skip it
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+			include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$inline_columns = 4;
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+//-- add
+	global $sub_template_key_image, $sub_templates;
+//-- fin mod : sub-template ------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_search.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	global $starttime, $gen_simple_header;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+//-- add
+	global $sub_template_key_image, $sub_templates;
+//-- fin mod : sub-template ------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/template.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	function make_filename($filename)
+	{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+//-- add
+		global $HTTP_GET_VARS, $HTTP_POST_VARS, $db, $board_config, $images, $theme;
+		global $sub_template_key_image, $sub_templates;
+		global $tree;
+
+		// initiate the sub-template image pack that will be use
+		$sub_template_key_image = POST_CAT_URL . '0';
+
+		// Check if sub_templates are defined for this theme
+		if ( $board_config['version'] > '.0.5' )
+		{
+			$sub_templates_cfg = @phpbb_realpath($this->root . '/sub_templates.cfg');
+		}
+		else
+		{
+			$sub_templates_cfg = $this->root . '/sub_templates.cfg';
+		}
+		@include($sub_templates_cfg);
+		if ( isset($sub_templates) )
+		{
+			// search an id
+			$cat_id = 0;
+			$forum_id = 0;
+			$topic_id = 0;
+			$post_id = 0;
+
+			if ( !defined('IN_PRIVMSG') && ( isset($HTTP_GET_VARS[POST_POST_URL]) || isset($HTTP_POST_VARS[POST_POST_URL]) ) )
+			{
+				$post_id = isset($HTTP_GET_VARS[POST_POST_URL]) ? intval($HTTP_GET_VARS[POST_POST_URL]) : intval($HTTP_POST_VARS[POST_POST_URL]);
+			}
+
+			if ( isset($HTTP_GET_VARS[POST_TOPIC_URL]) || isset($HTTP_POST_VARS[POST_TOPIC_URL]) )
+			{
+				$topic_id = intval($HTTP_GET_VARS[POST_TOPIC_URL]) ? intval($HTTP_GET_VARS[POST_TOPIC_URL]) : intval($HTTP_POST_VARS[POST_TOPIC_URL]);
+			}
+
+			if ( isset($HTTP_GET_VARS[POST_FORUM_URL]) || isset($HTTP_POST_VARS[POST_FORUM_URL]) )
+			{
+				$forum_id = isset($HTTP_GET_VARS[POST_FORUM_URL]) ? intval($HTTP_GET_VARS[POST_FORUM_URL]) : intval($HTTP_POST_VARS[POST_FORUM_URL]);
+			}
+
+			if ( isset($HTTP_GET_VARS[POST_CAT_URL]) || isset($HTTP_POST_VARS[POST_CAT_URL]) )
+			{
+				$cat_id = isset($HTTP_GET_VARS[POST_CAT_URL]) ? intval($HTTP_GET_VARS[POST_CAT_URL]) : intval($HTTP_POST_VARS[POST_CAT_URL]);
+			}
+
+			if ( isset($HTTP_GET_VARS['selected_id']) || isset($HTTP_POST_VARS['selected_id']) )
+			{
+				$selected_id = isset($HTTP_GET_VARS['selected_id']) ? $HTTP_GET_VARS['selected_id'] : $HTTP_POST_VARS['selected_id'];
+				$type = substr($selected_id, 0, 1);
+				$id = intval(substr($selected_id, 1));
+				if (!empty($id)) switch ($type)
+				{
+					case POST_CAT_URL:
+						$cat_id = $id;
+						break;
+					case POST_FORUM_URL:
+						$forum_id = $id;
+						break;
+					case POST_TOPIC_URL:
+						$topic_id = $id;
+						break;
+					case POST_POST_URL:
+						if ( !defined('IN_PRIVMSG') )
+						{
+							$post_id = $id;
+							break;
+						}
+					default:
+						break;
+				}
+			}
+
+			// find the forum
+			if ( ($forum_id <= 0) && ($cat_id <= 0) )
+			{
+				if ($post_id > 0)
+				{
+					$sql = "SELECT * FROM " . POSTS_TABLE . " WHERE post_id=$post_id";			
+					if ( !($result = $db->sql_query($sql)) )
+					{
+						message_die(GENERAL_ERROR, 'Wasn\'t able to access posts', '', __LINE__, __FILE__, $sql);
+					}
+					if ( $row = $db->sql_fetchrow($result) )
+					{
+						$forum_id = $row['forum_id'];
+					}
+				}
+
+				if ($topic_id > 0)
+				{
+					$sql = "SELECT * FROM " . TOPICS_TABLE . " WHERE topic_id=$topic_id";			
+					if ( !($result = $db->sql_query($sql)) )
+					{
+						message_die(GENERAL_ERROR, 'Wasn\'t able to access topics', '', __LINE__, __FILE__, $sql);
+					}
+					if ( $row = $db->sql_fetchrow($result) )
+					{
+						$forum_id = $row['forum_id'];
+					}
+				}
+			}
+
+			// is the categories hierarchy v 2 installed ?
+			$cat_hierarchy = function_exists(get_auth_keys);
+
+			// get the ids (forums and cats)
+			$fids = array();
+			if (!$cat_hierarchy)
+			{
+				if ($forum_id > 0)
+				{
+					// add the forum_id
+					$fids[] = POST_FORUM_URL . $forum_id;
+
+					// get the cat_id
+					$sql = "SELECT * FROM " . FORUMS_TABLE . " WHERE forum_id=$forum_id";
+					if ( !($result = $db->sql_query($sql)) )
+					{
+						message_die(GENERAL_ERROR, 'Wasn\'t able to access forums', '', __LINE__, __FILE__, $sql);
+					}
+					if ( $row = $db->sql_fetchrow($result) )
+					{
+						$cat_id = $row['cat_id'];
+					}
+				}
+
+				// add the cat_id
+				if ($cat_id > 0)
+				{
+					$fids[] = POST_CAT_URL . $cat_id;
+				}
+
+				// add the root level
+				$fids[] = 'Root';
+			}
+			else
+			{
+				// categories hierarchy v 2 compliancy
+				$cur = 'Root';
+				if ($forum_id > 0)
+				{
+					$cur = POST_FORUM_URL . $forum_id;
+				}
+				else if ($cat_id > 0)
+				{
+					$cur = POST_CAT_URL . $cat_id;
+				}
+
+				// add start
+				$fids[] = $cur;
+				while ( ($cur != 'Root') && !empty($cur) )
+				{
+					// get parent level
+					$cur = (isset($tree['main'][ $tree['keys'][$cur] ])) ? $tree['main'][ $tree['keys'][$cur] ] : 'Root';
+
+					// add the parent level
+					if ( !empty($cur) )
+					{
+						$fids[] = $cur;
+					}
+				}
+			}
+
+			// search if this file is part of a sub-template
+			$sub_tpl_file = '';
+			$sub_css_file = '';
+			$sub_img_file = '';
+			$sub_img_path = '';
+			$template_path = 'templates/';
+			$template_name = substr( $this->root, strpos($this->root, $template_path) + strlen($template_path) );
+			$real_root = $this->root;
+			if ( $board_config['version'] > '.0.5' )
+			{
+				$real_root = @phpbb_realpath($this->root);
+			}
+			if (substr($filename, 0, 1) != '/')
+			{
+				$found = false;
+				for ($i = 0; !$found && ($i < count($fids)); $i++)
+				{
+					$key = $fids[$i];
+
+					// convert root into c0 category
+					if ( ($key == 'Root') || empty($key) )
+					{
+						$key = POST_CAT_URL . '0';
+					}
+
+					if ( isset($sub_templates[$key]) )
+					{
+						// get the sub-template path
+						$current_template_path = $template_path . $template_name . '/' . $sub_templates[$key]['dir'];
+						$root_template_path = $real_root . '/' . $sub_templates[$key]['dir'];
+
+						// set the filename
+						if ( empty($sub_tpl_file) && file_exists($root_template_path . '/' . $filename) )
+						{
+							$found = true;
+							$sub_tpl_file = $sub_templates[$key]['dir'] . '/' . $filename;
+							break;
+						}
+					}
+				}
+
+				// set the css file name
+				$found = false;
+				for ($i = 0; !$found && ($i < count($fids)); $i++)
+				{
+					$key = $fids[$i];
+
+					// convert root into c0 category
+					if ( ($key == 'Root') || empty($key) )
+					{
+						$key = POST_CAT_URL . '0';
+					}
+
+					if ( isset($sub_templates[$key]) )
+					{
+						// get the sub-template path
+						$current_template_path = $template_path . $template_name . '/' . $sub_templates[$key]['dir'];
+						$root_template_path = $real_root . '/' . $sub_templates[$key]['dir'];
+						if ( empty($sub_css_file) && isset($sub_templates[$key]['head_stylesheet']) && file_exists($root_template_path . '/' . $sub_templates[$key]['head_stylesheet']) )
+						{
+							$found = true;
+							$sub_css_file = $sub_templates[$key]['dir'] . '/' . $sub_templates[$key]['head_stylesheet'];
+							break;
+						}
+					}
+				}
+
+				// set the img file name
+				$found = false;
+				for ($i = 0; !$found && ($i < count($fids)); $i++)
+				{
+					$key = $fids[$i];
+
+					// convert root into c0 category
+					if ( ($key == 'Root') || empty($key) )
+					{
+						$key = POST_CAT_URL . '0';
+					}
+
+					if ( isset($sub_templates[$key]) )
+					{
+						// get the sub-template path
+						$current_template_path = $template_path . $template_name . '/' . $sub_templates[$key]['dir'];
+						$root_template_path = $real_root . '/' . $sub_templates[$key]['dir'];
+						if ( isset($sub_templates[$key]['imagefile']) && file_exists($root_template_path . '/' . $sub_templates[$key]['imagefile']) )
+						{
+							$sub_img_path = $sub_templates[$key]['dir'];
+							$sub_img_file = $sub_templates[$key]['imagefile'];
+
+							// send back the lowest level of the images file
+							$found = true;
+							$sub_template_key_image = $key;
+							break;
+						}
+					}
+				}
+			}
+
+			// set the tpl file
+			if ( !empty($sub_tpl_file) )
+			{
+				$filename = $sub_tpl_file;
+			}
+
+			// set the css file
+			if ( !empty($sub_css_file) )
+			{
+				$theme['head_stylesheet'] = $sub_css_file;
+			}
+
+			// get the root level images
+			$key = POST_CAT_URL . '0';
+			if ( isset($sub_templates[$key]) )
+			{
+				// get the sub-template path
+				$current_template_path = $template_path . $template_name . '/' . $sub_templates[$key]['dir'];
+				$root_template_path = $real_root . '/' . $sub_templates[$key]['dir'];
+				if ( isset($sub_templates[$key]['imagefile']) && file_exists($root_template_path . '/' . $sub_templates[$key]['imagefile']) )
+				{
+					$sav_images = $images;
+					$images = array();
+					@include($root_template_path . '/' . $sub_templates[$key]['imagefile']);
+					$img_lang = ( file_exists($root_template_path . '/images/lang_' . $board_config['default_lang']) ) ? $board_config['default_lang'] : 'english';
+					@reset($images);
+					while( list($key, $value) = @each($images) )
+					{
+						if ( !is_array($value) )
+						{
+							$images[$key] = str_replace('{LANG}', 'lang_' . $img_lang, $value);
+						}
+						$sav_images[$key] = $images[$key];
+					}
+					$images = $sav_images;
+					$sav_images = array();
+				}
+			}
+
+			// get the current images
+			if ( !empty($sub_template_key_image) && ($sub_template_key_image != POST_CAT_URL . '0') )
+			{
+				$key = $sub_template_key_image;
+
+				// get the sub-template path
+				$current_template_path = $template_path . $template_name . '/' . $sub_templates[$key]['dir'];
+				$root_template_path = $real_root . '/' . $sub_templates[$key]['dir'];
+				if ( isset($sub_templates[$key]['imagefile']) && file_exists($root_template_path . '/' . $sub_templates[$key]['imagefile']) )
+				{
+					$sav_images = $images;
+					$images = array();
+					@include($root_template_path . '/' . $sub_templates[$key]['imagefile']);
+					$img_lang = ( file_exists($root_template_path . '/images/lang_' . $board_config['default_lang']) ) ? $board_config['default_lang'] : 'english';
+					@reset($images);
+					while( list($key, $value) = @each($images) )
+					{
+						if ( !is_array($value) )
+						{
+							$images[$key] = str_replace('{LANG}', 'lang_' . $img_lang, $value);
+						}
+						$sav_images[$key] = $images[$key];
+					}
+					$images = $sav_images;
+					$sav_images = array();
+				}
+			}
+		}
+//-- fin mod : sub-template ------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/topic_review.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( !$is_inline_review )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : sub-template ----------------------------------------------------------------------------
+//-- add
+	global $sub_template_key_image, $sub_templates;
+//-- fin mod : sub-template ------------------------------------------------------------------------
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

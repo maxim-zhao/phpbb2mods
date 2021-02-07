@@ -1,0 +1,202 @@
+############################################################## 
+## MOD Title:          Upgrade to BBCodes & smilies enhancement 1.2.2
+## MOD Author:         -=ET=- < n/a > (n/a) http://www.golfexpert.net/phpbb
+## MOD Description:    This MOD will allow you to upgrade your
+##                     BBCodes & smilies enhancement MOD from 1.2.1
+##                     to 1.2.2
+## MOD Version:        1.0.0
+## 
+## Installation Level: Easy
+## Installation Time:  2 Minutes (1mn by EasyMOD of Nuttzy)
+## Files To Edit:      2
+##      templates/subSilver/posting_body.tpl
+##      templates/subSilver/posting_smilies.tpl
+##
+## Included Files:     0 
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##
+## BBCodes & smilies enhancement 1.2.1 needs to be already installed!!!
+##
+## The rest of the author notes are on the full install MOD
+## in the root dir of this MOD archive!
+##
+############################################################## 
+## MOD History: 
+## 
+##   2005-07-14 - Version 1.0.0
+##      - Initial release
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+// Start add - BBCodes & smilies enhancement MOD
+var baseHeight;
+window.onload = initInsertions;
+
+function initInsertions() {
+	document.post.message.focus();
+	if (is_ie && typeof(baseHeight) != 'number') baseHeight = document.selection.createRange().duplicate().boundingHeight;
+}
+// End add - BBCodes & smilies enhancement MOD
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# This instruction and this code is copyright (C) TerraFrost
+# http://www.frostjedi.com
+#
+// Start add - BBCodes & smilies enhancement MOD
+var baseHeight;
+function initInsertions() {
+	if (is_ie && typeof(baseHeight) != 'number') baseHeight = document.selection.createRange().duplicate().boundingHeight;
+}
+// End add - BBCodes & smilies enhancement MOD
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+function mozInsert(txtarea, openTag, closeTag)
+{
+        if (txtarea.selectionEnd > txtarea.value.length) { txtarea.selectionEnd = txtarea.value.length; }
+
+        var startPos = txtarea.selectionStart; 
+        var endPos = txtarea.selectionEnd+openTag.length; 
+
+        txtarea.value=txtarea.value.slice(0,startPos)+openTag+txtarea.value.slice(startPos); 
+        txtarea.value=txtarea.value.slice(0,endPos)+closeTag+txtarea.value.slice(endPos); 
+
+        txtarea.selectionStart = startPos+openTag.length; 
+        txtarea.selectionEnd = endPos; 
+        txtarea.focus();
+}
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+#
+function mozInsert(txtarea, openTag, closeTag)
+{
+        var scrollTop = ( typeof(txtarea.scrollTop) == 'number' ? txtarea.scrollTop : -1 );
+
+        if (txtarea.selectionEnd > txtarea.value.length) { txtarea.selectionEnd = txtarea.value.length; }
+
+        var startPos = txtarea.selectionStart;
+        var endPos = txtarea.selectionEnd+openTag.length;
+
+        txtarea.value=txtarea.value.slice(0,startPos)+openTag+txtarea.value.slice(startPos);
+        txtarea.value=txtarea.value.slice(0,endPos)+closeTag+txtarea.value.slice(endPos);
+
+        txtarea.selectionStart = startPos+openTag.length;
+        txtarea.selectionEnd = endPos;
+        txtarea.focus();
+
+        if( scrollTop >= 0 ) { txtarea.scrollTop = scrollTop; }
+}
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# This instruction and this code is copyright (C) markus_petrux
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# <textarea name="message" rows="15" cols="35" wrap="virtual" style="width:450px" tabindex="3" class="post" onselect="storeCaret(this);" onclick="storeCaret(this);" onkeyup="storeCaret(this);">{MESSAGE}</textarea>
+#
+<textarea name="message"
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+onkeyup="storeCaret(this);"
+
+# 
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+ onfocus="initInsertions();"
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+templates/subSilver/posting_smilies.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# This instruction and this code is copyright (C) markus_petrux
+#
+// Start replacement - BBCodes & smilies enhancement MOD
+function emoticon(text) {
+	var txtarea = opener.document.forms['post'].message;
+	text = ' ' + text + ' ';
+	if (txtarea.createTextRange && txtarea.caretPos) {
+		if (opener.baseHeight != txtarea.caretPos.boundingHeight) {
+			txtarea.focus();
+			opener.storeCaret(txtarea);
+		}
+		var caretPos = txtarea.caretPos;
+		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text + ' ' : text;
+		txtarea.focus();
+	} else
+	if ((txtarea.selectionEnd | txtarea.selectionEnd == 0) && (txtarea.selectionStart | txtarea.selectionStart == 0))
+	{ 
+		mozInsert(txtarea, text, "");
+	} else {
+		txtarea.value  += text;
+		txtarea.focus();
+	}
+}
+
+function mozInsert(txtarea, openTag, closeTag)
+{
+        if (txtarea.selectionEnd > txtarea.value.length) { txtarea.selectionEnd = txtarea.value.length; } 
+       
+        var startPos = txtarea.selectionStart; 
+        var endPos = txtarea.selectionEnd+openTag.length; 
+       
+        txtarea.value=txtarea.value.slice(0,startPos)+openTag+txtarea.value.slice(startPos); 
+        txtarea.value=txtarea.value.slice(0,endPos)+closeTag+txtarea.value.slice(endPos); 
+         
+        txtarea.selectionStart = startPos+openTag.length; 
+        txtarea.selectionEnd = endPos; 
+        txtarea.focus(); 
+}
+// End replacement - BBCodes & smilies enhancement MOD
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+#
+#
+// emoticon() function removed - BBCodes & smilies enhancement MOD
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+<!-- Start replacement - BBCodes & smilies enhancement MOD -->
+<td><img src="{smilies_row.smilies_col.SMILEY_IMG}" border="0" onmouseover="this.style.cursor='hand';" onclick="emoticon('{smilies_row.smilies_col.SMILEY_CODE}');" alt="{smilies_row.smilies_col.SMILEY_DESC}" title="{smilies_row.smilies_col.SMILEY_DESC}" /></td>
+<!-- End replacement - BBCodes & smilies enhancement MOD -->
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+# 
+# This instruction and this code is copyright (C) Bummer
+# & markus_petrux
+#
+<!-- Start replacement - BBCodes & smilies enhancement MOD -->
+<td><img src="{smilies_row.smilies_col.SMILEY_IMG}" border="0" style="cursor:pointer;" onclick="opener.emoticon('{smilies_row.smilies_col.SMILEY_CODE}');" alt="{smilies_row.smilies_col.SMILEY_DESC}" title="{smilies_row.smilies_col.SMILEY_DESC}" /></td>
+<!-- End replacement - BBCodes & smilies enhancement MOD -->
+# 
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------- 
+# 
+# EoM

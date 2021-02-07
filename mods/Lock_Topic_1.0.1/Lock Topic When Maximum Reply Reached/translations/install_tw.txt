@@ -1,0 +1,461 @@
+######################################################## 
+## 外掛名稱: 當回覆到達上限時自動鎖定主題
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 這個外掛允許管理員啟用/停用自動鎖定主題. 主題可以被自動鎖定當回覆篇數到達設定的上限.
+##			自動鎖定主題的設定可以在管理員控制台中依照各個版面做個別設定.
+##			當自動鎖定主題啟用時, 主題作者可以決定他/她的主題是否要被自動鎖定.
+## 外掛版本: 1.0.1
+## 
+## 安裝難度: 簡單
+## 安裝時間: 10 分鐘 
+##
+## 需要編輯的檔案: 9
+##	posting.php
+##	viewforum.php
+##	viewtopic.php 
+##	admin/admin/admin_forums.php
+##	includes/functions_post.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	templates/subSilver/posting_body.tpl
+##	templates/subSilver/admin/forum_edit_body.tpl
+##
+## 附加的檔案: 1
+##	includes/functions_auto_lock.php
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.19 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##
+##	不是小蟲: 當一個曾啟用自動鎖定主題的版面被設為停用時, 
+##		那版面中被自動鎖定的主題將仍然會維持鎖定
+##	不是小蟲: 如果增加回覆上限（例如：由 20 篇增加到 30 篇）,
+##		被先前設定鎖定的主題將仍然會維持鎖定.
+## 
+############################################################## 
+## 版本歷史: 
+##
+##   2005-12-22 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2005-12-26 - 版本 1.0.1
+##	- 修正在 includes/functions_post.php 的一個錯誤
+##	- 加入在 viewtopic.php 的修正 (感謝竹貓的心靈捕手)
+##
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# 請記得修改成你的資料表名稱
+ALTER TABLE phpbb_forums ADD auto_lock_enable TINYINT(1) NOT NULL DEFAULT 0;
+ALTER TABLE phpbb_forums ADD auto_lock_reply_number SMALLINT(5) NOT NULL DEFAULT 30;
+ALTER TABLE phpbb_topics ADD enable_auto_lock TINYINT(1) NOT NULL DEFAULT 0;
+# 
+#-----[ 複製 ]------------------------------------------ 
+#
+copy root/includes/functions_auto_lock.php to includes/functions_auto_lock.php
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_admin.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Lock Topic When Maximum Reply Reached
+$lang['Auto_lock'] = '自動鎖定主題';
+$lang['Auto_lock_reply_number'] = '自動鎖定超過多少篇的主題';
+$lang['Empty_auto_lock_reply_number'] = '您已經開啟自動鎖定主題的功能, 但並未完成篇數上限的設定. 請回到上一步設定相關的項目.';
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_main.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Lock Topic When Maximum Reply Reached
+$lang['L_AUTO_LOCK'] = '啟用自動鎖定主題功能，回覆上限為 %s 篇';
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+admin/admin_forums.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+				$forumstatus = $row['forum_status'];
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+				// Lock Topic When Maximum Reply Reached
+				if( $row['auto_lock_enable'] )
+				{
+					$auto_lock_enable = "checked=\"checked\"";
+				}
+				else
+				{
+					$auto_lock_enable = '';
+				}
+				$auto_lock_reply_number = $row['auto_lock_reply_number'];
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				$forumstatus = FORUM_UNLOCKED;
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+				// Lock Topic When Maximum Reply Reached
+				$auto_lock_enable = '';
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				'L_DAYS' => $lang['Days'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+				// Lock Topic When Maximum Reply Reached
+				'L_AUTO_LOCK' => $lang['Auto_lock'],
+				'L_AUTO_LOCK_REPLY_NUMBER' => $lang['Auto_lock_reply_number'],
+				'L_REPLIES' => $lang['Replies'],
+				'S_AUTO_LOCK_ENABLED' => $auto_lock_enable,
+				'AUTO_LOCK_REPLY_NUMBER' => ( !empty($auto_lock_reply_number) ) ? $auto_lock_reply_number : 30,
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				$value_sql .= ", $value";
+
+			}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			// Lock Topic When Maximum Reply Reached
+			if( $HTTP_POST_VARS['auto_lock_enable'] )
+			{
+				if( empty($HTTP_POST_VARS['auto_lock_reply_number']) )
+				{
+					message_die(GENERAL_MESSAGE, $lang['Empty_auto_lock_reply_number']);
+				}
+			}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			$sql = "INSERT INTO " . FORUMS_TABLE . " (forum_id, forum_name
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, forum_status
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, auto_lock_enable, auto_lock_reply_number
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				VALUES ('" . $next_id . "', '" . str_replace
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, " . intval($HTTP_POST_VARS['forumstatus']) . "
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, " . intval($HTTP_POST_VARS['auto_lock_enable']) . ", " . intval($HTTP_POST_VARS['auto_lock_reply_number']) . "
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+					$HTTP_POST_VARS['prune_enable'] = 0;
+				}
+			}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			// Lock Topic When Maximum Reply Reached
+			if( isset($HTTP_POST_VARS['auto_lock_enable']))
+			{
+				if( $HTTP_POST_VARS['auto_lock_enable'] != 1 )
+				{
+					$HTTP_POST_VARS['auto_lock_enable'] = 0;
+				}
+			}
+
+			if( $HTTP_POST_VARS['auto_lock_enable'] )
+			{
+				if( empty($HTTP_POST_VARS['auto_lock_reply_number']) )
+				{
+					message_die(GENERAL_MESSAGE, $lang['Empty_auto_lock_reply_number']);
+				}
+			}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "',
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . "
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, auto_lock_enable = " . intval($HTTP_POST_VARS['auto_lock_enable']) . ", auto_lock_reply_number = " . intval($HTTP_POST_VARS['auto_lock_reply_number']) . "
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+includes/functions_post.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+function submit_post($mode, &$post_data,
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, &$poll_length
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, &$enable_auto_lock
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		$topic_vote = (!empty($poll_title) && count($poll_options) >= 2) ? 1 : 0;
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		// Lock Topic When Maximum Reply Reached
+		$topic_status = "";
+		if (!empty($enable_auto_lock))
+		{
+			$topic_status = ', topic_status = ' . TOPIC_LOCKED;
+		}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, topic_vote
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, enable_auto_lock
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, $topic_vote
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, $enable_auto_lock
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+$topic_vote : "") . "
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, enable_auto_lock = " . $enable_auto_lock ." " . $topic_status . "
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+posting.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$attach_sig = ( $submit || $refresh ) ? ( ( !empty($HTTP_POST_VARS['attach_sig']) ) ? TRUE : 0 ) : ( ( $userdata['user_id'] == ANONYMOUS ) ? 0 : $userdata['user_attachsig'] );
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+// Lock Topic When Maximum Reply Reached
+$enable_auto_lock = ( !empty($HTTP_POST_VARS['enable_auto_lock']) ) ? TRUE : 0;
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+				submit_post($mode, $post_data, $return_message,
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+, $poll_length
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+, $enable_auto_lock
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	$template->assign_block_vars('switch_delete_checkbox', array());
+}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+//
+// Lock Topic When Maximum Reply Reached
+// Auto Lock checkbox - only show if user is logged in
+//
+$auto_lock_toggle = '';
+if ( $userdata['session_logged_in'] && $is_auth['auth_read'] )
+{
+	if ( $refresh || $mode == 'newtopic' || ( $mode == 'editpost' && $post_data['first_post'] && $post_info['poster_id'] != ANONYMOUS ) )
+	{
+		include($phpbb_root_path . 'includes/functions_auto_lock.'.$phpEx);
+
+		if ($mode == 'newtopic')
+		{
+			$auto_lock = array();
+			$auto_lock = auto_lock_status_newtopic($forum_id);
+
+			if ($auto_lock['auto_lock_enable'])
+			{
+				$template->assign_block_vars('switch_auto_lock_toggle', array());
+			}
+		}
+
+		if ($mode == 'editpost' && $post_data['first_post'])
+		{
+			$auto_lock = array();
+			$auto_lock = auto_lock_status_editpost($topic_id);
+
+			if ($auto_lock['auto_lock_enable'])
+			{
+				$template->assign_block_vars('switch_auto_lock_toggle', array());
+				if ( $auto_lock['enable_auto_lock'] )
+				{
+					$auto_lock_toggle = ' checked="checked"';
+				}
+			}
+		}
+	}
+}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'L_DELETE_POST' => $lang['Delete_post'],
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// Lock Topic When Maximum Reply Reached
+	'L_AUTO_LOCK' => sprintf($lang['L_AUTO_LOCK'], $auto_lock['auto_lock_reply_number']),
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'S_NOTIFY_CHECKED' => ( $notify_user ) ? 'checked="checked"' : '', 
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// Lock Topic When Maximum Reply Reached
+	'S_AUTO_LOCK_CHECKED' => ( $auto_lock ) ? 'checked="checked"' : '', 
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'S_TYPE_TOGGLE' => $topic_type_toggle, 
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	// Lock Topic When Maximum Reply Reached
+	'S_AUTO_LOCK_TOGGLE' => $auto_lock_toggle, 
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+viewforum.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+// End of forum prune
+//
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+//
+// Lock Topic When Maximum Reply Reached
+// Check and do Auto Lock
+//
+include($phpbb_root_path . 'includes/functions_auto_lock.'.$phpEx);
+topic_auto_lock($forum_id);
+//
+// End of Auto Lock
+//
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+viewtopic.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+// End session management
+// 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+//
+// Lock Topic When Maximum Reply Reached
+// Check and do Auto Lock
+//
+include($phpbb_root_path . 'includes/functions_auto_lock.'.$phpEx);
+topic_auto_lock($forum_id);
+//
+// End of Auto Lock
+//
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/posting_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		  <!-- END switch_notify_checkbox -->
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+		  <!-- BEGIN switch_auto_lock_toggle -->
+		  <tr> 
+			<td> 
+			  <input type="checkbox" name="enable_auto_lock" {S_AUTO_LOCK_TOGGLE} />
+			</td>
+			<td><span class="gen">{L_AUTO_LOCK}</span></td>
+		  </tr>
+		  <!-- END switch_auto_lock_toggle -->
+# 
+#-----[ 打開 ]------------------------------------------ 
+#
+templates/subSilver/admin/forum_edit_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	  <td class="row2"><select name="forumstatus">{S_STATUS_LIST}</select></td>
+	</tr>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	<tr> 
+	  <td class="row1">{L_AUTO_LOCK}</td>
+	  <td class="row2"><table cellspacing="0" cellpadding="1" border="0">
+		  <tr> 
+			<td align="right" valign="middle">{L_ENABLED}</td>
+			<td align="left" valign="middle"><input type="checkbox" name="auto_lock_enable" value="1" {S_AUTO_LOCK_ENABLED} /></td>
+		  </tr>
+		  <tr> 
+			<td align="right" valign="middle">{L_AUTO_LOCK_REPLY_NUMBER}</td>
+			<td align="left" valign="middle">&nbsp;<input type="text" name="auto_lock_reply_number" value="{AUTO_LOCK_REPLY_NUMBER}" size="5" class="post" />&nbsp;{L_REPLIES}</td>
+		  </tr>
+	  </table></td>
+	</tr>
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+#
+#
+# 外掛修正結束

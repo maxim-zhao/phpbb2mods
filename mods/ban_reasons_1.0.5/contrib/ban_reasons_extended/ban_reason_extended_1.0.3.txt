@@ -1,0 +1,204 @@
+##############################################################
+## MOD Title: Ban Reason Extended
+## MOD Author: Whip-lash < ricky.boone@gmail.com > (Ricky Boone) http://rickyboone.com/
+## MOD Description: Use the Ban Reason MOD for other ban types (email, IP address).  Also moves the Ban Reason field to the end of the ban form, as well as adds descriptive verbiage to the field.
+## MOD Version: 1.0.3
+## 
+## Installation Level: Easy
+## Installation Time: 8 minutes
+## Files To Edit: admin/admin_user_ban.php
+##                includes/sessions.php
+##                language/lang_english/lang_admin.php
+##                templates/subSilver/admin/user_ban_body.tpl
+## Included Files: 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+## Generator: Phpbb.ModTeam.Tools
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: eviL3's "Ban reasons" MOD (tested with version 1.0.2a) is required for this.
+##               http://www.phpbb.com/phpBB/viewtopic.php?t=406052
+##############################################################
+## MOD History:
+## 
+##   2006-07-19 - Version 1.0.0
+##      - Initial release
+##
+##   2006-07-22 - Version 1.0.1
+##      - Updated to work with version 1.0.2a of eviL3's "Ban reasons" MOD
+##      - Added missing find/replace block
+##      - Corrected find/replace block in includes/sessions.php
+##      - Version 1.0.0 accidentally had the leading tabs converted into spaces.  This one should be correct.
+##
+##   2006-08-06 - Version 1.0.2
+##      - Fixed little picky stuff
+##
+##   2006-09-20 - Version 1.0.3
+##      - Fixed a little error in IP query
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_user_ban.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$user_list[] = $this_userdata['user_id'];
+
+		if ( !empty($HTTP_POST_VARS['ban_reason']) )
+		{
+			$ban_reason = $HTTP_POST_VARS['ban_reason'];
+		}
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		$user_list[] = $this_userdata['user_id'];
+#
+#-----[ FIND ]------------------------------------------
+#
+	$sql = "SELECT *
+		FROM " . BANLIST_TABLE;
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, "Couldn't obtain banlist information", "", __LINE__, __FILE__, $sql);
+	}
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+# code from original Ban reason MOD, moved to allow ban reasons for all types
+	if ( !empty($HTTP_POST_VARS['ban_reason']) )
+	{
+		$ban_reason = $HTTP_POST_VARS['ban_reason'];
+	}
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "INSERT INTO " . BANLIST_TABLE . " (ban_ip)
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ban_ip
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, ban_reason
+#
+#-----[ FIND ]------------------------------------------
+#
+				VALUES ('" . $ip_list[$i] . "')";
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$ip_list[$i] . "'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, '" . str_replace("\'", "''", $ban_reason)
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "INSERT INTO " . BANLIST_TABLE . " (ban_email)
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ban_email
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, ban_reason
+#
+#-----[ FIND ]------------------------------------------
+#
+				VALUES ('" . str_replace("\'", "''", $email_list[$i]) . "')";
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$email_list[$i])
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ . "', '" . str_replace("\'", "''", $ban_reason)
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_BAN_REASON' => $lang['Ban_reason'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'L_BAN_REASON_EXPLAIN' => $lang['Ban_reason_explain'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/sessions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+			if (isset ($ban_info['ban_reason']) AND ($ban_info['ban_reason'] != '') AND ($ban_info['ban_userid']))
+      {
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+($ban_info['ban_reason'] != '') AND ($ban_info['ban_userid']
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+!empty($ban_info['ban_reason']))
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Ban_reason'] = 'Ban Reason';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Ban_reason_explain'] = 'If applicable, note the reason for the ban.  This message will be displayed when the visitor attempts to access the forums from a banned user, IP, or email address, rather than the default "You_been_banned" message.';
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_ban_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+
+	<tr> 
+	  <td class="row1">{L_BAN_REASON}:</td>
+	  <td class="row2"><textarea class="post" type="text" name="ban_reason" size="20" style="width:100%; height:60px;"></textarea></td>
+	</tr>
+
+	<tr>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+ 	<tr>
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+	  <td class="catBottom" colspan="2" align="center"><input type="submit" name="submit" value="{L_SUBMIT}" class="mainoption" />&nbsp;&nbsp;<input type="reset" value="{L_RESET}" class="liteoption" /></td>
+	</tr>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_BAN_REASON}</th>
+	</tr>
+	<tr>
+	  <td class="row1">{L_BAN_REASON}: <br /><span class="gensmall">{L_BAN_REASON_EXPLAIN}</span></td>
+	  <td class="row2"><textarea class="post" type="text" name="ban_reason" size="20" style="width:100%; height:60px;" /></textarea></td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

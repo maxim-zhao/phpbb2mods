@@ -1,0 +1,659 @@
+############################################################## 
+## MOD Title: Orkut Profile MOD
+## MOD Author: [ÐÆMØN øf NEME§I§] < gustavo@acidnuts.com > (Gustavo Montes) http://www.phpbb.com.br
+## MOD Description: This mod adds the options to insert que orkut profile link on the board.
+## MOD Version: 1.0.1
+## MOD Compatibility: 2.0.11
+## 
+## Installation Level: Intermediate
+## Installation Time: 15 Minutes 
+## Files To Edit: 11
+##	         viewtopic.php
+##	         admin/admin_users.php
+##	         includes/functions_validate.php
+##	         includes/usercp_register.php
+##	         includes/usercp_viewprofile.php
+##	         language/lang_english/lang_main.php
+##	         templates/subSilver/profile_add_body.tpl
+##	         templates/subSilver/profile_view_body.tpl
+##	         templates/subSilver/subSilver.cfg
+##	         templates/subSilver/viewtopic_body.tpl
+##	         templates/subSilver/admin/user_edit_body.tpl 
+## Included Files: 1
+##                        img/icon_orkut.gif
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##  This Modification is based on the original Modification ' Blog in Viewtopic ' 
+##  Lapinox (mail@lapinox.net) of phpbb-fr.com
+##
+##  My Personal WebSite Acid Nuts Online ::
+##  http://www.acidnuts.com
+##
+##  Suporte phpBB Brasil 
+##  http://www.phpbb.com.br
+############################################################## 
+## MOD History: 
+## 
+## 02-04-2005 - Version 1.0.1
+##          - Review for phpBB MOD-Validation
+## 02-03-2005 - Version 1.0.0
+##          - EasyMOD compliant
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+#
+#-----[ SQL ]------------------------------------------------
+#
+
+ALTER TABLE `phpbb_users` ADD `user_orkut` VARCHAR( 255 ) AFTER `user_msnm` ;
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+
+copy img/icon_orkut.gif to templates/subSilver/images/lang_english/icon_orkut.gif
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the lines are too longer
+
+$sql = "SELECT u.username, u.user_id,
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+
+, u.user_aim
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+
+, u.user_orkut
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$msn = ( $postrow[$i]['user_msnm'] ) ? '<a href="' . $temp_url . '">' . $lang['MSNM'] . '</a>' : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		$orkut_img = ( $postrow[$i]['user_orkut'] ) ? '<a href="' . $postrow[$i]['user_orkut'] . '" target="_userwww"><img src="' . $images['icon_orkut'] . '" alt="' . $lang['ORKUT'] . ': ' . $postrow[$i]['user_orkut'] . '" title="' . $lang['ORKUT'] . ': ' . $postrow[$i]['user_orkut'] . '" border="0" /></a>' : '';
+		$orkut = ( $postrow[$i]['user_orkut'] ) ? '<a href="' . $temp_url . '">' . $lang['ORKUT'] . '</a>' : '';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$aim_img = '';
+$aim = '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		$orkut_img = '';
+		$orkut = '';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+'AIM_IMG' => $aim_img,
+'AIM' => $aim,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		'ORKUT_IMG' => $orkut_img,
+		'ORKUT' => $orkut,
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$aim = ( !empty($HTTP_POST_VARS['aim']) ) ? trim(strip_tags( $HTTP_POST_VARS['aim'] ) ) : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		$orkut = ( !empty($HTTP_POST_VARS['orkut']) ) ? trim(strip_tags( $HTTP_POST_VARS['orkut'] ) ) : '';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the lines are too longer
+
+validate_optional_fields($icq, $aim, $msn,
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+
+, $signature
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+
+, $orkut
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$aim = htmlspecialchars(stripslashes($aim));
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			$orkut = htmlspecialchars(stripslashes($orkut));
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the lines are too longer
+
+SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) . "',
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+
+, user_msnm = '" . str_replace("\'", "''", $msn) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+
+, user_orkut = '" . str_replace("\'", "''", $orkut) . "'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$yim = htmlspecialchars(stripslashes($yim));
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			$orkut= htmlspecialchars(stripslashes($orkut));
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$yim = htmlspecialchars($this_userdata['user_yim']);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		$orkut = htmlspecialchars($this_userdata['user_orkut']);
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$s_hidden_fields .= '<input type="hidden" name="msn" value="' . str_replace("\"", "&quot;", $msn) . '" />';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			$s_hidden_fields .= '<input type="hidden" name="orkut" value="' . str_replace("\"", "&quot;", $orkut) . '" />';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+'AIM' => $aim,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			'ORKUT' => $orkut,
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+'L_AIM' => $lang['AIM'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+			'L_ORKUT' => $lang['ORKUT'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+includes/functions_validate.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the lines are too longer
+
+function validate_optional_fields(&$icq, &$aim, &$msnm, &$yim,
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+
+, &$sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+
+, &$orkut
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the lines are too longer
+
+$check_var_length = array('aim', 'msnm', 'yim',
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+
+, 'sig'
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+
+, 'orkut'
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the lines are too longer
+
+$strip_var_list = array('username' => 'username', 'email' => 'email', 'icq' => 'icq',
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+
+, 'yim' => 'yim'
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+
+, 'orkut' => 'orkut'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the lines are too longer
+
+validate_optional_fields($icq, $aim, $msn, $yim,
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+
+, $signature
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+
+, $orkut
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$aim = stripslashes($aim);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		$orkut = stripslashes($orkut);
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the lines are too longer
+
+SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) ."', user_icq = '" . str_replace("\'", "''", $icq) . "',
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+
+, user_icq = '" . str_replace("\'", "''", $icq) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+
+, user_orkut = '" . str_replace("\'", "''", str_replace(' ', '+', $orkut)) . "'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the lines are too longer
+
+$sql = "INSERT INTO " . USERS_TABLE . "	(user_id, username, user_regdate,
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+
+, user_msnm
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+
+, user_orkut
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the lines are too longer
+
+VALUES ($user_id, '" . str_replace("\'", "''", $username) . "',
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+
+, '" . str_replace("\'", "''", $msn) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+
+, '" . str_replace("\'", "''", $orkut) . "'
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+'MSN' => $msn,
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+					'ORKUT' => $orkut,
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$yim = stripslashes($yim);
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+	$orkut = stripslashes($orkut);
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$yim = $userdata['user_yim'];
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+	$orkut = $userdata['user_orkut'];
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+'AIM' => $aim,
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+		'ORKUT' => $orkut,
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+'L_AIM' => $lang['AIM'],
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+		'L_ORKUT' => $lang['ORKUT'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$yim_img = ( $profiledata['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $profiledata['user_yim'] . '&amp;.src=pg"><img src="' . $images['icon_yim'] . '" alt="' . $lang['YIM'] . '" title="' . $lang['YIM'] . '" border="0" /></a>' : '';
+$yim = ( $profiledata['user_yim'] ) ? '<a href="http://edit.yahoo.com/config/send_webmesg?.target=' . $profiledata['user_yim'] . '&amp;.src=pg">' . $lang['YIM'] . '</a>' : '';
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+$orkut_img = ( $profiledata['user_orkut'] ) ? '<a href="' . $profiledata['user_orkut'] . '" target="_userwww"><img src="' . $images['icon_orkut'] . '" alt="' . $lang['Visit_orkut'] . '" title="' . $lang['Visit_orkut'] . '" border="0" /></a>' : '&nbsp;';
+$orkut = ( $profiledata['user_orkut'] ) ? '<a href="' . $temp_url . '" target="_userwww">' . $profiledata['user_orkut'] . '</a>' : '&nbsp;';
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+'YIM' => $yim,
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+	'ORKUT_IMG' => $orkut_img,
+	'ORKUT' => $orkut,
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+'L_YAHOO' => $lang['YIM'],
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+	'L_ORKUT' => $lang['ORKUT'],
+	'L_VISIT_ORKUT' => $lang['Visit_orkut'],
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$lang['YIM'] = 'Yahoo Messenger';
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+$lang['ORKUT'] = 'Orkut Profile';
+$lang['Visit_orkut'] = 'Visit member\'s Orkut';
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+templates/subSilver/profile_add_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+	  <td class="row2">
+		<input type="text" class="post"style="width: 150px"  name="yim" size="20" maxlength="255" value="{YIM}" />
+	  </td>
+	</tr>
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+	<tr>
+	  <td class="row1"><span class="gen">{L_ORKUT}:</span></td>
+	  <td class="row2">
+		<input type="text" class="post"style="width: 200px"  name="orkut" size="25" maxlength="255" value="{ORKUT}" />
+	  </td>
+	</tr>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+templates/subSilver/profile_view_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+<tr> 
+  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_MESSENGER}:</span></td>
+  <td class="row1" valign="middle"><span class="gen">{MSN}</span></td>
+</tr>
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+		<tr> 
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_ORKUT}:</span></td>
+		  <td class="row1" valign="middle"><span class="gen">{ORKUT_IMG}</span></td>
+		</tr>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+$images['icon_msnm'] = "$current_template_images/{LANG}/icon_msnm.gif";
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+$images['icon_orkut'] = "$current_template_images/{LANG}/icon_orkut.gif";
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# the lines are too longer
+
+<td valign="middle" nowrap="nowrap">{postrow.PROFILE_IMG} {postrow.PM_IMG} {postrow.EMAIL_IMG}
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+
+{postrow.MSN_IMG}
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+
+ {postrow.ORKUT_IMG}
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+
+templates/subSilver/admin/user_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+
+<tr> 
+  <td class="row2" colspan="2"><span class="gensmall">{L_PROFILE_INFO_NOTICE}</span></td>
+</tr>
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+
+	<tr>
+	  <td class="row1"><span class="gen">{L_ORKUT}</span></td>
+	  <td class="row2">
+		<input class="post" type="text" name="orkut" size="35" maxlength="255" value="{ORKUT}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------- 
+# 
+# EoM

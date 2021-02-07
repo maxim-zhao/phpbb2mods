@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en-gb">Myspace Mod</title>
+		<description lang="en-gb"><![CDATA[This mod adds a viewtopic, viewprofile, and private message button for your users' Myspace profiles.]]></description>
+		<author-notes><![CDATA[Hope this mod is useful
+
+Installation with Easymod is recommended.
+
+Myspace: www.myspace.com]]></author-notes>
+		<author-group>
+			<author>
+				<realname>Brad Bolman</realname>
+				<email>bbolman@gmail.com</email>
+				<username>houndoftheb</username>
+				<homepage>n/a</homepage>
+				<contributions />
+			</author>
+		</author-group>
+		<mod-version>
+			<major>1</major>
+			<minor>1</minor>
+			<revision>0</revision>
+		</mod-version>
+		<installation>
+			<level>Intermediate</level>
+			<time>2400</time>
+			<target-version>
+				<target-primary>2.0</target-primary>
+				<target-major allow="exact">2</target-major>
+				<target-minor allow="exact">0</target-minor>
+			</target-version>
+		</installation>
+		<history>
+			<entry>
+				<date>2006-10-12</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Official Release for PHPBB</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-11-11</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>2</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Fixed errors in mod syntax, added definition to usercp_avatar.php</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-11-25</date>
+				<rev-version>
+					<major>1</major>
+					<minor>1</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Added space betweeen buttons</change>
+				</changelog>
+			</entry>
+		</history>
+	</header>
+	<action-group>
+		<sql><![CDATA[ALTER TABLE `phpbb_users` ADD `user_myspace` VARCHAR( 255 ) ;
+]]></sql>
+		<copy>
+			<file from="root/templates/subSilver/images/lang_english/icon_myspace.gif"  to="templates/subSilver/images/lang_english/icon_myspace.gif" />
+		</copy>
+		<open src="privmsg.php">
+			<edit>
+				<find><![CDATA[	$sql = "SELECT u.username AS username_1,
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[u.user_email, ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[u.user_myspace, ]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[	$www = ( $privmsg['user_website'] ) ? '<a href="' . $privmsg['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+]]></find>
+				<action type="after-add"><![CDATA[	$myspace_img = ( $privmsg['user_myspace'] ) ? '<a href="http://www.myspace.com/' . $privmsg['user_myspace'] . '" target="_usermyspace"><img src="' . $images['icon_myspace'] . '" alt="' . $lang['Myspace'] . '" title="' . $lang['Myspace'] . '" border="0" /></a>' : '';
+	$myspace = ( $privmsg['user_myspace'] ) ? '<a href="http://www.myspace.com/' . $privmsg['user_myspace'] . '" target="_usermyspace">' . $lang['Myspace'] . '</a>' : '';
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[		'WWW' => $www,
+]]></find>
+				<action type="after-add"><![CDATA[		'MYSPACE_IMG' => $myspace_img,
+		'MYSPACE' => $myspace,
+]]></action>
+			</edit>
+		</open>
+		<open src="viewtopic.php">
+			<edit>
+				<find><![CDATA[$sql = "SELECT u.username,
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[u.user_email, ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[u.user_myspace, ]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[		$www = ( $postrow[$i]['user_website'] ) ? '<a href="' . $postrow[$i]['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+]]></find>
+				<action type="after-add"><![CDATA[		$myspace_img = ( $postrow[$i]['user_myspace'] ) ? '<a href="http://www.myspace.com/' . $postrow[$i]['user_myspace'] . '" target="_usermyspace"><img src="' . $images['icon_myspace'] . '" alt="' . $lang['Myspace'] . '" title="' . $lang['Myspace'] . '" border="0" /></a>' : '';
+		$myspace = ( $postrow[$i]['user_myspace'] ) ? '<a href="http://www.myspace.com/' . $postrow[$i]['user_myspace'] . '" target="_usermyspace">' . $lang['Myspace'] . '</a>' : '';
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[		$www = '';
+]]></find>
+				<action type="after-add"><![CDATA[		$myspace_img = '';
+		$myspace = '';
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[		'WWW' => $www,
+]]></find>
+				<action type="after-add"><![CDATA[		'MYSPACE_IMG' => $myspace_img,
+		'MYSPACE' => $myspace,
+]]></action>
+			</edit>
+		</open>
+		<open src="admin/admin_users.php">
+			<edit>
+				<find><![CDATA[		$icq = ( !empty($HTTP_POST_VARS['icq']) ) ? trim(strip_tags( $HTTP_POST_VARS['icq'] ) ) : '';
+]]></find>
+				<action type="before-add"><![CDATA[		$myspace = ( !empty($HTTP_POST_VARS['myspace']) ) ? trim(strip_tags( $HTTP_POST_VARS['myspace'] ) ) : '';
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[		validate_optional_fields($icq,
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[$icq, ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[$myspace, ]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[			$icq = stripslashes($icq);
+]]></find>
+				<action type="before-add"><![CDATA[			$myspace = htmlspecialchars(stripslashes($myspace));
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql .
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[user_icq = '" . str_replace("'", "''", $icq) . "', ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[user_myspace = '" . str_replace("'", "''", $myspace) . "', ]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[			$icq = stripslashes($icq);
+]]></find>
+				<action type="before-add"><![CDATA[			$myspace = htmlspecialchars(stripslashes($myspace));
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[		$icq = $this_userdata['user_icq'];
+]]></find>
+				<action type="before-add"><![CDATA[		$myspace = htmlspecialchars($this_userdata['user_myspace']);
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[			$s_hidden_fields .= '<input type="hidden" name="email" value="' . str_replace(""", "&quot;", $email) . '" />';
+]]></find>
+				<action type="after-add"><![CDATA[			$s_hidden_fields .= '<input type="hidden" name="myspace" value="' . str_replace(""", "&quot;", $myspace) . '" />';
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[			'EMAIL' => $email,
+]]></find>
+				<action type="after-add"><![CDATA[			'MYSPACE' => $myspace,
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[			'L_ICQ_NUMBER' => $lang['ICQ'],
+]]></find>
+				<action type="before-add"><![CDATA[			'L_MYSPACE' => $lang['Myspace'],
+]]></action>
+			</edit>
+		</open>
+		<open src="includes/functions_validate.php">
+			<edit>
+				<find><![CDATA[function validate_optional_fields(&$icq,
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[&$icq, ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[&$myspace, ]]></inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="includes/usercp_avatar.php">
+			<edit>
+				<find><![CDATA[function display_avatar_gallery(
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[&$icq ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[, &$myspace ]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[$params = array(
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA['icq' ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[, 'myspace' ]]></inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="includes/usercp_register.php">
+			<edit>
+				<find><![CDATA[	$strip_var_list = array('email' => 'email',
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA['email' => 'email', ]]></inline-find>
+					<inline-action type="after-add"><![CDATA['myspace' => 'myspace', ]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[	validate_optional_fields($icq,
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[$icq, ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[$myspace, ]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[		$icq = stripslashes($icq);
+]]></find>
+				<action type="before-add"><![CDATA[		$myspace = stripslashes($myspace);
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql .
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[user_email = '" . str_replace("'", "''", $email) ."', ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[user_myspace = '" . str_replace("'", "''", $myspace) ."', ]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[			$sql = "INSERT INTO " . USERS_TABLE . "	(user_id,
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[user_email, ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[user_myspace, ]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[				VALUES ($user_id, '" . str_replace("'", "''", $username) . "',
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA['" . str_replace("'", "''", $email) . "', ]]></inline-find>
+					<inline-action type="after-add"><![CDATA['" . str_replace("'", "''", $myspace) . "', ]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[					'EMAIL_ADDRESS' => $email,
+]]></find>
+				<action type="after-add"><![CDATA[					'MYSPACE' => $myspace,
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[	$icq = stripslashes($icq);
+]]></find>
+				<action type="before-add"><![CDATA[	$myspace = stripslashes($myspace);
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[	$icq = $userdata['user_icq'];
+]]></find>
+				<action type="before-add"><![CDATA[	$myspace = $userdata['user_myspace'];
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[	display_avatar_gallery($mode,
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[$icq, ]]></inline-find>
+					<inline-action type="before-add"><![CDATA[$myspace, ]]></inline-action>
+				</inline-edit>
+			</edit>
+			<edit>
+				<find><![CDATA[		'ICQ' => $icq,
+]]></find>
+				<action type="before-add"><![CDATA[		'MYSPACE' => $myspace,
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[		'L_ICQ_NUMBER' => $lang['ICQ'],
+]]></find>
+				<action type="before-add"><![CDATA[		'L_MYSPACE' => $lang['Myspace'],
+]]></action>
+			</edit>
+		</open>
+		<open src="includes/usercp_viewprofile.php">
+			<edit>
+				<find><![CDATA[$www = ( $profiledata['user_website'] ) ? '<a href="' . $profiledata['user_website'] . '" target="_userwww">' . $profiledata['user_website'] . '</a>' : '&nbsp;';
+]]></find>
+				<action type="after-add"><![CDATA[$myspace_img = ( $profiledata['user_myspace'] ) ? '<a href="http://www.myspace.com/' . $profiledata['user_myspace'] . '" target="_usermyspace"><img src="' . $images['icon_myspace'] . '" alt="' . $lang['Myspace'] . '" title="' . $lang['Myspace'] . '" border="0" /></a>' : '&nbsp;';
+$myspace = ( $profiledata['user_myspace'] ) ? '<a href="http://www.myspace.com/' . $profiledata['user_myspace'] . '" target="_usermyspace">' . $profiledata['user_myspace'] . '</a>' : '&nbsp;';
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[	'WWW' => $www,
+]]></find>
+				<action type="after-add"><![CDATA[	'MYSPACE_IMG' => $myspace_img,
+	'MYSPACE' => $myspace,
+]]></action>
+			</edit>
+			<edit>
+				<find><![CDATA[	'L_ICQ_NUMBER' => $lang['ICQ'],
+]]></find>
+				<action type="before-add"><![CDATA[	'L_MYSPACE' => $lang['Myspace'],
+]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/subSilver.cfg">
+			<edit>
+				<find><![CDATA[$images['icon_www'] = "$current_template_images/{LANG}/icon_www.gif";
+]]></find>
+				<action type="after-add"><![CDATA[$images['icon_myspace'] = "$current_template_images/{LANG}/icon_myspace.gif";
+]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/privmsgs_read_body.tpl">
+			<edit>
+				<find><![CDATA[{WWW_IMG}
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[{WWW_IMG} ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[{MYSPACE_IMG} ]]></inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="templates/subSilver/profile_add_body.tpl">
+			<edit>
+				<find><![CDATA[	<tr>
+	  <td class="row1"><span class="gen">{L_ICQ_NUMBER}:</span></td>
+	  <td class="row2">
+		<input type="text" name="icq" class="post" style="width: 100px"  size="10" maxlength="15" value="{ICQ}" />
+	  </td>
+	</tr>
+]]></find>
+				<action type="before-add"><![CDATA[	<tr>
+	  <td class="row1"><span class="gen">{L_MYSPACE}:</span></td>
+	  <td class="row2">
+		<input type="text" name="myspace" class="post" style="width: 100px"  size="10" maxlength="25" value="{MYSPACE}" />
+	  </td>
+	</tr>
+]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/profile_view_body.tpl">
+			<edit>
+				<find><![CDATA[		<tr> 
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_PM}:</span></td>
+		  <td class="row1" valign="middle"><b><span class="gen">{PM_IMG}</span></b></td>
+		</tr>
+]]></find>
+				<action type="after-add"><![CDATA[		<tr>
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_MYSPACE}:</span></td>
+		  <td class="row1" valign="middle"><b><span class="gen">{MYSPACE_IMG}</span></b></td>
+		</tr>
+]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/viewtopic_body.tpl">
+			<edit>
+				<find><![CDATA[				<td valign="middle" nowrap="nowrap">{postrow.PROFILE_IMG}
+]]></find>
+				<inline-edit>
+					<inline-find><![CDATA[{postrow.WWW_IMG} ]]></inline-find>
+					<inline-action type="after-add"><![CDATA[{postrow.MYSPACE_IMG} ]]></inline-action>
+				</inline-edit>
+			</edit>
+		</open>
+		<open src="templates/subSilver/admin/user_edit_body.tpl">
+			<edit>
+				<find><![CDATA[	<tr>
+	  <td class="row1"><span class="gen">{L_ICQ_NUMBER}</span></td>
+	  <td class="row2">
+		<input class="post" type="text" name="icq" size="10" maxlength="15" value="{ICQ}" />
+	  </td>
+	</tr>
+]]></find>
+				<action type="before-add"><![CDATA[	<tr>
+	  <td class="row1"><span class="gen">{L_MYSPACE}</span></td>
+	  <td class="row2">
+		<input class="post" type="text" name="myspace" size="10" maxlength="25" value="{MYSPACE}" />
+	  </td>
+	</tr>
+]]></action>
+			</edit>
+		</open>
+		<open src="language/lang_english/lang_main.php">
+			<edit>
+				<find><![CDATA[$lang['Website']
+]]></find>
+				<action type="after-add"><![CDATA[$lang['Myspace'] = 'Myspace Profile';
+]]></action>
+			</edit>
+		</open>
+	</action-group>
+</mod>

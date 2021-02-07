@@ -1,0 +1,190 @@
+######################################################## 
+## 外掛名稱: 討論版使用者在線圖例
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛作者: MaoStudio < mao@maostudio.com > (N/A) http://iamin.maostudio.com/
+## 外掛描述: 這個外掛在你的討論版的在線訊息中顯示四種使用者的在線圖例，顯示的圖示會依照使用者在討論版中的會員等級而不同: 系統管理員, 版面管理員, 會員, 訪客
+## 外掛版本:	1.0.0
+## 
+## 安裝難度: 簡單 
+## 安裝時間: 5 分鐘 
+##
+## 需要編輯的檔案: 4
+##	includes/page_header.php
+##	language/lang_chinese_traditional_taiwan/lang_main.php
+##	templates/subSilver/subSilver.cfg
+##	templates/subSilver/index_body.tpl
+##
+## 附加的檔案: 23
+##	images/*.gif
+##	images/varients/*.gif
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.18 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##
+##	這個外掛 (一個比這個更早開發的外掛) 是由竹貓星球的 MaoStudio (from www.phpbb-tw.net) 在 2002 年所開發的.
+##	雖然在外掛作者中放上了他的名字，但是我並沒有參考和使用他的程式
+##	不過，因為他是第一位把這樣子的外掛帶入 phpBB，因此我仍然保留他的名字
+##
+############################################################## 
+## 版本歷史: 
+##
+##   2005-11-01 - 版本 1.0.0
+##      - 首次發佈
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ 複製 ]------------------------------------------ 
+#
+copy images/u1.gif to templates/subSilver/images/usericon/u1.gif
+copy images/u2.gif to templates/subSilver/images/usericon/u2.gif
+copy images/u3.gif to templates/subSilver/images/usericon/u3.gif
+copy images/u4.gif to templates/subSilver/images/usericon/u4.gif
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.cfg
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+$images['user_icon_admin'] = "$current_template_images/usericon/u1.gif";
+$images['user_icon_mod'] = "$current_template_images/usericon/u2.gif";
+$images['user_icon_user'] = "$current_template_images/usericon/u3.gif";
+$images['user_icon_guest'] = "$current_template_images/usericon/u4.gif";
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_main.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+$lang['User_icon_admin'] = '系統管理員';
+$lang['User_icon_mod'] = '版面管理員';
+$lang['User_icon_user'] = '會員';
+$lang['User_icon_guest'] = '訪客';
+$lang['User_online_color'] = '%s會員%s';
+$lang['Guest_online_color'] = '%s訪客%s';
+$lang['And'] = '和';
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/page_header.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+					$user_online_link = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '"' . $style_color .'>' . $row['username'] . '</a>';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+					if ( $row['user_level'] == ADMIN )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_admin'] . '" border="0" alt="' . $lang['User_icon_admin'] . '" title="' . $lang['User_icon_admin'] . '" />&nbsp;' . $user_online_link;
+					}
+					else if ( $row['user_level'] == MOD )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_mod'] . '" border="0" alt="' . $lang['User_icon_mod'] . '" title="' . $lang['User_icon_mod'] . '" />&nbsp;' . $user_online_link;
+					}
+					else if ( $row['user_level'] == USER )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_user'] . '" border="0" alt="' . $lang['User_icon_user'] . '" title="' . $lang['User_icon_user'] . '" />&nbsp;' . $user_online_link;
+					}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+					$user_online_link = '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $row['user_id']) . '"' . $style_color .'><i>' . $row['username'] . '</i></a>';
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+					if ( $row['user_level'] == ADMIN )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_admin'] . '" border="0" alt="' . $lang['User_icon_admin'] . '" title="' . $lang['User_icon_admin'] . '" />&nbsp;' . $user_online_link;
+					}
+					else if ( $row['user_level'] == MOD )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_mod'] . '" border="0" alt="' . $lang['User_icon_mod'] . '" title="' . $lang['User_icon_mod'] . '" />&nbsp;' . $user_online_link;
+					}
+					else if ( $row['user_level'] == USER )
+					{
+						$user_online_link = '<img src="' . $images['user_icon_user'] . '" border="0" alt="' . $lang['User_icon_user'] . '" title="' . $lang['User_icon_user'] . '" />&nbsp;' . $user_online_link;
+
+					}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'LOGGED_IN_USER_LIST' => $online_userlist,
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+$online_userlist
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ . ' ' . $lang['And'] . '&nbsp;<img src="' . $images['user_icon_guest'] . '" border="0" alt="' . $lang['User_icon_guest'] . '" title="' . $lang['User_icon_guest'] . '" />&nbsp;' . sprintf($l_g_user_s, $guests_online)
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'L_WHOSONLINE_ADMIN' => sprintf($lang['Admin_online_color'], '<span style="color:#' . $theme['fontcolor3'] . '">', '</span>'),
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+	'L_WHOSONLINE_ADMIN' => sprintf($lang['Admin_online_color'], '
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+<img src="' . $images['user_icon_admin'] . '" border="0" alt="' . $lang['User_icon_admin'] . '" title="' . $lang['User_icon_admin'] . '" />&nbsp;
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	'L_WHOSONLINE_MOD' => sprintf($lang['Mod_online_color'], '<span style="color:#' . $theme['fontcolor2'] . '">', '</span>'),
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+	'L_WHOSONLINE_MOD' => sprintf($lang['Mod_online_color'], '
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+<img src="' . $images['user_icon_mod'] . '" border="0" alt="' . $lang['User_icon_mod'] . '" title="' . $lang['User_icon_mod'] . '" />&nbsp;
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+	'L_WHOSONLINE_USER' => sprintf($lang['User_online_color'], '<img src="' . $images['user_icon_user'] . '" border="0" alt="' . $lang['User_icon_user'] . '" title="' . $lang['User_icon_user'] . '" />&nbsp;<span style="color:#' . $theme['body_link'] . '">', '</span>'),
+	'L_WHOSONLINE_GUEST' => sprintf($lang['Guest_online_color'], '<img src="' . $images['user_icon_guest'] . '" border="0" alt="' . $lang['User_icon_guest'] . '" title="' . $lang['User_icon_guest'] . '" />&nbsp;<span style="color:#' . $theme['td_color3'] . '">', '</span>'),
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/index_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+	<td class="row1" align="left"><span class="gensmall">{TOTAL_USERS_ONLINE} &nbsp; [ {L_WHOSONLINE_ADMIN} ] &nbsp; [ {L_WHOSONLINE_MOD} ]<br />{RECORD_USERS}<br />{LOGGED_IN_USER_LIST}</span></td>
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+#
+[ {L_WHOSONLINE_MOD} ]
+# 
+#-----[ 在該行後, 加上 ]------------------------------------------ 
+#
+ &nbsp; [ {L_WHOSONLINE_USER} ] &nbsp; [ {L_WHOSONLINE_GUEST} ]
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+#
+# 
+# 外掛修正結束

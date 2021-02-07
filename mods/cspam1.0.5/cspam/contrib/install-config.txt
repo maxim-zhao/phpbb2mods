@@ -1,0 +1,123 @@
+##############################################################
+## MOD Title: Deter Comment Spam - Configurator
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/phpbb
+## MOD Description: Allows administrators to configure Deter Comment Spam as they see fit.
+##                  Installation requires the basic Deter Comment Spam MOD already be installed.
+## MOD Version: 1.0.5
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+##
+## Files To Edit: 3
+##      language/lang_english/lang_admin.php
+##      includes/constants.php
+##      includes/functions.php
+##
+## Included Files: 2
+##      admin/admin_cspam.php
+##      templates/subSilver/admin/cspam_manage_body.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##     Allows administrators to add rel="nofollow" to all URL's save for those in an exception list
+##     or to add rel="nofollow" to no URL, save for those in an exception list.  The contents of
+##     this exception list are managed by administrators.  See Author Notes in install.txt for more
+##     information.
+##
+############################################################## 
+## MOD History: 
+##
+##     See MOD History in install.txt.
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy admin/admin_cspam.php to admin/admin_cspam.php
+copy templates/subSilver/admin/cspam_manage_body.tpl to templates/subSilver/admin/cspam_manage_body.tpl
+#
+#-----[ SQL ]-------------------------------------------
+#
+CREATE TABLE phpbb_cspam_excepts (except VARCHAR( 255 ) NOT NULL , PRIMARY KEY (`except`));
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cspam_general',0);
+INSERT INTO phpbb_cspam_excepts SELECT config_value FROM phpbb_config WHERE config_name = 'server_name';
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+$lang['Install_No_PCRE']
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+$lang['cspam'] = 'Deter Comment Spam';
+$lang['cspam_name'] = 'Comment Spam';
+$lang['cspam_desc'] = 'Here you can control the addition of the rel="nofollow" attribute to links.';
+$lang['cspam_manage'] = 'Manage IP addresses / hostnames';
+$lang['cspam_gen'] = 'General Rule';
+$lang['cspam_gen_desc'] = 'You can add rel="nofollow" to all links, by default, or none.';
+$lang['cspam_gen_all'] = 'Add To All';
+$lang['cspam_gen_none'] = 'Add To None';
+$lang['cspam_except'] = 'Current Exception List';
+$lang['cspam_except_desc'] = 'You can remove multiple hostnames in one go using the appropriate combination of mouse and keyboard for your computer and browser';
+$lang['cspam_add'] = 'Add IP addresses or hostnames';
+$lang['cspam_add_desc'] = 'To specify several different IP addresses or hostnames seperate them with commas.';
+$lang['cspam_no_excepts'] = 'No Exceptions';
+$lang['cspam_update_success'] = 'The exception list has been updated successfully';
+$lang['cspam_return'] = 'Click %sHere%s to return to Deter Comment Spam';
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+define('CSPAM_EXCEPT_TABLE', $table_prefix.'cspam_excepts');
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	global $board_config;
+
+	if ( preg_match('#^([\w]+?://)?'.trim($board_config['server_name']).'.*$#i',$url) )
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+	global $board_config, $db;
+
+	$sql = "SELECT *
+		FROM " . CSPAM_EXCEPT_TABLE . "
+		WHERE except = '" . str_replace("\'","''",addslashes(preg_replace('#^([\w]+?://)?([^/]+)/?.*$#i',"$2",$url))) . "'";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, "Couldn't check against exception list", "", __LINE__, __FILE__, $sql);
+	}
+
+	$in_list = $db->sql_numrows($result);
+	$db->sql_freeresult($result);
+
+	if (($board_config['cspam_general'] && !$in_list) || (!$board_config['cspam_general'] && $in_list))
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

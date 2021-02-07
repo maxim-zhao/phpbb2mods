@@ -1,0 +1,822 @@
+############################################################## 
+## MOD Title:		Announces Suite - Part 1 (required for all setups)
+## MOD Author:		Ptirhiik < admin@rpgnet-fr.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description:
+##			This mod allows you to display the announces from the forum on the
+##			index page, and above the forum pages for the announce coming from
+##			forums of the same categories. It adds also a duration to each announcement, and
+##			global announcement.
+##
+## MOD Version:		3.0.2
+## 
+## Installation Level:	Easy
+## Installation Time:	15 Minutes
+## Files To Edit:
+##			index.php
+##			posting.php
+##			viewforum.php
+##
+##			includes/auth.php
+##			includes/constants.php
+##			includes/functions.php
+##			includes/functions_post.php
+##
+##			templates/subSilver/index_body.tpl
+##			templates/subSilver/subSilver.cfg
+##			templates/subSilver/viewforum_body.tpl
+##
+## Included Files:
+##			functions_announces.php
+##			lang_extend_announces.php
+##			mod_announces.php
+##
+##			mod-lang_settings/lang_extend_mac.php
+##
+##			mod-mods_settings/functions_mods_settings.php
+##			mod-mods_settings/admin_board_extend.php
+##			mod-mods_settings/board_config_extend_body.tpl
+##
+##			mod-topics_list/functions_topics_list.php
+##			mod-topics_list/topics_list_box.tpl
+##
+##			mod-topics_list/graph.gif/folder_announce_own.gif
+##			mod-topics_list/graph.gif/folder_announce_new_own.gif
+##			mod-topics_list/graph.gif/folder_own.gif
+##			mod-topics_list/graph.gif/folder_new_own.gif
+##			mod-topics_list/graph.gif/folder_hot_own.gif
+##			mod-topics_list/graph.gif/folder_new_hot_own.gif
+##			mod-topics_list/graph.gif/folder_lock_own.gif
+##			mod-topics_list/graph.gif/folder_lock_new_own.gif
+##			mod-topics_list/graph.gif/folder_sticky_own.gif
+##			mod-topics_list/graph.gif/folder_sticky_new_own.gif
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##
+##	o Part 1 is common to all versions
+##	o Part 2 is required if you haven't Split topic type v2 installed
+##	o Part 3 is required if you haven't Categories hierarchy v 2.0.4 or greater
+##	o Part 4 is required if you have Categories hierarchy v 2.0.4 or greater
+##
+##	o users can choose their prefered setup (required full mods settings mod to be installed).
+##		Admin can also choose to override the users choice for each setup parameter.
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2003-11-11 - Version 3.0.2
+##	- no changes to the mod itself, only a slight adaptation of the mod install description
+## 
+##   2003-10-28 - Version 3.0.1
+##      - upgrade the mods_settings tool,
+##	- add the lang_settings tool
+## 
+##   2003-09-10 - Version 3.0.0
+##      - review the code to use functions_topics_list.php
+##	- add the mods_settings mod usage for user prefs
+##	- add the global announcement
+## 
+##   2003-07-14 - Version 2.0.0
+##      - add annnounces duration on topic
+##	- add prune announces process
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_topics ADD topic_announce_duration MEDIUMINT(5) NOT NULL;
+ALTER TABLE phpbb_auth_access ADD auth_global_announce TINYINT(1) NOT NULL AFTER auth_announce;
+ALTER TABLE phpbb_forums ADD auth_global_announce TINYINT(2) NOT NULL AFTER auth_announce;
+UPDATE phpbb_forums SET auth_global_announce=5;
+#
+#-----[ SQL ]-------------------------------------------------
+#
+# This part is optional : do it only if you want your users to be able to choose their setup
+#	if you want so, you'll have to install the MOD-mods_settings-users_choices mod included in the pack
+#
+ALTER TABLE phpbb_users ADD user_announcement_date_display TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_announcement_display TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_announcement_display_forum TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_announcement_split TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_announcement_forum TINYINT(1) DEFAULT '1' NOT NULL;
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy functions_announces.php to includes/functions_announces.php
+copy lang_extend_announces.php to language/lang_english/lang_extend_announces.php
+copy mod_announces.php to includes/mods_settings/mod_announces.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+#  this one is relative to the lang settings mod, and is required for Announces Suite
+#
+copy mod-lang_settings/lang_extend_mac.php to includes/lang_extend_mac.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+# those ones are a part of the mods settings mod, and are required for Announces Suite
+#
+copy mod-mods_settings/functions_mods_settings.php to includes/functions_mods_settings.php
+copy mod-mods_settings/admin_board_extend.php to admin/admin_board_extend.php
+copy mod-mods_settings/board_config_extend_body.tpl to templates/subSilver/admin/board_config_extend_body.tpl
+#
+#-----[ COPY ]------------------------------------------------
+#
+# this part is relative to the topics list mod, and is required for Announces Suite
+#
+copy mod-topics_list/functions_topics_list.php to includes/functions_topics_list.php
+copy mod-topics_list/topics_list_box.tpl to templates/subSilver/topics_list_box.tpl
+
+copy mod-topics_list/graph.gif/folder_announce_own.gif to templates/subSilver/images/folder_announce_own.gif
+copy mod-topics_list/graph.gif/folder_announce_new_own.gif to templates/subSilver/images/folder_announce_new_own.gif
+copy mod-topics_list/graph.gif/folder_own.gif to templates/subSilver/images/folder_own.gif
+copy mod-topics_list/graph.gif/folder_new_own.gif to templates/subSilver/images/folder_new_own.gif
+copy mod-topics_list/graph.gif/folder_hot_own.gif to templates/subSilver/images/folder_hot_own.gif
+copy mod-topics_list/graph.gif/folder_new_hot_own.gif to templates/subSilver/images/folder_new_hot_own.gif
+copy mod-topics_list/graph.gif/folder_lock_own.gif to templates/subSilver/images/folder_lock_own.gif
+copy mod-topics_list/graph.gif/folder_lock_new_own.gif to templates/subSilver/images/folder_lock_new_own.gif
+copy mod-topics_list/graph.gif/folder_sticky_own.gif to templates/subSilver/images/folder_sticky_own.gif
+copy mod-topics_list/graph.gif/folder_sticky_new_own.gif to templates/subSilver/images/folder_sticky_new_own.gif
+#
+#-----[ OPEN ]------------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+include($phpbb_root_path . 'common.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/functions_announces.'. $phpEx);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Okay, let's build the index
+	//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+	// categories hierarchy v 2 compliancy
+	if (empty($viewcatkey) && ($viewcat > -1))
+	{
+		$viewcatkey = POST_CAT_URL . $viewcat;
+	}
+	else
+	{
+		if (empty($viewcatkey)) $viewcatkey = 'Root';
+	}
+	announces_from_forums($viewcatkey);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$topic_type = ( !empty($HTTP_POST_VARS['topictype']) ) ? intval($HTTP_POST_VARS['topictype']) : POST_NORMAL;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+$topic_announce_duration = ( !empty($HTTP_POST_VARS['topicduration']) ) ? intval($HTTP_POST_VARS['topicduration']) : 0;
+if (in_array($topic_type, array(POST_ANNOUNCE, POST_GLOBAL_ANNOUNCE)))
+{
+	if (empty($topic_announce_duration)) $topic_announce_duration = $board_config['announcement_duration'];
+}
+else
+{
+	$topic_announce_duration = 0;
+}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$is_auth_type = 'auth_announce';
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+		else if ( $topic_type == POST_GLOBAL_ANNOUNCE )
+		{
+			$is_auth_type = 'auth_global_announce';
+		}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search, the full line is longer
+#
+		$select_sql = ( !$submit ) ?
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	, t.topic_announce_duration
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, t.topic_title
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, t.topic_announce_duration
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$post_data['topic_type'] = $post_info['topic_type'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+		$post_data['topic_announce_duration'] = $post_info['topic_announce_duration'];
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+				$topic_type = ( $topic_type != $post_data['topic_type']
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+				if ($topic_announce_duration < -1) $topic_announce_duration == 0;
+				if ( !in_array($topic_type, array(POST_ANNOUNCE, POST_GLOBAL_ANNOUNCE)) )
+				{
+					$topic_announce_duration = 0;
+				}
+				if ( ($topic_announce_duration == 0) && in_array($topic_type, array(POST_ANNOUNCE, POST_GLOBAL_ANNOUNCE)) )
+				{
+					$topic_announce_duration = intval($board_config['announcement_duration']);
+				}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+				submit_post($mode, $post_data
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	, $topic_announce_duration
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, $topic_announce_duration
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$topic_type_toggle .= ' /> ' . $lang['Post_Announcement'] . '&nbsp;&nbsp;';
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+	if( $is_auth['auth_global_announce'] )
+	{
+		$topic_type_toggle .= '<input type="radio" name="topictype" value="' . POST_GLOBAL_ANNOUNCE . '"';
+		if ( $post_data['topic_type'] == POST_GLOBAL_ANNOUNCE || $topic_type == POST_GLOBAL_ANNOUNCE )
+		{
+			$topic_type_toggle .= ' checked="checked"';
+		}
+		$topic_type_toggle .= ' /> ' . $lang['Post_Global_Announcement'] . '&nbsp;&nbsp;';
+	}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+		$topic_type_toggle = $lang['Post_topic_as'] . ':
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+	if( $is_auth['auth_announce'] || $is_auth['auth_global_announce'])
+	{
+		if (empty($topic_announce_duration)) $topic_announce_duration = $post_data['topic_announce_duration'];
+		$topic_type_toggle .= '<br />' . $lang['announcement_duration'] . ': <input type="post" size="3" name="topicduration" value="' . $topic_announce_duration . '" />&nbsp;' . $lang['Days'] . '<br /><span class="gensmall">(' . $lang['announcement_duration_explain'] . ')</span>';
+	}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+include($phpbb_root_path . 'common.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/functions_announces.'. $phpEx);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// End session management
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/mods_settings/mod_announces.' . $phpEx);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+$sql = "SELECT t.*, u.username
+	FROM " . TOPICS_TABLE .
+	WHERE t.forum_id = $forum_id
+		AND t.topic_poster =
+		AND p.post_id =
+		AND p.poster_id =
+		AND t.topic_type = " . POST_ANNOUNCE . "
+	ORDER BY
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	( [../..]" . ( !intval($board_config['announcement_display_forum']) ? " OR t.topic_type = " . POST_GLOBAL_ANNOUNCE : '' ) . ")
+// and
+//	( [../..] OR t.topic_type = " . POST_GLOBAL_ANNOUNCE . ")
+// and
+//	t.topic_type DESC,
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+t.forum_id
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+(
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+$forum_id
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+" . ( (intval($board_config['announcement_display_forum']) == 0) ? " OR t.topic_type = " . POST_GLOBAL_ANNOUNCE : '' ) . ")
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+t.topic_type = " . POST_ANNOUNCE . "
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+(t.topic_type = " . POST_ANNOUNCE . " OR t.topic_type = " . POST_GLOBAL_ANNOUNCE . ")
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+ORDER BY
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+ t.topic_type DESC,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+$sql = "SELECT t.*, 
+	FROM " . TOPICS_TABLE
+	WHERE t.forum_id =
+		AND t.topic_poster =
+		AND p.post_id =
+		AND p2.post_id =
+		AND u2.user_id =
+		AND t.topic_type <> " . POST_ANNOUNCE
+		$limit_topics_time
+	ORDER BY
+	LIMIT
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	AND t.topic_type <> " . POST_GLOBAL_ANNOUNCE . "
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+		AND t.topic_type <> " . POST_ANNOUNCE . "
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+ AND t.topic_type <> " . POST_GLOBAL_ANNOUNCE . "
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+make_jumpbox('viewforum.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+announces_from_forums(POST_FORUM_URL . $forum_id);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/auth.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$a_sql = 'a.auth_view, a.auth_read
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	, a.auth_global_announce
+// and
+//	, 'auth_global_announce
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, a.auth_vote, a.auth_pollcreate';
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, a.auth_global_announce
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$auth_fields = array('auth_view', 'auth_read'
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, 'auth_vote', 'auth_pollcreate');
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, 'auth_global_announce'
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$auth_fields = array('auth_announce');
+			break;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+		case AUTH_GLOBAL_ANNOUNCE:
+			$a_sql = 'a.auth_global_announce';
+			$auth_fields = array('auth_global_announce');
+			break;
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+define('AUTH_GLOBAL_ANNOUNCE', 21);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+# Note : this part can already exists. If so, just skip it.
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- mod : mods settings ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( $userdata['user_id'] != ANONYMOUS )
+	{
+		if ( !empty($userdata['user_lang']))
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+	global $db, $mods, $list_yes_no, $userdata;
+
+	//	get all the mods settings
+	$dir = @opendir($phpbb_root_path . 'includes/mods_settings');
+	while( $file = @readdir($dir) )
+	{
+		if( preg_match("/^mod_.*?\." . $phpEx . "$/", $file) )
+		{
+			include_once($phpbb_root_path . 'includes/mods_settings/' . $file);
+		}
+	}
+	@closedir($dir);
+//-- fin mod : mods settings -----------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Set up style
+	//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+	include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		}
+
+		if ( empty($template) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+			include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+function submit_post($mode,
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we have added
+//	, $topic_announce_duration = 0
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+)
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, $topic_announce_duration = 0
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+		$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added 
+//	topic_announce_duration,
+//	$topic_announce_duration,
+//
+// and
+//	, topic_announce_duration = $topic_announce_duration
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, topic_status, topic_type
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, topic_announce_duration
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, " . TOPIC_UNLOCKED . ", $topic_type
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, $topic_announce_duration
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, topic_type = $topic_type
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, topic_announce_duration = $topic_announce_duration
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/index_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+# at top of the file
+#
+<table width="100%" cellspacing="0" cellpadding="2" border="0" align="center">
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- mod : announces -->
+#
+#-----[ FIND ]------------------------------------------------
+#
+		<a href="{U_SEARCH_UNANSWERED}" class="gensmall">{L_SEARCH_UNANSWERED}</a></td>
+  </tr>
+</table>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+{BOARD_ANNOUNCES}
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topics list -----------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : topics list -----------------------------------------------------------------------------
+//-- add
+$images['folder_global_announce']		= "$current_template_images/folder_announce.gif";
+$images['folder_global_announce_new']		= "$current_template_images/folder_announce_new.gif";
+$images['folder_global_announce_own']		= "$current_template_images/folder_announce_own.gif";
+$images['folder_global_announce_new_own']	= "$current_template_images/folder_announce_new_own.gif";
+$images['folder_own']				= "$current_template_images/folder_own.gif";
+$images['folder_new_own']			= "$current_template_images/folder_new_own.gif";
+$images['folder_hot_own']			= "$current_template_images/folder_hot_own.gif";
+$images['folder_hot_new_own']			= "$current_template_images/folder_new_hot_own.gif";
+$images['folder_locked_own']			= "$current_template_images/folder_lock_own.gif";
+$images['folder_locked_new_own']		= "$current_template_images/folder_lock_new_own.gif";
+$images['folder_sticky_own']			= "$current_template_images/folder_sticky_own.gif";
+$images['folder_sticky_new_own']		= "$current_template_images/folder_sticky_new_own.gif";
+$images['folder_announce_own']			= "$current_template_images/folder_announce_own.gif";
+$images['folder_announce_new_own']		= "$current_template_images/folder_announce_new_own.gif";
+//-- fin mod : topics list -------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+# at top of the file
+#
+<form method="post" action="{S_POST_DAYS_ACTION}">
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- mod : announces -->
+#
+#-----[ FIND ]------------------------------------------------
+#
+{L_MARK_TOPICS_READ}</a></span></td>
+	</tr>
+  </table>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+{BOARD_ANNOUNCES}
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

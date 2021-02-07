@@ -1,0 +1,188 @@
+##############################################################
+## MOD Title: Allow Author Wildcard Search
+## MOD Author: Thoul < thoul@phpbbsmith.com > (Jeremy Rogers) http://www.phpbbsmith.com
+## MOD Description: Enables searching with * as an author name.
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 2 Minutes
+## Files To Edit: search.php
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## Before proceeding, please read the file README.txt and consult the
+## install.txt, upgrade.txt, or uninstall.txt for the actual installation,
+## upgrade, or uninstallation instructions.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+<?php
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// This file modified for Allow Author Wildcard Search 1.0.1
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+				$search_author = str_replace('*', '%', trim($search_author));
+
+				if( ( strpos($search_author, '%') !== false ) && ( strlen(str_replace('%', '', $search_author)) < $board_config['search_min_chars'] ) )
+				{
+					$search_author = '';
+				}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+/*------------------------------------------------------------------------------
+// Allow Author Wildcard Search - Begin Code Alteration
+//		Original phpBB Code:
+				$search_author = str_replace('*', '%', trim($search_author));
+
+				if( ( strpos($search_author, '%') !== false ) && ( strlen(str_replace('%', '', $search_author)) < $board_config['search_min_chars'] ) )
+				{
+					$search_author = '';
+				}
+*/
+				if ( trim($search_author) == '*' && $search_time )
+				{
+					$search_author = '%';
+					$sql = "SELECT user_id
+						FROM " . USERS_TABLE;
+				}
+				else
+				{
+					$search_author = str_replace('*', '%', trim($search_author));
+
+					if( ( strpos($search_author, '%') !== false ) && ( strlen(str_replace('%', '', $search_author)) < $board_config['search_min_chars'] ) )
+					{
+						$search_author = '';
+					}
+					
+					$sql = "SELECT user_id
+						FROM " . USERS_TABLE . "
+						WHERE username LIKE '" . str_replace("\'", "''", $search_author) . "'";
+				}
+//
+// Allow Author Wildcard Search - End Code Alteration
+//------------------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+		//
+		// Author name search 
+		//
+		if ( $search_author != '' )
+		{
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+/*------------------------------------------------------------------------------
+// Allow Author Wildcard Search - Begin Code Alteration
+//		Original phpBB Code:
+		//
+		// Author name search 
+		//
+		if ( $search_author != '' )
+		{
+*/
+		//
+		// Author name search 
+		//
+		if ( trim($search_author) == '*' && $search_time )
+		{
+			$search_author = '%';
+		}
+		elseif ( $search_author != '' )
+		{
+//
+// Allow Author Wildcard Search - End Code Alteration
+//------------------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+							$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author' ";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+/*------------------------------------------------------------------------------
+// Allow Author Wildcard Search - Begin Code Alteration
+//		Original phpBB Code:
+							$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author' ";
+*/
+							if ($search_author == '%')
+							{
+								$where_sql .= " AND u.user_id = p.poster_id ";
+							}
+							else
+							{
+								$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author' ";
+							}
+//
+// Allow Author Wildcard Search - End Code Alteration
+//------------------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+						$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author'";
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+/*------------------------------------------------------------------------------
+// Allow Author Wildcard Search - Begin Code Alteration
+//		Original phpBB Code:
+						$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author'";
+*/
+						if ($search_author == '%')
+						{
+							$where_sql .= " AND u.user_id = p.poster_id";
+						}
+						else
+						{
+							$where_sql .= " AND u.user_id = p.poster_id AND u.username LIKE '$search_author'";
+						}
+//
+// Allow Author Wildcard Search - End Code Alteration
+//------------------------------------------------------------------------------
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

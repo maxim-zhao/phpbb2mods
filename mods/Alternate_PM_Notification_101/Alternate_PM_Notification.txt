@@ -1,0 +1,105 @@
+##############################################################
+## MOD Title: Alternate PM Notification
+## MOD Author: Lance < Lance@cylan.net > (Lance Clarke) http://www.cylan.net/ 
+## MOD Description: This MOD displays PM Notifications in a floating table if the PM Popup is blocked.
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes 
+## Files To Edit: includes/page_header.php
+##                templates/subSilver/overall_header.tpl
+##
+## Included Files: n/a
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: 
+##
+## Browsers with popup blockers will not see the New PM Notification popup.
+## This MOD displays PM Notifications in a floating table if the PM Popup is blocked.
+##
+## This MOD was inspired by "PM Popup Blocker Fix" by Tom Levens http://www.tomlevens.co.uk/
+############################################################## 
+## MOD History: 
+## 
+##  2005-06-26 - Version 1.0.0
+##             - Initial Release 
+##  2005-06-29 - Version 1.0.1
+##             - Removed "EasyMOD Compliant" declaration (Per Mod Validation)
+##             - Streamlined JavaScript
+##             - Removed hard coded text
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_PRIVATEMSGS' => $lang['Private_Messages'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'L_PRIVATEMSG_NEW' => ($userdata['user_new_privmsg'] == 1) ? $lang['You_new_pm'] : $lang['You_new_pms'],
+	'L_CLOSE_WINDOW' => $lang['Close_window'],
+	'L_MESSAGE' => sprintf($lang['Click_view_privmsg'], '<a href="' . append_sid("privmsg.".$phpEx."?folder=inbox") . '">', '</a>'),
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<!-- BEGIN switch_enable_pm_popup -->
+<script language="Javascript" type="text/javascript">
+<!--
+	if ( {PRIVATE_MESSAGE_NEW_FLAG} )
+	{
+		window.open('{U_PRIVATEMSGS_POPUP}', '_phpbbprivmsg', 'HEIGHT=225,resizable=yes,WIDTH=400');;
+	}
+//-->
+</script>
+<!-- END switch_enable_pm_popup -->
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+<!-- BEGIN switch_enable_pm_popup -->
+<table id="new_pm_popup" class="forumline" border="0" cellspacing="1" cellpadding="4" style="position: absolute; top: 25%; left: 25%; height: 125px; width: 400px; display: none;">
+  <tr>
+    <td valign="top" class="row1" align="center">
+      <br />
+      <span class="gen">{L_PRIVATEMSG_NEW}<br /><br />{L_MESSAGE}</span><br /><br />
+      <span class="genmed"><a href="" onClick="getElementById('new_pm_popup').style.display = 'none'; return false;" class="genmed">{L_CLOSE_WINDOW}</a></span><br /><br />
+    </td>
+  </tr>
+</table>
+
+<script language="javascript" type="text/javascript">
+<!--
+	if ( {PRIVATE_MESSAGE_NEW_FLAG} ) 
+	{ 
+		pmWindow = window.open('{U_PRIVATEMSGS_POPUP}', '_phpbbprivmsg', 'HEIGHT=225,resizable=yes,WIDTH=400');
+		if (!window.pmWindow)
+		{ 
+			document.getElementById('new_pm_popup').style.display = 'inline'; 
+		} 
+	} 
+//-->
+</script>
+<!-- END switch_enable_pm_popup -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,2716 @@
+############################################################
+## MOD Title: Approval MOD
+##
+## MOD Author: uncle.f < soft@purple-yonder.com > (N/A) http://purple-yonder.com/approval_mod
+##
+## MOD Description: Posts made by users belonging to certain group(s) must be
+##                  validated by a moderator/admin before becoming available
+##
+## MOD Version: 2.0.0
+##
+## Installation Level: Advanced
+##
+## Installation Time: ~2 Hours
+##
+## Files To Edit: index.php,
+##      modcp.php,
+##      posting.php,
+##      search.php,
+##      viewforum.php,
+##      viewtopic.php,
+##      admin/admin_forums.php,
+##      admin/admin_ranks.php,
+##      admin/admin_ug_auth.php,
+##      includes/auth.php,
+##      includes/constants.php,
+##      includes/functions_admin.php,
+##      includes/functions_post.php,
+##      includes/topic_review.php,
+##      language/lang_english/lang_admin.php,
+##      language/lang_english/lang_faq.php,
+##      language/lang_english/lang_main.php,
+##      templates/subSilver/admin/forum_edit_body.tpl,
+##      templates/subSilver/admin/ranks_edit_body.tpl,
+##      templates/subSilver/admin/ranks_list_body.tpl,
+##      templates/subSilver/index_body.tpl,
+##      templates/subSilver/modcp_body.tpl,
+##      templates/subSilver/overall_header.tpl,
+##      templates/subSilver/posting_body.tpl,
+##      templates/subSilver/search_results_posts.tpl,
+##      templates/subSilver/simple_header.tpl,
+##      templates/subSilver/subSilver.cfg,
+##      templates/subSilver/subSilver.css,
+##      templates/subSilver/viewforum_body.tpl,
+##      templates/subSilver/viewtopic_body.tpl
+##
+## Included Files: includes/functions_approval.php,
+##      language/lang_english/email/approve_notify.tpl,
+##      language/lang_english/email/post_notify.tpl,
+##      templates/subSilver/images/icon_approve.gif
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+###############################################################################
+##
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##
+###############################################################################
+##
+## Author Notes:
+##
+## - Has only been tested with phpBB 2.0.22 (not guaranteed to work with other versions)
+## - Has only been tested with MySQL/MS-SQL back-ends; pease report other DB back-ends
+## - This MOD is EasyMOD friendly
+## - See the 'docs/easymod.html' anf 'docs/faq.html' files for more details
+## - See the 'conrib' directory for language translations, compatibility fixes and admin scripts
+##
+###############################################################################
+##
+## MOD History:
+##
+##   2007-10-21 - Version 2.0.0
+##      - UPD: Changed variable name APPROVE_IMG to be compatible with Democracy MOD (thanks Aspid!)
+##      - UPD: Attachment MOD compatibility fix
+##      - UPD: Included some useful scripts in the 'contrib' folder
+##      - UPD: Documentation updates
+##
+##   2007-06-17 - Version 2.0.0-RC4
+##      - NEW: 'Approve' icon is language independent (word-based icons are under the 'contrib' now)
+##      - FIX: Wrong handling of user posts counter when using Moderator CP
+##      - UPD: Changed the successful post confirmation page timeout to 10 seconds
+##      - UPD: 'Simple Subforums' / 'Topics Anywhere' / 'Email Digests' compatibility updates
+##      - UPD: Fixed 'Last Topic Title On Index MOD' compatibility update
+##      - UPD: Added FAQ and updated the documentation
+##
+##   2007-01-28 - Version 2.0.0-RC3
+##      - NEW: User's personal posts counter increases only after approval
+##      - NEW: Unapproved topic replies numbers are shown in moderator CP view
+##      - NEW: Russian language translation
+##      - FIX: missing 'Ranks override permissions' forum option (thanks hotmale!)
+##      - FIX: unapproved post stats may be wrong (under certain conditions during post deletion)
+##      - UPD: 'Last Topic Title On Index' compatibility update
+##      - UPD: Estimated installation time changed to 2 hours
+##
+##   2007-01-22 - Version 2.0.0-RC2
+##      - NEW: Approve/delete buttons for 'show unapproved posts' search results
+##      - NEW: German language translation (thanks jerx!)
+##      - NEW: French language translation (thanks crazycoders!)
+##      - FIX: General MOD compatibility adjustments
+##      - UPD: 'Global Announcement' / 'Topic Display Order' compatibility updates
+##      - UPD: Updates to the documentation
+##      - UPD: Estimated installation time changed to 1.5 hours
+##
+##   2007-01-07 - Version 2.0.0-RC1 (re-worked and improved)
+##      - NEW: Approval-by-groups and ranks functionality
+##      - NEW: View all unapproved posts using the link on the index page
+##      - NEW: New per-forum options
+##      - FIX: Wrong logic when logged out user is trying to follow post approval link
+##      - FIX: MS-SQL specific error in viewforum.php (thanks Gregminimum)
+##      - FIX: misspelled constants (thanks ruler)
+##      - FIX: Various small fixes and adjustments
+##      - DEL: Removed notification by PM
+##
+##   2006-09-17 - Version 1.0.0a
+##      - Replaced hardcoded English with a language variable (MOD PM notification subject)
+##      - Added custom CSS style into subSilver.css (same as in overall_header.tpl)
+##      - Corrected malformed <br> tag in the "successful approval confirmation page"
+##
+##   2006-09-10 - Version 0.9.9-RC3
+##      - Two new SQL queries during MOD installation to fix the "missing existing posts" problem
+##      - Topic Review window now follows the same approval rules as the main topic view
+##      - Approved posts that are *edited* by standard users become unapproved (when approval is ON)
+##      - Moderators PM notification is now aware of the "Disable Private Messaging" global setting
+##      - Made it impossible to reply to the topic if its first post is unapproved
+##      - Added an entry regarding approval to the main FAQ
+##      - Optimized code, made MOD slightly less "intrusive" and easier to install by hand
+##
+##   2006-09-05 - Version 0.9.9-RC2
+##      - Fixed a bug in viewtopic.php affecting number of topic replies shown to the standard users
+##      - Shortened 'under approval' subject for messages in topic view
+##      - Cosmetic changes in the approval.mod file
+##
+##   2006-09-04 - Version 0.9.9-RC1
+##      - Initial test version
+##
+###############################################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+###############################################################################
+
+
+#######################################################################################################################
+#
+#-----[ SQL ]----------------------------------------------------------------------------------------------------------
+#
+ALTER TABLE phpbb_auth_access ADD auth_approve TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
+ALTER TABLE phpbb_forums ADD forum_approve TINYINT(2) UNSIGNED NOT NULL DEFAULT '0';
+ALTER TABLE phpbb_forums ADD forum_posts_unapproved MEDIUMINT(8) UNSIGNED NOT NULL DEFAULT '0';
+ALTER TABLE phpbb_forums ADD forum_topics_unapproved MEDIUMINT(8) UNSIGNED NOT NULL DEFAULT '0';
+ALTER TABLE phpbb_forums ADD forum_last_post_approved MEDIUMINT(8) UNSIGNED NOT NULL DEFAULT '0';
+ALTER TABLE phpbb_ranks ADD rank_approve TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
+ALTER TABLE phpbb_topics ADD topic_approve TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
+ALTER TABLE phpbb_topics ADD topic_replies_unapproved MEDIUMINT(8) UNSIGNED NOT NULL DEFAULT '0';
+ALTER TABLE phpbb_topics ADD topic_last_post_approved MEDIUMINT(8) UNSIGNED NOT NULL DEFAULT '0';
+ALTER TABLE phpbb_posts ADD post_approve TINYINT(1) UNSIGNED NOT NULL DEFAULT '0';
+UPDATE phpbb_forums SET forum_last_post_approved = forum_last_post_id;
+UPDATE phpbb_topics SET topic_last_post_approved = topic_last_post_id;
+#
+#
+#######################################################################################################################
+#
+#-----[ COPY ]---------------------------------------------------------------------------------------------------------
+#
+copy root/includes/functions_approve.php to includes/functions_approve.php
+copy root/language/lang_english/email/approve_notify.tpl to language/lang_english/email/approve_notify.tpl
+copy root/language/lang_english/email/post_notify.tpl to language/lang_english/email/post_notify.tpl
+copy root/templates/subSilver/images/icon_approve.gif to templates/subSilver/images/icon_approve.gif
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+index.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+if( ( $total_categories
+  {
+#
+#-----[ AFTER, ADD ]-----
+#
+	// approval block start
+	$unapproved_posts_count = 0;
+	$approve_select = ", p.post_approve, p2.post_time post_time2, p2.post_username post_username2, u2.username username2, u2.user_id user_id2";
+	$approve_postgresql_where = "AND p2.post_id = f.forum_last_post_approved AND u2.user_id = p2.poster_id";
+	$approve_postgresql_union = ", NULL, NULL, NULL, NULL, NULL";
+	$approve_oracle_select = ", p.post_approve, p2.post_time post_time2, p2.post_username post_username2, u2.username username2, u2.user_id user_id2";
+	$approve_oracle_where = "AND p2.post_id = f.forum_last_post_approved(+) AND u2.user_id = p2.poster_id(+)";
+	$approve_default_where1 = "(( ";
+	$approve_default_where2 = "LEFT JOIN " . POSTS_TABLE . " p2 ON p2.post_id = f.forum_last_post_approved ) LEFT JOIN " . USERS_TABLE . " u2 ON u2.user_id = p2.poster_id )";
+	// approval block end
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+case 'postgresql':
+$sql
+FROM
+WHERE
+AND
+UNION
+SELECT
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// sql modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+, u.user_id
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ $approve_select
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+= p.poster_id
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ $approve_postgresql_where
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+NULL, NULL, NULL, NULL
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ $approve_postgresql_union
+#
+#-----[ FIND ]---------------------------------------------
+#
+case 'oracle':
+$sql
+FROM
+WHERE
+AND
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// sql modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+, u.user_id
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ $approve_select
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+poster_id(+)
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ $approve_oracle_where
+#
+#-----[ FIND ]---------------------------------------------
+#
+default:
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// sql modified by approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql
+FROM
+LEFT
+LEFT
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+, u.user_id
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ $approve_select
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+( " .
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ $approve_default_where1 .
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+poster_id
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ $approve_default_where2
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "SELECT t.forum_id
+FROM
+WHERE p.post_id =
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// sql modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+topic_last_post_id
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+topic_last_post_approved
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ( $forum_data[$j]['forum_last_post_id'] )
+#
+#-----[ BEFORE, ADD ]-----
+#
+							// approval block start
+							$allowed_to_approve = ( $is_auth_ary[$forum_data[$j]['forum_id']]['auth_mod'] ||
+							                         $is_auth_ary[$forum_data[$j]['forum_id']]['auth_approve'] == APPROVAL_MOD_CAN_DO ) ? TRUE : FALSE;
+							if ($allowed_to_approve && $forum_data[$j]['forum_posts_unapproved'])
+							{
+								$unapproved_posts_count += $forum_data[$j]['forum_posts_unapproved'];
+							}
+							if ( ($forum_data[$j]['forum_approve'] & APPROVAL_HIDE) == APPROVAL_HIDE && !$allowed_to_approve )
+							{
+								$forum_data[$j]['forum_posts'] = $forum_data[$j]['forum_posts'] - $forum_data[$j]['forum_posts_unapproved'];
+								$forum_data[$j]['forum_topics'] = $forum_data[$j]['forum_topics'] - $forum_data[$j]['forum_topics_unapproved'];
+								$forum_data[$j]['forum_last_post_id'] = $forum_data[$j]['forum_last_post_approved'];
+								$forum_data[$j]['post_time'] = $forum_data[$j]['post_time2'];
+								$forum_data[$j]['user_id'] = $forum_data[$j]['user_id2'];
+								$forum_data[$j]['post_username'] = $forum_data[$j]['post_username2'];
+								$forum_data[$j]['username'] = $forum_data[$j]['username2'];
+								$approve_mini_message = '';
+							}
+							else
+							{
+								$forum_data[$j]['forum_posts'] = $forum_data[$j]['forum_posts'] . (($allowed_to_approve && $forum_data[$j]['forum_posts_unapproved']) ? '&nbsp;<span class="postUnapproved">(' . $forum_data[$j]['forum_posts_unapproved'] . ')</span>' : '');
+								$forum_data[$j]['forum_topics'] = $forum_data[$j]['forum_topics'] . (($allowed_to_approve && $forum_data[$j]['forum_topics_unapproved']) ? '&nbsp;<span class="postUnapproved">(' . $forum_data[$j]['forum_topics_unapproved'] . ')</span>' : '');
+								$approve_mini_message = ( $forum_data[$j]['forum_approve'] && $forum_data[$j]['post_approve'] ) ? ' ' . $lang['Approval_unapproved_mini'] : '';
+							}
+							// approval block end
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$last_post .= '<a
+#
+#-----[ AFTER, ADD ]-----
+#
+
+								$last_post .= $approve_mini_message;   // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+  }
+  else
+  {
+	message_die(GENERAL_MESSAGE, $lang['No_forums']);
+#
+#-----[ BEFORE, ADD ]-----
+#
+	// approval block start
+	if ($unapproved_posts_count)
+	{
+		$template->assign_vars(array(
+			'L_SEARCH_UNAPPROVED' => $lang['Approval_search'] . ' [' . $unapproved_posts_count . ']',
+			'U_SEARCH_UNAPPROVED' => append_sid('search.'.$phpEx.'?search_id=unapproved'),)
+		);
+	}
+	// approval block end
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+modcp.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$unlock =
+#
+#-----[ AFTER, ADD ]-----
+#
+$approve = ( isset($HTTP_POST_VARS['approve']) ) ? TRUE : FALSE;  // aproval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+$mode = 'unlock';
+}
+#
+#-----[ AFTER, ADD ]-----
+#
+	else if ( $approve )         // approval block start
+	{
+		$mode = 'approve';
+	}                            // approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "SELECT poster_id, COUNT(post_id) AS posts
+FROM " . POSTS_TABLE
+WHERE topic_id IN ($topic_id_sql)
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+($topic_id_sql)
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ AND post_approve = 0
+#
+#-----[ FIND ]---------------------------------------------
+#
+default:
+$page_title = $lang['Mod_CP'];
+#
+#-----[ BEFORE, ADD ]-----
+#
+	// approval block start
+	case 'approve':
+		if ( empty($HTTP_POST_VARS['topic_id_list']) && empty($topic_id) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['None_selected']);
+		}
+
+		$topics = ( isset($HTTP_POST_VARS['topic_id_list']) ) ?  $HTTP_POST_VARS['topic_id_list'] : array($topic_id);
+
+		$topic_id_sql = '';
+		for($i = 0; $i < count($topics); $i++)
+		{
+			$topic_id_sql .= ( ( $topic_id_sql != "") ? ', ' : '' ) . intval($topics[$i]);
+		}
+
+		$sql = "SELECT poster_id, COUNT(post_id) AS posts
+			FROM " . POSTS_TABLE . "
+			WHERE topic_id IN ($topic_id_sql) AND post_approve = 1
+			GROUP BY poster_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not get poster id information', '', __LINE__, __FILE__, $sql);
+		}
+
+		$count_sql = array();
+		while ( $row = $db->sql_fetchrow($result) )
+		{
+			$count_sql[] = "UPDATE " . USERS_TABLE . "
+				SET user_posts = user_posts + " . $row['posts'] . "
+				WHERE user_id = " . $row['poster_id'];
+		}
+		$db->sql_freeresult($result);
+
+		if ( sizeof($count_sql) )
+		{
+			for($i = 0; $i < sizeof($count_sql); $i++)
+			{
+				if ( !$db->sql_query($count_sql[$i]) )
+				{
+					message_die(GENERAL_ERROR, 'Could not update user post count information', '', __LINE__, __FILE__, $sql);
+				}
+			}
+		}
+
+		$sql = "UPDATE " . TOPICS_TABLE . "
+			SET topic_approve = 0
+			WHERE topic_id IN ($topic_id_sql)
+				AND forum_id = $forum_id
+				AND topic_moved_id = 0";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not update topics table', '', __LINE__, __FILE__, $sql);
+		}
+
+		$sql = "UPDATE " . POSTS_TABLE . " p, " . TOPICS_TABLE . " t
+			SET p.post_approve = 0
+			WHERE p.topic_id IN ($topic_id_sql)
+				AND p.forum_id = $forum_id
+				AND t.forum_id = $forum_id
+				AND p.topic_id = t.topic_id
+				AND t.topic_moved_id = 0";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not update posts table', '', __LINE__, __FILE__, $sql);
+		}
+
+		foreach ($topics as $topic)
+		{
+			sync('topic', $topic);
+		}
+
+		sync('forum', $forum_id);
+
+		if ( !empty($topic_id) )
+		{
+			$redirect_page = "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;sid=" . $userdata['session_id'];
+			$message = sprintf($lang['Click_return_topic'], '<a href="' . $redirect_page . '">', '</a>');
+		}
+		else
+		{
+			$redirect_page = "modcp.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'];
+			$message = sprintf($lang['Click_return_modcp'], '<a href="' . $redirect_page . '">', '</a>');
+		}
+
+		$message = $message . '<br /><br />' . sprintf($lang['Click_return_forum'], '<a href="' . "viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'] . '">', '</a>');
+
+		$template->assign_vars(array(
+			'META' => '<meta http-equiv="refresh" content="3;url=' . $redirect_page . '">')
+		);
+
+		message_die(GENERAL_MESSAGE, $lang['Approval_approved_topics'] . '<br /><br />' . $message);
+
+		break;
+	// approval block end
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+'L_MOD_CP_EXPLAIN' =>
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+['Mod_CP_explain'],
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+['Approval_Mod_CP_explain'],  // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+'L_UNLOCK' => $lang['Unlock'],
+#
+#-----[ AFTER, ADD ]-----
+#
+			'L_APPROVE' => $lang['Approval_button'],   // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+$last_post_time = create_date($board_config['default_dateformat'], $row['post_time'], $board_config['board_timezone']);
+
+$template->assign_block_vars('topicrow', array(
+#
+#-----[ BEFORE, ADD ]-----
+#
+			// approval block start
+			if ($row['topic_replies_unapproved'] > 0)
+			{
+				$topic_replies .= '&nbsp;<span class="postUnapproved">(' . $row['topic_replies_unapproved'] . ')</span>';
+			}
+			if (!$row['topic_approve'] && $row['topic_replies_unapproved'] == 0)
+			{
+				$has_unapproved_posts = '';
+			}
+			else
+			{
+				$has_unapproved_posts = '&nbsp; <span class="topicUnapproved"><a target="_blank" href="viewtopic.' . "$phpEx?" . POST_TOPIC_URL . "=$topic_id" . '">' . $lang['Approval_unapproved_contains'] . '</a></span>';
+			}
+			// approval block end
+
+#
+#-----[ AFTER, ADD ]-----
+#
+				'TOPIC_APPROVE' => $has_unapproved_posts,    // approval mod
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+include($phpbb_root_path . 'includes/functions_post.'.$phpEx);
+#
+#-----[ AFTER, ADD ]-----
+#
+include($phpbb_root_path . 'includes/functions_approve.'.$phpEx);  // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+default:
+message_die(GENERAL_MESSAGE, $lang['No_post_mode']);
+#
+#-----[ BEFORE, ADD ]-----
+#
+	case 'approve':                          // approval block start
+		$is_auth_type = 'auth_approval';
+		break;                           // approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "SELECT f.*, t.topic_status, t.topic_title, t.topic_type
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// query modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+, t.topic_type
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, t.topic_poster, t.topic_approve
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ( empty($post_id) )
+#
+#-----[ BEFORE, ADD ]-----
+#
+	case 'approve':      // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+$where_sql = ( !$submit
+#
+#-----[ AFTER, ADD ]-----
+#
+		// approval mod
+		$select_sql .= ", p.post_approve, t.topic_poster, t.topic_approve, t.topic_last_post_approved";
+#
+#-----[ FIND ]---------------------------------------------
+#
+message_die(GENERAL_MESSAGE, $lang['Topic_locked']);
+  }
+#
+#-----[ AFTER, ADD ]-----
+#
+
+	// approval block start
+	if ( ($mode == 'reply' || $mode == 'quote') && $post_info['topic_approve'] )
+	{
+		message_die(GENERAL_MESSAGE, $lang['Approval_cannot_reply']);
+	}
+
+	$allowed_to_approve = ( $is_auth['auth_mod'] || $is_auth['auth_approve'] == APPROVAL_MOD_CAN_DO ) ? TRUE : FALSE;
+
+	if ( ($post_info['forum_approve'] & APPROVAL_TOPIC_STARTER) == APPROVAL_TOPIC_STARTER &&
+	     $mode != 'newtopic' && !$allowed_to_approve && $post_info['topic_poster'] != ANONYMOUS &&
+	     !$post_info['topic_approve'] && $post_info['topic_poster'] == $userdata['user_id'] )
+	{
+		$allowed_to_approve = TRUE;
+		$is_auth['auth_approve'] = APPROVAL_MOD_CAN_DO;
+	}
+
+	if ($mode == 'approve')
+	{
+		$is_auth['auth_approval'] = $allowed_to_approve;
+		$redirect = "mode=approve&" . POST_POST_URL ."=" . $post_id;
+	}
+	// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ( $post_info['poster_id']
+ {
+ $message =
+ $message .=
+
+ message_die(GENERAL_MESSAGE, $message);
+ }
+ else if (
+ {
+ message_die(GENERAL_MESSAGE, $lang['Cannot_delete_replied']);
+ }
+ else if (
+ {
+ message_die(GENERAL_MESSAGE, $lang['Cannot_delete_poll']);
+ }
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// approval block start
+		if (!$is_auth['auth_mod'] && $allowed_to_approve && $post_info['post_approve'])
+		{
+			$is_auth['auth_mod'] = TRUE;
+			$reset_mod_status = TRUE;
+		}
+		else
+		{
+			$reset_mod_status = FALSE;
+		}
+		// approval block end
+#
+#-----[ AFTER, ADD ]-----
+#
+		// approval block start
+		if ($reset_mod_status)
+		{
+			$is_auth['auth_mod'] = FALSE;
+			if ( $mode == 'editpost' && $post_info['poster_id'] != $userdata['user_id'])
+			{
+				$message = $lang['Edit_own_posts'];
+				$message .= '<br /><br />' . sprintf($lang['Click_return_topic'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id") . '">', '</a>');
+
+				message_die(GENERAL_MESSAGE, $message);
+			}
+		}
+		// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+redirect(append_sid("login.$phpEx?redirect=posting.$phpEx&" . $redirect, true));
+  }
+#
+#-----[ AFTER, ADD ]-----
+#
+
+// approval block start
+if ( $mode != 'approve' )
+{
+	$post_data['forum_approve'] = $post_info['forum_approve'];
+	$post_data['needs_approval'] = $allowed_to_approve ? 0 : approval_needed($mode, $userdata, $is_auth, $post_info);
+}
+
+if ($mode == 'editpost')
+{
+	$post_data['needed_approval'] = $post_info['post_approve'];
+
+	if ($allowed_to_approve)
+	{
+		$post_data['needs_approval'] = $post_data['needed_approval'];
+	}
+	else
+	{
+		$post_data['needs_approval'] = max($post_data['needed_approval'], $post_data['needs_approval']);
+	}
+}
+elseif ($mode == 'delete')
+{
+	$post_data['needs_approval'] = $post_info['post_approve'];
+	$post_data['topic_needs_approval'] = $post_info['topic_approve'];
+	$post_data['is_last_post_approved'] = ( $post_info['topic_last_post_approved'] == $post_id ) ? TRUE : FALSE;
+	$post_data['is_last_topic_approved'] = ( $post_info['forum_last_post_approved'] == $post_id ) ? TRUE : FALSE;
+}
+elseif ($mode == 'approve')
+{
+	if ($post_info['post_approve'])
+	{
+		approve_post($post_info);
+		$return_message = $lang['Approval_approved_ok'];
+	}
+	else
+	{
+		$return_message = $lang['Approval_approved_already'];
+	}
+
+	$return_message .= '<br /><br /><br />' . sprintf($lang['Click_view_message'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=$post_id#$post_id") . '">', '</a>') . '<br /><br />';
+	$return_message .= sprintf($lang['Click_return_topic'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=". $post_info['topic_id']) . '">', '</a>');
+
+	$template->assign_vars(array('META' => '<meta http-equiv="refresh" content="5;url=' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=$post_id#$post_id") . '">'));
+
+	message_die(GENERAL_MESSAGE, $return_message);
+}
+
+if ( $post_data['needs_approval'] && ($post_data['forum_approve'] & APPROVAL_WARN) == APPROVAL_WARN )
+{
+	$template->assign_vars(array('L_APPROVAL_WARNING' => $lang['Approval_warning']));
+	$template->assign_block_vars('switch_approval_warning', array());
+}
+// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ( $mode != 'editpost' )
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// 'if' clause modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+'editpost'
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ || ($mode == 'editpost' && $post_data['needs_approval'] && !$post_info['post_approve'])
+#
+#-----[ FIND ]---------------------------------------------
+#
+user_notification(
+  }
+#
+#-----[ AFTER, ADD ]-----
+#
+
+		// approval block start
+		if ( ($mode == 'newtopic' || $mode == 'editpost' || $mode == 'reply') && !$allowed_to_approve &&
+		     ( $post_data['needs_approval'] && ($post_data['forum_approve'] & APPROVAL_NOTIFY_U) == APPROVAL_NOTIFY_U ||
+		      !$post_data['needs_approval'] && ($post_data['forum_approve'] & APPROVAL_NOTIFY_N) == APPROVAL_NOTIFY_N )
+		   )
+		{
+			mod_notification($post_data, $post_info, $post_id, $subject, $message, $userdata, $username);
+		}
+		// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$mode = 'reply';
+#
+#-----[ BEFORE, ADD ]-----
+#
+			// approval block start
+			if ( $post_info['post_approve'] && !$allowed_to_approve &&
+			     (!$userdata['session_logged_in'] || $userdata['user_id'] != $post_info['poster_id']) )
+			{
+				$message = '';
+				$subject = '';
+			}
+			// approval block end
+
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ( $search_id == 'newposts' || $search_id == 'egosearch' || $search_id == 'unanswered'
+#
+#-----[ BEFORE, ADD ]-----
+#
+	// 'if' clause modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+'unanswered'
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ || $search_id == 'unapproved'
+#
+#-----[ FIND ]---------------------------------------------
+#
+$search_id == 'newposts' || $search_id == 'egosearch' || ( $search_author != ''
+  {
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// 'if' clause modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+'newposts'
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ || $search_id == 'unapproved'
+#
+#-----[ AFTER, ADD ]-----
+#
+			// approval block start
+			if ( $search_id == 'unapproved' )
+			{
+				$search_idx = 'unapproved';
+
+				if ( $userdata['session_logged_in'] )
+				{
+					$sql = "SELECT post_id
+						FROM " . POSTS_TABLE . "
+						WHERE post_approve = 1";
+				}
+				else
+				{
+					redirect(append_sid("login.$phpEx?redirect=search.$phpEx&search_id=newposts", true));
+				}
+
+				$search_forum = -1;
+				$search_cat = -1;
+				$show_results = 'posts';
+				$sort_by = 0;
+				$sort_dir = 'DESC';
+			}
+			else
+			// approval block end
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ( !$value['auth_read']
+#
+#-----[ BEFORE, ADD ]-----
+#
+				// 'if' clause modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+['auth_read']
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ || ($search_id == 'unapproved' && !$value['auth_mod'] && $value['auth_approve'] != APPROVAL_MOD_CAN_DO)
+#
+#-----[ FIND ]---------------------------------------------
+#
+$auth_sql .= ( $auth_sql != '' )
+    }
+  }
+#
+#-----[ AFTER, ADD ]-----
+#
+
+		// approval mod
+		$auth_sql .= $search_id != 'unapproved' ? ( $auth_sql != '' ? " AND t.topic_approve = 0" : "t.topic_approve = 0" ) : '';
+#
+#-----[ FIND ]---------------------------------------------
+#
+$from_sql = POSTS_TABLE . " p";
+#
+#-----[ AFTER, ADD ]-----
+#
+
+						// approval block start
+						$from_sql .= "," . TOPICS_TABLE . " t";
+						$where_sql = " AND t.topic_id = p.topic_id AND p.post_approve = 0";
+						// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$from_sql = (  $search_author
+#
+#-----[ AFTER, ADD ]-----
+#
+
+					// approval block start
+					if ($search_id != 'unapproved')
+					{
+						$where_sql .= " AND t.topic_id = p.topic_id AND p.post_approve = 0";
+						$from_sql .= ", " . TOPICS_TABLE . " t";
+					}
+					// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$poster .= ( $searchset[$i]['user_id'] != ANONYMOUS ) ? '</a>' : '';
+#
+#-----[ AFTER, ADD ]-----
+#
+
+				// approval block start
+				if ($search_idx == 'unapproved')
+				{
+					$approve_mod_img = '<a href="' . "posting.$phpEx?mode=approve&amp;" . POST_POST_URL . "=" . $searchset[$i]['post_id'] . "&amp;sid=" . $userdata['session_id'] . '">';
+					$approve_mod_img .= '<img src="' . $images['icon_approve'] . '" alt="' . $lang['Approval_approve_this'] . '" title="' . $lang['Approval_approve_this'] . '" border="0" /></a>';
+					$delpost_img = '<a href="' . "posting.$phpEx?mode=delete&amp;" . POST_POST_URL . "=" . $searchset[$i]['post_id'] . "&amp;sid=" . $userdata['session_id'] . '">';
+					$delpost_img .= '<img src="' . $images['icon_delpost'] . '" alt="' . $lang['Delete_post'] . '" title="' . $lang['Delete_post'] . '" border="0" /></a>';
+				}
+				else
+				{
+					$approve_mod_img = '';
+					$delpost_img = '';
+				}
+				// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+'MINI_POST_IMG' => $mini_post_img
+#
+#-----[ AFTER, ADD ]-----
+#
+
+					// approval block start
+					'DELETE_IMG' => $delpost_img,
+					'APPROVE_MOD_IMG' => $approve_mod_img,
+					// approval block end
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+unset($moderators);
+#
+#-----[ AFTER, ADD ]-----
+#
+
+// approval block start
+$allowed_to_approve = ( $is_auth['auth_mod'] || $is_auth['auth_approve'] == APPROVAL_MOD_CAN_DO ) ? TRUE : FALSE;
+$approve_hide = ( ($forum_row['forum_approve'] & APPROVAL_HIDE) == APPROVAL_HIDE && !$allowed_to_approve) ? TRUE : FALSE;
+$unapproved_topics_count = ($approve_hide && $forum_row['forum_topics'] && $forum_row['forum_topics_unapproved']) ? $forum_row['forum_topics_unapproved'] : 0;
+$sql_approve_where = $approve_hide ? "t.topic_last_post_approved AND t.topic_approve = 0" : "t.topic_last_post_id";
+$sql_approve_order = $approve_hide ? "t.topic_last_post_approved DESC" : "t.topic_last_post_id DESC";
+$lang['Rules_vote_can' . ($is_auth['auth_vote'] ? '' : 'not') ] .= $allowed_to_approve ? '<br />' . $lang['Rules_approve_forum'] : '';
+// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "SELECT COUNT
+FROM
+WHERE
+AND
+AND
+#
+#-----[ BEFORE, ADD ]-----
+#
+	// sql modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+t.topic_last_post_id
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+$sql_approve_where
+#
+#-----[ FIND ]---------------------------------------------
+#
+$topics_count = ( $forum_row['forum_topics'] ) ? $forum_row['forum_topics'] : 1;
+#
+#-----[ AFTER, ADD ]-----
+#
+	$topics_count -= $unapproved_topics_count;   // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "SELECT t.*
+FROM
+WHERE
+AND t.topic_poster = u.user_id
+AND p.post_id = t.topic_last_post_id
+#
+#-----[ BEFORE, ADD ]-----
+#
+// sql modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+= t.topic_last_post_id
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+= $sql_approve_where
+#
+#-----[ FIND ]-----
+#
+AND
+ORDER BY t.
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+t.topic_last_post_id DESC
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+$sql_approve_order
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql
+FROM
+WHERE
+AND
+AND
+AND
+AND
+AND t.topic_type <> " . POST_ANNOUNCE
+#
+#-----[ BEFORE, ADD ]-----
+#
+// sql modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+p2.post_time
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, p2.post_approve
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+= t.topic_last_post_id
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+= $sql_approve_where
+#
+#-----[ FIND ]---------------------------------------------
+#
+$limit_topics_time
+ORDER BY t.topic_type
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+t.topic_last_post_id DESC
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+$sql_approve_order
+#
+#-----[ FIND ]---------------------------------------------
+#
+$template->assign_block_vars('topicrow', array(
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// approval block start
+		$topic_approve = '';
+
+		if ( $topic_rowset[$i]['topic_approve'] )
+		{
+			if ( ($userdata['user_id'] == $topic_rowset[$i]['topic_poster'] && $userdata['user_id'] != ANONYMOUS) || $allowed_to_approve )
+			{
+				$topic_approve = '&nbsp;<span class="topicUnapproved">' . $lang['Approval_unapproved_topic'] . '</span>';
+			}
+			else
+			{
+				$topic_title = ' <span class="topicUnapproved">' . $lang['Approval_unapproved_topic'] . '</span>';
+			}
+		}
+
+		if ($approve_hide)
+		{
+			$replies = $topic_rowset[$i]['topic_replies'] - $topic_rowset[$i]['topic_replies_unapproved'];
+		}
+		else
+		{
+			$replies = $topic_rowset[$i]['topic_replies'] . ($allowed_to_approve && $topic_rowset[$i]['topic_replies_unapproved'] ? '&nbsp;<span class="postUnapproved">(' . $topic_rowset[$i]['topic_replies_unapproved'] . ')</span>' : '');
+		}
+
+		$last_post_url .= $topic_rowset[$i]['topic_approve'] ? ' ' . $lang['Approval_unapproved_mini'] : '';
+		// approval block end
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+'LAST_POST_IMG' =>
+#
+#-----[ AFTER, ADD ]-----
+#
+
+			'TOPIC_APPROVE' => $topic_approve,   // approval mod
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$count_sql =
+#
+#-----[ AFTER, ADD ]-----
+#
+$count_sql .= ", f.forum_approve, t.topic_approve, t.topic_poster";   // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+$order_sql = (!$post_id)
+#
+#-----[ BEFORE, ADD ]-----
+#
+// sql modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+f.auth_attachments
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, f.forum_approve, t.topic_approve, t.topic_poster
+#
+#-----[ FIND ]---------------------------------------------
+#
+$is_auth = auth(AUTH_ALL
+#
+#-----[ AFTER, ADD ]-----
+#
+
+// approval block start
+$allowed_to_approve = ( $is_auth['auth_mod'] || $is_auth['auth_approve'] == APPROVAL_MOD_CAN_DO ) ? TRUE : FALSE;
+$can_approve_msg = $allowed_to_approve ? $lang['Rules_approve_forum'] : '';
+if ( ($forum_topic_data['forum_approve'] & APPROVAL_TOPIC_STARTER) == APPROVAL_TOPIC_STARTER &&
+     !$allowed_to_approve && $forum_topic_data['topic_poster'] != ANONYMOUS &&
+     !$forum_topic_data['topic_approve'] && $forum_topic_data['topic_poster'] == $userdata['user_id']
+   )
+{
+	$can_approve_msg = $lang['Rules_approve_topic'];
+	$allowed_to_approve = TRUE;
+}
+$approve_hide = ( ($forum_topic_data['forum_approve'] & APPROVAL_HIDE) == APPROVAL_HIDE && !$allowed_to_approve ) ? TRUE : FALSE;
+if ( $approve_hide && $forum_topic_data['topic_approve'] )
+{
+	$is_auth['auth_view'] = FALSE;
+	$lang['Topic_post_not_exist'] = $lang['Sorry_approve_read'];
+}
+// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$post_days = 0;
+  }
+#
+#-----[ AFTER, ADD ]-----
+#
+
+$limit_posts_time .= $approve_hide ? " AND p.post_approve = 0" : '';   // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+$template->set_filenames(array(
+	'body' => 'viewtopic_body.tpl')
+);
+#
+#-----[ AFTER, ADD ]-----
+#
+
+// approval block start
+if ( $forum_topic_data['topic_approve'] && !$allowed_to_approve && ($userdata['user_id'] != $forum_topic_data['topic_poster'] || $userdata['user_id'] == ANONYMOUS) )
+{
+	$topic_title = $lang['Approval_unapproved_topic'];
+}
+$lang['Rules_vote_can' . ($is_auth['auth_vote'] ? '' : 'not') ] .= $allowed_to_approve ? '<br />' . $can_approve_msg : '';
+// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ( $userdata['user_id'] == $poster_id && $is_auth['auth_delete']
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+$postrow[$i]['post_id']
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ || $allowed_to_approve && $postrow[$i]['post_approve']
+#
+#-----[ FIND ]---------------------------------------------
+#
+$template->assign_block_vars('postrow', array(
+#
+#-----[ BEFORE, ADD ]-----
+#
+	// approval block start
+	if ( $postrow[$i]['post_approve'] )
+	{
+		if ( ($userdata['user_id'] == $poster_id && $userdata['user_id'] != ANONYMOUS) || $allowed_to_approve )
+		{
+			$post_subject = $post_subject . ' <span class="topicUnapproved">' . $lang['Approval_unapproved_subject'] . '</span>';
+		}
+		else
+		{
+			$post_subject = '<span class="topicUnapproved">' . $lang['Approval_unapproved_subject'] . '</span>';
+		}
+	}
+
+	if ( $postrow[$i]['post_approve'] && !$allowed_to_approve && ($userdata['user_id'] != $poster_id  || $userdata['user_id'] == ANONYMOUS) )
+	{
+		$message = $lang['Approval_unapproved_text'];
+		$quote_img = '';
+		$quote = '';
+	}
+
+	if ( $forum_topic_data['topic_approve'] )
+	{
+		$quote_img = '';
+		$quote = '';
+	}
+
+	if (  $postrow[$i]['post_approve'] && $allowed_to_approve )
+	{
+		$temp_url = "posting.$phpEx?mode=approve&amp;" . POST_POST_URL . "=" . $postrow[$i]['post_id'] . "&amp;sid=" . $userdata['session_id'];
+		$approve_mod_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_approve'] . '" alt="' . $lang['Approval_approve_this'] . '" title="' . $lang['Approval_approve_this'] . '" border="0" /></a>';
+		$approve = '<a href="' . $temp_url . '">' . $lang['Approval_approve_this'] . '</a>';
+	}
+	else
+	{
+		$approve_mod_img = '';
+		$approve = '';
+	}
+	// approval block end
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+'DELETE' => $delpost,
+#
+#-----[ AFTER, ADD ]-----
+#
+
+		// approval block start
+		'APPROVE_MOD_IMG' => $approve_mod_img,
+		'APPROVE' => $approve,
+		// approval block end
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+admin/admin_forums.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+if( !empty($mode) )
+#
+#-----[ BEFORE, ADD ]-----
+#
+// approval block start
+$f_approve =
+	(!empty($HTTP_POST_VARS['approval_default']) ? APPROVAL_ON : 0) +
+	(!empty($HTTP_POST_VARS['approval_topic']) ? APPROVAL_TOPIC_ONLY : 0) +
+	(!empty($HTTP_POST_VARS['approval_topic_starter']) ? APPROVAL_TOPIC_STARTER : 0) +
+	(!empty($HTTP_POST_VARS['approval_use_ranks']) ? APPROVAL_USE_RANKS : 0) +
+	(!empty($HTTP_POST_VARS['approval_warn']) ? APPROVAL_WARN : 0) +
+	(!empty($HTTP_POST_VARS['approval_hide']) ? APPROVAL_HIDE : 0) +
+	(!empty($HTTP_POST_VARS['approval_notify_u']) ? APPROVAL_NOTIFY_U : 0) +
+	(!empty($HTTP_POST_VARS['approval_notify_n']) ? APPROVAL_NOTIFY_N : 0);
+
+$forum_auth_ary['forum_approve'] = $f_approve;
+$checked = 'checked="checked"';
+// approval block end
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+'S_PRUNE_ENABLED' => $prune_enabled,
+#
+#-----[ AFTER, ADD ]-----
+#
+
+				// approval block start
+				'S_APPROVAL_DEFAULT' => $mode == 'editforum' ? (($row['forum_approve'] & APPROVAL_ON) == APPROVAL_ON ? $checked : '') : '',
+				'S_APPROVAL_TOPIC_ONLY' => $mode == 'editforum' ? (($row['forum_approve'] & APPROVAL_TOPIC_ONLY) == APPROVAL_TOPIC_ONLY ? $checked : '') : '',
+				'S_APPROVAL_TOPIC_STARTER' => $mode == 'editforum' ? (($row['forum_approve'] & APPROVAL_TOPIC_STARTER) == APPROVAL_TOPIC_STARTER ? $checked : '') : '',
+				'S_APPROVAL_USE_RANKS' => $mode == 'editforum' ? (($row['forum_approve'] & APPROVAL_USE_RANKS) == APPROVAL_USE_RANKS ? $checked : '') : '',
+				'S_APPROVAL_WARN' => $mode == 'editforum' ? (($row['forum_approve'] & APPROVAL_WARN) == APPROVAL_WARN ? $checked : '') : '',
+				'S_APPROVAL_HIDE' => $mode == 'editforum' ? (($row['forum_approve'] & APPROVAL_HIDE) == APPROVAL_HIDE ? $checked : '') : '',
+				'S_APPROVAL_NOTIFY_U' => $mode == 'editforum' ? (($row['forum_approve'] & APPROVAL_NOTIFY_U) == APPROVAL_NOTIFY_U ? $checked : '') : '',
+				'S_APPROVAL_NOTIFY_N' => $mode == 'editforum' ? (($row['forum_approve'] & APPROVAL_NOTIFY_N) == APPROVAL_NOTIFY_N ? $checked : '') : '',
+
+				'L_APPROVAL' => $lang['Forum_approval_options'],
+				'L_APPROVAL_DEFAULT' => $lang['Forum_approval_default'],
+				'L_APPROVAL_TOPIC_ONLY' => $lang['Forum_approval_topic_only'],
+				'L_APPROVAL_TOPIC_STARTER' => $lang['Forum_approval_topic_starter'],
+				'L_APPROVAL_USE_RANKS' => $lang['Forum_approval_use_ranks'],
+				'L_APPROVAL_WARN' => $lang['Forum_approval_warning'],
+				'L_APPROVAL_HIDE' => $lang['Forum_approval_hide'],
+				'L_APPROVAL_NOTIFY_U' => $lang['Forum_approval_notify_u'],
+				'L_APPROVAL_NOTIFY_N' => $lang['Forum_approval_notify_n'],
+				// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "UPDATE " . FORUMS_TABLE . "
+SET forum_name
+#
+#-----[ BEFORE, ADD ]-----
+#
+			// query modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+intval($HTTP_POST_VARS['prune_enable']) . "
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, forum_approve = $f_approve
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+admin/admin_ranks.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+"NOT_SPECIAL_RANK" => $rank_is_not_special,
+#
+#-----[ AFTER, ADD ]-----
+#
+			"APPROVE_RANK" => $rank_info['rank_approve'] ? 'checked="checked"' : '',  // approval mod
+			"NOT_APPROVE_RANK" => $rank_info['rank_approve'] ? '' : 'checked="checked"',  // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+"L_RANK_SPECIAL" => $lang['Rank_special'],
+#
+#-----[ AFTER, ADD ]-----
+#
+			"L_RANK_APPROVE" => $lang['Approval_mod_no_need'],  // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+$special_rank = ( $HTTP_POST_VARS['special_rank'] == 1 ) ? TRUE : 0;
+#
+#-----[ AFTER, ADD ]-----
+#
+		$approve_rank = ( $HTTP_POST_VARS['approve_rank'] == 1 ) ? TRUE : 0;  // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "UPDATE " . RANKS_TABLE . "
+SET rank_title
+#
+#-----[ BEFORE, ADD ]-----
+#
+			// query modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+$rank_image) . "'
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, rank_approve = $approve_rank
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "INSERT INTO " . RANKS_TABLE
+VALUES
+#
+#-----[ BEFORE, ADD ]-----
+#
+			// query modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+, rank_image
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, rank_approve
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+$rank_image) . "'
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, $approve_rank
+#
+#-----[ FIND ]---------------------------------------------
+#
+"L_SPECIAL_RANK" =>
+#
+#-----[ AFTER, ADD ]-----
+#
+	"L_APPROVE_RANK" => $lang['Approval_mod_no_need'],  // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+"RANK_MIN" =>
+#
+#-----[ BEFORE, ADD ]-----
+#
+		"APPROVE_RANK" => $rank_rows[$i]['rank_approve'] ? $lang['Yes'] : "-",  // approval mod
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+admin/admin_ug_auth.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$field_names = array(
+#
+#-----[ BEFORE, ADD ]-----
+#
+// approval block start
+$mod_levels = array(
+	APPROVAL_MOD_DEFAULT => $lang['Approval_mod_default'],
+	APPROVAL_MOD_NEEDED => $lang['Approval_mod_needed'],
+	APPROVAL_MOD_NO_NEED => $lang['Approval_mod_no_need'],
+	APPROVAL_MOD_CAN_DO => $lang['Approval_mod_can_do'],
+	APPROVAL_MOD_MOD => $lang['Moderator']
+);
+$lang['Moderator_status'] = $lang['Approval_mod_level'];
+// approval block end
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+AND auth_mod = 0";
+#
+#-----[ AFTER, ADD ]-----
+#
+			$sql .= " AND auth_approve < " . APPROVAL_MOD_CAN_DO; // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ( $userdata['user_id'] != $user_id )
+{
+$sql = "UPDATE " . AUTH_ACCESS_TABLE . "
+SET
+#
+#-----[ BEFORE, ADD ]-----
+#
+			// sql modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+auth_announce = 0
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, auth_approve = " . APPROVAL_MOD_DEFAULT . "
+#
+#-----[ FIND ]---------------------------------------------
+#
+if (
+	( isset($auth_access[$forum_id]
+	( !isset($auth_access[$forum_id]
+)
+{
+	$update_mod_status[$forum_id] =
+
+	if ( !$update_mod_status[$forum_id] )
+	{
+		$forum_auth_action[$forum_id] =
+	}
+	else if
+	{
+		$forum_auth_action[$forum_id] =
+	}
+	else
+	{
+		$forum_auth_action[$forum_id] =
+	}
+}
+#
+#-----[ BEFORE, ADD ]-----
+#
+				// approval block start
+				if (isset($change_mod_list[$forum_id]))
+				{
+					if ($change_mod_list[$forum_id] == APPROVAL_MOD_MOD)
+					{
+						$change_approval_list[$forum_id] = APPROVAL_MOD_DEFAULT;
+						$change_mod_list[$forum_id] = "1";
+					}
+					else
+					{
+						$change_approval_list[$forum_id] = $change_mod_list[$forum_id];
+						$change_mod_list[$forum_id] = "0";
+					}
+				}
+				// approval block end
+
+#
+#-----[ AFTER, ADD ]-----
+#
+
+				// approval block start
+				$update_approval_status[$forum_id] = $change_approval_list[$forum_id];
+				if (
+					( isset($auth_access[$forum_id]['auth_approve']) && $change_approval_list[$forum_id] != $auth_access[$forum_id]['auth_approve'] ) ||
+					( !isset($auth_access[$forum_id]['auth_approve']) && !empty($change_approval_list[$forum_id]) )
+				)
+				{
+					if ( !$update_approval_status[$forum_id] && !$update_mod_status[$forum_id])
+					{
+						$forum_auth_action[$forum_id] = 'delete';
+					}
+					else if ( !isset($auth_access[$forum_id]['auth_approve']) )
+					{
+						$forum_auth_action[$forum_id] = 'insert';
+					}
+					else
+					{
+						$forum_auth_action[$forum_id] = 'update';
+					}
+				}
+				// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+)
+{
+$update_acl_status[$forum_id][$auth_field] =
+#
+#-----[ BEFORE, ADD ]-----
+#
+							|| ($auth_access[$forum_id]['auth_mod'] && $update_approval_status[$forum_id])  // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "INSERT INTO " . AUTH_ACCESS_TABLE . " (forum_id, group_id, $sql_field)
+#
+#-----[ BEFORE, ADD ]-----
+#
+						// approval block start
+						$sql_field .= ', auth_approve';
+						$sql_value .= ', ' . ( ( !isset($update_approval_status[$forum_id]) ) ? 0 : $update_approval_status[$forum_id]);
+						// approval block end
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql_values .= ( ( $sql_values != '' ) ? ', ' : '' ) . 'auth_mod =
+#
+#-----[ AFTER, ADD ]-----
+#
+
+						// approval mod
+						$sql_values .= ', auth_approve = ' . ( ( !isset($update_approval_status[$forum_id]) ) ? 0 : $update_approval_status[$forum_id]);
+#
+#-----[ FIND ]---------------------------------------------
+#
+$auth_ug[$forum_id]['auth_mod'] =
+#
+#-----[ AFTER, ADD ]-----
+#
+
+		// approval mod start
+		if ($auth_ug[$forum_id]['auth_mod'])
+		{
+			$approve_forum_status[$forum_id] = APPROVAL_MOD_MOD;
+		}
+		else
+		{
+			$approve_forum_status[$forum_id] = APPROVAL_MOD_DEFAULT;
+			if (isset($auth_access[$forum_id]))
+			{
+				foreach ($auth_access[$forum_id] as $auth)
+				{
+					$approve_forum_status[$forum_id] = max($auth['auth_approve'], $approve_forum_status[$forum_id]);
+				}
+			}
+		}
+
+		$approve_forum_default[$forum_id] = ' [' . (($forum_access[$i]['forum_approve'] & APPROVAL_ON) == APPROVAL_ON ? $lang['ON'] : $lang['OFF']) . ']';
+		// approval mod end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$optionlist_mod .= ( $user_ary['auth_mod'] )
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// approval block start
+		foreach ($mod_levels as $key => $mod_level)
+		{
+			$optionlist_mod .= '<option value="' . $key . '"' . ($approve_forum_status[$forum_id] == $key ? ' selected="selected"' : '') . '>';
+			$optionlist_mod .= $mod_level . ($key == APPROVAL_MOD_DEFAULT ? $approve_forum_default[$forum_id] : '') . '</option>';
+		}
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+$optionlist_mod .=
+#
+#-----[ IN-LINE BEFORE, ADD ]-----
+#
+//
+#
+#-----[ AFTER, ADD ]-----
+#
+		// approval block end
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+includes/auth.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "SELECT a.forum_id, $a_sql, a.auth_mod
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// sql modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+a.auth_mod
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, a.auth_approve
+#
+#-----[ FIND ]---------------------------------------------
+#
+$auth_user[$f_forum_id]['auth_mod'] =
+		}
+	}
+#
+#-----[ AFTER, ADD ]-----
+#
+
+	// approval block start
+	if ( $forum_id != AUTH_LIST_ALL )
+	{
+		$auth_user['auth_approve'] = APPROVAL_MOD_DEFAULT;
+		if ( $userdata['session_logged_in'] && !$auth_user['auth_mod'] && !empty($u_access) )
+		{
+			foreach ($u_access as $_auth)
+			{
+				$auth_user['auth_approve'] = max($auth_user['auth_approve'], $_auth['auth_approve']);
+			}
+		}
+	}
+	else
+	{
+		for($k = 0; $k < count($f_access); $k++)
+		{
+			$f_forum_id = $f_access[$k]['forum_id'];
+			$auth_user[$f_forum_id]['auth_approve'] = APPROVAL_MOD_DEFAULT;
+			if ( $userdata['session_logged_in'] && !$auth_user['auth_mod'] && !empty($u_access[$f_forum_id]) )
+			{
+				foreach ($u_access[$f_forum_id] as $_auth)
+				{
+					$auth_user[$f_forum_id]['auth_approve'] = max($auth_user[$f_forum_id]['auth_approve'], $_auth['auth_approve']);
+				}
+			}
+		}
+	}
+	// approval block end
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+define('FORUM_LOCKED'
+#
+#-----[ AFTER, ADD ]-----
+#
+
+
+// Approval options
+define('APPROVAL_ON', 1);
+define('APPROVAL_TOPIC_ONLY', 2);
+define('APPROVAL_TOPIC_STARTER', 4);
+define('APPROVAL_USE_RANKS', 8);
+define('APPROVAL_WARN', 16);
+define('APPROVAL_HIDE', 32);
+define('APPROVAL_NOTIFY_U', 64);
+define('APPROVAL_NOTIFY_N', 128);
+
+
+// Approval moderation levels
+define('APPROVAL_MOD_DEFAULT', 0);
+define('APPROVAL_MOD_NEEDED', 1);
+define('APPROVAL_MOD_NO_NEED', 2);
+define('APPROVAL_MOD_CAN_DO', 3);
+define('APPROVAL_MOD_MOD', 255);
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+includes/functions_admin.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql
+SET forum_last_post_id = $last_post
+#
+#-----[ BEFORE, ADD ]-----
+#
+			// approval block start
+			$sql = "SELECT MAX(post_id) AS last_post_approved
+				FROM " . POSTS_TABLE . "
+				WHERE forum_id = $id
+				AND post_approve = 0";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not get post ID', '', __LINE__, __FILE__, $sql);
+			}
+			$row = $db->sql_fetchrow($result);
+			$last_post_approved = empty($row['last_post_approved']) ? "0" : $row['last_post_approved'];
+			$db->sql_freeresult($result);
+
+			$sql = "SELECT COUNT(post_id) AS total_posts_unapproved
+				FROM " . POSTS_TABLE . "
+				WHERE forum_id = $id
+				AND post_approve <> 0";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not get post ID', '', __LINE__, __FILE__, $sql);
+			}
+			$row = $db->sql_fetchrow($result);
+			$total_posts_unapproved = empty($row['total_posts_unapproved']) ? "0" : $row['total_posts_unapproved'];
+			$db->sql_freeresult($result);
+
+			$sql = "SELECT COUNT(topic_id) AS total_topics_unapproved
+				FROM " . TOPICS_TABLE . "
+				WHERE forum_id = $id
+				AND topic_approve <> 0";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not get topic count', '', __LINE__, __FILE__, $sql);
+			}
+			$row = $db->sql_fetchrow($result);
+			$total_topics_unapproved = empty($row['total_topics_unapproved']) ? "0" : $row['total_topics_unapproved'];
+			$db->sql_freeresult($result);
+			// approval block end
+
+			// query modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+$total_topics
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, forum_last_post_approved = $last_post_approved, forum_posts_unapproved = $total_posts_unapproved, forum_topics_unapproved = $total_topics_unapproved
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ($row['total_posts'])
+  {
+#
+#-----[ AFTER, ADD ]-----
+#
+					// approval block start
+					$sql = "SELECT MAX(post_id) AS last_post_approved
+						FROM " . POSTS_TABLE . "
+						WHERE topic_id = $id
+						AND post_approve = 0";
+					if ( !($result = $db->sql_query($sql)) )
+					{
+						message_die(GENERAL_ERROR, 'Could not get post ID', '', __LINE__, __FILE__, $sql);
+					}
+					$row2 = $db->sql_fetchrow($result);
+					$last_post_approved = empty($row2['last_post_approved']) ? "0" : $row2['last_post_approved'];
+					$db->sql_freeresult($result);
+
+					$sql = "SELECT COUNT(post_id) AS topic_replies_unapproved
+						FROM " . POSTS_TABLE . "
+						WHERE topic_id = $id
+						AND post_id <> " . $row['first_post'] . "
+						AND post_approve <> 0";
+					if ( !($result = $db->sql_query($sql)) )
+					{
+						message_die(GENERAL_ERROR, 'Could not get post ID', '', __LINE__, __FILE__, $sql);
+					}
+					$row2 = $db->sql_fetchrow($result);
+					$topic_replies_unapproved = empty($row2['topic_replies_unapproved']) ? "0" : $row2['topic_replies_unapproved'];
+					$db->sql_freeresult($result);
+					// approval block end
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = 'UPDATE ' . TOPICS_TABLE
+SET topic_replies =
+#
+#-----[ BEFORE, ADD ]-----
+#
+					// query modified by approval mod
+#-----[ IN-LINE FIND ]-----------------
+#
+$row['last_post'] . "
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, topic_replies_unapproved = $topic_replies_unapproved, topic_last_post_approved = $last_post_approved
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql  = ($mode != "editpost") ? "INSERT INTO " . TOPICS_TABLE
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// query modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+, topic_vote
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, topic_approve
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+, $topic_vote
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, {$post_data['needs_approval']}
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = ($mode != "editpost") ? "INSERT INTO " . POSTS_TABLE
+#
+#-----[ BEFORE, ADD ]-----
+#
+	// query modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+, enable_sig
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, post_approve
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+, $attach_sig
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, {$post_data['needs_approval']}
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+$attach_sig" . $edited_sql . "
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+, post_approve = {$post_data['needs_approval']}
+#
+#-----[ FIND ]---------------------------------------------
+#
+$meta
+$message = $lang['Stored']
+#
+#-----[ BEFORE, ADD ]-----
+#
+	// approval block start
+	$approve_hide = ($post_data['needs_approval'] && ($post_data['forum_approve'] & APPROVAL_HIDE) == APPROVAL_HIDE) ? TRUE : FALSE;
+	$approve_warn = ($post_data['needs_approval'] && ($post_data['forum_approve'] & APPROVAL_WARN) == APPROVAL_WARN) ? TRUE : FALSE;
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+3;url=' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $post_id) . '#' . $post_id
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+' . ($approve_warn ? '10' : '3') . ';url=' . ($approve_hide ? append_sid("viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id") : append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $post_id) . '#' . $post_id )
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+'<br /><br />' . sprintf($lang['Click_view_message'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $post_id) . '#' . $post_id . '">', '</a>')
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+( $approve_warn ? '<br /><br />' . $lang['Approval_warning'] : '' ) . ( !$approve_hide ? '<br /><br />' . sprintf($lang['Click_view_message'], '<a href="' . append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=" . $post_id) . '#' . $post_id . '">', '</a>') : '' )
+#
+#-----[ AFTER, ADD ]-----
+#
+	// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ($mode == 'delete')
+ {
+  if ($post_data['last_post'])
+    {
+     if ($post_data['first_post'])
+      {
+       $forum_update_sql .= ', forum_topics = forum_topics - 1';
+#
+#-----[ BEFORE, ADD ]-----
+#
+	// approval mod
+	$forum_update_sql .= $post_data['needs_approval'] ? ", forum_posts_unapproved = forum_posts_unapproved $sign" : '';
+
+#
+#-----[ AFTER, ADD ]-----
+#
+				// approval mod
+				$forum_update_sql .= $post_data['topic_needs_approval'] ? ", forum_topics_unapproved = forum_topics_unapproved - 1" : '';
+#
+#-----[ FIND ]---------------------------------------------
+#
+$topic_update_sql .= ', topic_last_post_id = ' . $row['last_post_id'];
+}
+#
+#-----[ AFTER, ADD ]-----
+#
+
+				// approval block start
+				$topic_update_sql .= $post_data['needs_approval'] ? ", topic_replies_unapproved = topic_replies_unapproved - 1" : '';
+
+				if ($post_data['is_last_post_approved'])
+				{
+					$sql = "SELECT MAX(post_id) AS last_post_approved
+						FROM " . POSTS_TABLE . "
+						WHERE topic_id = $topic_id
+						AND post_approve = 0";
+					if (!($result = $db->sql_query($sql)))
+					{
+						message_die(GENERAL_ERROR, 'Error in deleting post', '', __LINE__, __FILE__, $sql);
+					}
+
+					if ($row = $db->sql_fetchrow($result))
+					{
+						$topic_update_sql .= ', topic_last_post_approved = ' . ( $row['last_post_approved'] ? $row['last_post_approved'] : '0' );
+					}
+				}
+				// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$forum_update_sql .= ($row['last_post_id'])
+   }
+  }
+#
+#-----[ AFTER, ADD ]-----
+#
+
+			// approval block start
+			if ($post_data['is_last_topic_approved'])
+			{
+				$sql = "SELECT MAX(post_id) AS last_post_approved
+					FROM " . POSTS_TABLE . "
+					WHERE forum_id = $forum_id
+					AND post_approve = 0";
+				if (!($result = $db->sql_query($sql)))
+				{
+					message_die(GENERAL_ERROR, 'Error in deleting post', '', __LINE__, __FILE__, $sql);
+				}
+
+				if ($row = $db->sql_fetchrow($result))
+				{
+					$forum_update_sql .= ', forum_last_post_approved = ' . ( $row['last_post_approved'] ? $row['last_post_approved'] : '0' );
+				}
+			}
+			// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$topic_update_sql .= 'topic_replies = topic_replies - 1, topic_first_post_id = ' . $row['first_post_id'];
+#
+#-----[ AFTER, ADD ]-----
+#
+
+				// approval block start
+				$sql = "SELECT COUNT(post_id) AS topic_replies_unapproved
+					FROM " . POSTS_TABLE . "
+					WHERE topic_id = $topic_id
+					AND post_id <> " . $row['first_post_id'] . "
+					AND post_approve <> 0";
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Error in deleting post', '', __LINE__, __FILE__, $sql);
+				}
+				$row2 = $db->sql_fetchrow($result);
+				$topic_replies_unapproved = empty($row2['topic_replies_unapproved']) ? "0" : $row2['topic_replies_unapproved'];
+				$db->sql_freeresult($result);
+
+				$topic_update_sql .= ", topic_replies_unapproved = $topic_replies_unapproved";
+				// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+   }
+  }
+  else
+  {
+$topic_update_sql .= 'topic_replies = topic_replies - 1';
+#
+#-----[ AFTER, ADD ]-----
+#
+			// approval mod
+			$topic_update_sql .= $post_data['needs_approval'] ? ", topic_replies_unapproved = topic_replies_unapproved - 1" : '';
+#
+#-----[ FIND ]---------------------------------------------
+#
+else if ($mode != 'poll_delete')
+#
+#-----[ BEFORE, ADD ]-----
+#
+	// approval block start
+	else if ($mode == 'editpost')
+	{
+		$sql = "SELECT MAX(post_id) AS last_post_approved
+			FROM " . POSTS_TABLE . "
+			WHERE topic_id = $topic_id
+			AND post_approve = 0";
+		if (!($result = $db->sql_query($sql)))
+		{
+			message_die(GENERAL_ERROR, 'Error in editing post', '', __LINE__, __FILE__, $sql);
+		}
+
+		$row = $db->sql_fetchrow($result);
+
+		$topic_update_sql = 'topic_last_post_approved = ' . ( $row['last_post_approved'] ? $row['last_post_approved'] : "0" );
+		$topic_update_sql .= (!$post_data['first_post']) ? ", topic_replies_unapproved = topic_replies_unapproved + 1" : '';
+
+		$sql = "SELECT MAX(post_id) AS last_post_approved
+			FROM " . POSTS_TABLE . "
+			WHERE forum_id = $forum_id
+			AND post_approve = 0";
+		if (!($result = $db->sql_query($sql)))
+		{
+			message_die(GENERAL_ERROR, 'Error in editing post', '', __LINE__, __FILE__, $sql);
+		}
+
+		$row = $db->sql_fetchrow($result);
+
+		$forum_update_sql = "forum_posts_unapproved = forum_posts_unapproved + 1";
+		$forum_update_sql .= ", forum_last_post_approved = " . ( !empty($row['last_post_approved']) ? $row['last_post_approved'] : "0" );
+	}
+	// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$forum_update_sql .=
+$topic_update_sql =
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// sql modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+ . (($mode == 'newtopic') ? ", forum_topics = forum_topics $sign"
+#
+#-----[ IN-LINE BEFORE, ADD ]-----
+#
+ . ($post_data['needs_approval'] ? '' : ", forum_last_post_approved = $post_id")
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ . ($post_data['needs_approval'] ? ", forum_topics_unapproved = forum_topics_unapproved $sign" : '' )
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+ . (($mode == 'reply') ? ", topic_replies = topic_replies $sign"
+#
+#-----[ IN-LINE BEFORE, ADD ]-----
+#
+ . ($post_data['needs_approval'] ? '' : ", topic_last_post_approved = $post_id")
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ . ($post_data['needs_approval'] ? ", topic_replies_unapproved = topic_replies_unapproved $sign" : '' )
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ($mode != 'poll_delete'
+{
+$sql = "UPDATE " . USERS_TABLE
+#
+#-----[ BEFORE, ADD ]-----
+#
+	// approval block start
+	if ($mode == 'delete')
+	{
+		if ($post_data['needs_approval'])
+		{
+			$sign = '';
+		}
+	}
+	elseif ($mode == 'editpost')
+	{
+		$sign = (!$post_data['needed_approval'] && $post_data['needs_approval']) ? '- 1' : '';
+	}
+	elseif ($post_data['needs_approval'])
+	{
+		$sign = '';
+	}
+	// approval block end
+
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+'poll_delete'
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ && $sign
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+includes/topic_review.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+global $starttime;
+#
+#-----[ AFTER, ADD ]-----
+#
+	global $post_data, $post_info, $is_auth;   // approval mod
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "SELECT t.topic_title
+#
+#-----[ BEFORE, ADD ]-----
+#
+		// sql query modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+f.auth_attachments
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+,t.topic_approve, f.forum_approve
+#
+#-----[ FIND ]---------------------------------------------
+#
+$is_auth = auth(AUTH_ALL
+#
+#-----[ AFTER, ADD ]-----
+#
+
+		// approval block start
+		$allowed_to_approve = ( $is_auth['auth_mod'] || $is_auth['auth_approve'] == APPROVAL_MOD_CAN_DO ) ? TRUE : FALSE;
+		$approve_hide = ( ($forum_row['forum_approve'] & APPROVAL_HIDE) == APPROVAL_HIDE && !$allowed_to_approve ) ? TRUE : FALSE;
+		if ( $approve_hide && $forum_row['topic_approve'] )
+		{
+			message_die(GENERAL_MESSAGE, $lang['Sorry_approve_read']);
+		}
+		$post_info['topic_approve'] = $forum_row['topic_approve'];
+		$post_data['forum_approve'] = $forum_row['forum_approve'];
+		// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+obtain_word_list
+  }
+#
+#-----[ AFTER, ADD ]-----
+#
+
+	// approval block start
+	$allowed_to_approve = ( $is_auth['auth_mod'] || $is_auth['auth_approve'] == APPROVAL_MOD_CAN_DO ) ? TRUE : FALSE;
+	$approve_hide = ( ($post_data['forum_approve'] & APPROVAL_HIDE) == APPROVAL_HIDE && !$allowed_to_approve ) ? TRUE : FALSE;
+	if ( !$allowed_to_approve && $post_info['topic_approve'] )
+	{
+		$topic_title = $lang['Approval_unapproved_topic'];
+	}
+
+	$approve_sql = ( !$allowed_to_approve && $approve_hide ) ? " AND p.post_approve = 0" : '';
+	// approval block end
+#
+#-----[ FIND ]---------------------------------------------
+#
+$sql = "SELECT u.username, u.user_id, p.*
+FROM
+WHERE
+AND
+AND
+#
+#-----[ BEFORE, ADD ]-----
+#
+	// query modified by approval mod
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+pt.post_id
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+ $approve_sql
+#
+#-----[ FIND ]---------------------------------------------
+#
+$template->assign_block_vars('postrow'
+#
+#-----[ BEFORE, ADD ]-----
+#
+			// approval block start
+			if ( $row['post_approve'] )
+			{
+				if ( ($userdata['user_id'] == $row['poster_id'] && $userdata['user_id'] != ANONYMOUS) || $allowed_to_approve )
+				{
+					$post_subject = $post_subject . ' <span class="topicUnapproved">' . $lang['Approval_unapproved_subject'] . '</span>';
+				}
+				else
+				{
+					$post_subject = '<span class="topicUnapproved">' . $lang['Approval_unapproved_subject'] . '</span>';
+				}
+			}
+
+			if ( $row['post_approve'] && !$allowed_to_approve && ($userdata['user_id'] != $row['poster_id']  || $userdata['user_id'] == ANONYMOUS) )
+			{
+				$message = $lang['Approval_unapproved_text'];
+			}
+			// approval block end
+
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+//
+//
+//
+$lang['Words_title']
+#
+#-----[ BEFORE, ADD ]-----
+#
+//
+// Approval
+//
+$lang['Forum_approval_options'] = "Approval options";
+$lang['Forum_approval_default'] = "Approval is ON by default";
+$lang['Forum_approval_topic_only'] = "Approval for topics only";
+$lang['Forum_approval_topic_starter'] = "Topic starter can approve topic posts";
+$lang['Forum_approval_use_ranks'] = "Ranks override permissions";
+$lang['Forum_approval_warning'] = "Display warning on posting";
+$lang['Forum_approval_hide'] = "Hide unapproved posts";
+$lang['Forum_approval_notify_u'] = "Notify moderators about unapproved posts";
+$lang['Forum_approval_notify_n'] = "Notify about posts that need no approval";
+
+$lang['Approval_mod_level'] = "Approval Level";
+$lang['Approval_mod_default'] = "Forum Default";
+$lang['Approval_mod_needed'] = "Must Be Approved";
+$lang['Approval_mod_no_need'] = "Needs No Approval";
+$lang['Approval_mod_can_do'] = "Can Approve Posts";
+
+
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+language/lang_english/lang_faq.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$faq[] = array("Why can't I vote in polls?"
+#
+#-----[ AFTER, ADD ]-----
+#
+// approval mod
+$faq[] = array("Why can't I see my message that I have just posted in the topic?", "The forum you are posting in may have 'posts approval' feature enabled. This means that your post will not be visible until the moderator approves it. You do not need to take any further action as it is up to moderators to decide whether your post should be displayed or not.");
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+//
+//
+//
+$lang['All_times']
+#
+#-----[ BEFORE, ADD ]-----
+#
+//
+// Approval
+//
+$lang['Approval_button'] = 'Approve';
+$lang['Approval_Mod_CP_explain'] = 'Using the form below you can perform mass moderation operations on this forum. You can lock, unlock, approve, move or delete any number of topics.';
+$lang['Approval_unapproved_contains'] = '[Contains unapproved posts]';
+$lang['Approval_approved_topics'] = 'All posts in selected topics have been successfully approved.';
+$lang['Approval_warning'] = 'This post will not be visible to others until approved by the moderator!';
+$lang['Approval_cannot_reply'] = 'This topic must be approved first to allow replying.';
+$lang['Approval_unapproved_topic'] = '[awaiting approval from the moderator]';
+$lang['Approval_unapproved_subject'] = '[unapproved post]';
+$lang['Approval_unapproved_text'] = '<em>This post is awaiting approval from the moderator.</em>';
+$lang['Approval_unapproved_mini'] = '[unapproved]';
+$lang['Approval_approve_this'] = 'Approve this post';
+$lang['Approval_approved_ok'] = 'This post has been successfully approved.';
+$lang['Approval_approved_already'] = 'This post does not require approval.';
+$lang['Approval_search'] = 'View unapproved posts';
+$lang['Rules_approve_topic'] = 'You <b>can</b> approve posts in this topic';
+$lang['Rules_approve_forum'] = 'You <b>can</b> approve posts in this forum';
+$lang['Sorry_auth_approval'] = 'Sorry, but only <b>moderators</b> and <b>users granted special access</b> can approve posts.';
+$lang['Sorry_approve_read'] = 'Sorry, but only <b>moderators</b> and <b>users granted special access</b> can view unapproved posts.';
+
+
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/admin/forum_edit_body.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+forumstatus
+</tr>
+#
+#-----[ AFTER, ADD ]-----
+#
+	<tr>
+	  <td class="row1">{L_APPROVAL}</td>
+	  <td class="row2">
+	    <table cellspacing="0" cellpadding="1" border="0">
+	      <tr><td align="right" valign="middle"> {L_APPROVAL_DEFAULT}</td><td align="left" valign="middle"> <input type="checkbox" name="approval_default" value="1" {S_APPROVAL_DEFAULT} /></tr>
+	      <tr><td align="right" valign="middle"> {L_APPROVAL_TOPIC_ONLY}</td><td align="left" valign="middle"> <input type="checkbox" name="approval_topic" value="1" {S_APPROVAL_TOPIC_ONLY} /></tr>
+	      <tr><td align="right" valign="middle"> {L_APPROVAL_TOPIC_STARTER}</td><td align="left" valign="middle"> <input type="checkbox" name="approval_topic_starter" value="1" {S_APPROVAL_TOPIC_STARTER} /></tr>
+	      <tr><td align="right" valign="middle"> {L_APPROVAL_USE_RANKS}</td><td align="left" valign="middle"> <input type="checkbox" name="approval_use_ranks" value="1" {S_APPROVAL_USE_RANKS} /></tr>
+	      <tr><td align="right" valign="middle"> {L_APPROVAL_WARN}</td><td align="left" valign="middle"> <input type="checkbox" name="approval_warn" value="1" {S_APPROVAL_WARN} /></tr>
+	      <tr><td align="right" valign="middle"> {L_APPROVAL_HIDE}</td><td align="left" valign="middle"> <input type="checkbox" name="approval_hide" value="1" {S_APPROVAL_HIDE} /></tr>
+	      <tr><td align="right" valign="middle"> {L_APPROVAL_NOTIFY_U}</td><td align="left" valign="middle"> <input type="checkbox" name="approval_notify_u" value="1" {S_APPROVAL_NOTIFY_U} /></tr>
+	      <tr><td align="right" valign="middle"> {L_APPROVAL_NOTIFY_N}</td><td align="left" valign="middle"> <input type="checkbox" name="approval_notify_n" value="1" {S_APPROVAL_NOTIFY_N} /></tr>
+	    </table>
+	  </td>
+	</tr>
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/admin/ranks_edit_body.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+min_posts
+</tr>
+#
+#-----[ AFTER, ADD ]-----
+#
+	<tr>
+		<td class="row1"><span class="gen">{L_RANK_APPROVE}</span></td>
+		<td class="row2"><input type="radio" name="approve_rank" value="1" {APPROVE_RANK} />{L_YES} &nbsp;&nbsp;<input type="radio" name="approve_rank" value="0" {NOT_APPROVE_RANK} /> {L_NO}</td>
+	</tr>
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/admin/ranks_list_body.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+{L_SPECIAL_RANK}
+#
+#-----[ AFTER, ADD ]-----
+#
+		<th class="thTop">{L_APPROVE_RANK}</th>
+#
+#-----[ FIND ]---------------------------------------------
+#
+{ranks.SPECIAL_RANK}
+#
+#-----[ AFTER, ADD ]-----
+#
+		<td class="{ranks.ROW_CLASS}" align="center">{ranks.APPROVE_RANK}</td>
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/index_body.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+{U_SEARCH_NEW}
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+<a href="{U_SEARCH_NEW}"
+#
+#-----[ IN-LINE BEFORE, ADD ]-----
+#
+<a href="{U_SEARCH_UNAPPROVED}" class="gensmall">{L_SEARCH_UNAPPROVED}</a><br />
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/modcp_body.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+{topicrow.TOPIC_TITLE}
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+{topicrow.TOPIC_TITLE}</a>
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+{topicrow.TOPIC_APPROVE}
+#
+#-----[ FIND ]---------------------------------------------
+#
+{L_UNLOCK}
+#
+#-----[ AFTER, ADD ]-----
+#
+		&nbsp;
+		<input type="submit" name="approve" class="liteoption" value="{L_APPROVE}" />
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+a.topictitle:hover
+#
+#-----[ AFTER, ADD ]-----
+#
+
+/* titles for unapproved topics */
+.topicUnapproved         { font-weight: bold; color: {T_FONTCOLOR1}; }
+.topicUnapproved a       { text-decoration: none; color: {T_FONTCOLOR1}; }
+.topicUnapproved a:hover { text-decoration: underline; color: {T_BODY_HLINK}; }
+.postUnapproved          { color: {T_FONTCOLOR1}; }
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+<!-- BEGIN switch_username_select -->
+#
+#-----[ BEFORE, ADD ]-----
+#
+	<!-- BEGIN switch_approval_warning -->
+	<tr>
+		<td class="row1" colspan="2" align="center"><span class="gen"><b>{L_APPROVAL_WARNING}</b></span></td>
+	</tr>
+	<!-- END switch_approval_warning -->
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/search_results_posts.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+<img src="{searchresults.MINI_POST_IMG}"
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+<img src="{searchresults.MINI_POST_IMG}"
+#
+#-----[ IN-LINE BEFORE, ADD ]-----
+#
+<table border="0" cellpadding="0" cellspacing="0" width="100%"><tr><td valign="top">
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+</span></td>
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+<td align="right" valign="top">{searchresults.APPROVE_MOD_IMG} {searchresults.DELETE_IMG}</td></table></td>
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/simple_header.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+a.topictitle:hover
+#
+#-----[ AFTER, ADD ]-----
+#
+
+/* titles for unapproved topics */
+.topicUnapproved         { font-weight: bold; color: {T_FONTCOLOR1}; }
+.topicUnapproved a       { text-decoration: none; color: {T_FONTCOLOR1}; }
+.topicUnapproved a:hover { text-decoration: underline; color: {T_BODY_HLINK}; }
+.postUnapproved          { color: {T_FONTCOLOR1}; }
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$images['icon_edit']
+#
+#-----[ AFTER, ADD ]-----
+#
+$images['icon_approve'] = "$current_template_images/icon_approve.gif";   // approve mod
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/subSilver.css
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+a.topictitle:hover
+#
+#-----[ AFTER, ADD ]-----
+#
+
+/* titles for unapproved topics */
+.topicUnapproved         { font-weight: bold; color: #444444; }
+.topicUnapproved a       { text-decoration: none; color: #444444; }
+.topicUnapproved a:hover { text-decoration: underline; color: #DD6900; }
+.postUnapproved          { color: #444444; }
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+{topicrow.TOPIC_TITLE}
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+{topicrow.TOPIC_TITLE}</a>
+#
+#-----[ IN-LINE AFTER, ADD ]-----
+#
+{topicrow.TOPIC_APPROVE}
+#
+#
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+{postrow.QUOTE_IMG}
+#
+#-----[ IN-LINE FIND ]-----------------
+#
+{postrow.QUOTE_IMG}
+#
+#-----[ IN-LINE REPLACE WITH ]-----
+#
+{postrow.APPROVE_MOD_IMG} {postrow.QUOTE_IMG}
+#
+#
+#######################################################################################################################
+#
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------------------------
+#
+# EoM

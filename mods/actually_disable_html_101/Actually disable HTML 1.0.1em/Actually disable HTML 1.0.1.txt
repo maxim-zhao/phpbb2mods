@@ -1,0 +1,154 @@
+############################################################## 
+## MOD Title: Actually disable HTML 
+## MOD Author: [R: R@m$e$ :U] < Ramses@phpBBGuru.net > (Ramses) http://Ramses.phpBBGuru.net
+## MOD Description: If html disabled in ACP, all HTML boxes will be hidden
+## MOD Version: 1.0.1 
+## 
+## Installation Level: Easy
+## Installation Time: ~5 Minutes 
+## Files To Edit: 
+##      posting.php
+##      templates/subSilver/posting_body.tpl
+##      includes/usercp_register.php
+##      templates/subSilver/profile_add_body.tpl
+## Included Files: n/a
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##      Find bug? Please write me...
+## 
+##      This MOD forbidden for using on F1-Live.ru and all daughters projects of F1-Live.ru
+##      This MOD forbidden for modificating for F1-Live.ru and all daughters projects of F1-Live.ru
+##      Parts of this MOD forbidden for using on F1-Live.ru and all daughters projects of F1-Live.ru
+## 
+##      It is compatible with EasyMOD of Nuttzy and can be
+##      installed by it but is not yet certified EMC (EasyMOD Compliant)!
+##      http://area51.phpbb.com/phpBB22/viewforum.php?sid=&f=15
+##
+############################################################## 
+## MOD History: 
+## 
+##   2005-03-24 - Version 1.0.1 
+##      - Fix install for compatible with EasyMOD
+##
+##   2005-03-16 - Version 1.0.0 
+##      - First release... =)))
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+posting.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// Output the data to the template
+//
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// [start] Actually disable HTML 1.0.1
+if ( $board_config['allow_html'] )
+{
+	$template->assign_block_vars('switch_html_enable', array());
+}
+// [end] Actually disable HTML 1.0.1
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/posting_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	  <td class="row1" valign="top"><span class="gen"><b>{L_OPTIONS}</b></span><br /><span class="gensmall">{HTML_STATUS}<br />{BBCODE_STATUS}<br />{SMILIES_STATUS}</span></td>
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	  <td class="row1" valign="top"><span class="gen"><b>{L_OPTIONS}</b></span><br /><span class="gensmall">
+		<!-- BEGIN switch_html_enable -->
+		{HTML_STATUS}<br />
+		<!-- END switch_html_enable -->
+		{BBCODE_STATUS}<br />{SMILIES_STATUS}</span></td>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_register.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	else
+	{
+		$template->assign_block_vars('switch_namechange_disallowed', array());
+	}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// [start] Actually disable HTML 1.0.1
+	if ( $board_config['allow_html'] )
+	{
+		$template->assign_block_vars('switch_html_enable', array());
+	}
+	// [end] Actually disable HTML 1.0.1
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	  <td class="row1"><span class="gen">{L_SIGNATURE}:</span><br /><span class="gensmall">{L_SIGNATURE_EXPLAIN}<br /><br />{HTML_STATUS}<br />{BBCODE_STATUS}<br />{SMILIES_STATUS}</span></td>
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	  <td class="row1"><span class="gen">{L_SIGNATURE}:</span><br /><span class="gensmall">{L_SIGNATURE_EXPLAIN}<br /><br />
+		<!-- BEGIN switch_html_enable -->
+		{HTML_STATUS}
+		<!-- END switch_html_enable -->
+		<br />{BBCODE_STATUS}<br />{SMILIES_STATUS}</span></td>
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<tr> 
+	  <td class="row1"><span class="gen">{L_ALWAYS_ALLOW_HTML}:</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="allowhtml" value="1" {ALWAYS_ALLOW_HTML_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="allowhtml" value="0" {ALWAYS_ALLOW_HTML_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	<!-- BEGIN switch_html_enable -->
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<!-- END switch_html_enable -->
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

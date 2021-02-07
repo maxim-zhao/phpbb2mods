@@ -1,0 +1,177 @@
+############################################################## 
+## MOD Title: Save Admin Userlist Sort Order
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/phpbb
+## MOD Description: Saves the sort order in wGEric's Admin Userlist MOD.
+## MOD Version: 1.0.0
+##
+## Installation Level: Intermediate
+## Installation Time: 2 Minutes
+##
+## Files To Edit: 3
+##      admin/admin_userlist.php
+##      language/lang_english/lang_admin.php
+##      templates/subSilver/admin/userlist_body.tpl
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##   Originally requested by Mia_J, and adapted from Hide Zero Posters v1.6.5, this feature saves
+##   the type of sort that was previously used in wGEric's Admin Userlist MOD by any Admin.
+##
+##   Users of the Hide Zero Posters mod may also want to rename admin_userlist.php to
+##   admin_acctlist.php, as well.
+##
+##   The latest version of this mod can be found here:
+##   http://www.frostjedi.com/terra/scripts/phpbb/sort_order.zip
+##
+##   The latest version of the Admin Userlist mod can be found here:
+##   http://www.phpbb.com/phpBB/viewtopic.php?t=117359
+##
+##   The latest version of the Hide Zero Posters mod can be found here:
+##   http://www.frostjedi.com/terra/scripts/phpbb/zero_users.zip
+##
+##   For support / comments / whatever, visit here:
+##   http://www.frostjedi.com/phpbb/viewforum.php?f=33
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+INSERT INTO `phpbb_config` (`config_name`, `config_value`) VALUES ('admin_user_mode','user_regdate'),('admin_user_order',0);
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_userlist.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+if ( isset($HTTP_GET_VARS['sort']) || isset($HTTP_POST_VARS['sort']) )
+{
+	$sort = ( isset($HTTP_POST_VARS['sort']) ) ? htmlspecialchars($HTTP_POST_VARS['sort']) : htmlspecialchars($HTTP_GET_VARS['sort']);
+	$sort = str_replace("\'", "''", $sort);
+}
+else
+{
+	$sort = 'user_regdate';
+}
+
+//
+// sort order
+//
+if( isset($HTTP_POST_VARS['order']) )
+{
+	$sort_order = ( $HTTP_POST_VARS['order'] == 'ASC' ) ? 'ASC' : 'DESC';
+}
+else if( isset($HTTP_GET_VARS['order']) )
+{
+	$sort_order = ( $HTTP_GET_VARS['order'] == 'ASC' ) ? 'ASC' : 'DESC';
+}
+else
+{
+	$sort_order = 'ASC';
+}
+
+#
+#-----[	REPLACE WITH ]----------------------------------
+#
+if ( isset($HTTP_GET_VARS['sort']) || isset($HTTP_POST_VARS['sort']) )
+{
+	$sort = ( isset($HTTP_POST_VARS['sort']) ) ? htmlspecialchars($HTTP_POST_VARS['sort']) : htmlspecialchars($HTTP_GET_VARS['sort']);
+	$sort = str_replace("\'", "''", $sort);
+	$sort_order = ( isset($HTTP_POST_VARS['order']) ) ? $HTTP_POST_VARS['order'] : $HTTP_GET_VARS['order'];
+	$sort_order = ($sort_order == 'ASC') ? 1 : 0;
+
+	$sql = "UPDATE " . CONFIG_TABLE . " SET config_value = '$sort' WHERE config_name = 'admin_user_mode'";
+	if (!($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not update sort method', '', __LINE__, __FILE__, $sql);
+	}
+
+	$sql = "UPDATE " . CONFIG_TABLE . " SET config_value = $sort_order WHERE config_name = 'admin_user_order'";
+	if (!($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Could not update sort order', '', __LINE__, __FILE__, $sql);
+	}
+}
+$sort = isset($sort) ? $sort : $board_config['admin_user_mode'];
+$order = ((isset($sort_order) ? $sort_order : $board_config['admin_user_order']) == 1) ? 'ASC' : 'DESC';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'S_USER_VARIABLE' => POST_USERS_URL,
+
+#
+#-----[	BEFORE, ADD ]-----------------------------------
+#
+			'S_'.strtoupper($sort) => ' selected="selected"',
+			'S_'.strtoupper($order) => ' selected="selected"',
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Userlist'] = 'User list';
+$lang['Userlist_description'] = 'View a complete list of your users and perform various actions on them';
+
+#
+#-----[	REPLACE WITH ]----------------------------------
+#
+$lang['Userlist'] = 'Account List';
+$lang['Userlist_description'] = 'View a complete list of accounts on this board and perform various actions on them';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/userlist_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			<option value="user_id">{L_USER_ID}</option>
+			<option value="user_active">{L_ACTIVE}</option>
+			<option value="username">{L_USERNAME}</option>
+			<option value="user_regdate">{L_JOINED}</option>
+			<option value="user_session_time">{L_ACTIVTY}</option>
+			<option value="user_level">{L_USER_LEVEL}</option>
+			<option value="user_posts">{L_POSTS}</option>
+			<option value="user_rank">{L_RANK}</option>
+			<option value="user_email">{L_EMAIL}</option>
+		</select></td>
+		<td nowrap="nowrap"><select name="order" class="post">
+			<option value="ASC">{L_ASCENDING}</option>
+			<option value="DESC">{L_DESCENDING}</option>
+
+#
+#-----[	REPLACE WITH ]----------------------------------
+#
+			<option value="user_id"{S_USER_ID}>{L_USER_ID}</option>
+			<option value="user_active"{S_USER_ACTIVE}>{L_ACTIVE}</option>
+			<option value="username"{S_USERNAME}>{L_USERNAME}</option>
+			<option value="user_regdate"{S_USER_REGDATE}>{L_JOINED}</option>
+			<option value="user_session_time"{S_USER_SESSION_TIME}>{L_ACTIVTY}</option>
+			<option value="user_level"{S_USER_LEVEL}>{L_USER_LEVEL}</option>
+			<option value="user_posts"{S_USER_POSTS}>{L_POSTS}</option>
+			<option value="user_rank"{S_USER_RANK}>{L_RANK}</option>
+			<option value="user_email"{S_USER_EMAIL}>{L_EMAIL}</option>
+		</select></td>
+		<td nowrap="nowrap"><select name="order" class="post">
+			<option value="ASC"{S_ASC}>{L_ASCENDING}</option>
+			<option value="DESC"{S_DESC}>{L_DESCENDING}</option>
+
+#
+#-----[	SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

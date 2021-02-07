@@ -1,0 +1,322 @@
+############################################################## 
+## MOD Title:          Upgrade to BBCodes & smilies enhancement 1.1.0
+## MOD Author:         -=ET=- < n/a > (n/a) http://www.golfexpert.net/phpbb
+## MOD Description:    This MOD will allow you to upgrade your
+##                     BBCodes & smilies enhancement MOD from 1.0.0
+##                     to 1.1.0
+## MOD Version:        1.0.0
+## 
+## Installation Level: Easy
+## Installation Time:  5 Minutes (1mn by EasyMOD of Nuttzy)
+## Files To Edit:      7
+##      posting.php
+##      admin/admin_users.php
+##      includes/bbcode.php
+##      language/lang_english/lang_main.php
+##      templates/subSilver/bbcode.tpl
+##      templates/subSilver/posting_body.tpl
+##      templates/subSilver/posting_smilies.tpl
+##
+## Included Files:     0 
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##
+## BBCodes & smilies enhancement 1.0.0 needs to be already installed!!!
+##
+## The rest of the author notes are on the full install MOD
+## in the root dir of this MOD archive!
+##
+############################################################## 
+## MOD History: 
+## 
+##   2004-03-09 - Version 1.0.0
+##      - Initial release
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+posting.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+// Start add - BBCodes & smilies use enhancement MOD
+'L_BBCODE_URL' => $lang['bbcode_url'],
+'L_BBCODE_URL_TITLE' => $lang['bbcode_url_title'],
+'L_BBCODE_URL_EMPTY' => $lang['bbcode_url_empty'],
+'L_BBCODE_URL_TITLE_EMPTY' => $lang['bbcode_url_title_empty'],
+'L_BBCODE_URL_ERRORS' => $lang['bbcode_url_errors'],
+// End add - BBCodes & smilies use enhancement MOD
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+#
+// Start add - BBCodes & smilies enhancement MOD
+'L_BBCODE_URL' => $lang['bbcode_url'],
+'L_BBCODE_URL_TITLE' => $lang['bbcode_url_title'],
+'L_BBCODE_URL_EMPTY' => $lang['bbcode_url_empty'],
+'L_BBCODE_URL_TITLE_EMPTY' => $lang['bbcode_url_title_empty'],
+'L_BBCODE_URL_ERRORS' => $lang['bbcode_url_errors'],
+// End add - BBCodes & smilies enhancement MOD
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+admin/admin_users.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# $signature = ($this_userdata['user_sig_bbcode_uid'] != '') ? preg_replace('#:' . $this_userdata['user_sig_bbcode_uid'] . '#si', '', $this_userdata['user_sig']) : $this_userdata['user_sig'];
+#
+$signature = ($this_userdata['user_sig_bbcode_uid'] != '')
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+#
+
+// Start replacement - BBCodes & smilies enhancement MOD
+$signature_bbcode_uid = $this_userdata['user_sig_bbcode_uid'];
+$signature = ($signature_bbcode_uid != '') ? preg_replace("/:(([a-z0-9]+:)?)$signature_bbcode_uid(=|\])/si", '\\3', $this_userdata['user_sig']) : $this_userdata['user_sig'];
+// End replacement - BBCodes & smilies enhancement MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+includes/bbcode.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+$bbcode_tpl['email'] = str_replace('{EMAIL}', '\\1', $bbcode_tpl['email']);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# This instruction and this code is copyright (C) xanthor
+# http://www.druides.tk
+#
+
+// Start add - BBCodes & smilies enhancement MOD
+	$bbcode_tpl['email4'] = str_replace('{CC}', '\\2', $bbcode_tpl['email']); 
+	$bbcode_tpl['email4'] = str_replace('{SUJET}', '\\3', $bbcode_tpl['email4']); 
+	$bbcode_tpl['email4'] = str_replace('{DESCRIPTION}', '\\4', $bbcode_tpl['email4']); 
+	$bbcode_tpl['email3'] = str_replace('{CC}', '\\2', $bbcode_tpl['email']); 
+	$bbcode_tpl['email'] = str_replace('{CC}', '', $bbcode_tpl['email']); 
+	$bbcode_tpl['email2'] = str_replace('{DESCRIPTION}', '\\3', $bbcode_tpl['email']); 
+	$bbcode_tpl['email3'] = str_replace('{SUJET}', '', $bbcode_tpl['email3']); 
+	$bbcode_tpl['email3'] = str_replace('{DESCRIPTION}', '\\3', $bbcode_tpl['email3']); 
+	$bbcode_tpl['email2'] = str_replace('{SUJET}', '\\2', $bbcode_tpl['email2']); 
+	$bbcode_tpl['email'] = str_replace('{SUJET}', '', $bbcode_tpl['email']); 
+	$bbcode_tpl['email1'] = str_replace('{DESCRIPTION}', '\\2', $bbcode_tpl['email']); 
+	$bbcode_tpl['email'] = str_replace('{DESCRIPTION}', '\\1', $bbcode_tpl['email']);
+// End add - BBCodes & smilies enhancement MOD
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+$replacements[] = $bbcode_tpl['email'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# This instruction and this code is copyright (C) xanthor
+# http://www.druides.tk, enhanced by -=ET=-
+#
+
+// Start add - BBCodes & smilies enhancement MOD
+	// [email=nom@domain.tld]desc[/email] code.. 
+	$patterns[] = "#\[email=([a-z0-9&\-_.]+?@[\w\-]+\.(?:[\w\-\.]+\.)?[\w]+)\](.*?)\[/email\]#si"; 
+	$replacements[] = $bbcode_tpl['email1']; 
+
+	// [email=nom@domain.tld?subject]desc[/email] code.. 
+	$patterns[] = "#\[email=([a-z0-9&\-_.]+?@[\w\-]+\.(?:[\w\-\.]+\.)?[\w]+)\?(.[^/]+)\](.*?)\[/email\]#si"; 
+	$replacements[] = $bbcode_tpl['email2']; 
+
+	// [email=nom@domain.tld+cc@domain.tld]desc[/email] code.. 
+	$patterns[] = "#\[email=([a-z0-9&\-_.]+?@[\w\-]+\.(?:[\w\-\.]+\.)?[\w]+)\+([a-z0-9&\-_.]+?@[\w\-]+\.(?:[\w\-\.]+\.)?[\w]+)\](.*?)\[/email\]#si"; 
+	$replacements[] = $bbcode_tpl['email3']; 
+
+	// [email=nom@domain.tld+cc@domain.tld?subject]desc[/email] code.. 
+	$patterns[] = "#\[email=([a-z0-9&\-_.]+?@[\w\-]+\.(?:[\w\-\.]+\.)?[\w]+)\+([a-z0-9&\-_.]+?@[\w\-]+\.(?:[\w\-\.]+\.)?[\w]+)\?(.[^/]+)\](.*?)\[/email\]#si"; 
+	$replacements[] = $bbcode_tpl['email4'];
+// End add - BBCodes & smilies enhancement MOD
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+// Start add - BBCodes & smilies use enhancement MOD
+$lang['bbcode_url'] = 'Enter the URL (eg. http://www.phpbb.com)';
+$lang['bbcode_url_title'] = 'Enter the title of the link';
+$lang['bbcode_url_empty'] = 'You didn\'t enter any url';
+$lang['bbcode_url_title_empty'] = 'You didn\'t enter any title for the link';
+$lang['bbcode_url_errors'] = 'Error!';
+// End add - BBCodes & smilies use enhancement MOD
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+#
+// Start add - BBCodes & smilies enhancement MOD
+$lang['bbcode_url'] = 'Enter the URL (eg. http://www.phpbb.com)';
+$lang['bbcode_url_title'] = 'Enter the title of the link';
+$lang['bbcode_url_empty'] = 'You didn\'t enter any url';
+$lang['bbcode_url_title_empty'] = 'You didn\'t enter any title for the link';
+$lang['bbcode_url_errors'] = 'Error!';
+// End add - BBCodes & smilies enhancement MOD
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+templates/subSilver/bbcode.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------
+#
+<!-- BEGIN email --><a href="mailto:{EMAIL}">{EMAIL}</A><!-- END email -->
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+#
+# This instruction and this code is copyright (C) xanthor
+# http://www.druides.tk
+#
+<!-- BEGIN email --><a href="mailto:{EMAIL}?subject={SUJET}&cc={CC}">{DESCRIPTION}</a><!-- END email -->
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+templates/subSilver/posting_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+# NOTE: this is a search by part(s) of code line(s)!
+# The original line(s) to find is(are) longer and must look like this (if no MOD has already modify them):
+#
+# <td><span class="genmed"> &nbsp;{L_FONT_COLOR}:
+# 	<select name="addbbcode18" onChange="bbfontstyle('[color=' + this.form.addbbcode18.options[this.form.addbbcode18.selectedIndex].value + ']', '[/color]');this.selectedIndex=0;" onMouseOver="helpline('s')">
+#
+{L_FONT_COLOR}
+<select
+
+# 
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+<select
+
+# 
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+ style="background-color: {T_TR_COLOR1}"
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+#
+templates/subSilver/posting_smilies.tpl
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+#
+// Start replacement - BBCodes & smilies use enhancement MOD
+function emoticon(text) {
+	var txtarea = opener.document.forms['post'].message;
+	text = ' ' + text + ' ';
+	if (txtarea.createTextRange && txtarea.caretPos) {
+		var caretPos = txtarea.caretPos;
+		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text + ' ' : text;
+		txtarea.focus();
+	} else
+	if (txtarea.selectionEnd && (txtarea.selectionStart | txtarea.selectionStart == 0))
+	{ 
+		mozInsert(txtarea, text, "");
+		return;
+	} else {
+		txtarea.value  += text;
+		txtarea.focus();
+	}
+}
+
+function mozInsert(txtarea, openTag, closeTag)
+{
+        if (txtarea.selectionEnd > txtarea.value.length) { txtarea.selectionEnd = txtarea.value.length; } 
+       
+        var startPos = txtarea.selectionStart; 
+        var endPos = txtarea.selectionEnd+openTag.length; 
+       
+        txtarea.value=txtarea.value.slice(0,startPos)+openTag+txtarea.value.slice(startPos); 
+        txtarea.value=txtarea.value.slice(0,endPos)+closeTag+txtarea.value.slice(endPos); 
+         
+        txtarea.selectionStart = startPos+openTag.length; 
+        txtarea.selectionEnd = endPos; 
+        txtarea.focus(); 
+}
+// End replacement - BBCodes & smilies use enhancement MOD
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+#
+// Start replacement - BBCodes & smilies enhancement MOD
+function emoticon(text) {
+	var txtarea = opener.document.forms['post'].message;
+	text = ' ' + text + ' ';
+	if (txtarea.createTextRange && txtarea.caretPos) {
+		var caretPos = txtarea.caretPos;
+		caretPos.text = caretPos.text.charAt(caretPos.text.length - 1) == ' ' ? text + ' ' : text;
+		txtarea.focus();
+	} else
+	if (txtarea.selectionEnd && (txtarea.selectionStart | txtarea.selectionStart == 0))
+	{ 
+		mozInsert(txtarea, text, "");
+	} else {
+		txtarea.value  += text;
+		txtarea.focus();
+	}
+}
+
+function mozInsert(txtarea, openTag, closeTag)
+{
+        if (txtarea.selectionEnd > txtarea.value.length) { txtarea.selectionEnd = txtarea.value.length; } 
+       
+        var startPos = txtarea.selectionStart; 
+        var endPos = txtarea.selectionEnd+openTag.length; 
+       
+        txtarea.value=txtarea.value.slice(0,startPos)+openTag+txtarea.value.slice(startPos); 
+        txtarea.value=txtarea.value.slice(0,endPos)+closeTag+txtarea.value.slice(endPos); 
+         
+        txtarea.selectionStart = startPos+openTag.length; 
+        txtarea.selectionEnd = endPos; 
+        txtarea.focus(); 
+}
+// End replacement - BBCodes & smilies enhancement MOD
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+<!-- Start replacement - BBCodes & smilies use enhancement MOD -->
+<td><img src="{smilies_row.smilies_col.SMILEY_IMG}" border="0" onmouseover="this.style.cursor='hand';" onclick="emoticon('{smilies_row.smilies_col.SMILEY_CODE}');" alt="{smilies_row.smilies_col.SMILEY_DESC}" title="{smilies_row.smilies_col.SMILEY_DESC}" /></td>
+<!-- End replacement - BBCodes & smilies use enhancement MOD -->
+
+# 
+#-----[ REPLACE WITH ]----------------------------------------
+# 
+<!-- Start replacement - BBCodes & smilies enhancement MOD -->
+<td><img src="{smilies_row.smilies_col.SMILEY_IMG}" border="0" onmouseover="this.style.cursor='hand';" onclick="emoticon('{smilies_row.smilies_col.SMILEY_CODE}');" alt="{smilies_row.smilies_col.SMILEY_DESC}" title="{smilies_row.smilies_col.SMILEY_DESC}" /></td>
+<!-- End replacement - BBCodes & smilies enhancement MOD -->
+# 
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------- 
+# 
+# EoM

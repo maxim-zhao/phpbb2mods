@@ -1,0 +1,277 @@
+############################################################## 
+## MOD Title:	Split topic type : upgrade to 2.0.1
+## MOD Author:	Ptirhiik < ptirhiik@clanmckeen.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description:
+##		Upgrade for Split topic type from v 2.0.0 to v 2.0.1
+## MOD Version: 2.0.1
+## 
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit:
+##		includes/functions.php
+##		includes/page_header.php
+##		includes/mods_settings/mod_split_topic_type.php
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##
+## Included Files:
+##		lang_extend_split_topic_type.php
+##
+##		--- lang settings ---
+##		mod-lang_settings/lang_extend_mac.php
+##
+##		--- mods settings ---
+##		mod-mods_settings/lang_extend_mods_settings.php
+##		mod-mods_settings/functions_mods_settings.php
+##		mod-mods_settings/admin_board_extend.php
+##		mod-mods_settings/board_config_extend_body.tpl
+##
+##		--- optional : only if you have installed the users preferences choices - standard user panel ---
+##		mod-mods_settings/profile_option.php
+##		mod-mods_settings/profile_options_body.tpl
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+##
+## Author Notes: 
+##
+##	o This mod is not a full mod but an upgrade, it requires Split topic type v 2.0.0 to be installed
+##		For a new installation, please use MOD-split_topic_type.txt description.
+##
+##	o users can choose their prefered setup (required full mods settings mod to be installed).
+##		Admin can also choose to override the users choice for each setup parameter. 
+## 
+############################################################## 
+## MOD History: 
+##
+##   2003-10-21 - Version 2.0.1
+##	- add the lang_settings tool
+##	- upgrade the mods_settings tool
+##
+##   2003-09-09 - Version 2.0.0
+##      - use of the functions_topics_list
+##	- use the mods_settings for user preferences
+##
+##   2003-07-13 - Version 1.0.5
+##      - allow to split the topic in boxes
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy lang_extend_split_topic_type.php to language/lang_english/lang_extend_split_topic_type.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy mod-lang_settings/lang_extend_mac.php to includes/lang_extend_mac.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy mod-mods_settings/lang_extend_mods_settings.php to language/lang_english/lang_extend_mods_settings.php
+copy mod-mods_settings/functions_mods_settings.php to includes/functions_mods_settings.php
+copy mod-mods_settings/admin_board_extend.php to admin/admin_board_extend.php
+copy mod-mods_settings/board_config_extend_body.tpl to templates/subSilver/admin/board_config_extend_body.tpl
+#
+#-----[ COPY ]------------------------------------------------
+#
+# --- optional : only if you have installed the users preferences choices - standard user panel ---
+#
+copy mod-mods_settings/profile_options.php to profile_option.php
+copy mod-mods_settings/profile_options_body.tpl to templates/subSilver/profile_options_body.tpl
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- mod : language settings -----------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( $userdata['user_id'] != ANONYMOUS )
+	{
+		if ( !empty($userdata['user_lang']))
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+	global $db, $mods, $list_yes_no, $userdata;
+
+	//	get all the mods settings
+	$dir = @opendir($phpbb_root_path . 'includes/mods_settings');
+	while( $file = @readdir($dir) )
+	{
+		if( preg_match("/^mod_.*?\." . $phpEx . "$/", $file) )
+		{
+			include_once($phpbb_root_path . 'includes/mods_settings/' . $file);
+		}
+	}
+	@closedir($dir);
+//-- fin mod : profile cp --------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Set up style
+	//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+	include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		}
+
+		if ( empty($template) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+			include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+# here we removed the split topic type specific lines
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : split topic type ------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/mods_settings/mod_split_topic_type.' . $phpEx);
+//-- fin mod : split topic type --------------------------------------------------------------------
+$template->pparse('overall_header');
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+$template->pparse('overall_header');
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/mods_settings/mod_split_topic_type.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+ *	version			: 1.0.1 - 11/09/2003
+ *
+ *	mod version		: split topic type  v 1.0.5
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+ *	version			: 1.0.2 - 21/10/2003
+ *
+ *	mod version		: split topic type  v 2.0.1
+#
+#-----[ FIND ]------------------------------------------------
+#
+$mod_name = 'Announce_settings';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$sub_name = 'Split_settings';
+#
+#-----[ FIND ]------------------------------------------------
+#
+init_board_config($mod_name, $config_fields);
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+init_board_config($mod_name, $config_fields, $sub_name);
+#
+#-----[ OPEN ]------------------------------------------------
+#
+# here we step back to the original version
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : mods settings ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+$lang['Configuration_extend']	= 'Configuration +';
+$lang['Override_user_choices']	= 'Override user choices';
+//-- end of mod : mods settings --------------------------------------------------------------------
+?>
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+?>
+#
+#-----[ OPEN ]------------------------------------------------
+#
+# here we step back to the original version
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- mod : split topic type ------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+$lang['Announce_settings']		= 'Announcements';
+$lang['split_global_announce']	= 'Split global announcement';
+$lang['split_announce']			= 'Split announcement';
+$lang['split_sticky']			= 'Split sticky';
+$lang['split_topic_split']		= 'Seperate topic types in different boxes';
+//-- fin mod : split topic type --------------------------------------------------------------------
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+$lang['Click_return_preferences'] = 'Click %sHere%s to return to Preferences';
+//-- fin mod : mods settings -----------------------------------------------------------------------
+?>
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+?>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

@@ -1,0 +1,190 @@
+##############################################################
+## MOD Title: Textual Confirmation
+## MOD Author: olpa < olpa@bbantispam.com > (Oleg Parashchenko) http://bbantispam.com/tc/
+## MOD Description: While registering, the user must answer a question to prove the user isn't a spambot.
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 3 Minute
+## Files To Edit: includes/constants.php
+##                includes/usercp_register.php
+##                templates/subSilver/profile_add_body.tpl
+## Included Files: includes/functions_tc.php
+##                 admin/admin_tc.php
+##                 templates/subSilver/admin/textual_confirmation.tpl
+##                 language/lang_english/lang_tc.php
+##                 language/lang_english/email/textual_confirmation.tpl
+##                 language/lang_russian/lang_tc.php
+##                 language/lang_russian/email/textual_confirmation.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes:
+##
+## There are two editions of Textual Confirmation:
+##
+## * community edition and
+## * business edition.
+##
+## In the community edition, each time spam registration is rejected,
+## Textual Confirmation sends a notification to the forum administrator
+## and TO THE COMMUNITY SPAM DATABASE. Visit the home page for details:
+##
+## http://bbantispam.com/tc/
+##
+## If you don't want to send us copies of the notifications,
+## you must buy a business license. For details, visit
+##
+## http://bbantispam.com/tc/?mode=register
+##
+## Privacy Policy: We do not disclose your individual information
+## to any other company. We collect aggregate statistics on spam
+## texts and spammers' IPs. We may publish or share this aggregate
+## information with other companies. This aggregate data, by its
+## nature, will not reveal your identity.
+##
+##############################################################
+## MOD History:
+##
+##   2006-11-18 - Version 1.0.1
+##      - small corrections to be accepted for the MOD Database
+##   2006-11-04 - Version 1.0.0
+##      - index.html is updated
+##   2006-10-29 - Version 1.0.0.beta3
+##      - The math question is removed
+##      - Keys of the $lang array use underscores instead of commas
+##      - Now setting the "Reply-to" field in the e-mail notifications
+##      - Screenshots and CAPTCHA links in index.html
+##   2006-10-23 - Version 1.0.0.beta2
+##      - Minor tweaks to avoid PHP warnings in the wild world
+##      - EasyMOD compatibility
+##      - Documentation
+##      - Russian translation
+##   2006-10-21 - Version 1.0.0.beta1
+##      - The code is packed as mod
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+define('SMILIES_TABLE', $table_prefix.'smilies');
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+define('TEXTUAL_CONFIRMATION_TABLE', $table_prefix.'textual_confirmation');
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$unhtml_specialchars_match = array('#&gt;#', '#&lt;#', '#&quot;#', '#&amp;#');
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+include($phpbb_root_path . 'includes/functions_tc.'.$phpEx);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$error = TRUE;
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+		}
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	tc_hook_register();
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$template->assign_vars(array(
+		'USERNAME' => isset($username) ? $username : '',
+		'CUR_PASSWORD' => isset($cur_password) ? $cur_password : '',
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	tc_hook_template($mode, $template, $s_hidden_fields, $tc_question);
+	$template->assign_vars(array(
+		'TEXTUAL_CONFIRMATION_QUESTION' => isset($tc_question) ? $tc_question : '',
+		'L_TEXTUAL_CONFIRMATION_EXPLAIN' => isset($lang['tc_explain']) ? $lang['tc_explain'] : '',
+		'USERNAME' => isset($username) ? $username : '',
+		'CUR_PASSWORD' => isset($cur_password) ? $cur_password : '',
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- END switch_confirm -->
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<!-- BEGIN switch_textual_confirm -->
+	<tr> 
+	  <td class="row1"><span class="gen">{TEXTUAL_CONFIRMATION_QUESTION} * </span><br /><span class="gensmall">{L_TEXTUAL_CONFIRMATION_EXPLAIN}</td>
+	  <td class="row2"><input type="text" class="post" style="width: 200px" name="tc_answer" size="25" value="" /></td>
+	</tr>
+	<!-- END switch_textual_confirm -->
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy includes/functions_tc.php to includes/functions_tc.php
+copy admin/admin_tc.php to admin/admin_tc.php
+copy language/lang_english/lang_tc.php to language/lang_english/lang_tc.php
+copy language/lang_english/email/textual_confirmation.tpl to language/lang_english/email/textual_confirmation.tpl
+copy templates/subSilver/admin/textual_confirmation.tpl to templates/subSilver/admin/textual_confirmation.tpl
+
+#
+#-----[ SQL ]------------------------------------------
+#
+CREATE TABLE phpbb_textual_confirmation (
+ id       INTEGER NOT NULL AUTO_INCREMENT,
+ question TEXT    NOT NULL,
+ answers  TEXT    NOT NULL,
+ PRIMARY KEY (id)
+);
+INSERT INTO phpbb_textual_confirmation(question,answers) VALUES ('Are you human?', 'yes\nja\noui');
+INSERT INTO phpbb_textual_confirmation(question,answers) VALUES ('Say hello', 'hello\nhi\nhallo');
+
+#
+#-----[ DIY INSTRUCTIONS ]-------------------------------------
+#
+After installation of Textual Confirmation is completed, go to
+the control panel and change the set of questions. Also, switch
+off Visual Confirmation, because it isn't required anymore.
+
+If you've installed additional forum templates, then, for each template:
+* modify the file "profile_add_body.tpl", and
+* create the file "admin/textual_confirmation.tpl".
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

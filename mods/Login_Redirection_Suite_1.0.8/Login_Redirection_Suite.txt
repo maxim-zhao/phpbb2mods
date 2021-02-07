@@ -1,0 +1,740 @@
+##############################################################
+## MOD Title: Login Redirection Suite
+## MOD Author: Phantomk < phantomk@modmybb.com > (N/A) http://www.modmybb.com
+## MOD Description: Add's a redirection variable to login/logout links and forms.
+## MOD Version: 1.0.8
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit: 10
+##               includes/functions.php
+##               includes/page_header.php
+##               groupcp.php
+##               login.php
+##               modcp.php
+##               posting.php
+##               privmsg.php
+##               profile.php
+##               templates/subSilver/index_body.tpl
+##               templates/subSilver/overall_header.tpl
+## Included Files: (N/A)
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##      - Enjoy!
+##
+##############################################################
+## MOD History:
+##
+##   2006-03-5 - Version 1.0.8
+##      - Removed the redirection when logging out of areas on a forum, where
+##        a user is usually required to be logged in to access the area
+##
+##   2006-02-23 - Version 1.0.7
+##      - Fixed a small typo in the code (Thanks goes to felipe for the find)
+##
+##   2006-01-10 - Version 1.0.6
+##      - Fixed some issues that occur in login.php
+##
+##   2006-01-10 - Version 1.0.5
+##      - Completely rewrote the mod, previous versions are
+##        broken and should never be used.
+##
+##   2006-01-10 - Version 1.0.4
+##      - Fixed some issues with the wrong redirection between
+##        $HTTP_POST_VARS and $HTTP_GET_VARS.
+##      - Added comments to the install.
+##
+##   2006-01-10 - Version 1.0.3
+##      - Fixed redirects in numerous locations.
+##
+##   2005-11-16 - Version 1.0.2
+##      - Updated the mod to be 2.0.18 compatiable.
+##
+##   2005-10-3 - Version 1.0.1
+##      - Fixed some small security issues (Thanks MOD Team)
+##
+##   2005-09-22 - Version 1.0.0
+##      - Fixed some issues with the php_self when the board is not in the root of the site
+##      - Fixed some minor bugs
+##      - Remapped all of the redirects in login.php
+##      - Fixed some errors in the install file
+##      - EasyMOD Friendly
+##
+##   2005-09-18 - Version 0.0.1-b
+##      - Compiled several little modifications I made into this mod.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : Login Redirection Suite ---------------------------------------------
+//-- add
+function get_redirect($link=false, $amp=false)
+{
+	global $HTTP_SERVER_VARS;
+	global $phpEx;
+
+	$url_page = '';
+
+	//
+	// Borrowed code from login.php
+	//
+	$url_to = $HTTP_SERVER_VARS['QUERY_STRING'];
+
+	if ( preg_match("/^redirect=([a-z0-9\.#\/\?&=\+\-_]+)/si", $url_to, $url_matches) )
+	{
+		$url_to = ( !empty($url_matches[3]) ) ? $url_matches[3] : $url_matches[1];
+		$url_match = explode('&', $url_to);
+
+		if ( count($url_match) > 1 )
+		{
+			for ($i = 1; $i < count($url_match); $i++)
+			{
+				if ( !ereg("sid=", $url_match[$i]) )
+				{
+					if ( $url_page != '' )
+					{
+						$url_page .= ( $amp ? '&amp;' : '&' );
+					}
+
+					$url_page .= $url_match[$i];
+				}
+			}
+
+			$url_page = $url_match[0] . ( $link ? ( $amp ? '&amp;' : '&' ) : '?' ) . $url_page;
+		}
+		else
+		{
+			$url_page = $url_match[0];
+		}
+	}
+	else if ( preg_match("/^logout=true&redirect=([a-z0-9\.#\/\?&=\+\-_]+)/si", $url_to, $url_matches) )
+	{
+		$url_to = ( !empty($url_matches[3]) ) ? $url_matches[3] : $url_matches[1];
+		$url_match = explode('&', $url_to);
+
+		if ( count($url_match) > 1 )
+		{
+			for ($i = 1; $i < count($url_match); $i++)
+			{
+				if ( !ereg("sid=", $url_match[$i]) )
+				{
+					if ( $url_page != '' )
+					{
+						$url_page .= ( $amp ? '&amp;' : '&' );
+					}
+
+					$url_page .= $url_match[$i];
+				}
+			}
+
+			$url_page = $url_match[0] . ( $link ? ( $amp ? '&amp;' : '&' ) : '?' ) . $url_page;
+		}
+		else
+		{
+			$url_page = $url_match[0];
+		}
+	}
+
+	if ( strstr(urldecode($url_page), "\n") || strstr(urldecode($url_page), "\r") )
+	{
+		message_die(GENERAL_ERROR, 'Tried to redirect to potentially insecure url.');
+	}
+
+	if ( empty($url_page) )
+	{
+		$url_page = "index." . $phpEx;
+	}
+
+	return $url_page;
+}
+
+function get_url($amp=false)
+{
+	global $HTTP_POST_VARS, $HTTP_GET_VARS, $HTTP_SERVER_VARS;
+	global $board_config;
+
+	//
+	// Extract the query variables from the url
+	//
+	parse_str($HTTP_SERVER_VARS['QUERY_STRING'], $outputs);
+
+	foreach ($outputs as $var => $string)
+	{
+		//
+		// Remove the sid variable from the url
+		//
+		if ($string != $outputs['sid'])
+		{
+			$query_vars[] = $var . '=' . $string;
+		}
+	}
+
+	//
+	// Don't whine if thier is an error, any urls that don't have query's
+	//
+	$queryVars = @implode(( $amp ? '&amp;' : '&' ), $query_vars);
+
+	//
+	// Replace the script_path with nothing since the link is always going to be in the same place as the path of the file
+	//
+	$php_self_var = str_replace($board_config['script_path'], '', $HTTP_SERVER_VARS['PHP_SELF']);
+
+	//
+	// Put the url back together
+	//
+	$url = (!empty($query_vars)) ? $php_self_var . ( $amp ? '&amp;' : '&' ) . $queryVars : $php_self_var;
+
+	return $url;
+}
+//-- fin mod : Login Redirection Suite -----------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Generate logged in/logged out status
+//
+if ( $userdata['session_logged_in'] )
+{
+	$u_login_logout = 'login.'.$phpEx.'?logout=true&amp;sid=' . $userdata['session_id'];
+	$l_login_logout = $lang['Logout'] . ' [ ' . $userdata['username'] . ' ]';
+}
+else
+{
+	$u_login_logout = 'login.'.$phpEx;
+	$l_login_logout = $lang['Login'];
+}
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Login Redirection Suite ---------------------------------------------
+//-- delete
+/*
+//
+// Generate logged in/logged out status
+//
+if ( $userdata['session_logged_in'] )
+{
+	$u_login_logout = 'login.'.$phpEx.'?logout=true&amp;sid=' . $userdata['session_id'];
+	$l_login_logout = $lang['Logout'] . ' [ ' . $userdata['username'] . ' ]';
+}
+else
+{
+	$u_login_logout = 'login.'.$phpEx;
+	$l_login_logout = $lang['Login'];
+}
+*/
+//-- add
+if ( defined("NO_REDIRECT") )
+{
+	$redirect = "index." . $phpEx;
+}
+else if ( defined("IN_LOGIN") )
+{
+	$redirect = get_redirect(true, true);
+}
+else
+{
+	$redirect = get_url(true);
+}
+
+//
+// Generate logged in/logged out status
+//
+if ( $userdata['session_logged_in'] )
+{
+	$u_login_logout = 'login.' . $phpEx . '?logout=true&amp;redirect=' . $redirect . '&amp;sid=' . $userdata['session_id'];
+	$l_login_logout = $lang['Logout'] . ' [ ' . $userdata['username'] . ' ]';
+}
+else
+{
+	$u_login_logout = 'login.' . $phpEx . '?redirect=' . $redirect;
+	$l_login_logout = $lang['Login'];
+}
+//-- fin mod : Login Redirection Suite -----------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'S_LOGIN_ACTION' => append_sid('login.'.$phpEx),
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Login Redirection Suite ---------------------------------------------
+//-- delete
+//	'S_LOGIN_ACTION' => append_sid('login.'.$phpEx),
+//-- add
+	'S_LOGIN_ACTION' => append_sid('login.' . $phpEx . '?redirect=' . $redirect),
+//-- fin mod : Login Redirection Suite -----------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+groupcp.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('IN_PHPBB', true);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+define('NO_REDIRECT', true);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+login.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+						$url = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : "index.$phpEx";
+						redirect(append_sid($url, true));
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Login Redirection Suite ---------------------------------------------
+//-- delete
+/*
+						$url = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : "index.$phpEx";
+						redirect(append_sid($url, true));
+*/
+//-- add
+						$url = get_redirect();
+						$url = $phpbb_root_path . $url;
+
+						redirect(append_sid($url, true));
+//-- fin mod : Login Redirection Suite -----------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : '';
+					$redirect = str_replace('?', '&', $redirect);
+
+					if (strstr(urldecode($redirect), "\n") || strstr(urldecode($redirect), "\r"))
+					{
+						message_die(GENERAL_ERROR, 'Tried to redirect to potentially insecure url.');
+					}
+
+					$template->assign_vars(array(
+						'META' => "<meta http-equiv=\"refresh\" content=\"3;url=login.$phpEx?redirect=$redirect\">")
+					);
+
+					$message = $lang['Error_login'] . '<br /><br />' . sprintf($lang['Click_return_login'], "<a href=\"login.$phpEx?redirect=$redirect\">", '</a>') . '<br /><br />' .  sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//-- mod : Login Redirection Suite ---------------------------------------------
+//-- delete
+/*
+					$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : '';
+					$redirect = str_replace('?', '&', $redirect);
+
+					if (strstr(urldecode($redirect), "\n") || strstr(urldecode($redirect), "\r"))
+					{
+						message_die(GENERAL_ERROR, 'Tried to redirect to potentially insecure url.');
+					}
+
+					$template->assign_vars(array(
+						'META' => "<meta http-equiv=\"refresh\" content=\"3;url=login.$phpEx?redirect=$redirect\">")
+					);
+
+					$message = $lang['Error_login'] . '<br /><br />' . sprintf($lang['Click_return_login'], "<a href=\"login.$phpEx?redirect=$redirect\">", '</a>') . '<br /><br />' .  sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+*/
+//-- add
+					$url = get_redirect();
+					$url = $phpbb_root_path . $url;
+
+					$template->assign_vars(array(
+						'META' => "<meta http-equiv=\"refresh\" content=\"3;url=" . append_sid($phpbb_root_path . "login." . $phpEx . "?redirect=" . $url) . "\">")
+					);
+
+					$message = $lang['Error_login'] . '<br /><br />' . sprintf($lang['Click_return_login'], '<a href="' . append_sid($phpbb_root_path . "login." . $phpEx . "?redirect=" . $url) . '">', '</a>') . '<br /><br />' .  sprintf($lang['Click_return_index'], '<a href="' . append_sid($phpbb_root_path . "index." . $phpEx) . '">', '</a>');
+//-- fin mod : Login Redirection Suite -----------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : "";
+			$redirect = str_replace("?", "&", $redirect);
+
+			if (strstr(urldecode($redirect), "\n") || strstr(urldecode($redirect), "\r"))
+			{
+				message_die(GENERAL_ERROR, 'Tried to redirect to potentially insecure url.');
+			}
+
+			$template->assign_vars(array(
+				'META' => "<meta http-equiv=\"refresh\" content=\"3;url=login.$phpEx?redirect=$redirect\">")
+			);
+
+			$message = $lang['Error_login'] . '<br /><br />' . sprintf($lang['Click_return_login'], "<a href=\"login.$phpEx?redirect=$redirect\">", '</a>') . '<br /><br />' .  sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//-- mod : Login Redirection Suite ---------------------------------------------
+//-- delete
+/*
+			$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : "";
+			$redirect = str_replace("?", "&", $redirect);
+
+			if (strstr(urldecode($redirect), "\n") || strstr(urldecode($redirect), "\r"))
+			{
+				message_die(GENERAL_ERROR, 'Tried to redirect to potentially insecure url.');
+			}
+
+			$template->assign_vars(array(
+				'META' => "<meta http-equiv=\"refresh\" content=\"3;url=login.$phpEx?redirect=$redirect\">")
+			);
+
+			$message = $lang['Error_login'] . '<br /><br />' . sprintf($lang['Click_return_login'], "<a href=\"login.$phpEx?redirect=$redirect\">", '</a>') . '<br /><br />' .  sprintf($lang['Click_return_index'], '<a href="' . append_sid("index.$phpEx") . '">', '</a>');
+*/
+//-- add
+			$url = get_redirect();
+			$url = $phpbb_root_path . $url;
+
+			$template->assign_vars(array(
+				'META' => "<meta http-equiv=\"refresh\" content=\"3;url=" . append_sid($phpbb_root_path . "login." . $phpEx . "?redirect=" . $url) . "\">")
+			);
+
+			$message = $lang['Error_login'] . '<br /><br />' . sprintf($lang['Click_return_login'], '<a href="' . append_sid($phpbb_root_path . "login." . $phpEx . "?redirect=" . $url) . '">', '</a>') . '<br /><br />' .  sprintf($lang['Click_return_index'], '<a href="' . append_sid($phpbb_root_path . "index." . $phpEx) . '">', '</a>');
+//-- fin mod : Login Redirection Suite -----------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		if (!empty($HTTP_POST_VARS['redirect']) || !empty($HTTP_GET_VARS['redirect']))
+		{
+			$url = (!empty($HTTP_POST_VARS['redirect'])) ? htmlspecialchars($HTTP_POST_VARS['redirect']) : htmlspecialchars($HTTP_GET_VARS['redirect']);
+			$url = str_replace('&amp;', '&', $url);
+			redirect(append_sid($url, true));
+		}
+		else
+		{
+			redirect(append_sid("index.$phpEx", true));
+		}
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Login Redirection Suite ---------------------------------------------
+//-- delete
+/*
+		if (!empty($HTTP_POST_VARS['redirect']) || !empty($HTTP_GET_VARS['redirect']))
+		{
+			$url = (!empty($HTTP_POST_VARS['redirect'])) ? htmlspecialchars($HTTP_POST_VARS['redirect']) : htmlspecialchars($HTTP_GET_VARS['redirect']);
+			$url = str_replace('&amp;', '&', $url);
+			redirect(append_sid($url, true));
+		}
+		else
+		{
+			redirect(append_sid("index.$phpEx", true));
+		}
+*/
+//-- add
+		$url = get_redirect();
+		$url = $phpbb_root_path . $url;
+
+		redirect(append_sid($url, true));
+//-- fin mod : Login Redirection Suite -----------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$url = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : "index.$phpEx";
+		redirect(append_sid($url, true));
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Login Redirection Suite ---------------------------------------------
+//-- delete
+/*
+		$url = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&amp;', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : "index.$phpEx";
+		redirect(append_sid($url, true));
+*/
+//-- add
+		$url = get_redirect();
+		$url = $phpbb_root_path . $url;
+
+		redirect(append_sid($url, true));
+//-- fin mod : Login Redirection Suite -----------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$forward_page = '';
+
+		if( isset($HTTP_POST_VARS['redirect']) || isset($HTTP_GET_VARS['redirect']) )
+		{
+			$forward_to = $HTTP_SERVER_VARS['QUERY_STRING'];
+
+			if( preg_match("/^redirect=([a-z0-9\.#\/\?&=\+\-_]+)/si", $forward_to, $forward_matches) )
+			{
+				$forward_to = ( !empty($forward_matches[3]) ) ? $forward_matches[3] : $forward_matches[1];
+				$forward_match = explode('&', $forward_to);
+
+				if(count($forward_match) > 1)
+				{
+					for($i = 1; $i < count($forward_match); $i++)
+					{
+						if( !ereg("sid=", $forward_match[$i]) )
+						{
+							if( $forward_page != '' )
+							{
+								$forward_page .= '&';
+							}
+							$forward_page .= $forward_match[$i];
+						}
+					}
+					$forward_page = $forward_match[0] . '?' . $forward_page;
+				}
+				else
+				{
+					$forward_page = $forward_match[0];
+				}
+			}
+		}
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Login Redirection Suite ---------------------------------------------
+//-- delete
+/*
+		$forward_page = '';
+
+		if( isset($HTTP_POST_VARS['redirect']) || isset($HTTP_GET_VARS['redirect']) )
+		{
+			$forward_to = $HTTP_SERVER_VARS['QUERY_STRING'];
+
+			if( preg_match("/^redirect=([a-z0-9\.#\/\?&=\+\-_]+)/si", $forward_to, $forward_matches) )
+			{
+				$forward_to = ( !empty($forward_matches[3]) ) ? $forward_matches[3] : $forward_matches[1];
+				$forward_match = explode('&', $forward_to);
+
+				if(count($forward_match) > 1)
+				{
+					for($i = 1; $i < count($forward_match); $i++)
+					{
+						if( !ereg("sid=", $forward_match[$i]) )
+						{
+							if( $forward_page != '' )
+							{
+								$forward_page .= '&';
+							}
+							$forward_page .= $forward_match[$i];
+						}
+					}
+					$forward_page = $forward_match[0] . '?' . $forward_page;
+				}
+				else
+				{
+					$forward_page = $forward_match[0];
+				}
+			}
+		}
+*/
+//-- fin mod : Login Redirection Suite -----------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$s_hidden_fields = '<input type="hidden" name="redirect" value="' . $forward_page . '" />';
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Login Redirection Suite ---------------------------------------------
+//-- delete
+//	$s_hidden_fields = '<input type="hidden" name="redirect" value="' . $forward_page . '" />';
+//-- fin mod : Login Redirection Suite -----------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		redirect(append_sid("index.$phpEx", true));
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+//-- mod : Login Redirection Suite ---------------------------------------------
+//-- delete
+//	redirect(append_sid("index.$phpEx", true));
+//-- add
+		$url = get_redirect();
+		$url = $phpbb_root_path . $url;
+
+		redirect(append_sid($url, true));
+//-- fin mod : Login Redirection Suite -----------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+modcp.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('IN_PHPBB', true);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+define('NO_REDIRECT', true);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('IN_PHPBB', true);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+define('NO_REDIRECT', true);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('IN_PHPBB', true);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+define('NO_REDIRECT', true);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+profile.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+define('IN_PHPBB', true);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+define('NO_REDIRECT', true);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/index_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<!-- BEGIN switch_user_logged_out -->
+<form method="post" action="{S_LOGIN_ACTION}">
+  <table width="100%" cellpadding="3" cellspacing="1" border="0" class="forumline">
+	<tr> 
+	  <td class="catHead" height="28"><a name="login"></a><span class="cattitle">{L_LOGIN_LOGOUT}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row1" align="center" valign="middle" height="28"><span class="gensmall">{L_USERNAME}: 
+		<input class="post" type="text" name="username" size="10" />
+		&nbsp;&nbsp;&nbsp;{L_PASSWORD}: 
+		<input class="post" type="password" name="password" size="10" maxlength="32" />
+		<!-- BEGIN switch_allow_autologin -->
+		&nbsp;&nbsp; &nbsp;&nbsp;{L_AUTO_LOGIN} 
+		<input class="text" type="checkbox" name="autologin" />
+		<!-- END switch_allow_autologin -->
+		&nbsp;&nbsp;&nbsp; 
+		<input type="submit" class="mainoption" name="login" value="{L_LOGIN}" />
+		</span> </td>
+	</tr>
+  </table>
+</form>
+<!-- END switch_user_logged_out -->
+
+<br clear="all" />
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+<br clear="all" />
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					</tr>
+				</table></td>
+			</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			<!-- BEGIN switch_user_logged_out -->
+			<tr>
+				<td colspan="2" align="right" width="100%" valign="middle" align="right">
+					<form method="post" action="{S_LOGIN_ACTION}">
+					<table border="0" cellpadding="0" cellspacing="0" width="5" align="right">
+						<tr>
+							<td align="right" nowrap="nowrap"><span class="genmed">{L_USERNAME}: <input class="post" type="text" name="username" size="10" /></span>&nbsp;</td>
+							<td align="right" nowrap="nowrap"><span class="genmed">{L_PASSWORD}: <input class="post" type="password" name="password" size="10" maxlength="32" /></span>&nbsp;</td>
+							<td align="right" nowrap="nowrap"><input type="submit" class="mainoption" name="login" value="{L_LOGIN}" /></td>
+						</tr>
+					</table>
+					<!-- BEGIN switch_allow_autologin -->
+					<input type="hidden" name="autologin" value="1" />
+					<!-- END switch_allow_autologin -->
+					</form>
+				</td>
+			</tr>
+			<!-- END switch_user_logged_out -->
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

@@ -1,0 +1,530 @@
+#################################################################
+## MOD Title: Journal or Support Forums
+## MOD Author: Wicher < N/A > (N/A) http://www.detecties.com/phpbb2018
+## MOD Description: Admin can choose wether to make a forum a Journal Forum or a Support Forum 
+##                  or leave it as normal.
+##                  Journal: Users can only start one topic and cannot reply in others.
+##                  Support: Users can start multiple topics but cannot reply in others.
+##                  Mod and Admin are ofcourse able to edit, delete or reply in all topics.
+##  
+## MOD Version: 1.1.2
+## 
+## Installation Level:  easy 
+## Installation Time:  15 minutes 
+## 
+## Files To Edit:    - modcp.php
+##                   - posting.php
+##                   - admin/admin_forums.php
+##                   - includes/functions_post.php
+##                   - includes/usercp_viewprofile.php
+##                   - language/lang_english/lang_main.php 
+##                   - templates/subSilver/admin/forum_edit_body.tpl
+##                   - templates/subSilver/profile_view_body.tpl
+## 
+## Included Files: N/A
+## 
+## License:      http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+## 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:   
+##		   This mod has been tested on phpbb 2.0.21 
+## 
+############################################################## 
+## MOD History: 
+##
+##   2006-11-22 - Version 1.1.2 
+##    - fixed bug in usercp_viewprofile.php
+##    - added JoSf_db_install.php
+##   2006-11-19 - Version 1.1.1 
+##    - added auth for mods
+##   2006-11-15 - Version 1.1.0 
+##    - Added link in view_profile
+##   2006-11-15 - Version 1.0.0 
+##   
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# if you dont know how to do this action, feel free to use JoSf_db_install.php instead. Upload it to the root of your phpbb and execute it from your browser.
+ALTER TABLE `phpbb_forums` ADD COLUMN `js_forum` tinyint(2) NULL DEFAULT 0;
+ALTER TABLE `phpbb_users` ADD COLUMN `user_journal` int(10) NULL DEFAULT 0;
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+modcp.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			$sql = "DELETE 
+				FROM " . TOPICS_WATCH_TABLE . " 
+				WHERE topic_id IN ($topic_id_sql)";
+			if ( !$db->sql_query($sql, END_TRANSACTION) )
+			{
+				message_die(GENERAL_ERROR, 'Could not delete watched post list', '', __LINE__, __FILE__, $sql);
+			}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$sql = "UPDATE " . USERS_TABLE . " SET 
+					user_journal = 0 
+					WHERE user_journal IN ($topic_id_sql)";
+			if (!$db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, 'Error updating user_journal', '', __LINE__, __FILE__, $sql);
+			}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+posting.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	case 'newtopic':
+		if ( empty($forum_id) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['Forum_not_exist']);
+		}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Journal or Support Forums by Wicher
+		$sql = "SELECT js_forum FROM " . FORUMS_TABLE . " 
+			WHERE forum_id = $forum_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain important info for this forum', '', __LINE__, __FILE__, $sql);
+		}
+		$jsf_status = $db->sql_fetchrow($result);
+		$js_status = $jsf_status['js_forum'];
+		if ($js_status == 1)
+		{
+			$sql = "SELECT topic_poster 
+			FROM " . TOPICS_TABLE . " 
+			WHERE forum_id = " . $forum_id;
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain info for this topic', '', __LINE__, __FILE__, $sql);
+			}
+			if ( $row = $db->sql_fetchrow($result) )
+			{
+				unset ($check_uid);
+				do
+				{
+					if ($row['topic_poster'] == $userdata['user_id'])
+					{
+						$check_uid = 1; 
+					}
+				}
+				while ( $row = $db->sql_fetchrow($result) );
+			}
+			$is_auth = auth(AUTH_ALL, $forum_id, $userdata, $post_info);
+			if (($check_uid == 1) && (!$is_auth['auth_mod']) && ($userdata['user_level'] != ADMIN))
+			{
+				$redirect_page = "viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'];
+				$message = sprintf($lang['Click_return_forum'], '<a href="' . $redirect_page . '">', '</a>');
+				message_die(GENERAL_MESSAGE, $lang['allready_opened'].'<br /><br />'.$message);
+			}
+		}
+		// end Journal or Support Forums by Wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$sql = "SELECT * 
+			FROM " . FORUMS_TABLE . " 
+			WHERE forum_id = $forum_id";
+		break;
+
+	case 'reply':
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Journal or Support Forums by Wicher
+		if ( empty( $topic_id) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['No_topic_id']);
+		}
+
+		$sql = "SELECT topic_poster, forum_id 
+		FROM " . TOPICS_TABLE . " 
+		WHERE topic_id = " . $topic_id;
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain info for this topic', '', __LINE__, __FILE__, $sql);
+		}
+		if ( $row = $db->sql_fetchrow($result) )
+		{
+			$check_uid = $row['topic_poster'];
+			$jsf_id = $row['forum_id'];
+		}
+
+		$sql = "SELECT js_forum FROM " . FORUMS_TABLE . " 
+			WHERE forum_id = $jsf_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain important info for this forum', '', __LINE__, __FILE__, $sql);
+		}
+		$jsf_status = $db->sql_fetchrow($result);
+		$js_status = $jsf_status['js_forum'];
+
+		$is_auth = auth(AUTH_ALL, $jsf_id, $userdata, $post_info);
+		if (($js_status != 0) && (!$is_auth['auth_mod']) && ($userdata['user_level'] != ADMIN))
+		{
+			if ($check_uid != $userdata['user_id'])
+			{
+				$redirect_page = "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;sid=" . $userdata['session_id'];
+				$message = sprintf($lang['Click_return_topic'], '<a href="' . $redirect_page . '">', '</a>');
+				if ($js_status == 2){message_die(GENERAL_MESSAGE, $lang['cannot_write_sf'].'<br /><br />'.$message);}
+				if ($js_status == 1){message_die(GENERAL_MESSAGE, $lang['cannot_write_jf'].'<br /><br />'.$message);}
+			}
+		}
+		// end Journal or Support Forums by Wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	case 'quote':
+	case 'editpost':
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Journal or Support Forums by Wicher
+		if ( empty($post_id) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['No_post_id']);
+		}
+
+		$sql = "SELECT poster_id, forum_id, topic_id 
+		FROM " . POSTS_TABLE . " 
+		WHERE post_id = " . $post_id;
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain info for this post', '', __LINE__, __FILE__, $sql);
+		}
+		if ( $row = $db->sql_fetchrow($result) )
+		{
+			$check_uid = $row['poster_id'];
+			$jsf_id = $row['forum_id'];
+			$topic_id = $row['topic_id'];
+		}
+
+		$sql = "SELECT js_forum FROM " . FORUMS_TABLE . " 
+			WHERE forum_id = $jsf_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain important info for this forum', '', __LINE__, __FILE__, $sql);
+		}
+		$jsf_status = $db->sql_fetchrow($result);
+		$js_status = $jsf_status['js_forum'];
+
+		$is_auth = auth(AUTH_ALL, $jsf_id, $userdata, $post_info);
+		if (($js_status != 0) && (!$is_auth['auth_mod']) && ($userdata['user_level'] != ADMIN))
+		{
+			if ($check_uid != $userdata['user_id'])
+			{
+				$redirect_page = "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;sid=" . $userdata['session_id'];
+				$message = sprintf($lang['Click_return_topic'], '<a href="' . $redirect_page . '">', '</a>');
+				if ($js_status == 2){message_die(GENERAL_MESSAGE, $lang['cannot_write_sf'].'<br /><br />'.$message);}
+				if ($js_status == 1){message_die(GENERAL_MESSAGE, $lang['cannot_write_jf'].'<br /><br />'.$message);}
+			}
+		}
+		// end Journal or Support Forums by Wicher
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				submit_post($mode, $post_data, $return_message, $return_meta, $forum_id, $topic_id, $post_id, $poll_id, $topic_type, $bbcode_on, $html_on, $smilies_on, $attach_sig, $bbcode_uid, str_replace("\'", "''", $username), str_replace("\'", "''", $subject), str_replace("\'", "''", $message), str_replace("\'", "''", $poll_title), $poll_options, $poll_length);
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, $poll_length
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $js_status
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_forums.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$template->set_filenames(array(
+				"body" => "admin/forum_edit_body.tpl")
+			);
+
+			$s_hidden_fields = '<input type="hidden" name="mode" value="' . $newmode .'" /><input type="hidden" name="' . POST_FORUM_URL . '" value="' . $forum_id . '" />';
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+			// Journal or Support Forums by Wicher
+			$js_status_value = intval($row['js_forum']);
+			if ($js_status_value == 2)
+			{
+				$js_status =	'<option value="2" selected="selected">'.$lang['Support'].'</option>';
+				$js_status .=	'<option value="1">'.$lang['Journal'].'</option>';
+				$js_status .= '<option value="0">'.$lang['None'].'</option>';
+			}
+			else if ($js_status_value == 1)
+			{
+				$js_status =	'<option value="2">'.$lang['Support'].'</option>';
+				$js_status .=	'<option value="1" selected>'.$lang['Journal'].'</option>';
+				$js_status .= '<option value="0">'.$lang['None'].'</option>';
+			}
+			else
+			{
+				$js_status =	'<option value="2">'.$lang['Support'].'</option>';
+				$js_status .=	'<option value="1">'.$lang['Journal'].'</option>';
+				$js_status .= '<option value="0" selected>'.$lang['None'].'</option>';
+			}
+			// End Journal or Support Forums by Wicher
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				'S_STATUS_LIST' => $statuslist,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Journal or Support Forums by Wicher
+				'S_JSF_STATUS_LIST' => $js_status,
+				// End Journal or Support Forums by Wicher
+#
+#-----[ FIND ]------------------------------------------
+#
+				'L_FORUM_STATUS' => $lang['Forum_status'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Journal or Support Forums by Wicher
+				'I_WICHERMOD' => $images['folder_hot'],
+				'U_LWF' => 'http://www.detecties.com/phpbb2018',
+				'L_WICHERMOD' => $lang['mymod'],
+				'L_JSF_ENABLED' => $lang['jsf_enabled'],
+				// End Journal or Support Forums by Wicher
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "INSERT INTO " . FORUMS_TABLE . " (forum_id, forum_name, cat_id, forum_desc, forum_order, forum_status, prune_enable" . $field_sql . ")
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, forum_status
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, js_forum
+#
+#-----[ FIND ]------------------------------------------
+#
+				VALUES ('" . $next_id . "', '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', $next_order, " . intval($HTTP_POST_VARS['forumstatus']) . ", " . intval($HTTP_POST_VARS['prune_enable']) . $value_sql . ")";
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, " . intval($HTTP_POST_VARS['forumstatus']) . "
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, " . intval($HTTP_POST_VARS['jsfstatus']) . "
+#
+#-----[ FIND ]------------------------------------------
+#
+				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', cat_id = " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", forum_desc = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . ", prune_enable = " . intval($HTTP_POST_VARS['prune_enable']) . "
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . "
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, js_forum = " . intval($HTTP_POST_VARS['jsfstatus']) . "
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/functions_post.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_id, &$post_id, &$poll_id, &$topic_type, &$bbcode_on, &$html_on, &$smilies_on, &$attach_sig, &$bbcode_uid, $post_username, $post_subject, $post_message, $poll_title, &$poll_options, &$poll_length)
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, &$poll_length
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $js_status
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		if ($mode == 'newtopic')
+		{
+			$topic_id = $db->sql_nextid();
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			if ($js_status == 1)
+			{
+				$sql = "UPDATE " . USERS_TABLE . " SET 
+						user_journal = $topic_id 
+						WHERE user_id = ".$userdata['user_id'];
+				if (!$db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Error updating user_journal', '', __LINE__, __FILE__, $sql);
+				}
+			}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$sql = "DELETE FROM " . TOPICS_WATCH_TABLE . "
+					WHERE topic_id = $topic_id";
+				if (!$db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Error in deleting post', '', __LINE__, __FILE__, $sql);
+				}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+				$sql = "UPDATE " . USERS_TABLE . " SET 
+						user_journal = 0 
+						WHERE user_journal = $topic_id";
+				if (!$db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Error updating user_journal', '', __LINE__, __FILE__, $sql);
+				}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_viewprofile.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$u_search_author = urlencode(str_replace(array('&amp;', '&#039;', '&quot;', '&lt;', '&gt;'), array('&', "'", '"', '<', '>'), $profiledata['username']));
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+if ($profiledata['user_journal'] != 0)
+{
+	$template->assign_block_vars('switch_journal', array());
+	$sql = "SELECT topic_title FROM " . TOPICS_TABLE . " 
+			WHERE topic_id = " . $profiledata['user_journal'];
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(GENERAL_ERROR, 'Error getting user_journal', '', __LINE__, __FILE__, $sql);
+	}
+	$row = $db->sql_fetchrow($result);
+	$journal_name = $row['topic_title'];
+	$journal_url = append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=" . $profiledata['user_journal']);
+}
+else
+{
+	$journal_name = '';
+	$journal_url = '';
+}
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'L_INTERESTS' => $lang['Interests'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'L_JOURNAL' => $lang['Journal'],
+	'L_JOURNAL_NAME' => $journal_name,
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'U_SEARCH_USER' => append_sid("search.$phpEx?search_author=" . $u_search_author),
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'U_JOURNAL' => $journal_url,
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Journal or Support Forums by Wicher
+$lang['jsf_enabled'] = 'Make this a Personal Topics Forum or a Support Forum<br /><b>Journal</b>: Users can only start one topic and cannot reply in others.<br /><b>Support</b>: Users can start multiple topics but cannot reply in others.';
+$lang['allready_opened'] = 'You already opened a topic in this forum, you cannot open another one here.<br />Use your existing topic to write whatever you want.';
+$lang['cannot_write_sf'] = 'As this is a support forum,<br />you are (in this forum) not allowed to write in the topic that belongs to someone else.<br />If you want support on anything from this board please open a (new) topic of your own.';
+$lang['cannot_write_jf'] = 'You are (in this forum) not allowed to write in the topic that belongs to someone else.<br />As this is a Journal forum, every topic is a personal topic.<br />Look up your own topic or start one four yourself.<br />If you want to start a completly new Journal please ask the Board Administrator or Moderater of this forum to delete this your existing topic or delete all posts one by one yourself.';
+$lang['Support'] = 'Support';
+$lang['Journal'] = 'Journal';
+$lang['mymod'] = 'One of Wicher\'s Mods'; // Never ever change this
+// End Journal or Support Forums by Wicher
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/forum_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr> 
+	  <td class="row1">{L_FORUM_STATUS}</td>
+	  <td class="row2"><select name="forumstatus">{S_STATUS_LIST}</select></td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<!-- Journal or Support Forums by Wicher -->
+	<tr>
+	  <td class="row1"><a href="{U_LWF}" target="_blank"><img src="../{I_WICHERMOD}" alt="{L_WICHERMOD}" title="{L_WICHERMOD}" border="0"></a>&nbsp;{L_JSF_ENABLED}</td>
+	  <td class="row2"><select name="jsfstatus">{S_JSF_STATUS_LIST}</select></td>
+	</tr>  
+	<!-- End Journal or Support Forums by Wicher -->
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/profile_view_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<tr> 
+		  <td valign="top" align="right" nowrap="nowrap"><span class="gen">{L_TOTAL_POSTS}:&nbsp;</span></td>
+		  <td valign="top"><b><span class="gen">{POSTS}</span></b><br /><span class="genmed">[{POST_PERCENT_STATS} / {POST_DAY_STATS}]</span> <br /><span class="genmed"><a href="{U_SEARCH_USER}" class="genmed">{L_SEARCH_USER_POSTS}</a></span></td>
+		</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<!-- BEGIN switch_journal -->
+		<tr> 
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_JOURNAL}:&nbsp;</span></td>
+		  <td width="100%"><b><span class="gen"><a href="{U_JOURNAL}">{L_JOURNAL_NAME}</a></span></b></td>
+		</tr>
+		<!-- END switch_journal -->
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

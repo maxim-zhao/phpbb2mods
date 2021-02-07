@@ -1,0 +1,3481 @@
+#################################################################
+## MOD Title: phpBB 2.0.17 to phpBB 2.0.18 Code Changes
+## MOD Author: markus_petrux < N/A > (Markus) N/A
+## MOD Description: These are the Changes from phpBB 2.0.17 to phpBB 2.0.18 summed up into a little
+##     Mod. This might be very helpful if you want to update your Board and have installed a bunch
+##     of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.
+##
+## MOD Version: 1.0.1
+##
+## Installation Level: Advanced
+## Installation Time: 2 Hours
+## Files To Edit:
+##		common.php
+##		groupcp.php
+##		index.php
+##		login.php
+##		memberlist.php
+##		modcp.php
+##		posting.php
+##		privmsg.php
+##		search.php
+##		viewtopic.php
+##		admin/admin_board.php
+##		admin/admin_disallow.php
+##		admin/admin_smilies.php
+##		admin/admin_styles.php
+##		admin/admin_ug_auth.php
+##		admin/admin_user_ban.php
+##		admin/admin_users.php
+##		admin/index.php
+##		admin/page_footer_admin.php
+##		db/mysql.php
+##		db/mysql4.php
+##		includes/bbcode.php
+##		includes/constants.php
+##		includes/db.php
+##		includes/emailer.php
+##		includes/functions.php
+##		includes/functions_admin.php
+##		includes/functions_post.php
+##		includes/functions_search.php
+##		includes/functions_validate.php
+##		includes/page_header.php
+##		includes/page_tail.php
+##		includes/sessions.php
+##		includes/smtp.php
+##		includes/usercp_activate.php
+##		includes/usercp_avatar.php
+##		includes/usercp_register.php
+##		includes/usercp_sendpasswd.php
+##		includes/usercp_viewprofile.php
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##		language/lang_english/email/topic_notify.tpl
+##		templates/subSilver/bbcode.tpl
+##		templates/subSilver/groupcp_info_body.tpl
+##		templates/subSilver/index_body.tpl
+##		templates/subSilver/login_body.tpl
+##		templates/subSilver/overall_header.tpl
+##		templates/subSilver/profile_add_body.tpl
+##		templates/subSilver/search_body.tpl
+##		templates/subSilver/search_results_posts.tpl
+##		templates/subSilver/subSilver.cfg
+##		templates/subSilver/admin/board_config_body.tpl
+##		templates/subSilver/admin/forum_admin_body.tpl
+##		templates/subSilver/admin/index_frameset.tpl
+##		templates/subSilver/admin/page_header.tpl
+##		templates/subSilver/admin/styles_addnew_body.tpl
+##		templates/subSilver/admin/styles_edit_body.tpl
+##		templates/subSilver/admin/styles_list_body.tpl
+##		templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files: install/update_to_latest.php
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## Since this MOD is somehow complex, it is recommended to proceed as follows:
+##
+##   1) Disable the board from the ACP (General Admin, Configuration).
+##
+##   2) Make backups of your files and Database.
+##
+##   3) Upload and execute the file install/update_to_latest.php.
+##
+##   4) Remove the file install/update_to_latest.php from your webspace.
+##
+##   4) Install the MOD.
+##
+##   5) Enable the board from the ACP, back online.
+##
+##
+## It is recommended to use EasyMOD to install this MOD ;-)
+##
+## Please, be sure to understand the MOD Templace actions.
+## http://www.phpbb.com/kb/article.php?article_id=39
+##
+##
+##############################################################
+## MOD History:
+##
+## 2005-10-31 - Version 1.0.1
+##	- adjusted for the repackage
+##
+## 2005-10-30 - Version 1.0.0 
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ DIY INSTRUCTIONS ]---------------------------------------------
+#
+BEFORE installing this MOD, you have to upload the file
+install/update_to_latest.php, execute it and then delete it
+from your webspace.
+
+It will execute the following SQL statements:
+
+CREATE TABLE phpbb_sessions_keys (
+	key_id varchar(32) DEFAULT '0' NOT NULL,
+	user_id mediumint(8) DEFAULT '0' NOT NULL,
+	last_ip varchar(8) DEFAULT '0' NOT NULL,
+	last_login int(11) DEFAULT '0' NOT NULL,
+	PRIMARY KEY (key_id, user_id),
+	KEY last_login (last_login)
+);
+
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('allow_autologin','1');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('max_autologin_time','0');
+
+UPDATE phpbb_users SET user_active = 0 WHERE user_id = -1;
+UPDATE phpbb_config SET config_value = '.0.18' WHERE config_name = 'version';
+#
+#-----[ OPEN ]---------------------------------------------
+#
+common.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+// The following code (unsetting globals) was contributed by Matt Kavanagh
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+// The following code (unsetting globals)
+// Thanks to Matt Kavanagh and Stefan Esser for providing feedback as well as patch files
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+// PHP5 with register_long_arrays off?
+if (!isset($HTTP_POST_VARS) && isset($_POST))
+{
+	$HTTP_POST_VARS = $_POST;
+	$HTTP_GET_VARS = $_GET;
+	$HTTP_SERVER_VARS = $_SERVER;
+	$HTTP_COOKIE_VARS = $_COOKIE;
+	$HTTP_ENV_VARS = $_ENV;
+	$HTTP_POST_FILES = $_FILES;
+
+	// _SESSION is the only superglobal which is conditionally set
+	if (isset($_SESSION))
+	{
+		$HTTP_SESSION_VARS = $_SESSION;
+	}
+}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+// PHP5 with register_long_arrays off?
+if (@phpversion() >= '5.0.0' && (!@ini_get('register_long_arrays') || @ini_get('register_long_arrays') == '0' || strtolower(@ini_get('register_long_arrays')) == 'off'))
+{
+	$HTTP_POST_VARS = $_POST;
+	$HTTP_GET_VARS = $_GET;
+	$HTTP_SERVER_VARS = $_SERVER;
+	$HTTP_COOKIE_VARS = $_COOKIE;
+	$HTTP_ENV_VARS = $_ENV;
+	$HTTP_POST_FILES = $_FILES;
+
+	// _SESSION is the only superglobal which is conditionally set
+	if (isset($_SESSION))
+	{
+		$HTTP_SESSION_VARS = $_SESSION;
+	}
+}
+
+// Protect against GLOBALS tricks
+if (isset($HTTP_POST_VARS['GLOBALS']) || isset($HTTP_POST_FILES['GLOBALS']) || isset($HTTP_GET_VARS['GLOBALS']) || isset($HTTP_COOKIE_VARS['GLOBALS']))
+{
+	die("Hacking attempt");
+}
+
+// Protect against HTTP_SESSION_VARS tricks
+if (isset($HTTP_SESSION_VARS) && !is_array($HTTP_SESSION_VARS))
+{
+	die("Hacking attempt");
+}
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+if (@phpversion() < '4.0.0')
+{
+	// PHP3 path; in PHP3, globals are _always_ registered
+	
+	// We 'flip' the array of variables to test like this so that
+	// we can validate later with isset($test[$var]) (no in_array())
+	$test = array('HTTP_GET_VARS' => NULL, 'HTTP_POST_VARS' => NULL, 'HTTP_COOKIE_VARS' => NULL, 'HTTP_SERVER_VARS' => NULL, 'HTTP_ENV_VARS' => NULL, 'HTTP_POST_FILES' => NULL, 'phpEx' => NULL, 'phpbb_root_path' => NULL);
+
+	// Loop through each input array
+	@reset($test);
+	while (list($input,) = @each($test))
+	{
+		while (list($var,) = @each($$input))
+		{
+			// Validate the variable to be unset
+			if (!isset($test[$var]) && $var != 'test' && $var != 'input')
+			{
+				unset($$var);
+			}
+		}
+	}
+}
+else if (@ini_get('register_globals') == '1' || strtolower(@ini_get('register_globals')) == 'on')
+{
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+if (@ini_get('register_globals') == '1' || strtolower(@ini_get('register_globals')) == 'on')
+{
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	if (!isset($HTTP_SESSION_VARS))
+	{
+		$HTTP_SESSION_VARS = array();
+	}
+
+	// Merge all into one extremely huge array; unset
+	// this later
+	$input = array_merge($HTTP_GET_VARS, $HTTP_POST_VARS, $HTTP_COOKIE_VARS, $HTTP_SERVER_VARS, $HTTP_SESSION_VARS, $HTTP_ENV_VARS, $HTTP_POST_FILES);
+
+	unset($input['input']);
+	unset($input['not_unset']);
+
+	while (list($var,) = @each($input))
+	{
+		if (!in_array($var, $not_unset))
+		{
+			unset($$var);
+		}
+	}
+
+	unset($input);
+}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	if (!isset($HTTP_SESSION_VARS) || !is_array($HTTP_SESSION_VARS))
+	{
+		$HTTP_SESSION_VARS = array();
+	}
+
+	// Merge all into one extremely huge array; unset
+	// this later
+	$input = array_merge($HTTP_GET_VARS, $HTTP_POST_VARS, $HTTP_COOKIE_VARS, $HTTP_SERVER_VARS, $HTTP_SESSION_VARS, $HTTP_ENV_VARS, $HTTP_POST_FILES);
+
+	unset($input['input']);
+	unset($input['not_unset']);
+
+	while (list($var,) = @each($input))
+	{
+		if (!in_array($var, $not_unset))
+		{
+			unset($$var);
+		}
+	}
+
+	unset($input);
+}
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	header("Location: install/install.$phpEx");
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	header('Location: ' . $phpbb_root_path . 'install/install.' . $phpEx);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+include($phpbb_root_path . 'includes/db.'.$phpEx);
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+
+// We do not need this any longer, unset for safety purposes
+unset($dbpasswd);
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+groupcp.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$temp_url = append_sid("search.$phpEx?search_author=" . urlencode($username) . "&amp;showresults=posts");
+#
+$temp_url = append_sid("search
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+$username
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+$row['username']
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . $lang['Search_user_posts'] . '" title="' . $lang['Search_user_posts'] . '" border="0" /></a>';
+#
+$search_img = '<a href="'
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+. $lang['Search_user_posts']
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+. sprintf($lang['Search_user_posts'], $row['username'])
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+. $lang['Search_user_posts']
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+. sprintf($lang['Search_user_posts'], $row['username'])
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$search = '<a href="' . $temp_url . '">' . $lang['Search_user_posts'] . '</a>';
+#
+$search = '<a href="'
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+. $lang['Search_user_posts']
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+. sprintf($lang['Search_user_posts'], $row['username'])
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		//
+		// Load and process templates
+		//
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+		$page_title = $lang['Group_Control_Panel'];
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+index.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- There's no explicit action to take place here. This FIND is just aimed to point you to the right place the next action.
+#
+	//
+	// Obtain a list of topic ids which contain
+	// posts made since user last visited
+	//
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	if ( $userdata['session_logged_in'] )
+	{
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	if ($userdata['session_logged_in'])
+	{
+		// 60 days limit
+		if ($userdata['user_lastvisit'] < (time() - 5184000))
+		{
+			$userdata['user_lastvisit'] = time() - 5184000;
+		}
+
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+login.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	else if( ( isset($HTTP_GET_VARS['logout']) || isset($HTTP_POST_VARS['logout']) ) && $userdata['session_logged_in'] )
+	{
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+		// session id check
+		if ($sid == '' || $sid != $userdata['session_id'])
+		{
+			message_die(GENERAL_ERROR, 'Invalid_session');
+		}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		if( isset($HTTP_POST_VARS['redirect']) || isset($HTTP_GET_VARS['redirect']) )
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+		$forward_page = '';
+
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				if(count($forward_match) > 1)
+				{
+					$forward_page = '';
+
+					for($i = 1; $i < count($forward_match); $i++)
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+				if(count($forward_match) > 1)
+				{
+					for($i = 1; $i < count($forward_match); $i++)
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		}
+		else
+		{
+			$forward_page = '';
+		}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		}
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		make_jumpbox('viewforum.'.$phpEx, $forum_id);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		make_jumpbox('viewforum.'.$phpEx);
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+memberlist.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$mode_types = array('joindate', 'username', 'location', 'posts', 'email', 'website', 'topten');
+#
+$mode_types = array('joindate',
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+'joindate'
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+'joined'
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+modcp.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			message_die(MESSAGE, sprintf($lang['Sorry_auth_delete'], $is_auth['auth_delete_type']));
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			message_die(GENERAL_MESSAGE, sprintf($lang['Sorry_auth_delete'], $is_auth['auth_delete_type']));
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+					'U_SEARCHPOSTS' => append_sid("search.$phpEx?search_author=" . urlencode($username) . "&amp;showresults=topics"))
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+					'U_SEARCHPOSTS' => append_sid("search.$phpEx?search_author=" . (($id == ANONYMOUS) ? 'Anonymous' : urlencode($username)) . "&amp;showresults=topics"))
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$refresh = $preview ||
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+$orig_word = $replacement_word = array();
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$topic_type = ( !empty($HTTP_POST_VARS['topictype']) ) ? intval($HTTP_POST_VARS['topictype']) : POST_NORMAL;
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+$topic_type = ( in_array($topic_type, array(POST_NORMAL, POST_STICKY, POST_ANNOUNCE)) ) ? $topic_type : POST_NORMAL;
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$sql = "SELECT f.*, t.topic_status, t.topic_title  
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+t.topic_title
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------------------
+#
+, t.topic_type
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#		$select_sql = ( !$submit ) ? ", t.topic_title, p.enable_bbcode, p.enable_html, p.enable_smilies, p.enable_sig, p.post_username, pt.post_subject, pt.post_text, pt.bbcode_uid, u.username, u.user_id, u.user_sig" : '';
+#
+		$select_sql = ( !$submit ) ? "
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+( !$submit ) ? "
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+(!$submit) ? '
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+, u.user_sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------------------
+#
+, u.user_sig_bbcode_uid
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+"
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+'
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		if ( $mode == 'quote' )
+		{
+			$topic_id = $post_info['topic_id'];
+		}
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+		if ( $mode == 'newtopic' )
+		{
+			$post_data['topic_type'] = POST_NORMAL;
+		}
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$post_data['edit_poll'] = false;
+	}
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+	if ( $mode == 'poll_delete' && !isset($poll_id) )
+	{
+		message_die(GENERAL_MESSAGE, $lang['No_such_post']);
+	}
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#		$user_sig = ( $post_info['user_sig'] != '' && $board_config['allow_sig'] ) ? $post_info['user_sig'] : '';
+#
+		$user_sig = ( $post_info['user_sig'] != ''
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+		$userdata['user_sig_bbcode_uid'] = $post_info['user_sig_bbcode_uid'];
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			if ( $sent_info['sent_items'] >= $board_config['max_sentbox_privmsgs'] )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			if ($board_config['max_sentbox_privmsgs'] && $sent_info['sent_items'] >= $board_config['max_sentbox_privmsgs'])
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . $lang['Search_user_posts'] . '" title="' . $lang['Search_user_posts'] . '" border="0" /></a>';
+#
+$search_img = '<a href="'
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+. $lang['Search_user_posts']
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+. sprintf($lang['Search_user_posts'], $username_from)
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+. $lang['Search_user_posts']
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+. sprintf($lang['Search_user_posts'], $username_from)
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$search = '<a href="' . $temp_url . '">' . $lang['Search_user_posts'] . '</a>';
+#
+$search = '<a href="'
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+. $lang['Search_user_posts']
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+. sprintf($lang['Search_user_posts'], $username_from)
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			if ( $saved_info['savebox_items'] >= $board_config['max_savebox_privmsgs'] )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			if ($board_config['max_savebox_privmsgs'] && $saved_info['savebox_items'] >= $board_config['max_savebox_privmsgs'] )
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	if ( $submit )
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+	if ($submit && $mode == 'edit')
+	{
+		$sql = 'SELECT privmsgs_from_userid
+			FROM ' . PRIVMSGS_TABLE . '
+			WHERE privmsgs_id = ' . (int) $privmsg_id . '
+				AND privmsgs_from_userid = ' . $userdata['user_id'];
+
+		if (!($result = $db->sql_query($sql)))
+		{
+			message_die(GENERAL_ERROR, "Could not obtain message details", "", __LINE__, __FILE__, $sql);
+		}
+
+		if (!($row = $db->sql_fetchrow($result)))
+		{
+			message_die(GENERAL_MESSAGE, $lang['No_such_post']);
+		}
+		$db->sql_freeresult($result);
+
+		unset($row);
+	}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$to_userdata = $db->sql_fetchrow($result);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			if (!($to_userdata = $db->sql_fetchrow($result)))
+			{
+				$error = TRUE;
+				$error_msg = $lang['No_such_user'];
+			}
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				if ( $inbox_info['inbox_items'] >= $board_config['max_inbox_privmsgs'] )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+				if ($board_config['max_inbox_privmsgs'] && $inbox_info['inbox_items'] >= $board_config['max_inbox_privmsgs'])
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+					'USERNAME' => $to_username, 
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+					'USERNAME' => stripslashes($to_username), 
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		if ( !empty($HTTP_GET_VARS[POST_USERS_URL]) )
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		}
+
+		if ( $mode == 'edit' )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		}
+		else if ( $mode == 'edit' )
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$privmsg_subject = $privmsg_message = '';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$privmsg_subject = $privmsg_message = $to_username = '';
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		'S_SIGNATURE_CHECKED' => ( $attach_sig ) ? ' checked="checked"' : '', 
+		'S_NAMES_SELECT' => $user_names_select,
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		'S_SIGNATURE_CHECKED' => ( $attach_sig ) ? ' checked="checked"' : '', 
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+search.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$split_search = ( !strstr($multibyte_charset, $lang['ENCODING']) ) ?  split_words(clean_words('search', stripslashes($search_keywords), $stopword_array, $synonym_array), 'search') : split(' ', $search_keywords);	
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$stripped_keywords = stripslashes($search_keywords);
+			$split_search = ( !strstr($multibyte_charset, $lang['ENCODING']) ) ?  split_words(clean_words('search', $stripped_keywords, $stopword_array, $synonym_array), 'search') : split(' ', $search_keywords);	
+			unset($stripped_keywords);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	ORDER BY c.cat_id, f.forum_order";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	ORDER BY c.cat_order, f.forum_order";
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ( !isset($topic_id) && !isset($post_id) )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+if (!$topic_id && !$post_id)
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				AND t.topic_last_post_id $sql_condition t2.topic_last_post_id
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+				AND t.topic_moved_id = 0
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$join_sql_table = ( empty($post_id) ) ? '' : ", " . POSTS_TABLE . " p, " . POSTS_TABLE . " p2 ";
+#
+$join_sql_table = ( empty($post_id) )
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+( empty($post_id) )
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+(!$post_id)
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$join_sql = ( empty($post_id) ) ? "t.topic_id = $topic_id" : "p.post_id = $post_id AND t.topic_id = p.topic_id AND p2.topic_id = p.topic_id AND p2.post_id <= $post_id";
+#
+$join_sql = ( empty($post_id) )
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+( empty($post_id) )
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+(!$post_id)
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$count_sql = ( empty($post_id) ) ? '' : ", COUNT(p2.post_id) AS prev_posts";
+#
+$count_sql = ( empty($post_id) )
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+( empty($post_id) )
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+(!$post_id)
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$order_sql = ( empty($post_id) ) ? '' : "GROUP BY p.post_id, t.topic_id, t.topic_title, t.topic_status, t.topic_replies, t.topic_time, t.topic_type, t.topic_vote, t.topic_last_post_id, f.forum_name, f.forum_status, f.forum_id, f.auth_view, f.auth_read, f.auth_post, f.auth_reply, f.auth_edit, f.auth_delete, f.auth_sticky, f.auth_announce, f.auth_pollcreate, f.auth_vote, f.auth_attachments ORDER BY p.post_id ASC";
+#
+$order_sql = ( empty($post_id) )
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+( empty($post_id) )
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+(!$post_id)
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$redirect = ( isset($post_id) ) ? POST_POST_URL . "=$post_id" : POST_TOPIC_URL . "=$topic_id";
+		$redirect .= ( isset($start) ) ? "&start=$start" : '';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		$redirect = ($post_id) ? POST_POST_URL . "=$post_id" : POST_TOPIC_URL . "=$topic_id";
+		$redirect .= ($start) ? "&start=$start" : '';
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ( !empty($post_id) )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+if ($post_id)
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$highlight_match .= (($highlight_match != '') ? '|' : '') . str_replace('*', '\w*', phpbb_preg_quote($words[$i], '#'));
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$highlight_match .= (($highlight_match != '') ? '|' : '') . str_replace('*', '\w*', preg_quote($words[$i], '#'));
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . $lang['Search_user_posts'] . '" title="' . sprintf($lang['Search_user_posts'], $postrow[$i]['username']) . '" border="0" /></a>';
+#
+$search_img = '<a href="'
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+. $lang['Search_user_posts']
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+. sprintf($lang['Search_user_posts'], $postrow[$i]['username'])
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	if ( $board_config['allow_bbcode'] )
+	{
+		if ( $user_sig != '' && $user_sig_bbcode_uid != '' )
+		{
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	if ($user_sig != '' && $user_sig_bbcode_uid != '')
+	{
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$user_sig = ( $board_config['allow_bbcode'] ) ? bbencode_second_pass($user_sig, $user_sig_bbcode_uid) : preg_replace('/\:[0-9a-z\:]+\]/si', ']', $user_sig);
+		}
+
+		if ( $bbcode_uid != '' )
+		{
+			$message = ( $board_config['allow_bbcode'] ) ? bbencode_second_pass($message, $bbcode_uid) : preg_replace('/\:[0-9a-z\:]+\]/si', ']', $message);
+		}
+	}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		$user_sig = ($board_config['allow_bbcode']) ? bbencode_second_pass($user_sig, $user_sig_bbcode_uid) : preg_replace("/\:$user_sig_bbcode_uid/si", '', $user_sig);
+	}
+
+	if ($bbcode_uid != '')
+	{
+		$message = ($board_config['allow_bbcode']) ? bbencode_second_pass($message, $bbcode_uid) : preg_replace("/\:$bbcode_uid/si", '', $message);
+	}
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$board_email_form_yes = ( $new['board_email_form'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+$allow_autologin_yes = ($new['allow_autologin']) ? 'checked="checked"' : '';
+$allow_autologin_no = (!$new['allow_autologin']) ? 'checked="checked"' : '';
+
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	"L_VISUAL_CONFIRM_EXPLAIN" => $lang['Visual_confirm_explain'], 
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+	"L_ALLOW_AUTOLOGIN" => $lang['Allow_autologin'],
+	"L_ALLOW_AUTOLOGIN_EXPLAIN" => $lang['Allow_autologin_explain'],
+	"L_AUTOLOGIN_TIME" => $lang['Autologin_time'],
+	"L_AUTOLOGIN_TIME_EXPLAIN" => $lang['Autologin_time_explain'],
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	"CONFIRM_DISABLE" => $confirm_no,
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	"ACTIVATION_NONE_CHECKED" => $activation_none,
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	'ALLOW_AUTOLOGIN_YES' => $allow_autologin_yes,
+	'ALLOW_AUTOLOGIN_NO' => $allow_autologin_no,
+	'AUTOLOGIN_TIME' => (int) $new['max_autologin_time'],
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/admin_disallow.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		message_die(MESSAGE, $lang['Fields_empty']);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		message_die(GENERAL_MESSAGE, $lang['Fields_empty']);
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/admin_smilies.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$smile_url = ( isset($HTTP_POST_VARS['smile_url']) ) ? trim($HTTP_POST_VARS['smile_url']) : trim($HTTP_GET_VARS['smile_url']);
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+			$smile_url = phpbb_ltrim(basename($smile_url), "'");
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				message_die(MESSAGE, $lang['Fields_empty']);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+				message_die(GENERAL_MESSAGE, $lang['Fields_empty']);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$smile_url = ( isset($HTTP_POST_VARS['smile_url']) ) ? $HTTP_POST_VARS['smile_url'] : $HTTP_GET_VARS['smile_url'];
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+			$smile_url = phpbb_ltrim(basename($smile_url), "'");
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				message_die(MESSAGE, $lang['Fields_empty']);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+				message_die(GENERAL_MESSAGE, $lang['Fields_empty']);
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/admin_styles.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				"L_STYLESHEET" => $lang['Stylesheet'],
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+				"L_STYLESHEET_EXPLAIN" => $lang['Stylesheet_explain'],
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/admin_ug_auth.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$sql = "SELECT * 
+				FROM " . FORUMS_TABLE . " f
+				ORDER BY forum_order";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$sql = 'SELECT f.* 
+				FROM ' . FORUMS_TABLE . ' f, ' . CATEGORIES_TABLE . ' c
+				WHERE f.cat_id = c.cat_id
+				ORDER BY c.cat_order, f.forum_order';
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	if( count($name) )
+	{
+		$t_usergroup_list = $t_pending_list = '';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	$t_usergroup_list = $t_pending_list = '';
+	if( count($name) )
+	{
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	else
+	{
+		$t_usergroup_list = $lang['None'];
+	}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+
+	$t_usergroup_list = ($t_usergroup_list == '') ? $lang['None'] : $t_usergroup_list;
+	$t_pending_list = ($t_pending_list == '') ? $lang['None'] : $t_pending_list;
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/admin_user_ban.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#			if (preg_match('#^(([a-z0-9&.-_+])|(\*))+@[a-z0-9\-]+\.([a-z0-9\-]+\.)*?[a-z]+$#is', trim($email_list_temp[$i])))
+#
+'#^(([a-z0-9&.-_+])|(\*))+@[a-z0-9\-]+\.([a-z0-9\-]+\.)*?[a-z]+$#is'
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+'#^(([a-z0-9&.-_+])|(\*))+@[a-z0-9\-]+\.([a-z0-9\-]+\.)*?[a-z]+$#is'
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+'/^(([a-z0-9&\'\.\-_\+])|(\*))+@(([a-z0-9\-])|(\*))+\.([a-z0-9\-]+\.)*?[a-z]+$/is'
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/admin_users.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		if( $HTTP_POST_VARS['deleteuser'] )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		if( $HTTP_POST_VARS['deleteuser'] && ( $userdata['user_id'] != $user_id ) )
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$user_avatar_local = ( isset( $HTTP_POST_VARS['avatarselect'] ) && !empty($HTTP_POST_VARS['submitavatar'] ) && $board_config['allow_avatar_local'] ) ? $HTTP_POST_VARS['avatarselect'] : ( ( isset( $HTTP_POST_VARS['avatarlocal'] )  ) ? $HTTP_POST_VARS['avatarlocal'] : '' );
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+		$user_avatar_category = ( isset($HTTP_POST_VARS['avatarcatname']) && $board_config['allow_avatar_local'] ) ? htmlspecialchars($HTTP_POST_VARS['avatarcatname']) : '' ;
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				$user_avatar = $user_avatar_local;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+				$user_avatar = $user_avatar_category . '/' . $user_avatar_local;
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$avatar_sql = ", user_avatar = '" . str_replace("\'", "''", $user_avatar_local) . "', user_avatar_type = " . USER_AVATAR_GALLERY;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$avatar_sql = ", user_avatar = '" . str_replace("\'", "''", phpbb_ltrim(basename($user_avatar_category), "'") . '/' . phpbb_ltrim(basename($user_avatar_local), "'")) . "', user_avatar_type = " . USER_AVATAR_GALLERY;
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+							$avatar_images[$file][$avatar_row_count][$avatar_col_count] = $file . "/" . $sub_file;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+							$avatar_images[$file][$avatar_row_count][$avatar_col_count] = $sub_file;
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+						"AVATAR_IMAGE" => "../" . $board_config['avatar_gallery_path'] . "/" . $avatar_images[$category][$i][$j])
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+						"AVATAR_IMAGE" => "../" . $board_config['avatar_gallery_path'] . '/' . $category . '/' . $avatar_images[$category][$i][$j])
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#			$s_hidden_fields = '<input type="hidden" name="mode" value="edit" /><input type="hidden" name="agreed" value="true" /><input type="hidden" name="coppa" value="' . $coppa . '" />';
+#
+<input type="hidden" name="mode" value="edit" />
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+<input type="hidden" name="coppa" value="' . $coppa . '" />
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------------------
+#
+<input type="hidden" name="avatarcatname" value="' . $category . '" />
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#			$s_hidden_fields .= '<input type="hidden" name="avatarlocal" value="' . $user_avatar_local . '" />';
+#
+<input type="hidden" name="avatarlocal" value="' . $user_avatar_local . '" />
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+<input type="hidden" name="avatarlocal" value="' . $user_avatar_local . '" />
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------------------
+#
+<input type="hidden" name="avatarcatname" value="' . $user_avatar_category . '" />
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/index.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	if ($fsock = @fsockopen('www.phpbb.com', 80, $errno, $errstr))
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	if ($fsock = @fsockopen('www.phpbb.com', 80, $errno, $errstr, 10))
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$version_info .= '<br />' . sprintf($lang['Latest_version_info'], $latest_version) . sprintf($lang['Current_version_info'], '2' . $board_config['version']) . '</p>';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$version_info .= '<br />' . sprintf($lang['Latest_version_info'], $latest_version) . ' ' . sprintf($lang['Current_version_info'], '2' . $board_config['version']) . '</p>';
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/page_footer_admin.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+//
+// Show the overall footer.
+//
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+global $do_gzip_compress;
+
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	'TRANSLATION_INFO' => $lang['TRANSLATION_INFO'])
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	'TRANSLATION_INFO' => (isset($lang['TRANSLATION_INFO'])) ? $lang['TRANSLATION_INFO'] : ((isset($lang['TRANSLATION'])) ? $lang['TRANSLATION'] : ''))
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+db/mysql.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+						$result = $this->rowset[$query_id][$field];
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+						$result = $this->rowset[$query_id][0][$field];
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+db/mysql4.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+						$result = $this->rowset[$query_id][$field];
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+						$result = $this->rowset[$query_id][0][$field];
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/bbcode.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				bbcode_array_push($stack, $match);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+				array_push($stack, $match);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+						$match = bbcode_array_pop($stack);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+						$match = array_pop($stack);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+							$match = bbcode_array_pop($stack);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+							$match = array_pop($stack);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+/**
+ * This function does exactly what the PHP4 function array_push() does
+ * however, to keep phpBB compatable with PHP 3 we had to come up with our own
+ * method of doing it.
+ */
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+/**
+ * This function does exactly what the PHP4 function array_push() does
+ * however, to keep phpBB compatable with PHP 3 we had to come up with our own
+ * method of doing it.
+ * This function was deprecated in phpBB 2.0.18
+ */
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+/**
+ * This function does exactly what the PHP4 function array_pop() does
+ * however, to keep phpBB compatable with PHP 3 we had to come up with our own
+ * method of doing it.
+ */
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+/**
+ * This function does exactly what the PHP4 function array_pop() does
+ * however, to keep phpBB compatable with PHP 3 we had to come up with our own
+ * method of doing it.
+ * This function was deprecated in phpBB 2.0.18
+ */
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$orig[] = "/(?<=.\W|\W.|^\W)" . phpbb_preg_quote($smilies[$i]['code'], "/") . "(?=.\W|\W.|\W$)/";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$orig[] = "/(?<=.\W|\W.|^\W)" . preg_quote($smilies[$i]['code'], "/") . "(?=.\W|\W.|\W$)/";
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+define('SESSIONS_TABLE', $table_prefix.'sessions');
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+define('SESSIONS_KEYS_TABLE', $table_prefix.'sessions_keys');
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/db.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+   message_die(CRITICAL_ERROR, "Could not connect to the database");
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	message_die(CRITICAL_ERROR, "Could not connect to the database");
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/emailer.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$drop_header .= '[\r\n]*?' . phpbb_preg_quote($match[1], '#');
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$drop_header .= '[\r\n]*?' . preg_quote($match[1], '#');
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$drop_header .= '[\r\n]*?' . phpbb_preg_quote($match[1], '#');
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$drop_header .= '[\r\n]*?' . preg_quote($match[1], '#');
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$str = preg_replace('#' . phpbb_preg_quote($spacer, '#') . '$#', '', $str);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		$str = preg_replace('#' . preg_quote($spacer, '#') . '$#', '', $str);
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- Removing trailing whitespaces
+#
+	$username = phpbb_rtrim($username, "\\");	
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	$username = phpbb_rtrim($username, "\\");
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+// added at phpBB 2.0.12 to fix a bug in PHP 4.3.10 (only supporting charlist in php >= 4.1.0)
+function phpbb_rtrim($str, $charlist = false)
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+/**
+* This function is a wrapper for ltrim, as charlist is only supported in php >= 4.1.0
+* Added in phpBB 2.0.18
+*/
+function phpbb_ltrim($str, $charlist = false)
+{
+	if ($charlist === false)
+	{
+		return ltrim($str);
+	}
+	
+	$php_version = explode('.', PHP_VERSION);
+
+	// php version < 4.1.0
+	if ((int) $php_version[0] < 4 || ((int) $php_version[0] == 4 && (int) $php_version[1] < 1))
+	{
+		while ($str{0} == $charlist)
+		{
+			$str = substr($str, 1);
+		}
+	}
+	else
+	{
+		$str = ltrim($str, $charlist);
+	}
+
+	return $str;
+}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$orig_word[] = '#\b(' . str_replace('\*', '\w*?', phpbb_preg_quote($row['word'], '#')) . ')\b#i';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$orig_word[] = '#\b(' . str_replace('\*', '\w*?', preg_quote($row['word'], '#')) . ')\b#i';
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/functions_admin.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	$sql = "SELECT forum_id, forum_name
+		FROM " . FORUMS_TABLE . " 
+		ORDER BY cat_id, forum_order";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	$sql = 'SELECT f.forum_id, f.forum_name
+		FROM ' . CATEGORIES_TABLE . ' c, ' . FORUMS_TABLE . ' f
+		WHERE f.cat_id = c.cat_id 
+		ORDER BY c.cat_order, f.forum_order';
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				$sql = ( $row['total_posts'] ) ? "UPDATE " . TOPICS_TABLE . " SET topic_replies = " . ( $row['total_posts'] - 1 ) . ", topic_first_post_id = " . $row['first_post'] . ", topic_last_post_id = " . $row['last_post'] . " WHERE topic_id = $id" : "DELETE FROM " . TOPICS_TABLE . " WHERE topic_id = $id";
+				if ( !$db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, 'Could not update topic', '', __LINE__, __FILE__, $sql);
+				}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+				if ($row['total_posts'])
+				{
+					// Correct the details of this topic
+					$sql = 'UPDATE ' . TOPICS_TABLE . ' 
+						SET topic_replies = ' . ($row['total_posts'] - 1) . ', topic_first_post_id = ' . $row['first_post'] . ', topic_last_post_id = ' . $row['last_post'] . "
+						WHERE topic_id = $id";
+
+					if (!$db->sql_query($sql))
+					{
+						message_die(GENERAL_ERROR, 'Could not update topic', '', __LINE__, __FILE__, $sql);
+					}
+				}
+				else
+				{
+					// There are no replies to this topic
+					// Check if it is a move stub
+					$sql = 'SELECT topic_moved_id 
+						FROM ' . TOPICS_TABLE . " 
+						WHERE topic_id = $id";
+
+					if (!($result = $db->sql_query($sql)))
+					{
+						message_die(GENERAL_ERROR, 'Could not get topic ID', '', __LINE__, __FILE__, $sql);
+					}
+
+					if ($row = $db->sql_fetchrow($result))
+					{
+						if (!$row['topic_moved_id'])
+						{
+							$sql = 'DELETE FROM ' . TOPICS_TABLE . " WHERE topic_id = $id";
+			
+							if (!$db->sql_query($sql))
+							{
+								message_die(GENERAL_ERROR, 'Could not remove topic', '', __LINE__, __FILE__, $sql);
+							}
+						}
+					}
+
+					$db->sql_freeresult($result);
+				}
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_id, &$post_id, &$poll_id, &$topic_type, &$bbcode_on, &$html_on, &$smilies_on, &$attach_sig, &$bbcode_uid, &$post_username, &$post_subject, &$post_message, &$poll_title, &$poll_options, &$poll_length)
+#
+function submit_post(
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+&$post_username, &$post_subject, &$post_message, &$poll_title
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+$post_username, $post_subject, $post_message, $poll_title
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	if ($mode == 'delete')
+	{
+		$delete_sql = (!$post_data['first_post'] && !$post_data['last_post']) ? " AND user_id = " . $userdata['user_id'] : '';
+		$sql = "DELETE FROM " . TOPICS_WATCH_TABLE . " WHERE topic_id = $topic_id" . $delete_sql;
+		if (!$db->sql_query($sql))
+		{
+			message_die(GENERAL_ERROR, 'Could not change topic notify data', '', __LINE__, __FILE__, $sql);
+		}
+	}
+	else 
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	if ($mode != 'delete')
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$page_title = $lang['Emoticons'] . " - $topic_title";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		$page_title = $lang['Emoticons'];
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/functions_search.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+function split_words(&$entry, $mode = 'post')
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+function split_words($entry, $mode = 'post')
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/functions_validate.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- Removing trailing whitespaces
+#
+	$username = phpbb_clean_username($username);
+	
+	$sql = "SELECT username 
+		FROM " . USERS_TABLE . " 
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	$username = phpbb_clean_username($username);
+
+	$sql = "SELECT username 
+		FROM " . USERS_TABLE . "
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		if ($row = $db->sql_fetchrow($result))
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		while ($row = $db->sql_fetchrow($result))
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				if (preg_match("#\b(" . str_replace("\*", ".*?", phpbb_preg_quote($row['disallow_username'], '#')) . ")\b#i", $username))
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+				if (preg_match("#\b(" . str_replace("\*", ".*?", preg_quote($row['disallow_username'], '#')) . ")\b#i", $username))
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				if (preg_match("#\b(" . str_replace("\*", ".*?", phpbb_preg_quote($row['word'], '#')) . ")\b#i", $username))
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+				if (preg_match("#\b(" . str_replace("\*", ".*?", preg_quote($row['word'], '#')) . ")\b#i", $username))
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/page_header.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	$template->assign_block_vars('switch_user_logged_out', array());
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+	//
+	// Allow autologin?
+	//
+	if (!isset($board_config['allow_autologin']) || $board_config['allow_autologin'] )
+	{
+		$template->assign_block_vars('switch_allow_autologin', array());
+		$template->assign_block_vars('switch_user_logged_out.switch_allow_autologin', array());
+	}
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/page_tail.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+//
+// Show the overall footer.
+//
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+global $do_gzip_compress;
+
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	'TRANSLATION_INFO' => ( isset($lang['TRANSLATION_INFO']) ) ? $lang['TRANSLATION_INFO'] : '',
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	'TRANSLATION_INFO' => (isset($lang['TRANSLATION_INFO'])) ? $lang['TRANSLATION_INFO'] : ((isset($lang['TRANSLATION'])) ? $lang['TRANSLATION'] : ''),
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/sessions.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	$current_time = time();
+	$expiry_time = $current_time - $board_config['session_length'];
+
+	//
+	// Try and pull the last time stored in a cookie, if it exists
+	//
+	$sql = "SELECT * 
+		FROM " . USERS_TABLE . " 
+		WHERE user_id = $user_id";
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(CRITICAL_ERROR, 'Could not obtain lastvisit data from user table', '', __LINE__, __FILE__, $sql);
+	}
+
+	$userdata = $db->sql_fetchrow($result);
+
+	if ( $user_id != ANONYMOUS )
+	{
+		$auto_login_key = $userdata['user_password'];
+
+		if ( $auto_create )
+		{
+			if ( isset($sessiondata['autologinid']) && $userdata['user_active'] )
+			{
+				// We have to login automagically
+				if( $sessiondata['autologinid'] === $auto_login_key )
+				{
+					// autologinid matches password
+					$login = 1;
+					$enable_autologin = 1;
+				}
+				else
+				{
+					// No match; don't login, set as anonymous user
+					$login = 0; 
+					$enable_autologin = 0; 
+					$user_id = $userdata['user_id'] = ANONYMOUS;
+				
+					$sql = 'SELECT * FROM ' . USERS_TABLE . ' WHERE user_id = ' . ANONYMOUS;
+					$result = $db->sql_query($sql);
+					$userdata = $db->sql_fetchrow($result);
+					$db->sql_freeresult($result);
+				}
+			}
+			else
+			{
+				// Autologin is not set. Don't login, set as anonymous user
+				$login = 0;
+				$enable_autologin = 0;
+				$user_id = $userdata['user_id'] = ANONYMOUS;
+
+				$sql = 'SELECT * FROM ' . USERS_TABLE . ' WHERE user_id = ' . ANONYMOUS;
+				$result = $db->sql_query($sql);
+				$userdata = $db->sql_fetchrow($result);
+				$db->sql_freeresult($result);
+			}
+		}
+		else
+		{
+			$login = 1;
+		}
+	}
+	else
+	{
+		$login = 0;
+		$enable_autologin = 0;
+	}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	$current_time = time();
+
+	//
+	// Are auto-logins allowed?
+	// If allow_autologin is not set or is true then they are
+	// (same behaviour as old 2.0.x session code)
+	//
+	if (isset($board_config['allow_autologin']) && !$board_config['allow_autologin'])
+	{
+		$enable_autologin = $sessiondata['autologinid'] = false;
+	}
+
+	// 
+	// First off attempt to join with the autologin value if we have one
+	// If not, just use the user_id value
+	//
+	$userdata = array();
+
+	if ($user_id != ANONYMOUS)
+	{
+		if (isset($sessiondata['autologinid']) && (string) $sessiondata['autologinid'] != '' && $user_id)
+		{
+			$sql = 'SELECT u.* 
+				FROM ' . USERS_TABLE . ' u, ' . SESSIONS_KEYS_TABLE . ' k
+				WHERE u.user_id = ' . (int) $user_id . "
+					AND u.user_active = 1
+					AND k.user_id = u.user_id
+					AND k.key_id = '" . md5($sessiondata['autologinid']) . "'";
+			if (!($result = $db->sql_query($sql)))
+			{
+				message_die(CRITICAL_ERROR, 'Error doing DB query userdata row fetch', '', __LINE__, __FILE__, $sql);
+			}
+
+			$userdata = $db->sql_fetchrow($result);
+			$db->sql_freeresult($result);
+		
+			$enable_autologin = $login = 1;
+		}
+		else if (!$auto_create)
+		{
+			$sessiondata['autologinid'] = '';
+			$sessiondata['userid'] = $user_id;
+
+			$sql = 'SELECT *
+				FROM ' . USERS_TABLE . '
+				WHERE user_id = ' . (int) $user_id . '
+					AND user_active = 1';
+			if (!($result = $db->sql_query($sql)))
+			{
+				message_die(CRITICAL_ERROR, 'Error doing DB query userdata row fetch', '', __LINE__, __FILE__, $sql);
+			}
+
+			$userdata = $db->sql_fetchrow($result);
+			$db->sql_freeresult($result);
+
+			$login = 1;
+		}
+	}
+
+	//
+	// At this point either $userdata should be populated or
+	// one of the below is true
+	// * Key didn't match one in the DB
+	// * User does not exist
+	// * User is inactive
+	//
+	if (!sizeof($userdata) || !is_array($userdata) || !$userdata)
+	{
+		$sessiondata['autologinid'] = '';
+		$sessiondata['userid'] = $user_id = ANONYMOUS;
+		$enable_autologin = $login = 0;
+
+		$sql = 'SELECT *
+			FROM ' . USERS_TABLE . '
+			WHERE user_id = ' . (int) $user_id;
+		if (!($result = $db->sql_query($sql)))
+		{
+			message_die(CRITICAL_ERROR, 'Error doing DB query userdata row fetch', '', __LINE__, __FILE__, $sql);
+		}
+
+		$userdata = $db->sql_fetchrow($result);
+		$db->sql_freeresult($result);
+	}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	{// ( $userdata['user_session_time'] > $expiry_time && $auto_create ) ? $userdata['user_lastvisit'] : ( 
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	{
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$sessiondata['autologinid'] = (!$admin) ? (( $enable_autologin && $sessionmethod == SESSION_METHOD_COOKIE ) ? $auto_login_key : '') : $sessiondata['autologinid'];
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		//
+		// Regenerate the auto-login key
+		//
+		if ($enable_autologin)
+		{
+			list($sec, $usec) = explode(' ', microtime());
+			mt_srand(hexdec(substr($session_id, 0, 8)) + (float) $sec + ((float) $usec * 1000000));
+			$auto_login_key = uniqid(mt_rand(), true);
+			
+			if (isset($sessiondata['autologinid']) && (string) $sessiondata['autologinid'] != '')
+			{
+				$sql = 'UPDATE ' . SESSIONS_KEYS_TABLE . "
+					SET last_ip = '$user_ip', key_id = '" . md5($auto_login_key) . "', last_login = $current_time
+					WHERE key_id = '" . md5($sessiondata['autologinid']) . "'";
+			}
+			else
+			{
+				$sql = 'INSERT INTO ' . SESSIONS_KEYS_TABLE . "(key_id, user_id, last_ip, last_login)
+					VALUES ('" . md5($auto_login_key) . "', $user_id, '$user_ip', $current_time)";
+			}
+
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(CRITICAL_ERROR, 'Error updating session key', '', __LINE__, __FILE__, $sql);
+			}
+			
+			$sessiondata['autologinid'] = $auto_login_key;
+			unset($auto_login_key);
+		}
+		else
+		{
+			$sessiondata['autologinid'] = '';
+		}
+
+//		$sessiondata['autologinid'] = (!$admin) ? (( $enable_autologin && $sessionmethod == SESSION_METHOD_COOKIE ) ? $auto_login_key : '') : $sessiondata['autologinid'];
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	$userdata['session_admin'] = $admin;
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+	$userdata['session_key'] = $sessiondata['autologinid'];
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+					//
+					// Delete expired sessions
+					//
+					$expiry_time = $current_time - $board_config['session_length'];
+
+					$sql = "DELETE FROM " . SESSIONS_TABLE . " 
+						WHERE session_time < $expiry_time 
+							AND session_id <> '$session_id'";
+					if ( !$db->sql_query($sql) )
+					{
+						message_die(CRITICAL_ERROR, 'Error clearing sessions table', '', __LINE__, __FILE__, $sql);
+					}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+					session_clean($userdata['session_id']);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+//
+// session_end closes out a session
+// deleting the corresponding entry
+// in the sessions table
+//
+function session_end($session_id, $user_id)
+{
+	global $db, $lang, $board_config;
+	global $HTTP_COOKIE_VARS, $HTTP_GET_VARS, $SID;
+
+	$cookiename = $board_config['cookie_name'];
+	$cookiepath = $board_config['cookie_path'];
+	$cookiedomain = $board_config['cookie_domain'];
+	$cookiesecure = $board_config['cookie_secure'];
+
+	$current_time = time();
+
+	//
+	// Pull cookiedata or grab the URI propagated sid
+	//
+	if ( isset($HTTP_COOKIE_VARS[$cookiename . '_sid']) )
+	{
+		$session_id = isset( $HTTP_COOKIE_VARS[$cookiename . '_sid'] ) ? $HTTP_COOKIE_VARS[$cookiename . '_sid'] : '';
+		$sessionmethod = SESSION_METHOD_COOKIE;
+	}
+	else
+	{
+		$session_id = ( isset($HTTP_GET_VARS['sid']) ) ? $HTTP_GET_VARS['sid'] : '';
+		$sessionmethod = SESSION_METHOD_GET;
+	}
+
+	if (!preg_match('/^[A-Za-z0-9]*$/', $session_id))
+	{
+		return;
+	}
+	
+	//
+	// Delete existing session
+	//
+	$sql = "DELETE FROM " . SESSIONS_TABLE . " 
+		WHERE session_id = '$session_id' 
+			AND session_user_id = $user_id";
+	if ( !$db->sql_query($sql) )
+	{
+		message_die(CRITICAL_ERROR, 'Error removing user session', '', __LINE__, __FILE__, $sql);
+	}
+
+	setcookie($cookiename . '_data', '', $current_time - 31536000, $cookiepath, $cookiedomain, $cookiesecure);
+	setcookie($cookiename . '_sid', '', $current_time - 31536000, $cookiepath, $cookiedomain, $cookiesecure);
+
+	return true;
+}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+/**
+* Terminates the specified session
+* It will delete the entry in the sessions table for this session,
+* remove the corresponding auto-login key and reset the cookies
+*/
+function session_end($session_id, $user_id)
+{
+	global $db, $lang, $board_config, $userdata;
+	global $HTTP_COOKIE_VARS, $HTTP_GET_VARS, $SID;
+
+	$cookiename = $board_config['cookie_name'];
+	$cookiepath = $board_config['cookie_path'];
+	$cookiedomain = $board_config['cookie_domain'];
+	$cookiesecure = $board_config['cookie_secure'];
+
+	$current_time = time();
+
+	if (!preg_match('/^[A-Za-z0-9]*$/', $session_id))
+	{
+		return;
+	}
+	
+	//
+	// Delete existing session
+	//
+	$sql = 'DELETE FROM ' . SESSIONS_TABLE . " 
+		WHERE session_id = '$session_id' 
+			AND session_user_id = $user_id";
+	if ( !$db->sql_query($sql) )
+	{
+		message_die(CRITICAL_ERROR, 'Error removing user session', '', __LINE__, __FILE__, $sql);
+	}
+
+	//
+	// Remove this auto-login entry (if applicable)
+	//
+	if ( isset($userdata['session_key']) && $userdata['session_key'] != '' )
+	{
+		$autologin_key = md5($userdata['session_key']);
+		$sql = 'DELETE FROM ' . SESSIONS_KEYS_TABLE . '
+			WHERE user_id = ' . (int) $user_id . "
+				AND key_id = '$autologin_key'";
+		if ( !$db->sql_query($sql) )
+		{
+			message_die(CRITICAL_ERROR, 'Error removing auto-login key', '', __LINE__, __FILE__, $sql);
+		}
+	}
+
+	//
+	// We expect that message_die will be called after this function,
+	// but just in case it isn't, reset $userdata to the details for a guest
+	//
+	$sql = 'SELECT *
+		FROM ' . USERS_TABLE . '
+		WHERE user_id = ' . ANONYMOUS;
+	if ( !($result = $db->sql_query($sql)) )
+	{
+		message_die(CRITICAL_ERROR, 'Error obtaining user details', '', __LINE__, __FILE__, $sql);
+	}
+	if ( !($userdata = $db->sql_fetchrow($result)) )
+	{
+		message_die(CRITICAL_ERROR, 'Error obtaining user details', '', __LINE__, __FILE__, $sql);
+	}
+	$db->sql_freeresult($result);
+
+
+	setcookie($cookiename . '_data', '', $current_time - 31536000, $cookiepath, $cookiedomain, $cookiesecure);
+	setcookie($cookiename . '_sid', '', $current_time - 31536000, $cookiepath, $cookiedomain, $cookiesecure);
+
+	return true;
+}
+
+/**
+* Removes expired sessions and auto-login keys from the database
+*/
+function session_clean($session_id)
+{
+	global $board_config, $db;
+
+	//
+	// Delete expired sessions
+	//
+	$sql = 'DELETE FROM ' . SESSIONS_TABLE . ' 
+		WHERE session_time < ' . (time() - (int) $board_config['session_length']) . " 
+			AND session_id <> '$session_id'";
+	if ( !$db->sql_query($sql) )
+	{
+		message_die(CRITICAL_ERROR, 'Error clearing sessions table', '', __LINE__, __FILE__, $sql);
+	}
+
+	//
+	// Delete expired auto-login keys
+	// If max_autologin_time is not set then keys will never be deleted
+	// (same behaviour as old 2.0.x session code)
+	//
+	if (!empty($board_config['max_autologin_time']) && $board_config['max_autologin_time'] > 0)
+	{
+		$sql = 'DELETE FROM ' . SESSIONS_KEYS_TABLE . '
+			WHERE last_login < ' . (time() - (86400 * (int) $board_config['max_autologin_time']));
+		$db->sql_query($sql);
+	}
+
+	return true;
+}
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$url .= ( ( strpos($url, '?') != false ) ?  ( ( $non_html_amp ) ? '&' : '&amp;' ) : '?' ) . $SID;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		$url .= ( ( strpos($url, '?') !== false ) ?  ( ( $non_html_amp ) ? '&' : '&amp;' ) : '?' ) . $SID;
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/smtp.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+function server_parse($socket, $response, $line = __LINE__) 
+{ 
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+function server_parse($socket, $response, $line = __LINE__) 
+{
+	$server_response = '';
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/usercp_activate.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		if (intval($board_config['require_activation']) == USER_ACTIVATION_ADMIN && $userdata['user_level'] != ADMIN)
+		{
+			message_die(GENERAL_MESSAGE, $lang['Not_Authorised']);
+		}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		if (intval($board_config['require_activation']) == USER_ACTIVATION_ADMIN && $row['user_newpasswd'] == '')
+		{
+			if (!$userdata['session_logged_in'])
+			{
+				redirect(append_sid('login.' . $phpEx . '?redirect=profile.' . $phpEx . '&mode=activate&' . POST_USERS_URL . '=' . $row['user_id'] . '&act_key=' . trim($HTTP_GET_VARS['act_key'])));
+			}
+			else if ($userdata['user_level'] != ADMIN)
+			{
+				message_die(GENERAL_MESSAGE, $lang['Not_Authorised']);
+			}
+		}
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/usercp_avatar.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+function user_avatar_gallery($mode, &$error, &$error_msg, $avatar_filename)
+{
+	global $board_config;
+
+	$avatar_filename = str_replace(array('../', '..\\', './', '.\\'), '', $avatar_filename);
+	if ($avatar_filename{0} == '/' || $avatar_filename{0} == "\\")
+	{
+		return '';
+	}
+
+	if ( file_exists(@phpbb_realpath($board_config['avatar_gallery_path'] . '/' . $avatar_filename)) && ($mode == 'editprofile') )
+	{
+		$return = ", user_avatar = '" . str_replace("\'", "''", $avatar_filename) . "', user_avatar_type = " . USER_AVATAR_GALLERY;
+	}
+	else
+	{
+		$return = '';
+	}
+	return $return;
+}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+function user_avatar_gallery($mode, &$error, &$error_msg, $avatar_filename, $avatar_category)
+{
+	global $board_config;
+
+	$avatar_filename = phpbb_ltrim(basename($avatar_filename), "'");
+	$avatar_category = phpbb_ltrim(basename($avatar_category), "'");
+	
+	if(!preg_match('/(\.gif$|\.png$|\.jpg|\.jpeg)$/is', $avatar_filename))
+	{
+		return '';
+	}
+
+	if ($avatar_filename == "" || $avatar_category == "")
+	{
+		return '';
+	} 
+
+	if ( file_exists(@phpbb_realpath($board_config['avatar_gallery_path'] . '/' . $avatar_category . '/' . $avatar_filename)) && ($mode == 'editprofile') )
+	{
+		$return = ", user_avatar = '" . str_replace("\'", "''", $avatar_category . '/' . $avatar_filename) . "', user_avatar_type = " . USER_AVATAR_GALLERY;
+	}
+	else
+	{
+		$return = '';
+	}
+	return $return;
+}
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	if ( $avatar_mode == 'remote' && preg_match('/^(http:\/\/)?([\w\-\.]+)\:?([0-9]*)\/(.*)$/', $avatar_filename, $url_ary) )
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+	$width = $height = 0;
+	$type = '';
+
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			list($width, $height) = @getimagesize($tmp_filename);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			list($width, $height, $type) = @getimagesize($tmp_filename);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		list($width, $height) = @getimagesize($avatar_filename);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		list($width, $height, $type) = @getimagesize($avatar_filename);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	if ( $width > 0 && $height > 0 && $width <= $board_config['avatar_max_width'] && $height <= $board_config['avatar_max_height'] )
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+	switch ($type)
+	{
+		// GIF
+		case 1:
+			if ($imgtype != '.gif')
+			{
+				@unlink($tmp_filename);
+				message_die(GENERAL_ERROR, 'Unable to upload file', '', __LINE__, __FILE__);
+			}
+		break;
+
+		// JPG, JPC, JP2, JPX, JB2
+		case 2:
+		case 9:
+		case 10:
+		case 11:
+		case 12:
+			if ($imgtype != '.jpg' && $imgtype != '.jpeg')
+			{
+				@unlink($tmp_filename);
+				message_die(GENERAL_ERROR, 'Unable to upload file', '', __LINE__, __FILE__);
+			}
+		break;
+
+		// PNG
+		case 3:
+			if ($imgtype != '.png')
+			{
+				@unlink($tmp_filename);
+				message_die(GENERAL_ERROR, 'Unable to upload file', '', __LINE__, __FILE__);
+			}
+		break;
+
+		default:
+			@unlink($tmp_filename);
+			message_die(GENERAL_ERROR, 'Unable to upload file', '', __LINE__, __FILE__);
+	}
+
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			if ( file_exists(@phpbb_realpath('./' . $board_config['avatar_path'] . '/' . $current_avatar)) )
+			{
+				@unlink('./' . $board_config['avatar_path'] . '/' . $current_avatar);
+			}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			user_avatar_delete($current_type, $current_avatar);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+					$avatar_images[$file][$avatar_row_count][$avatar_col_count] = $file . '/' . $sub_file; 
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+					$avatar_images[$file][$avatar_row_count][$avatar_col_count] = $sub_file; 
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				"AVATAR_IMAGE" => $board_config['avatar_gallery_path'] . '/' . $avatar_images[$category][$i][$j], 
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+				"AVATAR_IMAGE" => $board_config['avatar_gallery_path'] . '/' . $category . '/' . $avatar_images[$category][$i][$j], 
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$s_hidden_vars = '<input type="hidden" name="sid" value="' . $session_id . '" /><input type="hidden" name="agreed" value="true" />';
+#
+<input type="hidden" name="agreed" value="true" />
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+<input type="hidden" name="agreed" value="true" />
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------------------
+#
+<input type="hidden" name="avatarcatname" value="' . $category . '" />
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/usercp_register.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+$error = FALSE;
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+$error_msg = '';
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$attachsig = ( isset($HTTP_POST_VARS['attachsig']) ) ? ( ($HTTP_POST_VARS['attachsig']) ? TRUE : 0 ) : 0;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		$attachsig = ( isset($HTTP_POST_VARS['attachsig']) ) ? ( ($HTTP_POST_VARS['attachsig']) ? TRUE : 0 ) : $userdata['user_attachsig'];
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	$user_avatar_local = ( isset($HTTP_POST_VARS['avatarselect']) && !empty($HTTP_POST_VARS['submitavatar']) && $board_config['allow_avatar_local'] ) ? htmlspecialchars($HTTP_POST_VARS['avatarselect']) : ( ( isset($HTTP_POST_VARS['avatarlocal'])  ) ? htmlspecialchars($HTTP_POST_VARS['avatarlocal']) : '' );
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+	$user_avatar_category = ( isset($HTTP_POST_VARS['avatarcatname']) && $board_config['allow_avatar_local'] ) ? htmlspecialchars($HTTP_POST_VARS['avatarcatname']) : '' ;
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	$user_avatar = ( empty($user_avatar_loc) && $mode == 'editprofile' ) ? $userdata['user_avatar'] : '';
+	$user_avatar_type = ( empty($user_avatar_loc) && $mode == 'editprofile' ) ? $userdata['user_avatar_type'] : '';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	$user_avatar = ( empty($user_avatar_local) && $mode == 'editprofile' ) ? $userdata['user_avatar'] : '';
+	$user_avatar_type = ( empty($user_avatar_local) && $mode == 'editprofile' ) ? $userdata['user_avatar_type'] : '';
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$signature = stripslashes($signature);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		$signature = htmlspecialchars(stripslashes($signature));
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$user_avatar = $user_avatar_local;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$user_avatar = $user_avatar_category . '/' . $user_avatar_local;
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		if ( $signature_bbcode_uid == '' )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		if ( !isset($signature_bbcode_uid) || $signature_bbcode_uid == '' )
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		if ( @file_exists(@phpbb_realpath('./' . $board_config['avatar_path'] . '/' . $userdata['user_avatar'])) )
+		{
+			@unlink(@phpbb_realpath('./' . $board_config['avatar_path'] . '/' . $userdata['user_avatar']));
+		}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		user_avatar_delete($userdata['user_avatar_type'], $userdata['user_avatar']);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		if ( @file_exists(@phpbb_realpath('./' . $board_config['avatar_path'] . '/' . $userdata['user_avatar'])) )
+		{
+			@unlink(@phpbb_realpath('./' . $board_config['avatar_path'] . '/' . $userdata['user_avatar']));
+		}
+		$avatar_sql = user_avatar_gallery($mode, $error, $error_msg, $user_avatar_local);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		user_avatar_delete($userdata['user_avatar_type'], $userdata['user_avatar']);
+		$avatar_sql = user_avatar_gallery($mode, $error, $error_msg, $user_avatar_local, $user_avatar_category);
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+				$emailer->from($board_config['board_email']);
+				$emailer->replyto($board_config['board_email']);
+
+				$emailer->use_template('user_activate', stripslashes($user_lang));
+				$emailer->email_address($email);
+				$emailer->set_subject($lang['Reactivate']);
+
+				$emailer->assign_vars(array(
+					'SITENAME' => $board_config['sitename'],
+					'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+					'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
+
+					'U_ACTIVATE' => $server_url . '?mode=activate&' . POST_USERS_URL . '=' . $user_id . '&act_key=' . $user_actkey)
+				);
+				$emailer->send();
+				$emailer->reset();
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+ 				if ( $board_config['require_activation'] != USER_ACTIVATION_ADMIN )
+ 				{
+ 					$emailer->from($board_config['board_email']);
+ 					$emailer->replyto($board_config['board_email']);
+ 
+ 					$emailer->use_template('user_activate', stripslashes($user_lang));
+ 					$emailer->email_address($email);
+ 					$emailer->set_subject($lang['Reactivate']);
+  
+ 					$emailer->assign_vars(array(
+ 						'SITENAME' => $board_config['sitename'],
+ 						'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+ 						'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
+  
+ 						'U_ACTIVATE' => $server_url . '?mode=activate&' . POST_USERS_URL . '=' . $user_id . '&act_key=' . $user_actkey)
+ 					);
+ 					$emailer->send();
+ 					$emailer->reset();
+ 				}
+ 				else if ( $board_config['require_activation'] == USER_ACTIVATION_ADMIN )
+ 				{
+ 					$sql = 'SELECT user_email, user_lang 
+ 						FROM ' . USERS_TABLE . '
+ 						WHERE user_level = ' . ADMIN;
+ 					
+ 					if ( !($result = $db->sql_query($sql)) )
+ 					{
+ 						message_die(GENERAL_ERROR, 'Could not select Administrators', '', __LINE__, __FILE__, $sql);
+ 					}
+ 					
+ 					while ($row = $db->sql_fetchrow($result))
+ 					{
+ 						$emailer->from($board_config['board_email']);
+ 						$emailer->replyto($board_config['board_email']);
+ 						
+ 						$emailer->email_address(trim($row['user_email']));
+ 						$emailer->use_template("admin_activate", $row['user_lang']);
+ 						$emailer->set_subject($lang['Reactivate']);
+ 
+ 						$emailer->assign_vars(array(
+ 							'USERNAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+ 							'EMAIL_SIG' => str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']),
+ 
+ 							'U_ACTIVATE' => $server_url . '?mode=activate&' . POST_USERS_URL . '=' . $user_id . '&act_key=' . $user_actkey)
+ 						);
+ 						$emailer->send();
+ 						$emailer->reset();
+ 					}
+ 					$db->sql_freeresult($result);
+ 				}
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	display_avatar_gallery($mode, $avatar_category, $user_id, $email, $current_email, $coppa, $username, $email, &$new_password, &$cur_password, $password_confirm, $icq, $aim, $msn, $yim, $website, $location, $occupation, $interests, $signature, $viewemail, $notifypm, $popup_pm, $notifyreply, $attachsig, $allowhtml, $allowbbcode, $allowsmilies, $allowviewonline, $user_style, $user_lang, $user_timezone, $user_dateformat, $userdata['session_id']);
+#
+	display_avatar_gallery($mode,
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+&$new_password, &$cur_password
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+$new_password, $cur_password
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+	if ( !isset($user_template) )
+	{
+		$selected_template = $board_config['system_template'];
+	}
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+	if ( !isset($user_style) )
+	{
+		$user_style = $board_config['default_style'];
+	}
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$s_hidden_fields .= '<input type="hidden" name="avatarlocal" value="' . $user_avatar_local . '" />';
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		$s_hidden_fields .= '<input type="hidden" name="avatarlocal" value="' . $user_avatar_local . '" /><input type="hidden" name="avatarcatname" value="' . $user_avatar_category . '" />';
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/usercp_sendpasswd.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$key_len = ( $str_len > 6 ) ? $key_len : 6;
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			$key_len = ($key_len > 6) ? $key_len : 6;
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh installation looks like this:
+#	$search_img = '<a href="' . $temp_url . '"><img src="' . $images['icon_search'] . '" alt="' . $lang['Search_user_posts'] . '" title="' . sprintf($lang['Search_user_posts'], $profiledata['username']) . '" border="0" /></a>';
+#
+$search_img = '<a href="'
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+. $lang['Search_user_posts']
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+. sprintf($lang['Search_user_posts'], $profiledata['username'])
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed languages!
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+//
+// Forum Management
+//
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+// Autologin Keys - added 2.0.18
+$lang['Allow_autologin'] = 'Allow automatic logins';
+$lang['Allow_autologin_explain'] = 'Determines whether users are allowed to select to be automatically logged in when visiting the forum';
+$lang['Autologin_time'] = 'Automatic login key expiry';
+$lang['Autologin_time_explain'] = 'How long a autologin key is valid for in days if the user does not visit the board. Set to zero to disable expiry.';
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line for the english version looks like this:
+#	$lang['Stylesheet'] = 'CSS Stylesheet';
+#
+$lang['Stylesheet'] =
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+$lang['Stylesheet_explain'] = 'Filename for CSS stylesheet to use for this theme.';
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed languages!
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole lines for the english version look like this:
+#	$lang['Read_profile'] = 'View user\'s profile'; 
+#	$lang['Send_email'] = 'Send e-mail to user';
+#
+$lang['Read_profile'] =
+$lang['Send_email'] =
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# NOTE --- We are just removing the definition for $lang['Send_email']
+#
+$lang['Read_profile'] = 'View user\'s profile'; 
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole lines for the english version look like this:
+#	$lang['Notify'] = 'Notify me when a reply is posted';
+#	$lang['Delete_post'] = 'Delete this post';
+#
+$lang['Notify'] =
+$lang['Delete_post'] =
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# NOTE --- We are just removing the definition for $lang['Delete_post']
+#
+$lang['Notify'] = 'Notify me when a reply is posted';
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole lines for the english version look like this:
+#	$lang['Email'] = 'E-mail';
+#	$lang['Send_private_message'] = 'Send private message';
+#	$lang['Hidden_email'] = '[ Hidden ]';
+#	$lang['Search_user_posts'] = 'Search for posts by this user';
+#
+$lang['Email'] =
+$lang['Send_private_message'] =
+$lang['Hidden_email'] =
+$lang['Search_user_posts'] =
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# NOTE --- We are just removing the definition for $lang['Email'] and $lang['Search_user_posts']
+#
+$lang['Send_private_message'] = 'Send private message';
+$lang['Hidden_email'] = '[ Hidden ]';
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole lines for the english version look like this:
+#	$lang['Password_long'] = 'Your password must be no more than 32 characters.';
+#	$lang['Too_many_registers'] = 'You have made too many registration attempts. Please try again later.';
+#
+$lang['Password_long'] =
+$lang['Too_many_registers'] =
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# NOTE --- We are just removing the definition for $lang['Too_many_registers']
+#
+$lang['Password_long'] = 'Your password must be no more than 32 characters.';
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed languages!
+#
+language/lang_english/email/topic_notify.tpl
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+Hello {USERNAME},
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+Hello,
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/bbcode.tpl
+
+#
+#
+# NOTE --- The following action fixes a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh subSilver template looks like this:
+#	<!-- BEGIN email --><a href="mailto:{EMAIL}">{EMAIL}</A><!-- END email -->
+#
+<!-- BEGIN email -->
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+</A>
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+</a>
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/groupcp_info_body.tpl
+
+#
+#
+# NOTE --- The following action fixes a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh subSilver template looks like this:
+#		<td class="row2"><span class="gen"><span class="gen"><input type="radio" name="group_type" value="{S_GROUP_OPEN_TYPE}" {S_GROUP_OPEN_CHECKED} /> {L_GROUP_OPEN} &nbsp;&nbsp;<input type="radio" name="group_type" value="{S_GROUP_CLOSED_TYPE}" {S_GROUP_CLOSED_CHECKED} />	{L_GROUP_CLOSED} &nbsp;&nbsp;<input type="radio" name="group_type" value="{S_GROUP_HIDDEN_TYPE}" {S_GROUP_HIDDEN_CHECKED} />	{L_GROUP_HIDDEN} &nbsp;&nbsp; <input class="mainoption" type="submit" name="groupstatus" value="{L_UPDATE}" /></span></td>
+#
+		<td class="row2"><span class="gen"><span class="gen">
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+<span class="gen"><span class="gen">
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+<span class="gen">
+
+#
+#
+# NOTE --- The following action fixes a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<td class="catBottom" colspan="8" align="right"><span class="cattitle">
+			<input type="submit" name="remove" value="{L_REMOVE_SELECTED}" class="mainoption" />
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<td class="catBottom" colspan="8" align="right">
+			<span class="cattitle"><input type="submit" name="remove" value="{L_REMOVE_SELECTED}" class="mainoption" /></span>
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/index_body.tpl
+
+#
+#
+# NOTE --- The following action adds the ability to show the 'Mark forums read' link to logged in users only.
+#
+#-----[ FIND ]---------------------------------------------
+#
+	<td align="left"><span class="gensmall"><a href="{U_MARK_READ}" class="gensmall">{L_MARK_FORUMS_READ}</a></span></td>
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+ 	<td align="left">
+ 	<!-- BEGIN switch_user_logged_in -->
+ 		<span class="gensmall"><a href="{U_MARK_READ}" class="gensmall">{L_MARK_FORUMS_READ}</a></span>
+ 	<!-- END switch_user_logged_in -->
+ 	</td>
+
+#
+#
+# NOTE --- The following action is related to the new autologin option (it can be disabled from the ACP).
+#
+#-----[ FIND ]---------------------------------------------
+#
+		&nbsp;&nbsp; &nbsp;&nbsp;{L_AUTO_LOGIN} 
+		<input class="text" type="checkbox" name="autologin" />
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+		<!-- BEGIN switch_allow_autologin -->
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+		<!-- END switch_allow_autologin -->
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/login_body.tpl
+
+#
+#
+# NOTE --- The following action is related to the new autologin option (it can be disabled from the ACP).
+#
+#-----[ FIND ]---------------------------------------------
+#
+		  <tr align="center"> 
+			<td colspan="2"><span class="gen">{L_AUTO_LOGIN}: <input type="checkbox" name="autologin" /></span></td>
+		  </tr>
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+		  <!-- BEGIN switch_allow_autologin -->
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+		  <!-- END switch_allow_autologin -->
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/overall_header.tpl
+
+#
+#
+# NOTE --- The following action fixes a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh subSilver template looks like this:
+#						<td align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_FAQ}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_faq.gif" width="12" height="13" border="0" alt="{L_FAQ}" hspace="3" />{L_FAQ}</a></span><span class="mainmenu">&nbsp; &nbsp;<a href="{U_SEARCH}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_search.gif" width="12" height="13" border="0" alt="{L_SEARCH}" hspace="3" />{L_SEARCH}</a>&nbsp; &nbsp;<a href="{U_MEMBERLIST}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_members.gif" width="12" height="13" border="0" alt="{L_MEMBERLIST}" hspace="3" />{L_MEMBERLIST}</a>&nbsp; &nbsp;<a href="{U_GROUP_CP}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_groups.gif" width="12" height="13" border="0" alt="{L_USERGROUPS}" hspace="3" />{L_USERGROUPS}</a>&nbsp; 
+#
+{L_FAQ}</a></span><span class="mainmenu">
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+{L_FAQ}</a></span><span class="mainmenu">
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+{L_FAQ}</a>
+
+#
+#
+# NOTE --- The following actions fix a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh subSilver template looks like this:
+#						&nbsp;<a href="{U_REGISTER}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_register.gif" width="12" height="13" border="0" alt="{L_REGISTER}" hspace="3" />{L_REGISTER}</a></span>&nbsp;
+#
+{L_REGISTER}</a></span>
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+{L_REGISTER}</a></span>
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+{L_REGISTER}</a>
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+						</td>
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+						</span></td>
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/profile_add_body.tpl
+
+#
+#
+# NOTE --- The following actions fix a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<input type="text" name="icq" class="post"style="width: 100px"  size="10" maxlength="15" value="{ICQ}" />
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<input type="text" name="icq" class="post" style="width: 100px"  size="10" maxlength="15" value="{ICQ}" />
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<input type="text" class="post"style="width: 150px"  name="aim" size="20" maxlength="255" value="{AIM}" />
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<input type="text" class="post" style="width: 150px"  name="aim" size="20" maxlength="255" value="{AIM}" />
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<input type="text" class="post"style="width: 150px"  name="msn" size="20" maxlength="255" value="{MSN}" />
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<input type="text" class="post" style="width: 150px"  name="msn" size="20" maxlength="255" value="{MSN}" />
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<input type="text" class="post"style="width: 150px"  name="yim" size="20" maxlength="255" value="{YIM}" />
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<input type="text" class="post" style="width: 150px"  name="yim" size="20" maxlength="255" value="{YIM}" />
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<input type="text" class="post"style="width: 200px"  name="website" size="25" maxlength="255" value="{WEBSITE}" />
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<input type="text" class="post" style="width: 200px"  name="website" size="25" maxlength="255" value="{WEBSITE}" />
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<input type="text" class="post"style="width: 200px"  name="location" size="25" maxlength="100" value="{LOCATION}" />
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<input type="text" class="post" style="width: 200px"  name="location" size="25" maxlength="100" value="{LOCATION}" />
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<input type="text" class="post"style="width: 200px"  name="occupation" size="25" maxlength="100" value="{OCCUPATION}" />
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<input type="text" class="post" style="width: 200px"  name="occupation" size="25" maxlength="100" value="{OCCUPATION}" />
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<input type="text" class="post"style="width: 200px"  name="interests" size="35" maxlength="150" value="{INTERESTS}" />
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<input type="text" class="post" style="width: 200px"  name="interests" size="35" maxlength="150" value="{INTERESTS}" />
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<textarea name="signature"style="width: 300px"  rows="6" cols="30" class="post">{SIGNATURE}</textarea>
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<textarea name="signature" style="width: 300px" rows="6" cols="30" class="post">{SIGNATURE}</textarea>
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/search_body.tpl
+
+#
+#
+# NOTE --- The following action fixes a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh subSilver template looks like this:
+#		<td class="row2" valign="middle" nowrap="nowrap"><span class="genmed"><select class="post" name="sort_by">{S_SORT_OPTIONS}</select><br /><input type="radio" name="sort_dir" value="ASC" /> {L_SORT_ASCENDING}<br /><input type="radio" name="sort_dir" value="DESC" checked /> {L_SORT_DESCENDING}</span>&nbsp;</td>
+#
+{S_SORT_OPTIONS}
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+checked />
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+checked="checked" />
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/search_results_posts.tpl
+
+#
+#
+# NOTE --- The following action fixes a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh subSilver template looks like this:
+#	<td class="catHead" colspan="2" height="28"><span class="topictitle"><img src="templates/subSilver/images/folder.gif" align="absmiddle">&nbsp; {L_TOPIC}:&nbsp;<a href="{searchresults.U_TOPIC}" class="topictitle">{searchresults.TOPIC_TITLE}</a></span></td>
+#
+align="absmiddle">
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+align="absmiddle">
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+align="absmiddle" />
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- The following action fixes a bug in the subSilver template that might be present on other styles as well
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh subSilver template looks like this:
+#	$images['topic_watch'] = "";
+#
+$images['topic_watch'] =
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+'topic_watch'
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+'Topic_watch'
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+# NOTE --- The following action is related to the new autologin option (this is where it can be enabled or disabled).
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole lines on a fresh subSilver template look like this:
+#		<td class="row1">{L_VISUAL_CONFIRM}<br /><span class="gensmall">{L_VISUAL_CONFIRM_EXPLAIN}</span></td>
+#		<td class="row2"><input type="radio" name="enable_confirm" value="1" {CONFIRM_ENABLE} />{L_YES}&nbsp; &nbsp;<input type="radio" name="enable_confirm" value="0" {CONFIRM_DISABLE} />{L_NO}</td>
+#	</tr>
+#
+{L_VISUAL_CONFIRM_EXPLAIN}
+{CONFIRM_ENABLE}
+</tr>
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ALLOW_AUTOLOGIN}<br /><span class="gensmall">{L_ALLOW_AUTOLOGIN_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="allow_autologin" value="1" {ALLOW_AUTOLOGIN_YES} />{L_YES}&nbsp; &nbsp;<input type="radio" name="allow_autologin" value="0" {ALLOW_AUTOLOGIN_NO} />{L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_AUTOLOGIN_TIME} <br /><span class="gensmall">{L_AUTOLOGIN_TIME_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="max_autologin_time" value="{AUTOLOGIN_TIME}" /></td>
+	</tr>
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/admin/forum_admin_body.tpl
+
+#
+#
+# NOTE --- The following action fixes a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<td class="catRight" align="center" valign="middle"><span class="gen">&nbsp</span></td>
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<td class="catRight" align="center" valign="middle"><span class="gen">&nbsp;</span></td>
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/admin/index_frameset.tpl
+
+#
+#
+# NOTE --- The following action fixes a bug in the subSilver template that might be present on other styles as well
+#
+#-----[ FIND ]---------------------------------------------
+#
+<html>
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+<html dir="{S_CONTENT_DIRECTION}">
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/admin/page_header.tpl
+
+#
+#
+# NOTE --- The following action fixes a bug in the subSilver template that might be present on other styles as well
+#
+#-----[ FIND ]---------------------------------------------
+#
+<html>
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+<html dir="{S_CONTENT_DIRECTION}">
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/admin/styles_addnew_body.tpl
+
+#
+#
+# NOTE --- The following actions fix a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+#
+<P>{L_STYLES_ADD_TEXT}</p>
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+<p>{L_STYLES_ADD_TEXT}</p>
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+</table></form>
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+</table>
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/admin/styles_edit_body.tpl
+
+#
+#
+# NOTE --- The following action fixes a bug in the subSilver template that might be present on other styles as well
+# NOTE --- A new template variable is now defined to replace a hardcoded language string
+#
+#-----[ FIND ]---------------------------------------------
+# NOTE --- This is a partial match, the whole line on a fresh subSilver template looks like this:
+#		<td class="row1">{L_STYLESHEET}:<br /><span class="gensmall">Filename for CSS stylesheet to use for this theme.</span></td>
+#
+Filename for CSS stylesheet to use for this theme.
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+Filename for CSS stylesheet to use for this theme.
+
+#
+#-----[ IN-LINE REPLACE WITH ]---------------------------------------------
+#
+{L_STYLESHEET_EXPLAIN}
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/admin/styles_list_body.tpl
+
+#
+#
+# NOTE --- The following actions fix a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+#
+<P>{L_STYLES_TEXT}</p>
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+<p>{L_STYLES_TEXT}</p>
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+</table></form>
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+</table>
+
+#
+#-----[ OPEN ]---------------------------------------------
+# NOTE --- Remember to do this for all your installed styles!
+#
+templates/subSilver/admin/user_edit_body.tpl
+
+#
+#
+# NOTE --- The following actions fix a bug in the subSilver template
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<input class="post" type="text" name="avatarurl" size="40" class="post" style="width: 200px"  />
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<input class="post" type="text" name="avatarurl" size="40" style="width: 200px"  />
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<input class="post" type="text" name="avatarremoteurl" size="40" class="post" style="width: 200px"  />
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+		<input class="post" type="text" name="avatarremoteurl" size="40" style="width: 200px"  />
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

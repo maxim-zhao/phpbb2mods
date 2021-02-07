@@ -1,0 +1,289 @@
+############################################################## 
+## MOD Title:  Integrated Toplist
+## MOD Author: buweichiu < mods@xpoo.net > (Buwei Chiu) http://bws.xpoo.net
+## MOD Description: This will add Toplist on the index for those style that's hard to use OOHOO's ADV-TOP5.
+## MOD Version: 1.0.3
+## 
+## Installation Level: Easy
+## Installation Time: 3 Minutes 
+## Files To Edit: 
+##	index.php
+##	templates/subSilver/index_body.tpl
+##
+## Included Files: (N/A)
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+##	This mod is based on OOHOO's ADV-TOP5 2.1.0
+##
+############################################################## 
+## MOD History: 
+## 
+##	2005-01-11 - Version 1.0.0
+##		- inititla release
+##	2005-01-12 - Version 1.0.1
+##		- fix some message_die problem.
+##	2005-01-16 - Version 1.0.2
+##		- fix some Var. problem.
+##	2005-01-19 - Version 1.0.3
+##		- fix for PHP3 compatibility
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+index.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+//
+// Find which forums are visible for this user
+//
+$is_auth_ary = array();
+$is_auth_ary = auth(AUTH_VIEW, AUTH_LIST_ALL, $userdata, $forum_data);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+// 
+// Integrated Toplist 1.0.3 by bu Based on OOHOO's ADV-TOP5 (20050119)
+// 
+// This work is licensed under the Creative Commons Attribution-ShareAlike License. 
+// To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/2.0/ 
+// 
+// MOD START 
+
+	//
+	// Option of Toplist Start
+	//
+
+		// Topics text length 
+		$MAX_STR_LEN = 60; 
+			 
+		// Topics to display (Default: 5)
+		$MAX_TOPICS = 5; 
+			 
+		// 0 => users can see all topics including authorized issue(but they cant read the posts) 
+		// 1 => users can see only authorized topics 
+		$AUTH_SECRUITY = 1; 
+
+		// Order by 
+		// topic_last_post_id (Default)
+		// topic_replies 
+		// topic_views 
+
+		$sortby="topic_last_post_id"; 
+
+	//
+	// Option of Toplist End
+	//
+
+	function cutStr($str) { 
+		global $MAX_STR_LEN; 
+		$str = (strlen($str) > $MAX_STR_LEN) ? (substr($str, 0, $MAX_STR_LEN - 1) . "...") : $str; 
+		return $str; 
+	} 
+
+	// Find which forums are visible for this user 
+	$is_auth_ary_top5 = array(); 
+	$is_auth_ary_top5 = auth(AUTH_READ, AUTH_LIST_ALL, $userdata); 
+
+	$auth_forum_ary_top5 = array(); 
+
+	// Get forum info 
+	$sql = "SELECT forum_id FROM " . FORUMS_TABLE; 
+
+	if( !$q_forums = $db->sql_query($sql) ) 
+	{ 
+		message_die(GENERAL_ERROR, 'Toplist ERROR: Fetch forum info fail', __LINE__, __FILE__, $sql); 
+	} 
+
+	// Authorized forums info 
+	while( $forum_row = $db->sql_fetchrow($q_forums) ) 
+	{ 
+		$forum_id1 = $forum_row['forum_id']; 
+
+		if( $is_auth_ary_top5[$forum_id1]['auth_read'] == 1) 
+		{ 
+			if(function_exists("array_push"))
+			{
+				array_push($auth_forum_ary_top5, $forum_id1); 
+			} else {
+				$auth_id=count($auth_forum_ary_top5);
+				$auth_forum_ary_top5[$auth_id]=$forum_id1;
+			}
+		} 
+	} 
+
+	if( sizeOf($auth_forum_ary_top5) == 0 || !$AUTH_SECRUITY ) 
+	{ 
+		$auth_forums_top5 = ""; 
+	} 
+	else 
+	{ 
+		$auth_forums_top5 = 'AND f.forum_id IN('; 
+
+		if(sizeOf($auth_forum_ary_top5) > 1) 
+		{ 
+			$auth_forums_top5 .= implode (',', $auth_forum_ary_top5); 
+		} 
+		else 
+		{ 
+			$auth_forums_top5 .= $auth_forum_ary_top5[0]; 
+		} 
+
+		$auth_forums_top5 .= ')'; 
+	} 
+
+	// query 
+	$sql = "SELECT topic_id, topic_title, topic_poster, topic_views, topic_replies, topic_last_post_id, f.forum_id, forum_name 
+	FROM " . TOPICS_TABLE . " t, " . FORUMS_TABLE . " f 
+	WHERE t.forum_id = f.forum_id 
+	AND topic_moved_id = '0' 
+	$auth_forums_top5 
+	ORDER BY $sortby DESC LIMIT 0, $MAX_TOPICS"; 
+
+	if( !$result = $db->sql_query($sql) ) 
+	{ 
+		message_die(GENERAL_ERROR, 'Toplist ERROR: Fetch topic info fail', __LINE__, __FILE__, $sql); 
+	} 
+
+	// fetch rows 
+	while( $rows = $db->sql_fetchrow($result) ) 
+	{ 
+		$topic_url = append_sid("viewtopic.$phpEx?t=" . $rows['topic_id']); 
+		$forum_url = append_sid("viewforum.$phpEx?f=" . $rows['forum_id']); 
+
+		$topic_poster = $rows['topic_poster']; 
+		$topic_last_post_id = $rows['topic_last_post_id']; 
+
+		// Grab topic poster and last replier data 
+		$sql = "SELECT post_username, user_id, username 
+		FROM " . POSTS_TABLE . ", " . USERS_TABLE . " 
+		WHERE topic_id = '" . $rows['topic_id'] . "' 
+		AND poster_id = user_id 
+		ORDER BY post_id LIMIT 0, 1"; 
+
+		if( !$p_result = $db->sql_query($sql) ) 
+		{ 
+			message_die(GENERAL_ERROR, 'Toplist ERROR: Fetch topic poster fail', __LINE__, __FILE__, $sql); 
+		} 
+
+		$p_row = $db->sql_fetchrow($p_result); 
+
+		$poster_name = ( $topic_poster != ANONYMOUS ) ? $p_row['username'] : ( !$p_row['post_username'] ? $lang['Guest'] : $p_row['post_username']); 
+		$poster_url = ( $topic_poster != ANONYMOUS && !$p_row['post_username'] ) ? ('<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;u=$topic_poster") . '" target="_top">' . "$poster_name</a>") : $poster_name; 
+
+		$sql = "SELECT post_username, user_id, username, post_time 
+		FROM " . POSTS_TABLE . ", " . USERS_TABLE . " 
+		WHERE post_id = '$topic_last_post_id' 
+		AND poster_id = user_id"; 
+
+		if( !$r_result = $db->sql_query($sql) ) 
+		{ 
+			message_die(GENERAL_ERROR, 'Toplist ERROR: Fetch topic last replier fail', __LINE__, __FILE__, $sql); 
+		} 
+
+		$r_row = $db->sql_fetchrow($r_result); 
+
+		$replier_id = $r_row['user_id']; 
+		$replier_name = ( $replier_id != ANONYMOUS ) ? $r_row['username'] : ( !$r_row['post_username'] ? $lang['Guest'] : $r_row['post_username']); 
+		$replier_url = ( $replier_id != ANONYMOUS && !$r_row['post_username'] ) ? ('<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;u=$replier_id") . '" target="_top">' . "$replier_name</a>") : $replier_name; 
+
+		$last_post_url = append_sid("viewtopic.$phpEx?p=$topic_last_post_id#$topic_last_post_id"); 
+
+		$template->assign_block_vars("toprow", array( 
+			'FORUM_NAME' => $rows['forum_name'], 
+			'FORUM_URL' => $forum_url, 
+			'TOPIC' => cutStr($rows['topic_title']), 
+			'TOPIC_URL' => $topic_url, 
+			'TOPIC_VIEWS' => $rows['topic_views'], 
+			'TOPIC_REPLIES' => $rows['topic_replies'], 
+			'POST_TIME' => create_date($board_config['default_dateformat'], $r_row['post_time'], $board_config['board_timezone']), 
+			'POSTER_URL' => $poster_url, 
+			'REPLIER_URL' => $replier_url, 
+			'LAST_POST_URL' => $last_post_url 
+		)); 
+	} 
+
+// MOD END 
+// 
+// Integrated Toplist 1.0.3 by bu Based on OOHOO's ADV-TOP5 (20050119) 
+// 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+'L_POSTS' => $lang['Posts'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+'ICON_URL' => $images['icon_latest_reply'],
+'ICON_ALT' => $lang['View_latest_post'],
+'L_AUTHOR' => $lang['Author'], 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+templates/subSilver/index_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+<table width="100%" cellpadding="1" cellspacing="1" border="0">
+<tr>
+	<td align="left" valign="top"><span class="gensmall">{L_ONLINE_EXPLAIN}</span></td>
+</tr>
+</table>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+<table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+ <td valign="top">
+<table width="100%" border="0" cellpadding="4" cellspacing="1" width="100%" class="forumline">
+	<tr> 
+	  <th align="center" class="thCornerL" width="20%">&nbsp;{L_FORUM}&nbsp;</th>
+	  <th align="center" class="thTop" width="40%">&nbsp;{L_TOPICS}&nbsp;</th>
+	  <th align="center" class="thTop" nowrap>&nbsp;&nbsp;{L_AUTHOR}&nbsp;&nbsp;</th>
+	  <th align="center" class="thTop" nowrap>&nbsp;{L_REPLIES}&nbsp;</th>
+	  <th align="center" class="thTop" nowrap>&nbsp;{L_VIEWS}&nbsp;</th>
+	  <th align="center" class="thCornerR" nowrap>&nbsp;{L_LASTPOST}&nbsp;</th>
+	</tr>
+	<!-- BEGIN toprow -->
+  <tr>
+ <td class="row1" nowrap><span class="forumlink"><a href="{toprow.FORUM_URL}" target="_top" class="forumlink">{toprow.FORUM_NAME}</a></span></td> 
+ <td class="row2" nowrap><span class="topictitle"><a href="{toprow.TOPIC_URL}" target="_top" class="topictitle">{toprow.TOPIC}</a></span></td>
+ <td class="row1" align="center" nowrap><span class="name">{toprow.POSTER_URL}</span></td>
+ <td class="row2" align="center" nowrap><span class="postdetails">{toprow.TOPIC_REPLIES}</span></td>
+ <td class="row1" align="center" nowrap><span class="postdetails">{toprow.TOPIC_VIEWS}</span></td>
+ <td class="row2" align="center" nowrap><span class="postdetails">{toprow.POST_TIME}<br />{toprow.REPLIER_URL}&nbsp;<a href="{toprow.LAST_POST_URL}" target="_top"><img src="{ICON_URL}" border="0" alt="{ICON_ALT}" /></a></span></td>  
+  </tr>
+  <!-- END toprow -->
+</table>
+ </td>  
+  </tr>
+</table>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

@@ -1,0 +1,102 @@
+##############################################################
+## MOD Title: Pagination Select List & Input Box
+## MOD Author: chatasos < chatasos@psclub.gr > (Tassos Chatzithomaoglou) http://www.psclub.gr
+## MOD Description: This mod adds a select list or an input box to your pagination options, to help you in case of many pages.
+## MOD Version: 1.0.1
+## 
+## Installation Level: Easy
+## Installation Time: 3 minutes
+## Files To Edit: includes/functions.php
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##	- Javascript must be enabled in order for the mod to work correctly.
+##
+##	- The select list or the input box are displayed wherever the default phpbb pagination is used :
+##	viewforum, viewtopic, memberlist, search, etc., when there are more than 10 pages to be displayed.
+##
+##	- In select list, you just choose the page from the drop-down list and you are transferred there.
+##
+##	- In the input box, you write the page number into it, you press enter and you are transferred there.
+##
+##	- You can change the number of pages which make the select list or input box to appear,
+##	by changing "10" to your own value, in the following line:
+##
+##		if ( $total_pages > 10 )
+##
+##	- The select list is displayed when the number of pages is smaller than 100 and the input box is displayed 
+##	when the number of pages is bigger than 100. You can change this value (100) to your own, in the following line:
+##
+##		if ( $total_pages < 100 )
+##
+##############################################################
+## MOD History:
+##
+##	2005-09-15 - Version 1.0.1
+##	- Fixed possible template "incompatibility"
+##	- Changed functionality in order to use only one of the choices depending on the number of pages
+##
+##	2005-09-03 - Version 1.0.0 
+##	- First release.
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	$page_string = $lang['Goto_page'] . ' ' . $page_string;
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	/****************************************
+	* MOD: Pagination Select List & Input Box
+	****************************************/
+	// BEGIN : BEFORE, ADD
+	if ( $total_pages > 10 )
+	{	
+		if ( $total_pages < 100 )
+		{
+			$select_list = '<select onChange="if (this.options[this.selectedIndex].value != -1) { window.location.href = this.options[this.selectedIndex].value; }">';
+
+			for ($i = 1; $i <= $total_pages; $i++)
+			{
+				$select_list .= '<option value="' . append_sid($base_url . "&amp;start=" . ( ( $i - 1 ) * $per_page ) ) . '"' . ( ( $i == $on_page ) ? ' selected="selected"' : '' ) . '>' . $i . '</option>';
+			}
+
+			$select_list .= '</select> ';
+			$input_box = '';
+		}
+		else
+		{
+			$input_box = '<input type="text" size="4" value="'.$on_page.'" onKeyPress="var keyCode = event.keyCode ? event.keyCode : event.which ? event.which : event.charCode; if ( keyCode == 13 ) { var page_no = parseInt(this.value, 10); if ( !isNaN(page_no) && page_no <= '.$total_pages.' && page_no > 0) { var start = String((page_no - 1)*'.$per_page.'); window.location.href = \'' . append_sid($base_url . '&amp;start=\'+start+\'') . '\'; return false;} else { this.value = '.$on_page.'; return false;} }" /> ';
+			$select_list = '';
+		}
+	}
+	else
+	{
+		$input_box = '';
+		$select_list = '';
+	}
+
+	$page_string = $input_box . $select_list . $page_string;
+	// END : BEFORE, ADD
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,133 @@
+##############################################################
+## MOD Title: Styles Usage counter
+## MOD Author: Marmotte < azhdeen@free.fr > (N/A) N/A
+## MOD Description: this MOD adds a usage counter on the styles ACP main list
+## MOD Version: 1.0.2
+##
+## Installation Level: Easy
+## Installation Time: 1 Minute
+## Files To Edit: 
+##      admin/admin_styles.php,
+##      language/lang_english/lang_admin.php,
+##      templates/subSilver/admin/styles_list_body.tpl
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2005-12-27 - Version 0.0.1
+##      - initial version
+##   2006-01-01 - Version 1.0.0
+##      - reread source, added tabs in the SQL query and renamed a variable
+##   2006-01-03 - Version 1.0.1
+##      - corrected MOD Author line syntax
+##   2006-01-03 - Version 1.0.2
+##      - problem uploading the 1.0.1 file, retrying
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_styles.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$template->assign_vars(array(
+			"L_STYLES_TITLE" => $lang['Styles_admin'],
+			"L_STYLES_TEXT" => $lang['Styles_explain'],
+			"L_STYLE" => $lang['Style'],
+			"L_TEMPLATE" => $lang['Template'],
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+			"L_TEMPLATE_USECOUNT" => $lang['Style_Usecount'],
+#
+#-----[ FIND ]------------------------------------------
+#
+		for($i = 0; $i < count($style_rowset); $i++)
+		{
+			$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
+			$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// BEGIN Style UseCount MOD
+			$sql = "SELECT count(*) as use_count
+				FROM " . USERS_TABLE . " 
+				WHERE user_style = " .  $style_rowset[$i]['themes_id'] . " 
+				GROUP BY user_style";
+			if(!$result = $db->sql_query($sql))
+			{
+				message_die(GENERAL_ERROR, "Could not get style usage count!", "", __LINE__, __FILE__, $sql);
+			}
+			$style_usage = $db->sql_fetchrow($result);
+#
+#-----[ FIND ]------------------------------------------
+#
+				"TEMPLATE_NAME" => $style_rowset[$i]['template_name'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				"TEMPLATE_USECOUNT" => $style_usage['use_count'],
+#
+#-----[ FIND ]------------------------------------------
+#
+				"U_STYLES_DELETE" => append_sid("admin_styles.$phpEx?mode=delete&amp;style_id=" . $style_rowset[$i]['themes_id']))
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// END Style UseCount MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Template']
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Style_Usecount'] = 'Use Count';
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/styles_list_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<th class="thTop">{L_TEMPLATE}</th>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<!-- Style UseCount MOD START -->
+		<th class="thTop">{L_TEMPLATE_USECOUNT}</th>
+		<!-- Style UseCount MOD END -->
+#
+#-----[ FIND ]------------------------------------------
+#
+		<td class="{styles.ROW_CLASS}">{styles.TEMPLATE_NAME}</td>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<!-- Style UseCount MOD START -->
+		<td class="{styles.ROW_CLASS}">{styles.TEMPLATE_USECOUNT}</td>
+		<!-- Style UseCount MOD END -->
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

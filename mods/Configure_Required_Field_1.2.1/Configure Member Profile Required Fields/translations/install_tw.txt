@@ -1,0 +1,423 @@
+######################################################## 
+## 外掛名稱: Configure Member Profile Required Fields
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 這個外掛可以讓管理員在控制台中指定會員資料中哪一些欄位必須填入，訪客需要在註冊時填入指定的資料
+## 外掛版本: 1.2.1
+## 
+## 安裝難度: 簡單
+## 安裝時間: 10 分鐘
+##
+## 需要編輯的檔案: 6
+##	admin/admin_users.php
+##	includes/constants.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	includes/usercp_register.php
+##	templates/subSilver/profile_add_body.tpl
+##	templates/subSilver/admin/user_edit_body.tpl
+##
+## 附加的檔案: 2
+##	root/admin_profile_field.php
+##	root/admin_profile_field.tpl
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.18 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##
+############################################################## 
+## 版本歷史: 
+##
+##   2004-01-22 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2004-07-24 - 版本 1.1.0
+##      - 小蟲修正, 一些程式的更新, 加入 Visual Confirmation 支援
+##	- 修正外掛安裝說明小修正
+##
+##   2005-01-23 - 版本 1.1.1
+##	- 重新為 phpBB 2.0.11 製作 (因為 2.0.11 已有 Visual Confirmation)
+##	- 修正 usercp_register.php 的錯誤
+##
+##   2005-11-24 - 版本 1.2.0
+##      - 重寫了這個外掛的很多地方，並且也移除了不少不需要的程式
+##
+##   2005-11-26 - 版本 1.2.1
+##      - 增加了對 admin_users.php 的修改
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ 複製 ]------------------------------------------ 
+# 
+copy root/admin_profile_field.php to admin/admin_profile_field.php
+copy root/admin_profile_field.tpl to templates/subSilver/admin/admin_profile_field.tpl
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+CREATE TABLE phpbb_profile_config (
+    config_name VARCHAR(255) NOT NULL DEFAULT '',
+    config_value VARCHAR(255) NOT NULL DEFAULT '',
+    PRIMARY KEY (config_name)
+);
+
+INSERT INTO phpbb_profile_config VALUES('icq','0');
+INSERT INTO phpbb_profile_config VALUES('website','0');
+INSERT INTO phpbb_profile_config VALUES('location','0');
+INSERT INTO phpbb_profile_config VALUES('signature','0');
+INSERT INTO phpbb_profile_config VALUES('aim','0');
+INSERT INTO phpbb_profile_config VALUES('yim','0');
+INSERT INTO phpbb_profile_config VALUES('msnm','0');
+INSERT INTO phpbb_profile_config VALUES('occupation','0');
+INSERT INTO phpbb_profile_config VALUES('interests','0');
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_admin.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Configure Member Profile Required Fields
+$lang['Profile_config_updated'] = '指定欄位更新完成';
+$lang['Click_return_profile_config'] = '點選 %s這裡%s 返回會員資料指定欄位設定';
+$lang['Profile_field_config'] = '會員資料指定欄位設定';
+$lang['Profile_field_explain'] = '以下表格可以讓你編輯哪一些會員資料在註冊和更新資料時必須填寫.';
+$lang['Settings'] = '設定';
+$lang['Reg_optional'] = '可不填寫';
+$lang['Reg_compulsory'] = '必須填寫';
+$lang['CMPRF_mod_version'] = 'Configure Member Profile Required Fields - Version 1.2.1 (2005-11-26)';
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+admin/admin_users.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+{
+	$mode = '';
+}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+// Configure Member Profile Required Fields
+$sql = "SELECT *
+		FROM " . PROFILE_CONFIG_TABLE;
+if( !($result = $db->sql_query($sql)) )
+{
+	message_die(CRITICAL_ERROR, "Could not query required field config information", "", __LINE__, __FILE__, $sql);
+}
+
+$required_field_config = array();
+while ( $row = $db->sql_fetchrow($result) )
+{
+	$required_field_config[$row['config_name']] = $row['config_value'];
+}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+		'L_ICQ_NUMBER' => $lang['ICQ'],
+		'L_MESSENGER' => $lang['MSNM'],
+		'L_YAHOO' => $lang['YIM'],
+		'L_WEBSITE' => $lang['Website'],
+		'L_AIM' => $lang['AIM'],
+		'L_LOCATION' => $lang['Location'],
+		'L_OCCUPATION' => $lang['Occupation'],
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_ICQ_NUMBER' => ($required_field_config['icq']) ? $lang['ICQ'] . ' * ' : $lang['ICQ'],
+		'L_MESSENGER' => ($required_field_config['msn']) ? $lang['MSNM'] . ' * ' : $lang['MSNM'],
+		'L_YAHOO' => ($required_field_config['yim']) ? $lang['YIM'] . ' * ' : $lang['YIM'],
+		'L_WEBSITE' => ($required_field_config['website']) ? $lang['Website'] . ' * ' : $lang['Website'],
+		'L_AIM' => ($required_field_config['aim']) ? $lang['AIM'] . ' * ' : $lang['AIM'],
+		'L_LOCATION' => ($required_field_config['location']) ? $lang['Location'] . ' * ' : $lang['Location'],
+		'L_OCCUPATION' => ($required_field_config['occupation']) ? $lang['Occupation'] . ' * ' : $lang['Occupation'],
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+		'L_INTERESTS' => $lang['Interests'],
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_INTERESTS' => ($required_field_config['interests']) ? $lang['Interests'] . ' * ' : $lang['Interests'],
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+		'L_SIGNATURE' => $lang['Signature'],
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_SIGNATURE' => ($required_field_config['signature']) ? $lang['Signature'] . ' * ' : $lang['Signature'],
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+includes/constants.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+// Configure Member Profile Required Fields
+define('PROFILE_CONFIG_TABLE', $table_prefix.'profile_config');
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+includes/usercp_register.php
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+$error = FALSE;
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+$fields_empty = FALSE;
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+			$error_msg = $lang['Fields_empty'];
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			$fields_empty = TRUE;
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	message_die(GENERAL_MESSAGE, $lang['Username_taken'], '', __LINE__, __FILE__);
+}
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+// Configure Member Profile Required Fields
+$sql = "SELECT *
+		FROM " . PROFILE_CONFIG_TABLE;
+if( !($result = $db->sql_query($sql)) )
+{
+	message_die(CRITICAL_ERROR, "Could not query required field config information", "", __LINE__, __FILE__, $sql);
+}
+
+$required_field_config = array();
+while ( $row = $db->sql_fetchrow($result) )
+{
+	$required_field_config[$row['config_name']] = $row['config_value'];
+}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+#
+			$fields_empty = TRUE;
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	if ($board_config['enable_confirm'] && $mode == 'register')
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+	// Configure Member Profile Required Fields
+	if ( $required_field_config['yim'] && empty($yim))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['icq'] && empty($icq))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['msn'] && empty($msn))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['aim'] && empty($aim))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['occupation'] && empty($occupation))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['interests'] && empty($interests))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['location'] && empty($location))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['website'] && empty($website))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+	if ( $required_field_config['signature'] && empty($signature))
+	{
+		$error = TRUE;
+		if ( $fields_empty == FALSE )
+		{
+			$error_msg .= ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Fields_empty'];
+			$fields_empty = TRUE;
+		}
+	}
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+		'L_ICQ_NUMBER' => $lang['ICQ'],
+		'L_MESSENGER' => $lang['MSNM'],
+		'L_YAHOO' => $lang['YIM'],
+		'L_WEBSITE' => $lang['Website'],
+		'L_AIM' => $lang['AIM'],
+		'L_LOCATION' => $lang['Location'],
+		'L_OCCUPATION' => $lang['Occupation'],
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_ICQ_NUMBER' => ($required_field_config['icq']) ? $lang['ICQ'] . ' * ' : $lang['ICQ'],
+		'L_MESSENGER' => ($required_field_config['msn']) ? $lang['MSNM'] . ' * ' : $lang['MSNM'],
+		'L_YAHOO' => ($required_field_config['yim']) ? $lang['YIM'] . ' * ' : $lang['YIM'],
+		'L_WEBSITE' => ($required_field_config['website']) ? $lang['Website'] . ' * ' : $lang['Website'],
+		'L_AIM' => ($required_field_config['aim']) ? $lang['AIM'] . ' * ' : $lang['AIM'],
+		'L_LOCATION' => ($required_field_config['location']) ? $lang['Location'] . ' * ' : $lang['Location'],
+		'L_OCCUPATION' => ($required_field_config['occupation']) ? $lang['Occupation'] . ' * ' : $lang['Occupation'],
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+		'L_INTERESTS' => $lang['Interests'],
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_INTERESTS' => ($required_field_config['interests']) ? $lang['Interests'] . ' * ' : $lang['Interests'],
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+		'L_SIGNATURE' => $lang['Signature'],
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+/*
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+*/
+		// Configure Member Profile Required Fields
+		'L_SIGNATURE' => ($required_field_config['signature']) ? $lang['Signature'] . ' * ' : $lang['Signature'],
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_PROFILE_INFO}</th>
+	</tr>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	<tr> 
+		<td class="row2" colspan="2"><span class="gensmall">{L_ITEMS_REQUIRED}</span></td>
+	</tr>
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/admin/user_edit_body.tpl
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	<tr> 
+	  <th class="thSides" colspan="2">{L_PROFILE_INFO}</th>
+	</tr>
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	<tr> 
+	  <td class="row2" colspan="2"><span class="gensmall">{L_ITEMS_REQUIRED}</span></td>
+	</tr>
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+#
+# 
+# 外掛修正結束

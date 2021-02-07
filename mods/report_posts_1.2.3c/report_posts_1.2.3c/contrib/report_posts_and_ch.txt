@@ -1,0 +1,99 @@
+##############################################################
+## MOD Title: Report Posts (mod to install when having CH already installed)
+## MOD Author: chatasos < chatasos@psclub.gr > (Tassos Chatzithomaoglou) http://www.psclub.gr
+## MOD Description: This mod allows you to have Report Posts working correctly when CH is already installed. This mod assumes you have already installed the current version of Report Posts.
+## MOD Version: 1.0.1
+## 
+## Installation Level: Easy
+## Installation Time: 5 minutes
+## Files To Edit: includes/functions_report.php
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+##
+##		- You must already have installed the current version of the "Report Posts" mod, before you install this mod.
+##		  Of course CH (Categories Hierarchy) must be installed too ;-)
+##
+##		- This mod hasn't been tested with CH by me. I just had a quick look at CH's code and created the appropriate code.
+##		  But according to CH's author it should work ok. According to Dave84 it works ok too.
+##
+##############################################################
+## MOD History:
+##
+##	2005-09-21 - Version 1.0.1
+##	- Fixed a missing class (thanks Dave84)
+##
+##	2005-08-26 - Version 1.0.0
+##	- Initial Version
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/functions_report.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+function get_forums_auth_mod()
+{
+   global $userdata;
+
+   $auth = auth(AUTH_MOD, AUTH_LIST_ALL, $userdata);
+   
+   // create an array to store the moderated forums
+   $forums_auth = array();
+   while ( list($forum) = each($auth) )
+   {
+      if ( $auth[$forum]['auth_mod'] )
+      {
+         $forums_auth[] = $forum;
+      }
+   }
+
+   return $forums_auth;
+}
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// function to use when CH is installed
+function get_forums_auth_mod()
+{
+   global $user, $config;
+
+   // read forums
+   include_once($config->url('includes/class_forums')); 
+
+   $forums = new forums();
+   $forums->read();
+
+   // get user auths regarding forums
+   $user->get_cache(POST_FORUM_URL);
+
+   // get the list of authorised forums
+   $forums_auth = array();
+   if ( !empty($forums->data) )
+   {
+      foreach ( $forums->data as $f_id => $dummy )
+      {
+         if ( $user->auth(POST_FORUM_URL, 'auth_mod', $f_id) )
+         {
+            $forums_auth[] = $f_id;
+         }
+      }
+   }
+
+   return $forums_auth;
+}
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

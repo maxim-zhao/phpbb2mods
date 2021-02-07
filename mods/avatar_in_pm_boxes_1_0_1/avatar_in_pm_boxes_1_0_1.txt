@@ -1,0 +1,165 @@
+##############################################################
+## MOD Title: Avatar in PM Inbox/Sent Box/Outbox/Savebox
+## MOD Author: lefty74 < lefty_74@hotmail.com > (Heiko Carstens) http://www.lefty74.com
+## MOD Description: Shows the sender's avatar in the PM listings (Inbox/Sent Box/Outbox/Savebox)
+## MOD Version: 1.0.1
+##
+## Installation Level: (Easy)
+## Installation Time: 5 Minutes
+## Files To Edit: privmsg.php,
+##      templates/subSilver/privmsgs_body.tpl,
+##
+## Included Files: (N/A)
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: Might more useful if users use real pics as avatars
+##
+##############################################################
+## MOD History:
+##
+##   2006-08-27 - Version 1.0.1
+##      - fixed error for Easymod installation
+##
+##   2006-08-13 - Version 1.0.0
+##      - First release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT pm.privmsgs_type, pm.privmsgs_id, pm.privmsgs_date, pm.privmsgs_subject, u.user_id, u.username
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.username
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_avatar, u.user_avatar_type, u.user_allowavatar
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_SAVE_MARKED' => $lang['Save_marked'], 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'L_AVATAR' => $lang['Avatar'], 
+#
+#-----[ FIND ]------------------------------------------
+#
+		$msg_date = create_date($board_config['default_dateformat'], $row['privmsgs_date'], $board_config['board_timezone']);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$msg_avatar = '';
+		if ( $row['user_avatar_type'] && $row['user_allowavatar'] )
+		{
+			switch( $row['user_avatar_type'] )
+			{
+				case USER_AVATAR_UPLOAD:
+					$msg_avatar = ( $board_config['allow_avatar_upload'] ) ? '<img src="' . $board_config['avatar_path'] . '/' . $row['user_avatar'] . '" height="40" alt="" border="0" />' : '';
+					break;
+				case USER_AVATAR_REMOTE:
+					$msg_avatar = ( $board_config['allow_avatar_remote'] ) ? '<img src="' . $row['user_avatar'] . '" height="40" alt="" border="0" />' : '';
+					break;
+				case USER_AVATAR_GALLERY:
+					$msg_avatar = ( $board_config['allow_avatar_local'] ) ? '<img src="' . $board_config['avatar_gallery_path'] . '/' . $row['user_avatar'] . '" height="40" alt="" border="0" />' : '';
+					break;
+			}
+		}
+#
+#-----[ FIND ]------------------------------------------
+#
+			'DATE' => $msg_date,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'AVATAR' => $msg_avatar,
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/privmsgs_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		  <td colspan="{%:1}" width="175" class="row1" nowrap="nowrap"><span class="gensmall">{BOX_SIZE_STATUS}</span></td>
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+%:1 +1
+#
+#
+#-----[ FIND ]------------------------------------------
+#
+		  <td colspan="{%:1}" width="175" class="row2">
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+%:1 +1
+#
+##-----[ FIND ]------------------------------------------
+#
+	  <th width="{%:1}%" class="thTop" nowrap="nowrap">&nbsp;{L_SUBJECT}&nbsp;</th>
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+%:1 -5
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <th width="20%" class="thTop" nowrap="nowrap">&nbsp;{L_FROM_OR_TO}&nbsp;</th>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+  	  <th width="5%" class="thTop" nowrap="nowrap">&nbsp;{L_AVATAR}&nbsp;</th>
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td width="{%:1}%" valign="middle" class="{listrow.ROW_CLASS}"><span class="topictitle">&nbsp;<a href="{listrow.U_READ}" class="topictitle">{listrow.SUBJECT}</a></span></td>
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+%:1 -5
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td width="20%" valign="middle" align="center" class="{listrow.ROW_CLASS}"><span class="name">&nbsp;<a href="{listrow.U_FROM_USER_PROFILE}" class="name">{listrow.FROM}</a></span></td>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	  <td width="5%" valign="middle" align="center" class="{listrow.ROW_CLASS}"><a href="{listrow.U_FROM_USER_PROFILE}">{listrow.AVATAR}</a></td>
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row1" colspan="{%:1}" align="center" valign="middle"><span class="gen">{L_NO_MESSAGES}</span></td>  
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+%:1 +1
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="catBottom" colspan="{%:1}" height="28" align="right"> {S_HIDDEN_FIELDS} 
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+%:1 +1
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

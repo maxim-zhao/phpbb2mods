@@ -1,0 +1,1 @@
+The xsl/ folder simply contains data for the XSL used by this MOD. There's nothing you really need to see in this folder, and there's nothing in this folder that has anything to do with this MOD. Just leave this folder alone and pretend that it never existed and the world will move on.

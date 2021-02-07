@@ -1,0 +1,224 @@
+############################################################## 
+## MOD Title: ViewsMod 
+## MOD Author: TiagoValdo < tiago@dynaweb.org > (Tiago Valdo) http://www.dynaweb.org 
+## MOD Description: This MOD shows how many views ea. thread inside a forum has had.
+## MOD Version: 1.0.2 
+## 
+## Installation Level: Easy
+## Installation Time: 3 Minutes 
+##
+## Files To Edit: 
+##	index.php
+##	includes/functions.php
+##	language/lang_english/lang_main.php
+##	templates/subSilver/index_body.tpl
+##
+## Included Files: n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+## 
+## This Mod has been release ond on my DEV Forum (http://home.dynaweb.org:8150/phpbb2)
+## Tested on phpbb 2.0.16
+## Earlier and Later versions should work as well.
+## 
+## This MOD is NOT compatible with Categories hierarchy
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2005-07-11 - Version 0.1.1 
+##      - Checked MOD Sintax
+##
+##   2005-07-18 - Version 1.0.0 
+##      - Final Release
+##   2005-07-25 - Version 1.0.1 
+##      - Fixed SQL instruction find statement
+##   2005-07-25 - Version 1.0.2 
+##      - Changed to Increment instruction
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+$total_posts = get_db_stat('postcount');
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+//Begin ViewMod by TValdo
+$total_views = get_db_stat('viewcount');
+//End ViewMod by TValdo
+#
+#-----[ FIND ]---------------------------------------------
+#
+#
+{
+	$l_total_post_s = $lang['Posted_articles_total'];
+}
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+
+//Begin ViewMod by TValdo
+if( $total_views == 0 )
+{
+	$l_total_views_s = $lang['Views_articles_zero_total'];
+}
+else
+{
+	$l_total_views_s = $lang['Views_articles_total'];
+}
+//End ViewMod by TValdo
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id
+				FROM (( " . FORUMS_TABLE . " f
+				LEFT JOIN " . POSTS_TABLE . " p ON p.post_id = f.forum_last_post_id )
+				LEFT JOIN " . USERS_TABLE . " u ON u.user_id = p.poster_id )
+				ORDER BY f.cat_id, f.forum_order";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+			//Begin Views Mod by TValdo
+			$sql = "SELECT f.*, p.post_time, p.post_username, u.username, u.user_id, SUM(t.topic_views) as forum_views
+				FROM ((( " . FORUMS_TABLE . " f
+				LEFT JOIN " . POSTS_TABLE . " p ON p.post_id = f.forum_last_post_id )
+				LEFT JOIN " . USERS_TABLE . " u ON u.user_id = p.poster_id )
+				LEFT JOIN " . TOPICS_TABLE . " t ON t.forum_id = f.forum_id )
+				GROUP BY f.forum_id
+				ORDER BY f.cat_id, f.forum_order";
+			//End Views Mod by TValdo
+#
+#-----[ FIND ]---------------------------------------------
+#
+		'TOTAL_POSTS' => sprintf($l_total_post_s, $total_posts),
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+		//Begin Views Mod by TValdo
+		'TOTAL_VIEWS' => sprintf($l_total_views_s, $total_views),
+		//End Views Mod by TValdo
+#
+#-----[ FIND ]---------------------------------------------
+#
+								'POSTS' => $forum_data[$j]['forum_posts'],
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+								//Begin ViewMod by TValdo
+								'VIEWS' => ($forum_data[$j]['forum_views'] > 0) ? $forum_data[$j]['forum_views'] : 0,
+								//End ViewMod by TValdo
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+		case 'usercount':
+			$sql = "SELECT COUNT(user_id) AS total
+				FROM " . USERS_TABLE . "
+				WHERE user_id <> " . ANONYMOUS;
+			break;
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+
+		//Begin ViewMod by TValdo
+		case 'viewcount':
+			$sql = "SELECT SUM(topic_views) AS total
+				FROM " . TOPICS_TABLE;
+			break;
+		//End ViewMod by TValdo
+		
+#
+#-----[ FIND ]---------------------------------------------
+#
+		case 'topiccount':
+			return $row['topic_total'];
+			break;
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+		//Begin ViewMod by TValdo
+		case 'viewcount':
+			return $row['total'];
+			break;
+		//End ViewMod by TValdo
+#
+#-----[ OPEN ]---------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+$lang['Posted_article_total'] = 'Our users have posted a total of <b>%d</b> article'; // Number of posts
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+//Begin Views Mod by TValdo
+$lang['Views_articles_zero_total'] = 'These messages has not been seen yet.';
+$lang['Views_articles_total'] = 'These messages has been seen over <b>%d</b> times.';
+//End Views Mod by TValdo
+#
+#-----[ OPEN ]---------------------------------------------
+#
+templates/subSilver/index_body.tpl	
+#
+#-----[ FIND ]---------------------------------------------
+#
+	<th width="50" class="thTop" nowrap="nowrap">&nbsp;{L_POSTS}&nbsp;</th>
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+	<th width="50" class="thTop" nowrap="nowrap">&nbsp;{L_VIEWS}&nbsp;</th>
+#
+#-----[ FIND ]---------------------------------------------
+#
+   <td class="rowpic" colspan="{%:1}" align="right">&nbsp;</td>
+#
+#-----[ INCREMENT ]---------------------------------------------
+#
+%:1
+#
+#-----[ FIND ]---------------------------------------------
+#
+	<td class="row2" align="center" valign="middle" height="50"><span class="gensmall">{catrow.forumrow.POSTS}</span></td>
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+	<td class="row2" align="center" valign="middle" height="50"><span class="gensmall">{catrow.forumrow.VIEWS}</span></td>
+#
+#-----[ FIND ]---------------------------------------------
+#
+	<td class="row1" align="left" width="100%"><span class="gensmall">{TOTAL_POSTS}<br />{TOTAL_USERS}<br />{NEWEST_USER}</span>
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+{TOTAL_POSTS}<br />
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------------------
+#
+{TOTAL_VIEWS}
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

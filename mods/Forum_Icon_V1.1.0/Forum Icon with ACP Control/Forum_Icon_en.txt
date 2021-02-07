@@ -1,0 +1,344 @@
+######################################################## 
+## MOD Title: Forum Icon with ACP Control (Default Option)
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This mod allow admin to give each forum a icon in the ACP. Icons will show on index, viewforum and viewtopic
+## MOD Version: 1.1.0
+## 
+## Installation Level: Intermediate
+## Installation Time: 10 Minutes 
+##
+## Files To Edit: 10
+##	index.php
+##	viewforum.php
+##	viewtopic.php
+##	admin/admin_forums.php
+##	language/lang_english/lang_admin.php
+##	templates/subSilver/admin/forum_admin_body.tpl
+##	templates/subSilver/admin/forum_edit_body.tpl
+##	templates/subSilver/index_body.tpl
+##	templates/subSilver/viewforum_body.tpl
+##	templates/subSilver/viewtopic_body.tpl
+##
+## Included Files: n/a
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.18. Can be installed using EasyMOD 0.3.0
+##
+##	If you wish to using the LIST BOX option,
+##	you have to follow the instruction in Forum_Icon_ListBox_en.txt. 
+##	Please DO NOT using the below code! Both options CANNOT be used together.
+## 
+############################################################## 
+## MOD History: 
+##
+##   2003-11-04 - Version 1.0.0
+##      - Initial Release
+##
+##   2003-11-08 - Version 1.0.1
+##      - Checked for 2.0.6 competibility, no change in coding
+##
+##   2003-11-15 - Version 1.0.2
+##      - Corrections were made for phpBB MOD Database submission
+##
+##   2003-12-01 - Version 1.0.3
+##      - Forum icon selectable using list box (Option 2)
+##	- Add forum icon image to Forum Administration main panel
+##	- Add forum icon image to viewforum.php
+##
+##   2004-02-11 - Version 1.0.4
+##      - Fix ListBox no-picture problem when icon is slected for the first time
+##		People using the default option DOES NOT need to upgrade
+##
+##   2004-03-13 - Version 1.0.5
+##      - Fix ListBox no-picture problem when create new forum
+##		People using the default option DOES NOT need to upgrade
+##
+##   2004-05-29 - Version 1.0.6
+##      - Corrections in MOD template were made for phpBB MOD Database submission
+##
+##   2004-08-15 - Version 1.0.7
+##	- Add forum icon image to viewtopic.php
+##	- Change in lang_admin.php
+##
+##   2005-05-03 - Version 1.0.8
+##	- Fix selected image from changing back to default image selection in List Box option (reported by obiku)
+##	- * No code change for Default option *
+##
+##   2005-05-09 - Version 1.0.9
+##	- Fix a tiny mistake in $forum_icons_list
+##	- * No code change for Default option *
+##
+##   2005-12-25 - Version 1.1.0
+##	- Update MOD template
+##	- Change how image is placed inside index_body.tpl
+##	- Change a few cosmetic changes here and there
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+ALTER TABLE phpbb_forums ADD forum_icon VARCHAR(255) DEFAULT NULL;
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$lang['Forum_status']
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+$lang['Forum_icon'] = 'Forum icon'; // Forum Icon MOD
+$lang['Forum_icon_explain'] = 'e.g. If your image is at <b>http://yourdomain/forum_path/images/forum_icon/test.gif</b><br /> then set it as <b>images/forum_icon/test.gif</b>'; // Forum Icon MOD
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+admin/admin_forums.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$forumstatus = $row['forum_status'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+				$forumicon = $row['forum_icon']; // Forum Icon MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$forumstatus = FORUM_UNLOCKED;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+				$forumicon = ''; // Forum Icon MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				'L_FORUM_STATUS' => $lang['Forum_status'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+				'L_FORUM_ICON' => $lang['Forum_icon'], // Forum Icon MOD
+				'L_FORUM_ICON_EXPLAIN' => $lang['Forum_icon_explain'], // Forum Icon MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				'DESCRIPTION' => $forumdesc)
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+				'DESCRIPTION' => $forumdesc,
+				'ICON' => ( $forumicon ) ? $forumicon : '', // Forum Icon MOD 
+				'ICON_DISPLAY' => ( $forumicon ) ? '<img src="' . $phpbb_root_path . $forumicon . '" />' : '' // Forum Icon MOD 
+				)
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$sql = "INSERT INTO " . FORUMS_TABLE
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, forum_status
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, forum_icon
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				VALUES ('" . $next_id . "', '" . 
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, " . intval($HTTP_POST_VARS['forumstatus']) . "
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, '" . str_replace("\'", "''", $HTTP_POST_VARS['forumicon']) . "'
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "'
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . "
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, forum_icon = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumicon']) . "'
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+					'FORUM_DESC' => $forum_rows[$j]['forum_desc'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+					'FORUM_ICON_IMG' => ( $forum_rows[$j]['forum_icon'] ) ? '<img src="' . $phpbb_root_path . $forum_rows[$j]['forum_icon'] . '" alt="'.$forum_data[$j]['forum_name'].'" title="'.$forum_data[$j]['forum_name'].'" border="0" />' : '', // Forum Icon Mod
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+index.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+							$posts = $forum_data[$j]['forum_posts'];
+							$topics = $forum_data[$j]['forum_topics'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+							$icon = $forum_data[$j]['forum_icon'];	// Forum Icon Mod
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+								'FORUM_FOLDER_IMG' => $folder_image, 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+								'FORUM_ICON_IMG' => ($icon) ? '<img src="' . $phpbb_root_path . $icon . '" alt="'.$forum_data[$j]['forum_name'].'" title="'.$forum_data[$j]['forum_name'].'" border="0" />' : '',	// Forum Icon Mod
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+viewforum.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'FORUM_NAME' => $forum_row['forum_name'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	'FORUM_ICON_IMG' => ($forum_row['forum_icon']) ? '<img src="' . $phpbb_root_path . $forum_row['forum_icon'] . '" alt="'.$forum_row['forum_name'].'" title="'.$forum_row['forum_name'].'" border="0" />&nbsp;' : '',	// Forum Icon Mod
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+viewtopic.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// End auth check
+//
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// Forum Icon Mod
+$sql = "SELECT forum_icon
+	FROM " . FORUMS_TABLE . "
+	WHERE forum_id = $forum_id";
+if ( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, 'Could not obtain forums information', '', __LINE__, __FILE__, $sql);
+}
+$forum_row = $db->sql_fetchrow($result);
+$forum_icon = $forum_row['forum_icon'];
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	'FORUM_NAME' => $forum_name,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	'FORUM_ICON_IMG' => ($forum_icon) ? '<img src="' . $phpbb_root_path . $forum_icon . '" alt="'.$forum_name.'" title="'.$forum_name.'" border="0" />&nbsp;' : '',	// Forum Icon Mod
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+templates/subSilver/admin/forum_edit_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	  <td class="row2"><input type="text" size="25" name="forumname" value="{FORUM_NAME}" class="post" /></td> 
+	</tr> 
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<tr> 
+	  <td class="row1">{L_FORUM_ICON}<br /><span class="gensmall">{L_FORUM_ICON_EXPLAIN}</span></td>
+	  <td class="row2"><input type="text" size="35" name="forumicon" value="{ICON}" class="post" />&nbsp;&nbsp;&nbsp;{ICON_DISPLAY}</td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+templates/subSilver/admin/forum_admin_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td class="row2"><span class="gen"><a href="{catrow.forumrow.U_VIEWFORUM}" target="_new">{catrow.forumrow.FORUM_NAME}</a></span>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+		<td class="row2"><span class="gen">
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+{catrow.forumrow.FORUM_ICON_IMG}&nbsp;&nbsp;
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/index_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<td class="row1" width="100%" height="50"><span class="forumlink"> <a href="{catrow.forumrow.U_VIEWFORUM}" class="forumlink">{catrow.forumrow.FORUM_NAME}</a><br />
+	  </span> <span class="genmed">{catrow.forumrow.FORUM_DESC}<br />
+	  </span><span class="gensmall">{catrow.forumrow.L_MODERATOR} {catrow.forumrow.MODERATORS}</span></td>
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	<td class="row1" width="100%" height="50"><table width="100%" cellpadding="2" cellspacing="0" border="0">
+		<tr><td><a href="{catrow.forumrow.U_VIEWFORUM}" class="forumlink">{catrow.forumrow.FORUM_ICON_IMG}</a></td>
+			<td width="100%"><span class="forumlink"><a href="{catrow.forumrow.U_VIEWFORUM}" class="forumlink">{catrow.forumrow.FORUM_NAME}</a><br />
+  				</span> <span class="genmed">{catrow.forumrow.FORUM_DESC}<br />
+  				</span><span class="gensmall">{catrow.forumrow.L_MODERATOR} {catrow.forumrow.MODERATORS}</span>
+  			</td>
+  		</tr>
+  	</table></td>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewforum_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	  <td align="left" valign="bottom" colspan="2"><a class="maintitle" href="{U_VIEW_FORUM}">{FORUM_NAME}</a>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+	  <td align="left" valign="bottom" colspan="2">
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+<a class="maintitle" href="{U_VIEW_FORUM}">{FORUM_ICON_IMG}</a> 
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewtopic_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	  -> <a href="{U_VIEW_FORUM}" class="nav">{FORUM_NAME}</a></span></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+<a href="{U_VIEW_FORUM}" class="nav">
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+# 
+<a href="{U_VIEW_FORUM}" class="nav">{FORUM_ICON_IMG}</a> 
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+#
+# EoM 

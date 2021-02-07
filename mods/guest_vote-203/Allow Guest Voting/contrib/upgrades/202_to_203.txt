@@ -1,0 +1,180 @@
+##############################################################
+## MOD Title: Allow Guest Voting
+## MOD Author: Thoul < thoul@phpbbsmith.com > (Jeremy Rogers) http://www.phpbbsmith.com
+## MOD Description: Allows admins to enable voting by users that are not logged in.
+## MOD Version: 2.0.3
+##
+## Installation Level: Easy
+## Installation Time: 5 Minutes
+## Files To Edit:
+##      posting.php,
+##      viewtopic.php,
+##      includes/functions.php
+## Included Files: N/A
+## License: contrib/license.txt GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## These instructions are for upgrading from version 2.0.2 to 2.0.3.
+## This is optional, as no functionality is improved in 2.0.3.
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+
+#
+#-----[ OPEN ]--------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+/*------------------------------------------------------------------------------
+// Allow Guest Voting - Begin Code Addition
+//		Added:   . make_guest_sql()
+//		Original phpBB Code:
+					AND vote_user_id = " . $userdata['user_id'];
+*/
+
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+# Nothing, just delete it.
+#
+
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+					AND vote_user_id = " . $userdata['user_id'] . make_guest_sql();
+
+#
+#-----[ IN-LINE FIND ]--------------------------------------
+#
+
+ . make_guest_sql();
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------------
+#
+
+;
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+# On the next line!
+#
+
+//----------------------------------------------------------------------
+// Allow Guest Voting - Begin Code Alteration
+//
+			make_guest_sql($sql);
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+/*------------------------------------------------------------------------------
+// Allow Guest Voting - Begin Code Addition
+//		Added:   . make_guest_sql()
+//		Original phpBB Code:
+				AND vote_user_id = " . intval($userdata['user_id']);
+*/
+#
+#-----[ REPLACE WITH ]--------------------------------------
+#
+# Nothing, just delete it.
+#
+
+
+#
+#-----[ FIND ]--------------------------------------
+#
+
+				AND vote_user_id = " . intval($userdata['user_id']) . make_guest_sql();
+
+#
+#-----[ IN-LINE FIND ]--------------------------------------
+#
+
+ . make_guest_sql();
+
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------------
+#
+
+;
+
+#
+#-----[ AFTER, ADD ]--------------------------------------
+#
+# On the next line!
+#
+
+//----------------------------------------------------------------------
+// Allow Guest Voting - Begin Code Alteration
+//
+			make_guest_sql($sql);
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+function make_guest_sql()
+{
+	if ( $GLOBALS['userdata']['user_id'] == ANONYMOUS )
+	{
+		return " AND vote_user_ip = '" . $GLOBALS['user_ip'] . "'";
+	}
+	return '';
+}
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+/*	make_guest_sql
+       Adds an IP clause to SQL queries that check for a member's poll votes.
+
+    Arguments:
+       $sql	- The SQL query.
+
+    Return:
+       None.
+                                                                             */
+function make_guest_sql(&$sql)
+{
+	if ( $GLOBALS['userdata']['user_id'] == ANONYMOUS )
+	{
+		$sql .= " AND vote_user_ip = '" . $GLOBALS['user_ip'] . "'";
+	}
+}
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

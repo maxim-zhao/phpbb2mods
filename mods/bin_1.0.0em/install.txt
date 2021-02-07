@@ -1,0 +1,438 @@
+##############################################################
+## MOD Title:		Bin Mod
+## MOD Author:		Kooky <kooky@altern.org> (n/a) http://perso.edeign.com/kooky/
+## MOD Description:	This mod will create a bin to store your old or bad topics.
+##			You can manage this forum via your AdminCP.
+## MOD Version:		1.0.0
+##
+## Installation Level:	Easy
+## Installation Time:	5 minutes
+## Files To Edit:	8
+##			viewtopic.php
+##			modcp.php
+##			admin/admin_board.php
+##			language/lang_english/lang_admin.php
+##			language/lang_english/lang_main.php
+##			templates/subsilver/modcp_body.tpl
+##			templates/subsilver/subsilver.cfg
+##			templates/subsilver/admin/board_config_body.tpl
+## Included Files:	2
+##			bin.php
+##			topic_bin.gif
+##
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## 1. Copyright and special thanks!
+## -----------
+## This program is free software, you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation.
+##
+## Almost inspired on an idea by ryu < http://www.donkeyfr.org > (Corbeille Mod).
+##
+## If you want to add this Mod to any database, please don't add
+## my e-mail address to a topic, just point to my website (see above).
+## (for spamming prevention)
+##
+## 2. Feature list
+## -----------
+## This MOD try to simplify the ModCP move option.
+## Now you can move your old or bad topic in one click.
+## You also can disable Bin with forum_id '0'.
+## - Recycle a topic in viewtopic
+## - Recycle many topics in modcp
+## - Manage your Bin forum in AdminCP
+##
+## 3. Compatibility / EasyMOD
+## -----------
+## This MOD is compatible with phpBB 2.0.8 - 2.0.10
+##
+## It is also compatible with EasyMOD of Nuttzy and can be
+## installed by it but is not yet certified EMC (EasyMOD Compliant)!
+## http://area51.phpbb.com/phpBB22/viewforum.php?sid=&f=15
+##
+## 3. Official last version link
+## -----------
+## Check this official link for latest updates...
+## http://perso.edeign.com/kooky/
+##
+##############################################################
+## MOD History:
+##
+## 2004/10/17 - Version 1.0.0
+##	- Final version (no change)
+##
+## 2004/09/08 - Version 0.9.2
+##	- Updated bin.php
+##	- Added bin selection in modcp (recycle all topics
+##	  from one forum to the bin forum in one click)
+##	- Added Mark/Unmark all feature
+##	- Confirmed on phpBB 2.0.10
+##
+## 2004/09/06 - Version 0.9.1
+##	- Fixed an error in subSilver.cfg in instructions
+##
+## 2004/06/11 - Version 0.9.0
+##	- Initial Release
+##	- EM compliant
+##	- phpBB 2.0.8 compliant
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------------------------
+# If you use a beta release of EasyMOD, this instructions will be executed!
+# Please read author notes to update your database.
+# Note: '0' can be changed with Bin forum_id, e.g. '2' (depending of yours)
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('bin_forum', '0');
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy root/bin.php to bin.php
+copy root/templates/subSilver/images/topic_bin.gif to /templates/subSilver/images/topic_bin.gif
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Bin Mod
+$lang['Bin_forum'] = 'Bin forum';
+$lang['Bin_forum_explain'] = 'Fill with the forum ID where topics moved to bin, a value of 0 will disable this feature. You should edit this forum permissions to allow or not view/post/reply... by users or forbid access to this forum.';
+// End add - Bin Mod
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Bin Mod
+$lang['Move_bin'] = 'Move this topic to bin';
+$lang['Topics_Moved_bin'] = 'The selected topics have been moved to bin.';
+$lang['Bin_disabled'] = 'Bin has been disabled';
+$lang['Bin_recycle'] = 'Recycle';
+// End add - Bin Mod
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$topic_mod .= "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=split&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_mod_split'] . '" alt="' . $lang['Split_topic'] . '" title="' . $lang['Split_topic'] . '" border="0" /></a>&nbsp;';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start add - Bin Mod
+	$topic_mod .= "<a href=\"bin.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_mod_bin'] . '" alt="' . $lang['Move_bin'] . '" title="' . $lang['Move_bin'] . '" border="0" /></a>&nbsp;';
+	// End add - Bin Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+modcp.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$confirm = ( $HTTP_POST_VARS['confirm'] ) ? TRUE : 0;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Start add - Bin Mod
+$confirm_recycle = TRUE;
+// End add - Bin Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+$unlock = ( isset($HTTP_POST_VARS['unlock']) ) ? TRUE : FALSE;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Start add - Bin Mod
+$recycle = ( isset($HTTP_POST_VARS['recycle']) ) ? TRUE : FALSE;
+// End add - Bin Mod
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	else if ( $unlock )
+	{
+		$mode = 'unlock';
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start add - Bin Mod
+	else if ( $recycle )
+	{
+		$mode = 'recycle';
+	}
+	// End add - Bin Mod
+#
+#-----[ FIND ]------------------------------------------
+#
+		$template->pparse('viewip');
+
+		break;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start add - Bin Mod
+	case 'recycle':
+		$page_title = $lang['Mod_CP'];
+		include($phpbb_root_path . 'includes/page_header.'.$phpEx);
+
+		if ( $confirm_recycle )
+		{
+			if ( ( $board_config['bin_forum'] == 0 ) || ( empty($HTTP_POST_VARS['topic_id_list']) && empty($topic_id) ) )
+			{
+				$redirect_page = "modcp.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'];
+				$message = sprintf($lang['Click_return_modcp'], '<a href="' . $redirect_page . '">', '</a>');
+				$message = $message . '<br /><br />' . sprintf($lang['Click_return_forum'], '<a href="' . "viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'] . '">', '</a>');
+
+				$template->assign_vars(array(
+					'META' => '<meta http-equiv="refresh" content="3;url=' . $redirect_page . '">')
+				);
+
+				message_die(GENERAL_MESSAGE, $lang['None_selected'] . '<br /><br />' . $message);
+			}
+			else if ( isset($HTTP_POST_VARS['topic_id_list']) )
+			{
+				// Define bin forum
+				$new_forum_id = intval($board_config['bin_forum']);
+				$old_forum_id = $forum_id;
+
+				if ( $new_forum_id != $old_forum_id )
+				{
+					$topics = ( isset($HTTP_POST_VARS['topic_id_list']) ) ?  $HTTP_POST_VARS['topic_id_list'] : array($topic_id);
+
+					$topic_list = '';
+					for($i = 0; $i < count($topics); $i++)
+					{
+						$topic_list .= ( ( $topic_list != '' ) ? ', ' : '' ) . intval($topics[$i]);
+					}
+
+					$sql = "SELECT * 
+						FROM " . TOPICS_TABLE . " 
+						WHERE topic_id IN ($topic_list)
+							AND forum_id = $old_forum_id
+							AND topic_status <> " . TOPIC_MOVED;
+					if ( !($result = $db->sql_query($sql, BEGIN_TRANSACTION)) )
+					{
+						message_die(GENERAL_ERROR, 'Could not select from topic table', '', __LINE__, __FILE__, $sql);
+					}
+
+					$row = $db->sql_fetchrowset($result);
+					$db->sql_freeresult($result);
+
+					for($i = 0; $i < count($row); $i++)
+					{
+						$topic_id = $row[$i]['topic_id'];
+
+						if ( isset($HTTP_POST_VARS['move_leave_shadow']) )
+						{
+							// Insert topic in the old forum that indicates that the forum has moved.
+							$sql = "INSERT INTO " . TOPICS_TABLE . " (forum_id, topic_title, topic_poster, topic_time, topic_status, topic_type, topic_vote, topic_views, topic_replies, topic_first_post_id, topic_last_post_id, topic_moved_id)
+								VALUES ($old_forum_id, '" . addslashes(str_replace("\'", "''", $row[$i]['topic_title'])) . "', '" . str_replace("\'", "''", $row[$i]['topic_poster']) . "', " . $row[$i]['topic_time'] . ", " . TOPIC_MOVED . ", " . POST_NORMAL . ", " . $row[$i]['topic_vote'] . ", " . $row[$i]['topic_views'] . ", " . $row[$i]['topic_replies'] . ", " . $row[$i]['topic_first_post_id'] . ", " . $row[$i]['topic_last_post_id'] . ", $topic_id)";
+							if ( !$db->sql_query($sql) )
+							{
+								message_die(GENERAL_ERROR, 'Could not insert shadow topic', '', __LINE__, __FILE__, $sql);
+							}
+						}
+
+						$sql = "UPDATE " . TOPICS_TABLE . " 
+							SET forum_id = $new_forum_id  
+							WHERE topic_id = $topic_id";
+						if ( !$db->sql_query($sql) )
+						{
+							message_die(GENERAL_ERROR, 'Could not update old topic', '', __LINE__, __FILE__, $sql);
+						}
+
+						$sql = "UPDATE " . POSTS_TABLE . " 
+							SET forum_id = $new_forum_id 
+							WHERE topic_id = $topic_id";
+						if ( !$db->sql_query($sql) )
+						{
+							message_die(GENERAL_ERROR, 'Could not update post topic ids', '', __LINE__, __FILE__, $sql);
+						}
+					}
+
+					// Sync the forum indexes
+					sync('forum', $new_forum_id);
+					sync('forum', $old_forum_id);
+
+					$message = $lang['Topics_Moved_bin'];
+				}
+				else
+				{
+					$message = $lang['No_Topics_Moved'];
+				}
+
+				$redirect_page = "modcp.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'];
+				$message .= '<br /><br />' . sprintf($lang['Click_return_modcp'], '<a href="' . $redirect_page . '">', '</a>');
+
+				$message = $message . '<br /><br />' . sprintf($lang['Click_return_forum'], '<a href="' . "viewforum.$phpEx?" . POST_FORUM_URL . "=$old_forum_id&amp;sid=" . $userdata['session_id'] . '">', '</a>');
+
+				$template->assign_vars(array(
+					'META' => '<meta http-equiv="refresh" content="3;url=' . $redirect_page . '">')
+				);
+
+				message_die(GENERAL_MESSAGE, $message);
+			}
+		}
+		include($phpbb_root_path . 'includes/page_tail.'.$phpEx);
+		break;
+	// End add - Bin Mod
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'L_LASTPOST' => $lang['Last_Post'], 
+			'L_SELECT' => $lang['Select'], 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// Start add - Bin Mod
+			'L_RECYCLE' => $lang['Bin_recycle'],
+			'L_MARK_ALL' => $lang['Mark_all'],
+			'L_UNMARK_ALL' => $lang['Unmark_all'],
+			// End add - Bin Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_RESET" => $lang['Reset'], 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start add - Bin Mod
+	"L_BIN_FORUM" => $lang['Bin_forum'],
+	"L_BIN_FORUM_EXPLAIN" => $lang['Bin_forum_explain'],
+	"BIN_FORUM" => $new['bin_forum'],
+	// End add - Bin Mod
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subsilver/modcp_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+<form method="post"
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+<script language="javascript" type="text/javascript">
+<!--
+function select_switch(status)
+{
+	for (i = 0; i < document.modcpForm.length; i++)
+	{
+		document.modcpForm.elements[i].checked = status;
+	}
+}
+//-->
+</script>
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+action="{S_MODCP_ACTION}"
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ name="modcpForm"
+#
+#-----[ FIND ]------------------------------------------
+#
+		<input type="submit" name="unlock" class="liteoption" value="{L_UNLOCK}" />
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		&nbsp; 
+		<input type="submit" class="liteoption" name="recycle" value="{L_RECYCLE}" />
+#
+#-----[ FIND ]------------------------------------------
+#
+	<td align="right" valign="top" nowrap="nowrap"><span class="gensmall">{S_TIMEZONE}</span><br /><span class="nav">{PAGINATION}</span></td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	<td align="right" valign="top" nowrap="nowrap">
+		<span class="gensmall"><b><a href="javascript:select_switch(true);">{L_MARK_ALL}</a>&nbsp;::&nbsp;<a href="javascript:select_switch(false);">{L_UNMARK_ALL}</a></b><br />
+		{S_TIMEZONE}</span><br /><span class="nav">{PAGINATION}</span>
+	</td>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subsilver/subSilver.cfg 
+
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Bin Mod
+$images['topic_mod_bin'] = "$current_template_images/topic_bin.gif";
+// End add - Bin Mod
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ENABLE_PRUNE}</td>
+		<td class="row2"><input type="radio" name="prune_enable" value="1" {PRUNE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="prune_enable" value="0" {PRUNE_NO} /> {L_NO}</td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">
+			<span class="genmed">{L_BIN_FORUM}</span><br />
+			<span class="gensmall">{L_BIN_FORUM_EXPLAIN}</span><br />
+		</td>
+		<td class="row2"><input type="text" class="post" name="bin_forum" size="4" maxlength="4" value="{BIN_FORUM}" /></td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]----------------------------------------
+#
+# EoM

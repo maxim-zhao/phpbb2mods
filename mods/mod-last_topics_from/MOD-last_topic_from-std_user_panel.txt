@@ -1,0 +1,286 @@
+############################################################## 
+## MOD Title: Last topic_from - Standard user panel
+## MOD Author: Ptirhiik < admin@rpgnet-fr.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description:
+##		This mod will allow to display on viewprofile the last topics :
+##			- a user started,
+##			- a user replied to
+##			- a user ended
+##		You can choose the setup in the ACP/General configuration, and allow your users 
+##		to choose their display preferences
+##
+## MOD Version: 1.0.2
+## 
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit:
+##		includes/functions.php
+##		includes/usercp_viewprofile.php
+##
+##		templates/subSilver/subSilver.cfg
+##		templates/subSilver/profile_view_body.tpl
+##
+## Included Files:
+##		functions_last_topics_from.php
+##		lang_extend_last_topics_from.php
+##		mod_last_topics_from.php
+##
+##		mod-lang_settings/lang_extend_mac.php
+##
+##		mod-mods_settings/lang_extend_mods_settings.php
+##		mod-mods_settings/functions_mods_settings.php
+##		mod-mods_settings/admin_board_extend.php
+##		mod-mods_settings/board_config_extend_body.tpl
+##
+##		mod-topics_list/functions_topics_list.php
+##		mod-topics_list/topics_list_box.tpl
+##		mod-topics_list/graph.gif/folder_announce_own.gif
+##		mod-topics_list/graph.gif/folder_announce_new_own.gif
+##		mod-topics_list/graph.gif/folder_own.gif
+##		mod-topics_list/graph.gif/folder_new_own.gif
+##		mod-topics_list/graph.gif/folder_hot_own.gif
+##		mod-topics_list/graph.gif/folder_new_hot_own.gif
+##		mod-topics_list/graph.gif/folder_lock_own.gif
+##		mod-topics_list/graph.gif/folder_lock_new_own.gif
+##		mod-topics_list/graph.gif/folder_sticky_own.gif
+##		mod-topics_list/graph.gif/folder_sticky_new_own.gif
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##	In answer to the KMR request : http://phpbb.com/phpBB/viewtopic.php?t=120187
+## 
+##	o users can choose their prefered setup (required full mods settings mod to be installed).
+##		Admin can also choose to override the users choice for each setup parameter.
+##
+##	o PCP version is for Profile Control Panel v 1.0.4 installed
+##	o std_user_panel version is for phpBB without Profile Control Panel v 1.0.4 installed
+##
+############################################################## 
+## MOD History: 
+## 
+##   2003-10-18 - Version 1.0.2
+##	- adaptation for lang settings and PCP v 1.0.4
+##
+##   2003-09-16 - Version 1.0.1
+##      - add the use of the topics list mod for enhancement to display,
+##      - add the use of the mods_settings mod for users preferences,
+##
+##   2003-07-18 - Version 1.0.0
+##      - first release
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+# This part is optional : do it only if you want your users to be able to choose their setup
+#	if you want so, you'll have to install the MOD-mods_settings-users_choices mod included in the pack
+#
+ALTER TABLE phpbb_users ADD user_last_topics_from_started TINYINT(2) DEFAULT '3' NOT NULL;
+ALTER TABLE phpbb_users ADD user_last_topics_from_replied TINYINT(2) DEFAULT '3' NOT NULL;
+ALTER TABLE phpbb_users ADD user_last_topics_from_ended TINYINT(2) DEFAULT '3' NOT NULL;
+ALTER TABLE phpbb_users ADD user_last_topics_from_split TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_last_topics_from_forum TINYINT(1) DEFAULT '1' NOT NULL;
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy functions_last_topics_from.php to includes/functions_last_topics_from.php
+copy lang_extend_last_topics_from.php to language/lang_english/lang_extend_last_topics_from.php
+copy mod_last_topics_from.php to includes/mods_settings/mod_last_topics_from.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+# this one is relative to the lang_settings mod
+#
+copy mod-lang_settings/lang_extend_mac.php to includes/lang_extend_mac.php
+#
+#-----[ COPY ]------------------------------------------------
+#
+#
+# those ones are a part of the mods_settings mod, and are required for last topics from v 1.0.2
+#
+copy mod-mods_settings/lang_extend_mods_settings.php to language/lang_english/lang_extend_mods_settings.php
+copy mod-mods_settings/functions_mods_settings.php to includes/functions_mods_settings.php
+copy mod-mods_settings/admin_board_extend.php to admin/admin_board_extend.php
+copy mod-mods_settings/board_config_extend_body.tpl to templates/subSilver/admin/board_config_extend_body.tpl
+#
+#-----[ COPY ]------------------------------------------------
+#
+# this part is relative to the topics list mod
+#
+copy mod-topics_list/functions_topics_list.php to includes/functions_topics_list.php
+copy mod-topics_list/topics_list_box.tpl to templates/subSilver/topics_list_box.tpl
+copy mod-topics_list/graph.gif/folder_announce_own.gif to templates/subSilver/images/folder_announce_own.gif
+copy mod-topics_list/graph.gif/folder_announce_new_own.gif to templates/subSilver/images/folder_announce_new_own.gif
+copy mod-topics_list/graph.gif/folder_own.gif to templates/subSilver/images/folder_own.gif
+copy mod-topics_list/graph.gif/folder_new_own.gif to templates/subSilver/images/folder_new_own.gif
+copy mod-topics_list/graph.gif/folder_hot_own.gif to templates/subSilver/images/folder_hot_own.gif
+copy mod-topics_list/graph.gif/folder_new_hot_own.gif to templates/subSilver/images/folder_new_hot_own.gif
+copy mod-topics_list/graph.gif/folder_lock_own.gif to templates/subSilver/images/folder_lock_own.gif
+copy mod-topics_list/graph.gif/folder_lock_new_own.gif to templates/subSilver/images/folder_lock_new_own.gif
+copy mod-topics_list/graph.gif/folder_sticky_own.gif to templates/subSilver/images/folder_sticky_own.gif
+copy mod-topics_list/graph.gif/folder_sticky_new_own.gif to templates/subSilver/images/folder_sticky_new_own.gif
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- mod : mods settings ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( $userdata['user_id'] != ANONYMOUS )
+	{
+		if ( !empty($userdata['user_lang']))
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+	global $db, $mods, $list_yes_no, $userdata;
+
+	//	get all the mods settings
+	$dir = @opendir($phpbb_root_path . 'includes/mods_settings');
+	while( $file = @readdir($dir) )
+	{
+		if( preg_match("/^mod_.*?\." . $phpEx . "$/", $file) )
+		{
+			include_once($phpbb_root_path . 'includes/mods_settings/' . $file);
+		}
+	}
+	@closedir($dir);
+//-- fin mod : mods settings -----------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	//
+	// Set up style
+	//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+	include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		}
+
+		if ( empty($template) )
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+			include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$template->pparse('body');
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+//-- add
+include_once( $phpbb_root_path . './includes/functions_last_topics_from.' . $phpEx );
+last_topics_from($profiledata);
+//-- fin mod : last topics from --------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topics list -----------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : topics list -----------------------------------------------------------------------------
+//-- add
+$images['folder_global_announce']		= "$current_template_images/folder_announce.gif";
+$images['folder_global_announce_new']		= "$current_template_images/folder_announce_new.gif";
+$images['folder_global_announce_own']		= "$current_template_images/folder_announce_own.gif";
+$images['folder_global_announce_new_own']	= "$current_template_images/folder_announce_new_own.gif";
+$images['folder_own']				= "$current_template_images/folder_own.gif";
+$images['folder_new_own']			= "$current_template_images/folder_new_own.gif";
+$images['folder_hot_own']			= "$current_template_images/folder_hot_own.gif";
+$images['folder_hot_new_own']			= "$current_template_images/folder_new_hot_own.gif";
+$images['folder_locked_own']			= "$current_template_images/folder_lock_own.gif";
+$images['folder_locked_new_own']		= "$current_template_images/folder_lock_new_own.gif";
+$images['folder_sticky_own']			= "$current_template_images/folder_sticky_own.gif";
+$images['folder_sticky_new_own']		= "$current_template_images/folder_sticky_new_own.gif";
+$images['folder_announce_own']			= "$current_template_images/folder_announce_own.gif";
+$images['folder_announce_new_own']		= "$current_template_images/folder_announce_new_own.gif";
+//-- fin mod : topics list -------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# at top of the file
+#
+<table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- mod : last topics from -->
+#
+#-----[ FIND ]------------------------------------------------
+#
+# at bottom of the file
+#
+<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr> 
+	<td align="right"><span class="nav"><br />{JUMPBOX}</span></td>
+  </tr>
+</table>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<br class="gensmall" />
+{BOARD_TOPICS_FROM_STARTED}
+{BOARD_TOPICS_FROM_REPLIED}
+{BOARD_TOPICS_FROM_ENDED}
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

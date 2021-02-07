@@ -1,0 +1,917 @@
+############################################################## 
+## MOD Title: Last topics from - upgrade from v 1.0.0 to v 1.0.1
+## MOD Author: Ptirhiik < admin@rpgnet-fr.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description:
+##		This mod is an upgrade for Last topics from mod version v 1.0.0
+## MOD Version: 1.0.1
+##
+## Installation Level: (Easy/Moderate/Advanced)
+## Installation Time: 10 Minutes
+## Files To Edit:
+##		admin/admin_board.php
+##
+##		includes/functions.php
+##		includes/page_header.php
+##		includes/usercp_viewprofile.php
+##
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##
+##		templates/subSilver/subSilver.cfg
+##		templates/subSilver/profile_view_body.tpl
+##		templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files:
+##		mod_last_topics_from.php
+##		mod-mods_settings/functions_mods_settings.php
+##		mod-mods_settings/admin_board_extend.php
+##		mod-mods_settings/board_config_extend_body.tpl
+##
+##		mod-topics_list/functions_topics_list.php
+##		mod-topics_list/topics_list_box.tpl
+##
+##		mod-topics_list/graph.gif/folder_announce_own.gif
+##		mod-topics_list/graph.gif/folder_announce_new_own.gif
+##		mod-topics_list/graph.gif/folder_own.gif
+##		mod-topics_list/graph.gif/folder_new_own.gif
+##		mod-topics_list/graph.gif/folder_hot_own.gif
+##		mod-topics_list/graph.gif/folder_new_hot_own.gif
+##		mod-topics_list/graph.gif/folder_lock_own.gif
+##		mod-topics_list/graph.gif/folder_lock_new_own.gif
+##		mod-topics_list/graph.gif/folder_sticky_own.gif
+##		mod-topics_list/graph.gif/folder_sticky_new_own.gif
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##	This mod requires Last topics from mod v 1.0.0 to be installed
+##
+##	You can delete templates/subSilver/viewforum_topicbox.tpl at the end
+##
+############################################################## 
+## MOD History: 
+## 
+##   2003-09-16 - Version 1.0.1
+##      - add the use of the topics list mod for enhancement to display,
+##      - add the use of the mods_settings mod for users preferences,
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+# This part is optional : do it only if you want your users to be able to choose their setup
+#	if you want so, you'll have to install the MOD-mods_settings mod included in the pack
+#
+ALTER TABLE phpbb_users ADD user_last_topics_from_started TINYINT(2) DEFAULT '3' NOT NULL;
+ALTER TABLE phpbb_users ADD user_last_topics_from_replied TINYINT(2) DEFAULT '3' NOT NULL;
+ALTER TABLE phpbb_users ADD user_last_topics_from_ended TINYINT(2) DEFAULT '3' NOT NULL;
+ALTER TABLE phpbb_users ADD user_last_topics_from_split TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_last_topics_from_forum TINYINT(1) DEFAULT '1' NOT NULL;
+#
+#-----[ COPY ]------------------------------------------------
+#
+#
+# those ones are a part of the MOD-mods_settings mod, and are required for last topics from v 1.0.1
+#
+copy mod_last_topics_from.php to includes/mods_settings/mod_last_topics_from.php
+copy mod-mods_settings/functions_mods_settings.php to includes/functions_mods_settings.php
+copy mod-mods_settings/admin_board_extend.php to admin/admin_board_extend.php
+copy mod-mods_settings/board_config_extend_body.tpl to templates/subSilver/admin/board_config_extend_body.tpl
+#
+#-----[ COPY ]------------------------------------------------
+#
+# this part is relative to the topics list mod
+#
+copy mod-topics_list/functions_topics_list.php to includes/functions_topics_list.php
+copy mod-topics_list/topics_list_box.tpl to templates/subSilver/topics_list_box.tpl
+
+copy mod-topics_list/graph.gif/folder_announce_own.gif to templates/subSilver/images/folder_announce_own.gif
+copy mod-topics_list/graph.gif/folder_announce_new_own.gif to templates/subSilver/images/folder_announce_new_own.gif
+copy mod-topics_list/graph.gif/folder_own.gif to templates/subSilver/images/folder_own.gif
+copy mod-topics_list/graph.gif/folder_new_own.gif to templates/subSilver/images/folder_new_own.gif
+copy mod-topics_list/graph.gif/folder_hot_own.gif to templates/subSilver/images/folder_hot_own.gif
+copy mod-topics_list/graph.gif/folder_new_hot_own.gif to templates/subSilver/images/folder_new_hot_own.gif
+copy mod-topics_list/graph.gif/folder_lock_own.gif to templates/subSilver/images/folder_lock_own.gif
+copy mod-topics_list/graph.gif/folder_lock_new_own.gif to templates/subSilver/images/folder_lock_new_own.gif
+copy mod-topics_list/graph.gif/folder_sticky_own.gif to templates/subSilver/images/folder_sticky_own.gif
+copy mod-topics_list/graph.gif/folder_sticky_new_own.gif to templates/subSilver/images/folder_sticky_new_own.gif
+#
+#-----[ OPEN ]------------------------------------------------
+#
+# Here we step back to the original code of admin_board.php
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+$template->assign_vars(array(
+//-- mod : last topics from ------------------------------------------------------------------------
+//-- add
+	'L_LAST_STARTED'			=> sprintf($lang['Topic_last_started'], $lang['Profile']),
+	'L_LAST_STARTED_EXPLAIN'	=> $lang['Topic_last_started_explain'],
+	'L_LAST_REPLIED'			=> sprintf($lang['Topic_last_replied'], $lang['Profile']),
+	'L_LAST_REPLIED_EXPLAIN'	=> $lang['Topic_last_replied_explain'],
+	'L_LAST_ENDED'				=> sprintf($lang['Topic_last_ended'], $lang['Profile']),
+	'L_LAST_ENDED_EXPLAIN'		=> $lang['Topic_last_ended_explain'],
+	'LAST_STARTED'				=> intval($new['last_topics_from_started']),
+	'LAST_REPLIED'				=> intval($new['last_topics_from_replied']),
+	'LAST_ENDED'				=> intval($new['last_topics_from_ended']),
+//-- fin mod : last topics from --------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+$template->assign_vars(array(
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+//-- add
+function last_topics_from($view_userdata)
+{
+	global $db, $template, $board_config, $userdata, $phpEx, $lang, $images, $HTTP_COOKIE_VARS;
+
+	// display
+	$to_display = array();
+	$to_display[0] = isset($board_config['last_topics_from_started']) ? intval($board_config['last_topics_from_started']) : 0;
+	$to_display[1] = isset($board_config['last_topics_from_replied']) ? intval($board_config['last_topics_from_replied']) : 0;
+	$to_display[2] = isset($board_config['last_topics_from_ended']) ? intval($board_config['last_topics_from_ended']) : 0;
+
+	// ACP config says : do not display - who am I to say the contrary ? ;)
+	$sum = 0;
+	for ($k=0; $k < count($to_display); $k++)
+	{
+		$sum = $sum + $to_display[$k];
+	}
+	if ($sum <= 0) return false;
+
+	// read the forums authorized
+	$cat_hierarchy = function_exists(get_auth_keys);
+	$forum_ids = array();
+	if (!$cat_hierarchy)
+	{
+		// standard read
+		$is_auth = array();
+		$is_auth = auth(AUTH_ALL, AUTH_LIST_ALL, $userdata);
+
+		// get the list of authorized forums
+		while (list($forum_id, $forum_auth) = each($is_auth))
+		{
+			if ( $forum_auth['auth_read'])
+			{
+				$forum_ids[] = $forum_id;
+			}
+		}
+	}
+	else
+	{
+		// compliency with categories hierarchy v2 mod
+		// get auth key
+		$keys = array();
+		$keys = get_auth_keys('Root', true, -1, -1, 'auth_read');
+		$forum_ids = array();
+		for ($i=1; $i < count($keys['id']); $i++)
+		{
+			if ( ($tree['type'][$keys['idx'][$i]] == 'f') && ($tree['auth'][ $keys['id'][$i] ]['auth_read']) )
+			{
+				$forum_ids[] = $tree['id'][$keys['idx'][$i]];
+			}
+		}
+	}
+
+	// no forums allowed to the viewer, say goodbye :)
+	if (count($forum_ids) <= 0) return false;
+
+	// ok, process the last replied topics
+	$topic_rowset = array();
+	$topics_idx = array(-1, -1, -1);
+
+	$view_user_id = $view_userdata['user_id'];
+
+	// Define censored word matches
+	$orig_word = array();
+	$replacement_word = array();
+	obtain_word_list($orig_word, $replacement_word);
+
+	// read the user cookie
+	$tracking_topics	= ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . "_t"]) : array();
+	$tracking_forums	= ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . "_f"]) : array();
+	$tracking_all		= ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all']) ) ? intval($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all']) : NULL;
+
+	for ($k = 0; $k < count($to_display); $k++) if ($to_display[$k] > 0)
+	{
+		$title = '??';
+		switch ( $k )
+		{
+			case 0:
+				// started by
+				$sql_filter = "t.topic_poster = $view_user_id";
+				$title = $lang['Topic_last_started'];
+				break;
+			case 1:
+				// replied by
+				$sql = "SELECT DISTINCT topic_id FROM " . POSTS_TABLE . " 
+						WHERE poster_id = $view_user_id
+						ORDER BY post_time DESC
+						LIMIT 0, " . $to_display[$k];
+				if (!$result = $db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain users post informations', '', __LINE__, __FILE__, $sql);
+				}
+				$topics = array();
+				while ($row = $db->sql_fetchrow($result))
+				{
+					$topics[] = $row['topic_id'];
+				}
+				$db->sql_freeresult($result);
+				$sql_filter = 't.topic_id = -1';
+				if (!empty($topics))
+				{
+					$sql_filter = 't.topic_id IN (' . implode(', ', $topics) . ')';
+				}
+				$title = $lang['Topic_last_replied'];
+				break;
+			case 2:
+				// ended by
+				$sql_filter = "u2.user_id = $view_user_id";
+				$title = $lang['Topic_last_ended'];
+				break;
+			default:
+				message_die(GENERAL_ERROR, 'Wrong setup in the process for $k=' . $k, '', __LINE__, __FILE__, $sql);
+				break;
+		} // end switch
+
+		// get topics data
+		$topic_rowset = array();
+		$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_time, p.post_username, f.forum_name
+				FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . USERS_TABLE . " u2, " . FORUMS_TABLE . " f
+				WHERE t.forum_id IN ( " . implode(', ', $forum_ids) . ")
+					AND t.topic_poster = u.user_id
+					AND p.post_id = t.topic_last_post_id
+					AND p.poster_id = u2.user_id
+					AND $sql_filter
+					AND f.forum_id = t.forum_id
+				ORDER BY t.topic_type DESC, t.topic_last_post_id DESC
+				LIMIT 0, " . $to_display[$k];
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+		}
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$topic_rowset[] = $row;
+		}
+		$db->sql_freeresult($result);
+
+		// choose template
+		$template->set_filenames(array(
+			'topics_from' => 'viewforum_topicbox.tpl')
+		);
+
+		// header
+		$template->assign_vars(array(
+			'L_REPLIES'		=> $lang['Replies'],
+			'L_AUTHOR'		=> $lang['Author'],
+			'L_VIEWS'		=> $lang['Views'],
+			'L_LASTPOST'	=> $lang['Last_Post'],
+			'L_NO_TOPICS'	=> $lang['No_Topics'],
+			)
+		);
+
+		// send the header
+		$template->assign_block_vars('topics_from', array(
+			'L_TITLE'		=> sprintf($title, $view_userdata['username']),
+			)
+		);
+
+		// display topics
+		$color = false;
+		for ($i=0; $i < count($topic_rowset); $i++)
+		{
+			$topic_id		= $topic_rowset[$i]['topic_id'];
+			$topic_title	= ( count($orig_word) ) ? preg_replace($orig_word, $replacement_word, $topic_rowset[$i]['topic_title']) : $topic_rowset[$i]['topic_title'];
+			$replies		= $topic_rowset[$i]['topic_replies'];
+			$topic_type		= $topic_rowset[$i]['topic_type'];
+			if( $topic_type == POST_GLOBAL_ANNOUNCE )
+			{
+				$topic_type = $lang['Topic_global_announcement'] . ' ';
+			}
+			else if( $topic_type == POST_ANNOUNCE )
+			{
+				$topic_type = $lang['Topic_Announcement'] . ' ';
+			}
+			else if( $topic_type == POST_STICKY )
+			{
+				$topic_type = $lang['Topic_Sticky'] . ' ';
+			}
+			else
+			{
+				$topic_type = '';		
+			}
+			if( $topic_rowset[$i]['topic_vote'] )
+			{
+				$topic_type .= $lang['Topic_Poll'] . ' ';
+			}
+			if( $topic_rowset[$i]['topic_status'] == TOPIC_MOVED )
+			{
+				$topic_type = $lang['Topic_Moved'] . ' ';
+				$topic_id = $topic_rowset[$i]['topic_moved_id'];
+				$folder_image =  $images['folder'];
+				$folder_alt = $lang['Topics_Moved'];
+				$newest_post_img = '';
+			}
+			else
+			{
+				if( $topic_rowset[$i]['topic_type'] == POST_GLOBAL_ANNOUNCE )
+				{
+					$folder = $images['folder_global_announce'];
+					$folder_new = $images['folder_global_announce_new'];
+				}
+				else if( $topic_rowset[$i]['topic_type'] == POST_ANNOUNCE )
+				{
+					$folder = $images['folder_announce'];
+					$folder_new = $images['folder_announce_new'];
+				}
+				else if( $topic_rowset[$i]['topic_type'] == POST_STICKY )
+				{
+					$folder = $images['folder_sticky'];
+					$folder_new = $images['folder_sticky_new'];
+				}
+				else if( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED )
+				{
+					$folder = $images['folder_locked'];
+					$folder_new = $images['folder_locked_new'];
+				}
+				else
+				{
+					if($replies >= $board_config['hot_threshold'])
+					{
+						$folder = $images['folder_hot'];
+						$folder_new = $images['folder_hot_new'];
+					}
+					else
+					{
+						$folder = $images['folder'];
+						$folder_new = $images['folder_new'];
+					}
+				}
+				$newest_post_img = '';
+				if( $userdata['session_logged_in'] )
+				{
+					if( $topic_rowset[$i]['post_time'] > $userdata['user_lastvisit'] ) 
+					{
+						if( !empty($tracking_topics) || !empty($tracking_forums) || !empty($tracking_all) )
+						{
+							$unread_topics = true;
+							if( !empty($tracking_topics[$topic_id]) )
+							{
+								if( $tracking_topics[$topic_id] >= $topic_rowset[$i]['post_time'] )
+								{
+									$unread_topics = false;
+								}
+							}
+							if( !empty($tracking_forums[$forum_id]) )
+							{
+								if( $tracking_forums[$forum_id] >= $topic_rowset[$i]['post_time'] )
+								{
+									$unread_topics = false;
+								}
+							}
+							if( !empty($tracking_all) )
+							{
+								if( $tracking_all >= $topic_rowset[$i]['post_time'] )
+								{
+									$unread_topics = false;
+								}
+							}
+							if ( $unread_topics )
+							{
+								$folder_image = $folder_new;
+								$folder_alt = $lang['New_posts'];
+								$newest_post_img = '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=newest") . '"><img src="' . $images['icon_newest_reply'] . '" alt="' . $lang['View_newest_post'] . '" title="' . $lang['View_newest_post'] . '" border="0" /></a> ';
+							}
+							else
+							{
+								$folder_image = $folder;
+								$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+								$newest_post_img = '';
+							}
+						}
+						else
+						{
+							$folder_image = $folder_new;
+							$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['New_posts'];
+							$newest_post_img = '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=newest") . '"><img src="' . $images['icon_newest_reply'] . '" alt="' . $lang['View_newest_post'] . '" title="' . $lang['View_newest_post'] . '" border="0" /></a> ';
+						}
+					}
+					else 
+					{
+						$folder_image = $folder;
+						$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+						$newest_post_img = '';
+					}
+				}
+				else
+				{
+					$folder_image = $folder;
+					$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+					$newest_post_img = '';
+				}
+			}
+
+			// generate list of page for the topic
+			$goto_page = '';
+			if( ( $replies + 1 ) > $board_config['posts_per_page'] )
+			{
+				$total_pages = ceil( ( $replies + 1 ) / $board_config['posts_per_page'] );
+				$goto_page = ' [ <img src="' . $images['icon_gotopost'] . '" alt="' . $lang['Goto_page'] . '" title="' . $lang['Goto_page'] . '" />' . $lang['Goto_page'] . ': ';
+				$times = 1;
+				for($j = 0; $j < $replies + 1; $j += $board_config['posts_per_page'])
+				{
+					$goto_page .= '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=" . $topic_id . "&amp;start=$j") . '">' . $times . '</a>';
+					if( $times == 1 && $total_pages > 4 )
+					{
+						$goto_page .= ' ... ';
+						$times = $total_pages - 3;
+						$j += ( $total_pages - 4 ) * $board_config['posts_per_page'];
+					}
+					else if ( $times < $total_pages )
+					{
+						$goto_page .= ', ';
+					}
+					$times++;
+				}
+				$goto_page .= ' ] ';
+			}
+
+			$view_topic_url		= append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id");
+			$topic_author		 = ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $topic_rowset[$i]['user_id']) . '">' : '';
+			$topic_author		.= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? $topic_rowset[$i]['username'] : ( ( $topic_rowset[$i]['post_username'] != '' ) ? $topic_rowset[$i]['post_username'] : $lang['Guest'] );
+			$topic_author		.= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '</a>' : '';
+			$first_post_time	= create_date($board_config['default_dateformat'], $topic_rowset[$i]['topic_time'], $board_config['board_timezone']);
+			$last_post_time		= create_date($board_config['default_dateformat'], $topic_rowset[$i]['post_time'], $board_config['board_timezone']);
+			$last_post_author	= ( $topic_rowset[$i]['id2'] == ANONYMOUS ) ? ( ($topic_rowset[$i]['post_username2'] != '' ) ? $topic_rowset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $topic_rowset[$i]['id2']) . '">' . $topic_rowset[$i]['user2'] . '</a>';
+			$last_post_url		= '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $topic_rowset[$i]['topic_last_post_id']) . '#' . $topic_rowset[$i]['topic_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" border="0" /></a>';
+			$views				= $topic_rowset[$i]['topic_views'];
+
+			// categories hierarchy v 2 compliancy
+			$nav_tree = '';
+			if ($cat_hierarchy)
+			{
+				$nav_tree = make_cat_nav_tree('f' . $topic_rowset[$i]['forum_id'], '', 'gensmall');
+			}
+			else
+			{
+				$nav_tree = '<a href="' . append_sid("viewforum.$phpEx?f=" . $topic_rowset[$i]['forum_id']) . '" class="gensmall">' . $topic_rowset[$i]['forum_name'] . '</a>';
+			}
+
+			$color = !$color;
+			$template->assign_block_vars('topics_from.topicrow_box', array(
+				'ROW_CLASS'				=> ($color) ? 'row1' : 'row2',
+				'FORUM_ID'				=> $forum_id,
+				'TOPIC_ID'				=> $topic_id,
+				'TOPIC_FOLDER_IMG'		=> $folder_image,
+				'TOPIC_AUTHOR'			=> $topic_author,
+				'GOTO_PAGE'				=> (!empty($goto_page)) ? '<br />' . $goto_page : '',
+				'REPLIES'				=> $replies,
+				'NEWEST_POST_IMG'		=> $newest_post_img,
+				'TOPIC_TITLE'			=> $topic_title,
+				'TOPIC_TYPE'			=> '', // $topic_type,
+				'VIEWS'					=> $views,
+				'FIRST_POST_TIME'		=> $first_post_time,
+				'LAST_POST_TIME'		=> $last_post_time,
+				'LAST_POST_AUTHOR'		=> $last_post_author,
+				'LAST_POST_IMG'			=> $last_post_url,
+				'L_TOPIC_FOLDER_ALT'	=> $folder_alt,
+				'U_VIEW_TOPIC'			=> $view_topic_url,
+				'TOPIC_NAV_TREE'		=> $nav_tree,
+				)
+			);
+		} // end for topic_rowset read
+
+		// no data
+		if (count($topic_rowset) == 0)
+		{
+			$template->assign_block_vars('topics_from.topicrow_box_no_topics', array());
+		}
+	} // end for $k = type of display
+	$template->assign_var_from_handle('BOARD_TOPICS_FROM', 'topics_from');
+}
+//-- fin mod : last topics from --------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+//-- add
+function last_topics_from($view_userdata, $last_started_box='', $last_replied_box='', $last_ended_box='')
+{
+	global $db, $template, $board_config, $userdata, $phpEx, $lang, $images, $HTTP_COOKIE_VARS;
+	global $tree;
+
+	include_once($phpbb_root_path . './includes/functions_topics_list.' . $phpEx);
+
+	// fix some default values
+	if (empty($last_started_box))
+	{
+		$last_started_box = 'BOARD_TOPICS_FROM_STARTED';
+	}
+	if (empty($last_replied_box))
+	{
+		$last_replied_box = 'BOARD_TOPICS_FROM_REPLIED';
+	}
+	if (empty($last_ended_box))
+	{
+		$last_ended_box = 'BOARD_TOPICS_FROM_ENDED';
+	}
+
+	// get the user viewed
+	$view_user_id = $view_userdata['user_id'];
+	if ($view_user_id == ANONYMOUS) return false;
+
+	// display
+	$to_display = array();
+	$to_display[0]		= isset($board_config['last_topics_from_started']) ? intval($board_config['last_topics_from_started']) : 0;
+	$to_display[1]		= isset($board_config['last_topics_from_replied']) ? intval($board_config['last_topics_from_replied']) : 0;
+	$to_display[2]		= isset($board_config['last_topics_from_ended']) ? intval($board_config['last_topics_from_ended']) : 0;
+	$split_type			= isset($board_config['last_topics_from_split']) ? (intval($board_config['last_topics_from_split']) == 1) : false;
+	$display_nav_tree	= isset($board_config['last_topics_from_forum']) ? (intval($board_config['last_topics_from_forum']) == 1) : false;
+
+	// ACP config says : do not display - who am I to say the contrary ? ;)
+	$sum = 0;
+	for ($k=0; $k < count($to_display); $k++)
+	{
+		$sum = $sum + $to_display[$k];
+	}
+	if ($sum <= 0) return false;
+
+	// read the forums authorized
+	$cat_hierarchy = function_exists(get_auth_keys);
+	$forum_ids = array();
+	if (!$cat_hierarchy)
+	{
+		// standard read
+		$is_auth = array();
+		$is_auth = auth(AUTH_ALL, AUTH_LIST_ALL, $userdata);
+
+		// get the list of authorized forums
+		while (list($forum_id, $forum_auth) = each($is_auth))
+		{
+			if ( $forum_auth['auth_read'])
+			{
+				$forum_ids[] = $forum_id;
+			}
+		}
+	}
+	else
+	{
+		// compliency with categories hierarchy v2 mod
+		// get auth key
+		$keys = array();
+		$keys = get_auth_keys('Root', true, -1, -1, 'auth_read');
+		for ($i=1; $i < count($keys['id']); $i++)
+		{
+			if ( ($tree['type'][$keys['idx'][$i]] == POST_FORUM_URL) && ($tree['auth'][ $keys['id'][$i] ]['auth_read']) )
+			{
+				$forum_ids[] = $tree['id'][$keys['idx'][$i]];
+			}
+		}
+	}
+
+	// no forums allowed to the viewer, say goodbye :)
+	if (count($forum_ids) <= 0) return false;
+
+	// get the list of forum for selection
+	$sql_forums = 't.forum_id IN (' . implode(', ', $forum_ids) . ')';
+
+	// ok, process the last replied topics
+	$topic_rowset = array();
+	for ($k = 0; $k < count($to_display); $k++) if ($to_display[$k] > 0)
+	{
+		$title = '??';
+		switch ( $k )
+		{
+			case 0:
+				// started by
+				$sql_filter = "t.topic_poster = $view_user_id";
+				$title = sprintf($lang['Topic_last_started'], $view_userdata['username']);
+				$box = $last_started_box;
+				break;
+			case 1:
+				// replied by
+				$sql = "SELECT DISTINCT p.topic_id FROM " . POSTS_TABLE . " p, " . TOPICS_TABLE . " t
+						WHERE 
+							$sql_forums
+							AND t.topic_id = p.topic_id
+							AND p.poster_id = $view_user_id
+						GROUP BY p.topic_id
+						ORDER BY p.post_time DESC
+						LIMIT 0, " . $to_display[$k];
+				if (!$result = $db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, 'Could not obtain users post informations', '', __LINE__, __FILE__, $sql);
+				}
+				$topic_ids = array();
+				while ($row = $db->sql_fetchrow($result))
+				{
+					$topic_ids[] = $row['topic_id'];
+				}
+				$db->sql_freeresult($result);
+				$sql_filter = 't.topic_id = -1';
+				if (!empty($topic_ids))
+				{
+					$sql_filter = 't.topic_id IN (' . implode(', ', $topic_ids) . ')';
+				}
+				$title = sprintf($lang['Topic_last_replied'], $view_userdata['username']);
+				$box = $last_replied_box;
+				break;
+			case 2:
+				// ended by
+				$sql_filter = "u2.user_id = $view_user_id";
+				$title = sprintf($lang['Topic_last_ended'], $view_userdata['username']);
+				$box = $last_ended_box;
+				break;
+			default:
+				message_die(GENERAL_ERROR, 'Wrong setup in the process for $k=' . $k, '', __LINE__, __FILE__, $sql);
+				break;
+		} // end switch
+
+		// get topics data
+		$topic_rowset = array();
+		$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_time, p.post_username, f.forum_name
+				FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . USERS_TABLE . " u2, " . FORUMS_TABLE . " f
+				WHERE 
+					$sql_forums
+					AND t.topic_poster = u.user_id
+					AND p.post_id = t.topic_last_post_id
+					AND p.poster_id = u2.user_id
+					AND $sql_filter
+					AND f.forum_id = t.forum_id
+				ORDER BY t.topic_type DESC, t.topic_last_post_id DESC
+				LIMIT 0, " . $to_display[$k];
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+		}
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$row['topic_id'] = POST_TOPIC_URL . $row['topic_id'];
+			$topic_rowset[] = $row;
+		}
+		$db->sql_freeresult($result);
+
+		// send this to box
+		$split_type = true;
+		$display_nav_tree = true;
+		$footer = '';
+		$inbox = false;
+		topic_list($box, 'topics_list_box', $topic_rowset, $title, $split_type, $display_nav_tree, $footer, $inbox );
+	} // end for $k = type of display
+}
+//-- fin mod : last topics from --------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+//-- add
+// last topic from user on viewprofile : default 1 display
+if ( !isset($board_config['last_topics_from_started']) )
+{
+	$last_topics_from_started = 1;
+	$sqlw = "INSERT INTO ".CONFIG_TABLE." (config_name,config_value) VALUES('last_topics_from_started','" . $last_topics_from_started . "')";
+	if ( !$db->sql_query($sqlw) )
+	{
+		message_die(GENERAL_ERROR, 'Could not add key last_topics_from_started in config table', '', __LINE__, __FILE__, $sql);
+	}
+	$board_config['last_topics_from_started'] = $last_topics_from_started;
+}
+
+// last topic user replied on viewprofile : default 1 display
+if ( !isset($board_config['last_topics_from_replied']) )
+{
+	$last_topics_from_replied = 1;
+	$sqlw = "INSERT INTO ".CONFIG_TABLE." (config_name,config_value) VALUES('last_topics_from_replied','" . $last_topics_from_replied . "')";
+	if ( !$db->sql_query($sqlw) )
+	{
+		message_die(GENERAL_ERROR, 'Could not add key last_topics_from_replied in config table', '', __LINE__, __FILE__, $sql);
+	}
+	$board_config['last_topics_from_replied'] = $last_topics_from_replied;
+}
+
+// last topic user ended on viewprofile : default 1 display
+if ( !isset($board_config['last_topics_from_ended']) )
+{
+	$last_topics_from_ended = 1;
+	$sqlw = "INSERT INTO ".CONFIG_TABLE." (config_name,config_value) VALUES('last_topics_from_ended','" . $last_topics_from_replied . "')";
+	if ( !$db->sql_query($sqlw) )
+	{
+		message_die(GENERAL_ERROR, 'Could not add key last_topics_from_ended in config table', '', __LINE__, __FILE__, $sql);
+	}
+	$board_config['last_topics_from_ended'] = $last_topics_from_ended;
+}
+//-- fin mod : last topics from --------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/mods_settings/mod_last_topics_from.' . $phpEx);
+//-- fin mod : last topics from --------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+$lang['Configuration_extend']	= 'Configuration +';
+$lang['Override_user_choices']	= 'Override user choices';
+//-- end of mod : mods settings --------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+//-- add
+$lang['Topic_last_started'] = 'Last topics started by %s';
+$lang['Topic_last_started_explain'] = 'Set here the number of the last topics the user started you want to display on profile view. 0 means no display';
+$lang['Topic_last_replied'] = 'Last topics %s replied to';
+$lang['Topic_last_replied_explain'] = 'Set here the number of the last topics the user replied you want to display on profile view. 0 means no display';
+$lang['Topic_last_ended'] = 'Last topics %s ended';
+$lang['Topic_last_ended_explain'] = 'Set here the number of the last topics on which the user posted the last replied you want to display on profile view. 0 means no display';
+$lang['No_Topics'] = 'There are no topics to display here';
+//-- fin mod : last topics from --------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- mod : last topics from ------------------------------------------------------------------------
+//-- add
+$lang['Topic_last_settings']		= 'Last topics from a user';
+$lang['Topic_last_started']			= 'Last topics started by %s';
+$lang['Topic_last_started_title']	= 'Last topics started by a user';
+$lang['Topic_last_started_explain']	= 'Set here the number of the last topics the user started you want to display on profile view. 0 means no display.';
+$lang['Topic_last_replied']			= 'Last topics %s replied to';
+$lang['Topic_last_replied_title']	= 'Last topics a user replied to';
+$lang['Topic_last_replied_explain']	= 'Set here the number of the last topics the user replied you want to display on profile view. 0 means no display.';
+$lang['Topic_last_ended']			= 'Last topics %s ended';
+$lang['Topic_last_ended_title']		= 'Last topics a user ended';
+$lang['Topic_last_ended_explain']	= 'Set here the number of the last topics on which the user posted the last replied you want to display on profile view. 0 means no display.';
+$lang['Topic_last_split']			= 'Split the topics per type';
+$lang['Topic_last_split_explain']	= 'Add a separation row in the boxes per topics type (announcements, topics, and so).';
+$lang['Topic_last_forum']			= 'forum';
+$lang['Topic_last_forum_explain']	= 'Display the forum title where the topic stands under the topic title';
+//-- fin mod : last topics from --------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topics list -----------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : topics list -----------------------------------------------------------------------------
+//-- add
+$images['folder_global_announce']		= "$current_template_images/folder_announce.gif";
+$images['folder_global_announce_new']		= "$current_template_images/folder_announce_new.gif";
+$images['folder_global_announce_own']		= "$current_template_images/folder_announce_own.gif";
+$images['folder_global_announce_new_own']	= "$current_template_images/folder_announce_new_own.gif";
+$images['folder_own']				= "$current_template_images/folder_own.gif";
+$images['folder_new_own']			= "$current_template_images/folder_new_own.gif";
+$images['folder_hot_own']			= "$current_template_images/folder_hot_own.gif";
+$images['folder_hot_new_own']			= "$current_template_images/folder_new_hot_own.gif";
+$images['folder_locked_own']			= "$current_template_images/folder_lock_own.gif";
+$images['folder_locked_new_own']		= "$current_template_images/folder_lock_new_own.gif";
+$images['folder_sticky_own']			= "$current_template_images/folder_sticky_own.gif";
+$images['folder_sticky_new_own']		= "$current_template_images/folder_sticky_new_own.gif";
+$images['folder_announce_own']			= "$current_template_images/folder_announce_own.gif";
+$images['folder_announce_new_own']		= "$current_template_images/folder_announce_new_own.gif";
+//-- fin mod : topics list -------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+# at top of the file
+# 
+<table width="100%" cellspacing="2" cellpadding="2" border="0" align="center">
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- mod : last topics from -->
+#
+#-----[ FIND ]------------------------------------------------
+#
+{BOARD_TOPICS_FROM}
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+{BOARD_TOPICS_FROM_STARTED}
+{BOARD_TOPICS_FROM_REPLIED}
+{BOARD_TOPICS_FROM_ENDED}
+#
+#-----[ OPEN ]------------------------------------------------
+#
+# Here we step back to the original code
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+	</tr>
+	<tr>
+		<td class="row1">{L_LAST_STARTED}<br /><span class="gensmall">{L_LAST_STARTED_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="4" name="last_topics_from_started" value="{LAST_STARTED}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LAST_REPLIED}<br /><span class="gensmall">{L_LAST_REPLIED_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="4" name="last_topics_from_replied" value="{LAST_REPLIED}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LAST_ENDED}<br /><span class="gensmall">{L_LAST_ENDED_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="4" name="last_topics_from_ended" value="{LAST_ENDED}" /></td>
+	</tr>
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

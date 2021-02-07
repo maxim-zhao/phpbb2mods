@@ -1,0 +1,268 @@
+##############################################################
+## MOD Title: Amazon Link MOD
+## MOD Author: amjohnno < info@dvdsandstuff.net > (Adam Johnson) http://www.dvdsandstuff.net
+## MOD Description: Adds a link to the Amazon site of your choice in the topic list
+## of specified forums. You can enter your own affiliate ID and select which type of 
+## topic it is displayed with.
+##
+## MOD Version: 1.0.6
+## 
+## Installation Level: Easy
+## Installation Time: 5 minutes
+## Files To Edit:  admin/admin_forums.php
+##                 templates/subSilver/admin/forum_edit_body.tpl
+##                 templates/subSilver/viewforum_body.tpl
+##                 viewforum.php
+##                 includes/constants.php
+## Included Files: contrib/admin/admin_amazon.php
+##                 contrib/templates/subSilver/admin/amazon_admin_body.tpl
+##                 contrib/language/lang_english/lang_amazon.php
+##                 contrib/amazon_mod.php
+##                 contrib/images/dollar.gif
+##                 contrib/images/euro.gif
+##                 contrib/images/pound.gif
+##                 contrib/images/yen.gif
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: The supplied images are in English. If you would like to use another
+## language or other images entirely, simply edit or replace the supplied gif files.
+##
+## Using the MOD: There are two steps to using this MOD. Firstly, go to Amazon Settings
+## in the Administration area. On here you can choose which Amazon website you want to
+## search and the types of post you want it to appear in. Then you can enter your own
+## affiliate ID from your selected Amazon website, and choose the folder your images
+## are stored in. This defaults to where this install asks you to put them. The two final
+## sections are to choose whether the link opens in a new window, and whether you want to
+## enable or disable the MOD on the entire board. After you have entered these details, you then
+## proceed to 'Management' under 'Forum Admin', and click 'edit' next to the forums you wish to
+## choose. By ticking the box next to 'Display Amazon links in this forum' you decide whether or
+## not to show the links in that particular forum. Repeat that step for each forum you wish to include.
+##############################################################
+## MOD History:
+##
+##
+##   2005-10-06 - Version 1.0.6
+## 
+## -Added the Japanese Amazon website
+##
+##   2005-08-04 - Version 1.0.5a
+## 
+## -Minor fix to make it XHTML compliant
+##
+##   2005-07-27 - Version 1.0.5
+## 
+## -Minor table fix to make EasyMOD compatible
+## -Edited install file to comply with new standards
+##
+##   2005-07-14 - Version 1.0.4
+## 
+## -Minor alteration to the install file
+##
+##   2005-07-02 - Version 1.0.3
+## 
+## -Some small alterations to the install file
+##
+##   2005-06-25 - Version 1.0.2
+## 
+## -Sorted out a small error with the code
+##
+##   2005-06-13 - Version 1.0.1
+## 
+## -Some additions to make it EasyMOD compatible
+## -Made a number of corrections improve phpbb compatibility
+## -Can now specify which folder the images are stored in
+##
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy contrib/admin/admin_amazon.php to admin/admin_amazon.php
+copy contrib/templates/subSilver/admin/amazon_admin_body.tpl to templates/subSilver/admin/amazon_admin_body.tpl
+copy contrib/language/lang_english/lang_amazon.php to language/lang_english/lang_amazon.php
+copy contrib/amazon_mod.php to amazon_mod.php
+copy contrib/images/dollar.gif to images/dollar.gif
+copy contrib/images/euro.gif to images/euro.gif
+copy contrib/images/pound.gif to images/pound.gif
+copy contrib/images/yen.gif to images/yen.gif
+#
+#-----[ SQL ]------------------------------------------
+#
+ CREATE TABLE `phpbb_amazon_config` (
+`amazon` TINYINT(1),
+`username` VARCHAR(255),
+`amazon_id` TINYINT(1) DEFAULT '1' NOT NULL,
+`announce` TINYINT(1) NOT NULL,
+`sticky` TINYINT(1) NULL,
+`normal` TINYINT(1) NULL,
+`enable` TINYINT(1) NULL,
+`window` TINYINT(1) NULL,
+`images` VARCHAR(255) NULL,
+PRIMARY KEY (`amazon_id`)
+);
+ALTER TABLE `phpbb_forums` ADD `amazon_display` TINYINT(1);
+INSERT INTO `phpbb_amazon_config` (`amazon`, `username`, `amazon_id`, `announce`, `sticky`, `normal`, `enable`, `window`, `images`) VALUES ('', '', '1', '', '', '', '', '', 'images');
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_forums.php
+#
+#-----[ FIND ]------------------------------------------
+#
+require('./pagestart.' . $phpEx);
+include($phpbb_root_path . 'includes/functions_admin.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_amazon.'.$phpEx);
+#
+#-----[ FIND ]------------------------------------------
+#
+				$forumdesc = $row['forum_desc'];
+				$forumstatus = $row['forum_status'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Amazon MOD
+				if ($row['amazon_display'] == 1) {
+					$amazon_enabled = "checked=\"checked\"";
+				}
+#
+#-----[ FIND ]------------------------------------------
+#
+				'S_STATUS_LIST' => $statuslist,
+				'S_PRUNE_ENABLED' => $prune_enabled,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Amazon MOD
+				'S_AMAZON_ENABLED' => $amazon_enabled,
+				'L_AMAZON_DISPLAY' => $lang['Display_Amazon_Ads'],
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "INSERT INTO " . FORUMS_TABLE . " (forum_id, forum_name, cat_id, forum_desc, forum_order, forum_status, prune_enable" . $field_sql . ")
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+forum_order, forum_status,
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ amazon_display, 
+#
+#-----[ FIND ]------------------------------------------
+#
+				VALUES ('" . $next_id . "', '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', $next_order, " . intval($HTTP_POST_VARS['forumstatus']) . ", " . intval($HTTP_POST_VARS['prune_enable']) . $value_sql . ")";
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+intval($HTTP_POST_VARS['forumstatus']) . ", "
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ . intval($HTTP_POST_VARS['amazon_enable']) . ","
+#
+#-----[ FIND ]------------------------------------------
+#
+				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', cat_id = " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", forum_desc = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . ", prune_enable = " . intval($HTTP_POST_VARS['prune_enable']) . "
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . ",
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ amazon_display = " . intval($HTTP_POST_VARS['amazon_enable']) . ",
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/forum_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row1">{L_FORUM_STATUS}</td>
+	  <td class="row2"><select name="forumstatus">{S_STATUS_LIST}</select></td>
+	</tr>	
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+<tr>
+<td class="row1">{L_AMAZON_DISPLAY}</td>
+<td class="row2"><input name="amazon_enable" type="checkbox" id="amazon_enable" value="1" {S_AMAZON_ENABLED} /></td>
+</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
+		$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Amazon MOD
+include($phpbb_root_path . 'amazon_mod.'.$phpEx);
+#
+#-----[ FIND ]------------------------------------------
+#
+		$template->assign_block_vars('topicrow', array(
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// Amazon MOD
+			'AMAZON_LINK' => $amazon_text,
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------
+#
+define('VOTE_RESULTS_TABLE', $table_prefix.'vote_results');
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Amazon Table
+define('AMAZON_CONFIG_TABLE', $table_prefix.'amazon_config');
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row1" width="100%"><span class="topictitle">{topicrow.NEWEST_POST_IMG}{topicrow.TOPIC_TYPE}<a href="{topicrow.U_VIEW_TOPIC}" class="topictitle">{topicrow.TOPIC_TITLE}</a></span><span class="gensmall"><br />
+      {topicrow.GOTO_PAGE}</span></td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+<td class="row1" width="100%">
+<table width="100%"  border="0" cellpadding="0" cellspacing="0">
+      <tr>
+	<td>
+          <span class="topictitle">{topicrow.NEWEST_POST_IMG}{topicrow.TOPIC_TYPE}<a href="{topicrow.U_VIEW_TOPIC}" class="topictitle">{topicrow.TOPIC_TITLE}</a></span><span class="gensmall"><br />
+		{topicrow.GOTO_PAGE}</span>
+        </td>
+          <td width="50" valign="middle">{topicrow.AMAZON_LINK}</td>
+      </tr>
+</table>
+</td>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

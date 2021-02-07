@@ -1,0 +1,196 @@
+######################################################## 
+## MOD Title: Category Icon with ACP Control
+## MOD Author: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## MOD Description: This mod allow admin to give each forum category a icon in the ACP. Icons will show on index
+## MOD Version: 1.0.0
+## 
+## Installation Level: Easy
+## Installation Time: 5 Minutes 
+##
+## Files To Edit: 6
+##	index.php
+##	admin/admin_forums.php
+##	language/lang_english/lang_admin.php
+##	templates/subSilver/index_body.tpl
+##	templates/subSilver/admin/forum_admin_body.tpl
+##	templates/subSilver/admin/category_edit_body.tpl
+##
+## Included Files: n/a
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+################################################################# 
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:
+## 	Tested on 2.0.20. Can be installed using EasyMOD 0.3.0
+## 
+############################################################## 
+## MOD History: 
+##
+##   2006-05-07 - Version 1.0.0
+##      - Initial Release
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# Remember to change the table prefix used on your database
+ALTER TABLE phpbb_categories ADD cat_icon VARCHAR(255) DEFAULT NULL;
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+$lang['Category_icon'] = 'Category icon'; // Category Icon MOD
+$lang['Category_icon_explain'] = 'e.g. If your image is at <b>http://yourdomain/forum_path/images/categories_icon/test.gif</b><br /> then set it as <b>images/category_icon/test.gif</b>'; // Category Icon MOD
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+admin/admin_forums.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+			$cat_title = $row['cat_title'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			$cat_icon = $row['cat_icon'];	// Category Icon MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				'CAT_TITLE' => $cat_title,
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+				'CAT_ICON' => $cat_icon,	// Category Icon MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				'L_CATEGORY' => $lang['Category'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+				'L_CAT_ICON' => $lang['Category_icon'],		// Category Icon MOD
+				'L_CAT_ICON_EXPLAIN' =>  $lang['Category_icon_explain'],	// Category Icon MOD
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				SET cat_title = '" . str_replace("\'", "''", $HTTP_POST_VARS['cat_title']) . "'
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+$HTTP_POST_VARS['cat_title']) . "'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, cat_icon = '" . str_replace("\'", "''", $HTTP_POST_VARS['cat_icon']) . "'
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$sql = "SELECT cat_id, cat_title, cat_order
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, cat_order
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, cat_icon
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+			'CAT_DESC' => $category_rows[$i]['cat_title'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+			'CAT_ICON' => ( !empty($category_rows[$i]['cat_icon']) ) ? '&nbsp;<img src="' . $phpbb_root_path . $category_rows[$i]['cat_icon'] . '" border="0" />&nbsp;' : '',	// Category Icon MOD
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+index.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "SELECT c.cat_id, c.cat_title, c.cat_order
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+, c.cat_order
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+, c.cat_icon
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				'CAT_DESC' => $category_rows[$i]['cat_title'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+				'CAT_ICON' => ( !empty($category_rows[$i]['cat_icon']) ) ? '&nbsp;<img src="' . $phpbb_root_path . $category_rows[$i]['cat_icon'] . '" border="0" />&nbsp;' : '',	// Category Icon MOD
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+templates/subSilver/admin/category_edit_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	  <td class="row2"><input class="post" type="text" size="25" name="cat_title" value="{CAT_TITLE}" /></td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<tr> 
+	  <td class="row1">{L_CAT_ICON}<br /><span class="gensmall">{L_CAT_ICON_EXPLAIN}</span></td>
+	  <td class="row2"><input type="text" size="35" name="cat_icon" value="{CAT_ICON}" class="post" /></td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+#  
+templates/subSilver/admin/forum_admin_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td class="catLeft" colspan="3"><span class="cattitle"><b><a href="{catrow.U_VIEWCAT}">{catrow.CAT_DESC}</a></b></span></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+		<td class="catLeft" colspan="3">
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+{catrow.CAT_ICON}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/index_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<td class="catLeft" colspan="2" height="28"><span class="cattitle"><a href="{catrow.U_VIEWCAT}" class="cattitle">{catrow.CAT_DESC}</a></span></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+	<td class="catLeft" colspan="2" height="28">
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+{catrow.CAT_ICON}
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

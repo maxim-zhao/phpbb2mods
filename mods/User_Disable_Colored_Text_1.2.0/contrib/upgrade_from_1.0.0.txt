@@ -1,0 +1,126 @@
+##############################################################
+## MOD Title: User Disable Colored Text - Upgrade from 1.0.0 to 1.2.0
+## MOD Author: xx521xx < N/A > (N/A) N/A
+## MOD Description: Instructions for upgrading to version 1.2.0 if
+##                  you've installed version 1.0.0 previously.
+##
+## Installation Level: Easy
+## Installation Time: ~3 Minutes
+## Files To Edit: admin/admin_users.php, templates/subSilver/admin/user_edit_body.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: Follow these instructions if you've installed
+## version 1.0.0 of the User Disable Colored Text MOD and would like
+## to upgrade to version 1.2.0.
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ OPEN ]-----------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]-----------------------------------------
+#
+# This is a partial find. The entire line, if it has not been edited
+# previously by another MOD, is:
+# $attachsig = ( isset( $HTTP_POST_VARS['attachsig']) ) ? ( ( $HTTP_POST_VARS['attachsig'] ) ? TRUE : 0 ) : 0;
+#
+$attachsig = ( isset
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+# Add this on a new line, without altering the line you just found.
+# This applies to all AFTER, ADD and BEFORE, ADD instructions.
+#
+		$coloredtext = ( isset($HTTP_POST_VARS['allow_coloredtxt']) ) ? ( ( $HTTP_POST_VARS['allow_coloredtxt'] ) ? 1 : 0 ) : 0;
+#
+#-----[ FIND ]-----------------------------------------
+#
+# Full line:
+# SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) . "', user_icq = '" . str_replace("\'", "''", $icq) . "', user_website = '" . str_replace("\'", "''", $website) . "', user_occ = '" . str_replace("\'", "''", $occupation) . "', user_from = '" . str_replace("\'", "''", $location) . "', user_interests = '" . str_replace("\'", "''", $interests) . "', user_sig = '" . str_replace("\'", "''", $signature) . "', user_viewemail = $viewemail, user_aim = '" . str_replace("\'", "''", $aim) . "', user_yim = '" . str_replace("\'", "''", $yim) . "', user_msnm = '" . str_replace("\'", "''", $msn) . "', user_attachsig = $attachsig, user_sig_bbcode_uid = '$signature_bbcode_uid', user_allowsmile = $allowsmilies, user_allowhtml = $allowhtml, user_allowavatar = $user_allowavatar, user_allowbbcode = $allowbbcode, user_allow_viewonline = $allowviewonline, user_notify = $notifyreply, user_allow_pm = $user_allowpm, user_notify_pm = $notifypm, user_popup_pm = $popuppm, user_lang = '" . str_replace("\'", "''", $user_lang) . "', user_style = $user_style, user_timezone = $user_timezone, user_dateformat = '" . str_replace("\'", "''", $user_dateformat) . "', user_active = $user_status, user_rank = $user_rank" . $avatar_sql . "
+#
+$username_sql . $passwd_sql
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+$allowhtml
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------
+#
+, user_allow_coloredtxt = $coloredtext
+#
+#-----[ FIND ]----------------------------------------
+#
+$allowviewonline = $this_userdata['user_allow_viewonline'];
+#
+#-----[ AFTER, ADD ]----------------------------------
+#
+		$coloredtext = $this_userdata['user_allow_coloredtxt'];
+#
+#-----[ FIND ]-----------------------------------------
+#
+# Full line:
+# $s_hidden_fields .= '<input type="hidden" name="hideonline" value="' . !$allowviewonline . '" />';
+#
+type="hidden" name="hideonline"
+#
+#-----[ AFTER, ADD ]-----------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="allow_coloredtxt" value="'.$coloredtext.'" />';
+#
+#-----[ FIND ]-----------------------------------------
+#
+# Full line:
+# 'ALWAYS_ALLOW_SMILIES_NO' => (!$allowsmilies) ? 'checked="checked"' : '',
+#
+'ALWAYS_ALLOW_SMILIES_NO'
+#
+#-----[ AFTER, ADD ]-----------------------------------
+#
+			'ALLOW_COLORED_TEXT_YES' => ( $coloredtext ) ? 'checked="checked"' : '',
+			'ALLOW_COLORED_TEXT_NO' => ( !$coloredtext ) ? 'checked="checked"' : '',
+#
+#-----[ FIND ]----------------------------------------
+#
+# Full line:
+# 'L_ALWAYS_ALLOW_HTML' => $lang['Always_html'],
+#
+'L_ALWAYS_ALLOW_HTML'
+#
+#-----[ AFTER, ADD ]---------------------------------
+#
+			'L_ALLOW_COLOREDTEXT' => $lang['Allow_colored_text'],
+#
+#-----[ OPEN ]-------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]-------------------------
+#
+# Full line:
+# <td class="row1"><span class="gen">{L_BOARD_LANGUAGE}</span></td>
+#
+{L_BOARD_LANGUAGE}
+#
+#-----[ BEFORE, ADD ]------------------
+#
+		<td class="row1"><span class="gen">{L_ALLOW_COLOREDTEXT}</span></td>
+		<td class="row2">
+		<input type="radio" name="allow_coloredtxt" value="1" {ALLOW_COLORED_TEXT_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp;
+		<input type="radio" name="allow_coloredtxt" value="0" {ALLOW_COLORED_TEXT_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+	<tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

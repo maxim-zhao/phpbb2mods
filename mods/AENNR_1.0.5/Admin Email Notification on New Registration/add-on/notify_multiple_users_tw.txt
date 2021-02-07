@@ -1,0 +1,164 @@
+######################################################## 
+## 外掛名稱: 多個會員可收到新會員註冊通知
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 安裝這個外掛後, 新會員註冊通知會寄給在控制台設定的會員們 (最好為管理員)
+## 外掛版本: 1.0.2
+## 
+## 安裝難度: Easy
+## 安裝時間: 3 Minutes 
+##
+## 需要編輯的檔案: 3
+##	includes/usercp_register.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	templates/subSilver/admin/board_config_body.tpl
+##
+## 附加的檔案: 0
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.20 上測試過. 可以用 EasyMOD 0.3.0 來安裝此外掛
+##
+##	先安裝 "管理員可收到新會員註冊通知"
+## 
+############################################################## 
+## MOD History: 
+##
+##   2005-10-01 - 版本 1.0.0
+##      - 首次發佈
+##
+##   2006-04-03 - 版本 1.0.1
+##      - 增加顯示會員的電子信箱在通知內
+##
+##   2006-04-16 - 版本 1.0.2
+##      - 修正了一個與 ")" 符號有關的小蟲 (感謝 TerraFrost)
+##      - 更新成可在 2.0.20 上安裝
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_admin.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+$lang['Enable_notify_admin_new_reg_userid'] = '管理員會員 ID';
+$lang['Enable_notify_admin_new_reg_userid_explain'] = '輸入預收到通知的會員 (userid) ID';
+
+# 
+#-----[ 取代為 ]------------------------------------------ 
+#
+$lang['Enable_notify_admin_new_reg_userid'] = '管理員會員 ID(s)';
+$lang['Enable_notify_admin_new_reg_userid_explain'] = '輸入預收到通知的會員 (userid) ID(s).<br />如果欲輸入多個 ID, 請換行輸入 ID.';
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+includes/usercp_register.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+			if ( $board_config['notify_admin_new_reg'] )
+			{
+				$admin_profile = array();
+				$admin_profile = get_userdata($board_config['notify_admin_new_reg_userid']);
+
+				$use_template = (empty($admin_profile)) ? $board_config['default_lang'] : $admin_profile['user_lang'];
+				$email_address = (empty($admin_profile)) ? $board_config['board_email'] : $admin_profile['user_email'];
+				$admin_name = (empty($admin_profile)) ? $lang['Administrator'] : $admin_profile['username'];
+				
+				include_once($phpbb_root_path . 'includes/emailer.'.$phpEx);
+				$emailer = new emailer($board_config['smtp_delivery']);
+
+				$emailer->from($board_config['board_email']);
+				$emailer->replyto($board_config['board_email']);
+
+				$emailer->use_template('notify_admin_new_reg', stripslashes($use_template));
+				$emailer->email_address($email_address);
+				$emailer->set_subject($lang['Notify_admin_new_reg']);
+
+				$emailer->assign_vars(array(
+					'ADMIN_NAME' => $admin_name,
+					'SITENAME' => $board_config['sitename'],
+					'USER_NAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+					'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
+					'USER_PROFILE' => $server_url . '?mode=viewprofile&' . POST_USERS_URL . '=' . $user_id,
+					'USER_EMAIL' => $email)
+				);
+				$emailer->send();
+				$emailer->reset();
+			}
+
+# 
+#-----[ 取代為 ]------------------------------------------ 
+#
+			if ( $board_config['notify_admin_new_reg'] )
+			{
+				$userids = explode("\n", $board_config['notify_admin_new_reg_userid']);
+
+				for ($i=0; $i<count($userids); $i++)
+				{
+					$admin_profile = array();
+					$admin_profile = get_userdata(intval($userids[$i]));
+
+					if (!empty($admin_profile))
+					{
+						$use_template = $admin_profile['user_lang'];
+						$email_address = $admin_profile['user_email'];
+						$admin_name = $admin_profile['username'];
+
+						include_once($phpbb_root_path . 'includes/emailer.'.$phpEx);
+						$emailer = new emailer($board_config['smtp_delivery']);
+
+						$emailer->from($board_config['board_email']);
+						$emailer->replyto($board_config['board_email']);
+
+						$emailer->use_template('notify_admin_new_reg', stripslashes($use_template));
+						$emailer->email_address($email_address);
+						$emailer->set_subject($lang['Notify_admin_new_reg']);
+
+						$emailer->assign_vars(array(
+							'ADMIN_NAME' => $admin_name,
+							'SITENAME' => $board_config['sitename'],
+							'USER_NAME' => preg_replace($unhtml_specialchars_match, $unhtml_specialchars_replace, substr(str_replace("\'", "'", $username), 0, 25)),
+							'EMAIL_SIG' => (!empty($board_config['board_email_sig'])) ? str_replace('<br />', "\n", "-- \n" . $board_config['board_email_sig']) : '',
+							'USER_PROFILE' => $server_url . '?mode=viewprofile&' . POST_USERS_URL . '=' . $user_id,
+							'USER_EMAIL' => $email)
+						);
+
+						$emailer->send();
+						$emailer->reset();
+					}
+				}
+			}
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+		<td class="row2"><input class="post" type="text" maxlength="255" name="notify_admin_new_reg_userid" value="{NOTIFY_ADMIN_NEW_REG_USERID}" /></td>
+
+# 
+#-----[ 取代為 ]------------------------------------------ 
+#
+		<td class="row2"><textarea name="notify_admin_new_reg_userid" rows="5" cols="30">{NOTIFY_ADMIN_NEW_REG_USERID}</textarea></td>
+
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+# 外掛修正結束

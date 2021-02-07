@@ -1,0 +1,958 @@
+##############################################################
+## MOD Title: Ranking Themes
+## MOD Author: digitaltsai < digitaltsai@gmail.com > (Tsung-Han Tsai) N/A
+## MOD Description: Allows users to choose a theme from different sets of ranks or have a custom rank
+## MOD Version: 1.1.1
+## 
+## Installation Level: Moderate
+## Installation Time: 43 minutes
+## Files To Edit: language/lang_english/lang_admin.php
+##                language/lang_english/lang_main.php
+##                admin/admin_board.php
+##                admin/admin_ranks.php
+##                admin/admin_users.php
+##                viewtopic.php
+##                includes/constants.php
+##                includes/usercp_register.php
+##                includes/usercp_viewprofile.php
+##                templates/subSilver/admin/board_config_body.tpl
+##                templates/subSilver/admin/ranks_edit_body.tpl
+##                templates/subSilver/admin/ranks_list_body.tpl
+##                templates/subSilver/admin/user_edit_body.tpl
+##                templates/subSilver/profile_add_body.tpl
+## Included Files: admin_rank_themes.php
+##                 rank_themes_edit_body.tpl
+##                 rank_themes_list_body.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+## Generator: MOD Studio [ ModTemplateTools 1.0.2232.38226 ]
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: Probably will conflict with other ranking mods.
+## This MOD will install using EasyMOD!
+## This MOD is EasyMOD Friendly!
+## Use EasyMOD to install this MOD!
+##############################################################
+## MOD History:
+## 
+## 2006-04-20 - Version 1.1.1
+## -Made it work with phpBB v2.0.20 by changing the admin items.
+## -I can't make an update mod for this one because admin_ranks.php was changed too much.
+##
+## 2006-03-05 - Version 1.1.0d
+## -Fixed an error with the registering process. Founded by oldcqr.
+##
+## 2006-03-05 - Version 1.1.0
+## -Added custom ranking feature.
+## 
+## 2006-03-01 - Version 1.0.5
+## - Fixed some minor problems.
+## - Made the special and private ranking more clear.
+## - Thanks to jromz03 for helping clean up my coding.
+## 
+## 2005-04-01 - Version 1.0.1
+## - Made it so that registering users will have their ranking theme saved.
+## 
+## 2005-03-31 - Version 1.0.0
+## - First Stable release. Version 1.0.0 of a MOD is always it's first stable release.
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy admin_rank_themes.php to admin/admin_rank_themes.php
+copy rank_themes_edit_body.tpl to templates/subSilver/admin/rank_themes_edit_body.tpl
+copy rank_themes_list_body.tpl to templates/subSilver/admin/rank_themes_list_body.tpl
+#
+#-----[ SQL ]------------------------------------------
+#
+CREATE TABLE phpbb_rank_themes (
+	rtheme_id SMALLINT(5) NOT NULL AUTO_INCREMENT,
+	rtheme_title VARCHAR(50),
+	rtheme_public TINYINT(1) DEFAULT '0',
+	PRIMARY KEY (rtheme_id)
+	);
+INSERT INTO phpbb_rank_themes (rtheme_id, rtheme_title, rtheme_public) VALUES ('', 'Default', '1');
+INSERT INTO phpbb_rank_themes (rtheme_id, rtheme_title, rtheme_public) VALUES ('-1', 'Special', '0');
+ALTER TABLE phpbb_users ADD user_rank_theme INT(11) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_custom_rank_status SMALLINT(5) DEFAULT '0' NOT NULL;
+ALTER TABLE phpbb_users ADD user_custom_rank VARCHAR(50) DEFAULT '0' NOT NULL;
+ALTER TABLE phpbb_ranks ADD rank_theme SMALLINT(5) DEFAULT '1' NOT NULL;
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('custom_rank_posts', '99999');
+UPDATE phpbb_ranks SET rank_theme = -1 WHERE rank_special = 1;
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Allow_name_change'] = 'Allow Username changes';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Custom_rank_requirement'] = 'Custom Rank Requirement';
+$lang['Custom_rank_requirement_explain'] = 'This is the number of posts needed before a user can have a custom rank. If you wish for users to get ranking only by an admin assigning it, just set it as a ridiculously high number. A value of 0 means newly registered users will be able to have custom ranking.';
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// User Management
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Default'] = 'Default';
+$lang['Custom'] = 'Custom';
+$lang['Theme_custom_conflict'] = 'The user rank theme "Custom" and the permission of the custom ranking "Default" may not be set at the same time.';
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Rank_image_explain'] = 'Use this to define a small image associated with the rank';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Rank_theme'] = 'Rank Themes';
+$lang['Allow_custom_rank'] = 'Custom rank status';
+$lang['Allow_custom_rank_explain'] = 'If the custom rank status is set to default, then the user will be able to have a custom rank only if he has met the requirements set in the board configuration.';
+$lang['Custom_rank'] = 'Custom Rank';
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// Disallow Username Admin
+//
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//
+// Ranking Theme admin
+//
+$lang['Rank_Themes'] = 'Ranking Themes';
+
+$lang['Rthemes_title'] = 'Rank Theme Administration';
+$lang['Rthemes_explain'] = 'NOTE: You cannot edit or delete the default and special ranking theme.<br /><br />Using this form you can add, edit, view and delete ranking themes. You can also create custom rank themes which can be applied to a user via the user management facility';
+
+$lang['Add_new_rtheme'] = 'Add new rank theme';
+
+$lang['Rtheme_title'] = 'Theme Title';
+$lang['Rtheme_public'] = 'Allow public to select this';
+
+$lang['Must_select_rtheme'] = 'You must select a rank theme';
+$lang['No_assigned_rtheme'] = 'No special rank theme assigned';
+
+$lang['Rtheme_updated'] = 'The rank theme was successfully updated';
+$lang['Rtheme_added'] = 'The rank theme was successfully added';
+$lang['Rtheme_removed'] = 'The rank theme was successfully deleted';
+$lang['No_update_rthemes'] = 'The rank theme was successfully added/updated/deleted. However, user accounts using this rank were not updated.  You will need to manually reset the rank on these accounts';
+
+$lang['Click_return_rankthemeadmin'] = 'Click %sHere%s to return to Rank Theme Administration';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Website'] = 'Website';
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+$lang['Default'] = 'Default';
+$lang['Special'] = 'Special';
+$lang['Ranking'] = 'Ranking';
+$lang['Ranking_theme'] = 'Ranking Theme';
+$lang['Custom'] = 'Custom';
+$lang['Custom_rank'] = 'Custom Rank';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_ALLOW_NAME_CHANGE" => $lang['Allow_name_change'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	"L_CUSTOM_RANK_REQUIREMENT" => $lang['Custom_rank_requirement'],
+	"L_CUSTOM_RANK_REQUIREMENT_EXPLAIN" => $lang['Custom_rank_requirement_explain'],
+#
+#-----[ FIND ]------------------------------------------
+#
+	"SIG_SIZE" => $new['max_sig_chars'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	"CUSTOM_RANK_POSTS" => $new['custom_rank_posts'], 
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_ranks.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$s_hidden_fields = "";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$select_list = '<select name="rank_theme"><option value="1">' . $lang['Default'] . '</option>';
+
+		$sql = "SELECT *
+			FROM " . RANK_THEMES_TABLE . "
+			WHERE rtheme_id > 1
+			ORDER BY rtheme_title";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, "Couldn't obtain rank theme list", "", __LINE__, __FILE__, $sql);
+		}
+		
+		$rtheme_row = $db->sql_fetchrowset($result);
+		$db->sql_freeresult($result);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="id" value="' . $rank_id . '" />';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			for($i = 0; $i < count($rtheme_row); $i++)
+			{
+				$select_list .= '<option value="' . $rtheme_row[$i]['rtheme_id'] . '"';
+				if ( $rank_info['rank_theme'] == $rtheme_row[$i]['rtheme_id'] )
+				{
+					$select_list .= ' selected';
+				}
+				$select_list .='>' . $rtheme_row[$i]['rtheme_title'] . '</option>';
+			}
+#
+#-----[ FIND ]------------------------------------------
+#
+			$rank_info['rank_special'] = 0;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			for($i = 0; $i < count($rtheme_row); $i++)
+			{
+				$select_list .= '<option value="' . $rtheme_row[$i]['rtheme_id'] . '">' . $rtheme_row[$i]['rtheme_title'] . '</option>';
+			}
+#
+#-----[ FIND ]------------------------------------------
+#
+			"IMAGE_DISPLAY" => ( $rank_info['rank_image'] != "" ) ? '<img src="../' . $rank_info['rank_image'] . '" />' : "",
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			"RANK_THEMES" => $select_list,
+#
+#-----[ FIND ]------------------------------------------
+#
+			"L_RANK_IMAGE_EXPLAIN" => $lang['Rank_image_explain'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			"L_RANK_THEME" => $lang['Rank_theme'],
+#
+#-----[ FIND ]------------------------------------------
+#
+		$rank_image = ( (isset($HTTP_POST_VARS['rank_image'])) ) ? trim($HTTP_POST_VARS['rank_image']) : "";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$rank_theme = ( isset($HTTP_POST_VARS['rank_theme']) ) ? trim($HTTP_POST_VARS['rank_theme']) : "default";
+#
+#-----[ FIND ]------------------------------------------
+#
+			$min_posts = -1;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			$rank_theme = -1;
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ($rank_id)
+		{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			if ( $rank_theme != -1 )
+			{
+				$sql = "UPDATE " . USERS_TABLE . " 
+					SET user_rank_theme = '" . str_replace("\'", "''", $rank_theme) . "'
+					WHERE user_rank = $rank_id";
+			}
+			else
+			{
+				$sql = "UPDATE " . USERS_TABLE . " 
+					SET user_rank_theme = 1 
+					WHERE user_rank = $rank_id";
+			}
+			if( !$result = $db->sql_query($sql) ) 
+			{
+				message_die(GENERAL_ERROR, $lang['No_update_ranks'], "", __LINE__, __FILE__, $sql);
+			}
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "UPDATE " . RANKS_TABLE . "
+				SET rank_title = '" . str_replace("\'", "''", $rank_title) . "'
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, rank_image = '" . str_replace("\'", "''", $rank_image) . "'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, rank_theme = '" . str_replace("\'", "''", $rank_theme) . "'
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "INSERT INTO " . RANKS_TABLE . " (rank_title
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, rank_image
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, rank_theme
+#
+#-----[ FIND ]------------------------------------------
+#
+				VALUES ('" . str_replace("\'", "''", $rank_title) . "'
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, '" . str_replace("\'", "''", $rank_image) . "'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, '" . str_replace("\'", "''", $rank_theme) . "'
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT * FROM " . RANKS_TABLE . "
+	ORDER BY
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+rank_min
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+rank_theme, 
+#
+#-----[ FIND ]------------------------------------------
+#
+	"L_SPECIAL_RANK" => $lang['Rank_special'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	"L_RANK_THEME" => $lang['Rank_theme'],
+#
+#-----[ FIND ]------------------------------------------
+#
+	$rank_min = $rank_rows[$i]['rank_min'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	$rank_theme = $rank_rows[$i]['rank_theme'];
+
+	$sql = "SELECT * FROM " . RANK_THEMES_TABLE . "
+		WHERE rtheme_id = $rank_theme";
+	if(!$result = $db->sql_query($sql))
+	{
+		message_die(GENERAL_ERROR, "Couldn't obtain rank theme data", "", __LINE__, __FILE__, $sql);
+	}
+	$rtheme_info = $db->sql_fetchrow($result);
+	$rank_theme = $rtheme_info['rtheme_title'];
+#
+#-----[ FIND ]------------------------------------------
+#
+		$rank_min = $rank_max = "-";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$rank_theme = "-";
+#
+#-----[ FIND ]------------------------------------------
+#
+		"RANK_MIN" => $rank_min,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		"RANK_THEME" => $rank_theme,
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$signature = ( !empty($HTTP_POST_VARS['signature']) ) ? trim(str_replace('<br />', "\n", $HTTP_POST_VARS['signature'] ) ) : '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$user_custom_rank = ( !empty($HTTP_POST_VARS['user_custom_rank']) ) ? trim( $HTTP_POST_VARS['user_custom_rank'] ) : '';
+#
+#-----[ FIND ]------------------------------------------
+#
+		$user_rank = ( !empty($HTTP_POST_VARS['user_rank']) ) ? intval( $HTTP_POST_VARS['user_rank'] ) : 0;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$user_rank_theme = ( isset($HTTP_POST_VARS['user_rank_theme']) ) ? intval( $HTTP_POST_VARS['user_rank_theme'] ) : 1;
+		$user_custom_rank_status = ( isset($HTTP_POST_VARS['user_custom_rank_status']) ) ? intval( $HTTP_POST_VARS['user_custom_rank_status'] ) : '0';
+#
+#-----[ FIND ]------------------------------------------
+#
+			$signature = htmlspecialchars(stripslashes($signature));
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			$user_custom_rank = htmlspecialchars(stripslashes($user_custom_rank));
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ($signature != '')
+		{
+			$sig_length_check = preg_replace('/(\[.*?)(=.*?)\]/is', '\\1]', stripslashes($signature));
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+		if ( $user_custom_rank_status == 0 && $user_rank_theme == -1 )
+		{
+			$error = TRUE;
+			$error_msg .=  ( ( isset($error_msg) ) ? '<br />' : '' ) . $lang['Theme_custom_conflict'];
+		}
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_rank = $user_rank
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_rank_theme = $user_rank_theme, user_custom_rank_status = $user_custom_rank_status, user_custom_rank = '" . str_replace("\'", "''", $user_custom_rank) . "'
+#
+#-----[ FIND ]------------------------------------------
+#
+			$signature = htmlspecialchars(stripslashes($signature));
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			$user_custom_rank = htmlspecialchars(stripslashes($user_custom_rank));
+#
+#-----[ FIND ]------------------------------------------
+#
+		$interests = htmlspecialchars($this_userdata['user_interests']);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$user_rank_theme = $this_userdata['user_rank_theme'];
+		$user_custom_rank_status = $this_userdata['user_custom_rank_status'];
+		$user_custom_rank = htmlspecialchars($this_userdata['user_custom_rank']);
+#
+#-----[ FIND ]------------------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="user_rank" value="' . $user_rank . '" />';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="user_rank_theme" value="' . $user_rank_theme . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="user_custom_rank_status" value="' . $user_custom_rank_status . '" />';
+			$s_hidden_fields .= '<input type="hidden" name="user_custom_rank" value="' . $user_custom_rank . '" />';
+#
+#-----[ FIND ]------------------------------------------
+#
+			$selected = ( $this_userdata['user_rank'] == $rank_id ) ? ' selected="selected"' : '';
+			$rank_select_box .= '<option value="' . $rank_id . '"' . $selected . '>' . $rank . '</option>';
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		//Ranking Themes
+		$rtheme_select_box = '<option value="1"';
+		if ( $user_rank_theme == 1 )
+		{
+			$rtheme_select_box .= 'selected';
+		}
+		$rtheme_select_box .= '>' . $lang['Default'] . '</option>';
+
+		$sql = "SELECT * FROM " . RANK_THEMES_TABLE . "
+			WHERE rtheme_id > 1
+			ORDER BY rtheme_title";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain ranks data', '', __LINE__, __FILE__, $sql);
+		}
+		$rtheme_row = $db->sql_fetchrowset($result);
+
+		for($i = 0; $i < count($rtheme_row); $i++)
+		{
+			$rtheme_select_box .= '<option value="' . $rtheme_row[$i]['rtheme_id'] . '"';
+			if ( $user_rank_theme == $rtheme_row[$i]['rtheme_id'] )
+			{
+				$rtheme_select_box .= ' selected';
+			}
+			$rtheme_select_box .='>' . $rtheme_row[$i]['rtheme_title'] . '</option>';
+		}
+
+		$rtheme_select_box .= '<option value="-1"';
+		if ( $user_rank_theme == -1 )
+		{
+			$rtheme_select_box .= 'selected';
+		}
+		$rtheme_select_box .= '>' . $lang['Custom'] . '</option>';
+#
+#-----[ FIND ]------------------------------------------
+#
+			'RANK_SELECT_BOX' => $rank_select_box,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'RANK_THEME_SELECT_BOX' => $rtheme_select_box,
+			'ALLOW_CUSTOM_RANK_NO' => ($user_custom_rank_status == -1) ? 'checked="checked"' : '',
+			'ALLOW_CUSTOM_RANK_DEFAULT' => (!$user_custom_rank_status) ? 'checked="checked"' : '',
+			'ALLOW_CUSTOM_RANK_YES' => ($user_custom_rank_status == 1) ? 'checked="checked"' : '',
+			'CUSTOM_RANK' => $user_custom_rank, 
+#
+#-----[ FIND ]------------------------------------------
+#
+			'L_SELECT_RANK' => $lang['Rank_title'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'L_SELECT_RANK_THEME' => $lang['Rtheme_title'],
+			'L_CUSTOM_RANK' => $lang['Custom_rank'],
+			'L_ALLOW_CUSTOM_RANK' => $lang['Allow_custom_rank'],
+			'L_ALLOW_CUSTOM_RANK_EXPLAIN' => $lang['Allow_custom_rank_explain'],
+			'L_DEFAULT' => $lang['Default'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT u.username
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, u.user_rank
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, u.user_rank_theme, u.user_custom_rank_status, u.user_custom_rank
+#
+#-----[ FIND ]------------------------------------------
+#
+	else
+	{
+		for($j = 0; $j < count($ranksrow); $j++)
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	else if ( $postrow[$i]['user_rank_theme'] == -1 && ( ( !$postrow[$i]['user_custom_rank_status'] && $postrow[$i]['user_posts'] >= $board_config['custom_rank_posts'] ) || $postrow[$i]['user_custom_rank_status'] ) )
+	{
+		$poster_rank = $postrow[$i]['user_custom_rank'];
+	}
+#
+#-----[ FIND ]------------------------------------------
+#
+			if ( $postrow[$i]['user_posts'] >= $ranksrow[$j]['rank_min']
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+!$ranksrow[$j]['rank_special']
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ && $postrow[$i]['user_rank_theme'] == $ranksrow[$j]['rank_theme']
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------
+#
+define('RANKS_TABLE', $table_prefix.'ranks');
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+define('RANK_THEMES_TABLE', $table_prefix.'rank_themes');
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	$strip_var_list = array
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'email' => 'email',
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ 'custom_rank' => 'custom_rank',
+#
+#-----[ FIND ]------------------------------------------
+#
+	$user_style = ( isset($HTTP_POST_VARS['style']) ) ? intval($HTTP_POST_VARS['style']) : $board_config['default_style'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	$rank_theme = ( isset($HTTP_POST_VARS['rank_theme']) ) ? intval($HTTP_POST_VARS['rank_theme']) : 1;
+#
+#-----[ FIND ]------------------------------------------
+#
+		$signature = htmlspecialchars(stripslashes($signature));
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$custom_rank = stripslashes($custom_rank);
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_style = $user_style
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_rank_theme = '" . str_replace("\'", "''", $rank_theme) . "', user_custom_rank = '" . str_replace("\'", "''", $custom_rank) . "'
+#
+#-----[ FIND ]------------------------------------------
+#
+			//
+			// Get current date
+			//
+			$sql = "INSERT INTO " . USERS_TABLE . "	(user_id
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_icq
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_rank_theme, user_custom_rank
+#
+#-----[ FIND ]------------------------------------------
+#
+				VALUES ($user_id, '" . str_replace("\'", "''", $username) . "'
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, '" . str_replace("\'", "''", $icq) . "'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, '" . str_replace("\'", "''", $rank_theme) . "', '" . str_replace("\'", "''", $custom_rank) . "'
+#
+#-----[ FIND ]------------------------------------------
+#
+	$icq = $userdata['user_icq'];
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	$rank_id = $userdata['user_rank'];
+	$rank_theme = $userdata['user_rank_theme'];
+	$custom_rank = $userdata['user_custom_rank'];
+#
+#-----[ FIND ]------------------------------------------
+#
+		$s_hidden_fields .= '<input type="hidden" name="confirm_id" value="' . $confirm_id . '" />';
+
+		$template->assign_block_vars('switch_confirm', array());
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	// Ranking Themes Logic Summary
+	// If editting profile and has assigned ranking
+		// Show only special ranking option
+	// ElseIf admin disallows user to have custom rank but assigns the ranking theme "custom"
+		// Show only custom option
+	// Else
+		// If User has a private ranking theme
+			// Show only the private ranking theme option
+		// Else
+			// Show all options
+			// If User meets custom rank requirements and/or is allowed by admin to have custom rank
+				// Add custom option
+
+	if ( $mode == 'editprofile' && $rank_id != 0)
+	{
+		$rtheme_select_box = '<option value="' . $rank_theme . '">' . $lang['Special'] . '</option>';
+		$template->assign_block_vars('switch_custom_rank_disallowed', array());
+	}
+	else if ( $userdata['user_custom_rank_status'] == -1 && $rank_theme == -1 )
+	{
+		$rtheme_select_box = '<option value="' . $rank_theme . '">' . $lang['Custom'] . '</option>';
+		$custom_rank_type = 'hidden';
+		$template->assign_block_vars('switch_custom_rank_disallowed', array());
+	}
+	else
+	{
+		//Default Ranking Theme
+		$rtheme_select_box = '<option value="1"';
+		if ( $rank_theme == 1 )
+		{
+			$rtheme_select_box .= 'selected';
+		}
+		$rtheme_select_box .= '>' . $lang['Default'] . '</option>';
+
+		//Get Ranking Theme Data
+		$sql = "SELECT * FROM " . RANK_THEMES_TABLE . "
+			WHERE rtheme_id > 1
+			ORDER BY rtheme_title";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain ranks data', '', __LINE__, __FILE__, $sql);
+		}
+		$rtheme_row = $db->sql_fetchrowset($result);
+		$private = 0;
+		for($i = 0; $i < count($rtheme_row); $i++)
+		{
+			if ( $rtheme_row[$i]['rtheme_public'] == 0 && $rtheme_row[$i]['rtheme_id'] == $rank_theme )
+			{
+				$rtheme_select_box = '<option value="' . $rtheme_row[$i]['rtheme_id'] . '" selected>' . $rtheme_row[$i]['rtheme_title'] . '</option>';
+				$i = count($rtheme_row);
+				$private = 1;
+			}
+			elseif ( $rtheme_row[$i]['rtheme_public'] == 1 || $rtheme_row[$i]['rtheme_id'] == $rank_theme )
+			{
+				$rtheme_select_box .= '<option value="' . $rtheme_row[$i]['rtheme_id'] . '"';
+				if ( $rank_theme == $rtheme_row[$i]['rtheme_id'] )
+				{
+					$rtheme_select_box .= ' selected';
+				}
+				$rtheme_select_box .='>' . $rtheme_row[$i]['rtheme_title'] . '</option>';
+			}
+		}
+		if ( ( ($userdata['user_custom_rank_status'] == 0 && $userdata['user_posts'] >= $board_config['custom_rank_posts'] ) || $userdata['user_custom_rank_status'] == 1) && $private == 0)
+		{
+			$rtheme_select_box .= '<option value="-1"';
+			if ( $rank_theme == -1 )
+			{
+				$rtheme_select_box .= ' selected';
+			}
+			$rtheme_select_box .='>' . $lang['Custom'] . '</option>';
+			$custom_rank_type = 'text';
+			$template->assign_block_vars('switch_custom_rank_allowed', array());
+		}
+		else
+		{
+			$template->assign_block_vars('switch_custom_rank_disallowed', array());
+		}
+	}
+	// End Ranking Themes
+#
+#-----[ FIND ]------------------------------------------
+#
+		'SMILIES_STATUS' => $smilies_status,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'RANK_THEME_SELECT_BOX' => $rtheme_select_box,
+		'CUSTOM_RANK' => $custom_rank,
+		'CUSTOM_RANK_TYPE' => $custom_rank_type,
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_ALWAYS_ADD_SIGNATURE' => $lang['Always_add_sig'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'L_RANK' => $lang['Ranking'],
+		'L_RANKING_THEME' => $lang['Ranking_theme'],
+		'L_CUSTOM_RANK' => $lang['Custom_rank'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------
+#
+else
+{
+	for($i = 0; $i < count($ranksrow); $i++)
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	else if ( $profiledata['rank_theme'] == -1 && ( ( !$profiledata['user_custom_rank_status'] && $profiledata['user_posts'] >= $board_config['custom_rank_posts'] ) || $profiledata['user_custom_rank_status'] ) )
+	{
+		$poster_rank = $profiledata['user_custom_rank'];
+	}
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ( $profiledata['user_posts'] >= $ranksrow[$i]['rank_min']
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+!$ranksrow[$i]['rank_special']
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ && $profiledata['user_rank_theme'] == $ranksrow[$i]['rank_theme']
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ALLOW_NAME_CHANGE}</td>
+		<td class="row2"><input type="radio" name="allow_namechange" value="1" {NAMECHANGE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_namechange" value="0" {NAMECHANGE_NO} /> {L_NO}</td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_CUSTOM_RANK_REQUIREMENT}<br /><span class="gensmall">{L_CUSTOM_RANK_REQUIREMENT_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="5" maxlength="4" name="custom_rank_posts" value="{CUSTOM_RANK_POSTS}" /></td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/ranks_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1" width="38%"><span class="gen">{L_RANK_IMAGE}:</span><br />
+		<span class="gensmall">{L_RANK_IMAGE_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" name="rank_image" size="40" maxlength="255" value="{IMAGE}" /><br />{IMAGE_DISPLAY}</td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1" width="38%"><span class="gen">{L_RANK_THEME}:</span></td>
+		<td class="row2">{RANK_THEMES}</td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/ranks_list_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<th class="thTop">{L_SPECIAL_RANK}</th>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<th class="thTop">{L_RANK_THEME}</th>
+#
+#-----[ FIND ]------------------------------------------
+#
+		<td class="{ranks.ROW_CLASS}" align="center">{ranks.SPECIAL_RANK}</td>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<td class="{ranks.ROW_CLASS}" align="center">{ranks.RANK_THEME}</td>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1"><span class="gen">{L_SELECT_RANK}</span></td>
+		<td class="row2"><select name="user_rank">{RANK_SELECT_BOX}</select></td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1"><span class="gen">{L_SELECT_RANK_THEME}</span></td>
+		<td class="row2"><select name="user_rank_theme">{RANK_THEME_SELECT_BOX}</select></td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_ALLOW_CUSTOM_RANK}</span><br />
+		<span class="gensmall">{L_ALLOW_CUSTOM_RANK_EXPLAIN}</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="user_custom_rank_status" value="-1" {ALLOW_CUSTOM_RANK_NO} />
+		<span class="gen">{L_NO}</span>&nbsp;&nbsp; 
+		<input type="radio" name="user_custom_rank_status" value="0" {ALLOW_CUSTOM_RANK_DEFAULT} />
+		<span class="gen">{L_DEFAULT}</span>&nbsp;&nbsp; 
+		<input type="radio" name="user_custom_rank_status" value="1" {ALLOW_CUSTOM_RANK_YES} />
+		<span class="gen">{L_YES}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row1"><span class="gen">{L_CUSTOM_RANK}:</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 200px"  name="user_custom_rank" size="25" maxlength="50" value="{CUSTOM_RANK}" />
+	  </td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<!-- END switch_confirm -->
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<!-- BEGIN switch_custom_rank_allowed -->
+	<tr>
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_RANK}</th>
+	</tr>
+	<tr>
+	  <td class="row1"><span class="gen">{L_RANKING_THEME}:</span></td>
+	  <td class="row2"><select name="rank_theme">{RANK_THEME_SELECT_BOX}</select></td>
+	</tr>
+	<tr>
+	  <td class="row1"><span class="gen">{L_CUSTOM_RANK}:</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 200px"  name="custom_rank" size="25" maxlength="50" value="{CUSTOM_RANK}" />
+	  </td>
+	</tr>
+	<!-- END switch_custom_rank_allowed -->
+	<!-- BEGIN switch_custom_rank_disallowed -->
+	<tr>
+	  <td class="catSides" colspan="2" height="28">&nbsp;</td>
+	</tr>
+	<tr> 
+	  <th class="thSides" colspan="2" height="25" valign="middle">{L_RANK}<input type="hidden" class="post" name="custom_rank" value="{CUSTOM_RANK}" /></th>
+	</tr>
+	<tr>
+	  <td class="row1"><span class="gen">{L_RANKING_THEME}:</span></td>
+	  <td class="row2"><select name="rank_theme">{RANK_THEME_SELECT_BOX}</select></td>
+	</tr>
+	<!-- END switch_custom_rank_disallowed -->
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

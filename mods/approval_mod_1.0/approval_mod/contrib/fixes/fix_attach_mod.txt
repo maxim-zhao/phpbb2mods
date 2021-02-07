@@ -1,0 +1,187 @@
+##########################################################[easymod friendly]###
+## MOD Title: Compatibility fix for Approval MOD / Attachment MOD
+##
+## MOD Author: uncle.f < soft@purple-yonder.com > (N/A) http://purple-yonder.com/approval_mod
+##
+## MOD Description: Compatibility fix for Attachment MOD v2.4.5
+##                  Should be installed after the Approval MOD.
+##                  Enables proper handling of the attachments for
+##                  unapproved posts
+##
+## MOD Version: 2.0.0.attachment-mod-fix
+##
+## Installation Level: Easy
+##
+## Installation Time: 7 Minutes
+##
+## Files To Edit: attach_mod/displaying.php,
+##      viewforum.php,
+##      viewtopic.php
+##
+## Included Files: n/a
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+###############################################################################
+##
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##
+###############################################################################
+##
+## Author Notes:
+##
+## - This fix should be applied only if you have the Attachment MOD v2.4.5
+##   installed (http://www.phpbb.com/community/viewtopic.php?t=74505)
+##
+###############################################################################
+##
+## MOD History:
+##
+##   2007-10-20 - Fix released
+##
+###############################################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+###############################################################################
+
+
+#######################################################################################################################
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+attach_mod/displaying.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+/
+*
+*
+function display_post_attachments
+#
+#-----[ BEFORE, ADD ]-----------------
+#
+/**
+* Returns the image-tag for the topic image icon (modified for approval_mod)
+*/
+function topic_attachment_image_approve($topic_rowset)
+{
+	global $attach_config, $is_auth, $db, $forum_id, $topic_id, $userdata, $approve_hide, $allowed_to_approve;
+
+	static $postdata = null;
+
+	$switch_attachment = $topic_rowset['topic_attachment'];
+
+	if (intval($switch_attachment) == 0)
+	{
+		return '';
+	}
+
+	if (!$topic_rowset['topic_approve'] && !$topic_rowset['topic_replies_unapproved'] || $allowed_to_approve)
+	{
+		return topic_attachment_image($switch_attachment);
+	}
+
+	if ($postdata === NULL)
+	{
+		//
+		// We'll do this query only once per page load
+		// as the result will be cached in a static variable!
+		//
+		$sql = "SELECT topic_id, poster_id, post_approve
+			FROM " . POSTS_TABLE . "
+			WHERE forum_id = $forum_id
+			AND post_attachment = 1";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, "Could not obtain approval/attachment information.", '', __LINE__, __FILE__, $sql);
+		}
+
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$postdata[$row['topic_id']][] = array('poster_id' => $row['poster_id'], 'post_approve' => $row['post_approve']);
+		}
+		$db->sql_freeresult($result);
+	}
+
+	if (!empty($postdata[$topic_id]))
+	{
+		foreach ($postdata[$topic_id] as $post)
+		{
+			if (!$post['post_approve'] || (!$approve_hide && $post['poster_id'] == $userdata['user_id'] && $userdata['user_id'] != ANONYMOUS))
+			{
+				return topic_attachment_image($switch_attachment);
+			}
+		}
+	}
+
+	return '';
+}
+
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+viewforum.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+			'TOPIC_ATTACHMENT_IMG' => topic_attachment_image($topic_rowset[$i]['topic_attachment']),
+#
+#-----[ REPLACE WITH ]-----
+#
+			'TOPIC_ATTACHMENT_IMG' => topic_attachment_image_approve($topic_rowset[$i]),
+#
+#-----[ OPEN ]---------------------------------------------------------------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]---------------------------------------------
+#
+if ( $postrow[$i]['post_approve'] )
+#
+#-----[ BEFORE, ADD ]-----
+#
+	$show_attachment = true;
+#
+#-----[ FIND ]---------------------------------------------
+#
+$post_subject = '<span class="topicUnapproved">'
+#
+#-----[ AFTER, ADD ]-----
+#
+			$show_attachment = false;
+#
+#-----[ FIND ]---------------------------------------------
+#
+		$message = $lang['Approval_unapproved_text'];
+		$quote_img = '';
+		$quote = '';
+#
+#-----[ AFTER, ADD ]-----
+#
+		$show_attachment = false;
+#
+#-----[ FIND ]---------------------------------------------
+#
+	display_post_attachments($postrow[$i]['post_id'], $postrow[$i]['post_attachment']);
+#
+#-----[ BEFORE, ADD ]-----
+#
+	if ($show_attachment) {
+#
+#-----[ AFTER, ADD]---------------------------------------------
+#
+	}
+#
+#
+#######################################################################################################################
+#
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------------------------
+#
+# EoM

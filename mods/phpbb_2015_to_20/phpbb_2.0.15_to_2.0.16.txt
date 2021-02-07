@@ -1,0 +1,235 @@
+################################################################# 
+## MOD Title: phpBB 2.0.15 to phpBB 2.0.16 Code Changes
+## MOD Author: Acyd Burn < N/A > (Meik Sievertsen) N/A 
+## MOD Description: 
+##		
+##		
+##		These are the Changes from phpBB 2.0.15 to phpBB 2.0.16 summed up into a little
+##		Mod. This might be very helpful if you want to update your Board and have
+##		installed a bunch of Mods. Then it's normally easier to apply the Code Changes
+##		than to install all Mods again.
+##		
+##		When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last
+##		line quoted in the 'FIND'-Statement.
+##		When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the
+##		first line quoted in the 'FIND'-Statement.
+##		When you find a 'REPLACE WITH'-Statement, the Code quoted in the
+##		'FIND'-Statement have to be replaced completely with the quoted Code in the
+##		'REPLACE WITH'-Statement.
+##		
+##		After you have finished this tutorial, you have to upload the
+##		install/update_to_latest.php file, execute it and then delete it from your
+##		webspace.
+##		
+##		
+##		
+## MOD Version: 1.0.0 
+## 
+## Installation Level: Easy
+## Installation Time: 5-10 Minutes 
+## Files To Edit: 
+##		admin/admin_ug_auth.php
+##		admin/pagestart.php
+##		includes/bbcode.php
+##		includes/usercp_avatar.php
+##		includes/usercp_register.php
+##		modcp.php
+##		viewtopic.php
+##
+## Included Files: install/update_to_latest.php
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+##	
+############################################################## 
+## MOD History: 
+## 
+##   2005-06-26 - Version 1.0.0 
+##      - first release 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+admin/admin_ug_auth.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 809
+	@reset($auth_user);
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+//	@reset($auth_user);
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+admin/pagestart.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 43
+	redirect(append_sid("login.$phpEx?redirect=admin/", true));
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	redirect(append_sid("login.$phpEx?redirect=admin/index.$phpEx", true));
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 64
+	redirect(append_sid("login.$phpEx?redirect=admin/&admin=1", true));
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	redirect(append_sid("login.$phpEx?redirect=admin/index.$phpEx&admin=1", true));
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/bbcode.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 211
+	$patterns[] = "#\[url=([\w]+?://[^ \"\n\r\t<]*?)\]([^?].*?)\[/url\]#i";
+	$replacements[] = $bbcode_tpl['url3'];
+  
+	// [url=www.phpbb.com]phpBB[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url=((www|ftp)\.[^ \"\n\r\t<]*?)\]([^?].*?)\[/url\]#i";
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	$patterns[] = "#\[url=([\w]+?://[^ \"\n\r\t<]*?)\]([^?\n\r\t].*?)\[/url\]#is";
+	$replacements[] = $bbcode_tpl['url3'];
+
+	// [url=www.phpbb.com]phpBB[/url] code.. (no xxxx:// prefix).
+	$patterns[] = "#\[url=((www|ftp)\.[^ \"\n\r\t<]*?)\]([^?\n\r\t].*?)\[/url\]#is";
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/usercp_avatar.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 202
+	if ( $width <= $board_config['avatar_max_width'] && $height <= $board_config['avatar_max_height'] )
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+	if ( $width > 0 && $height > 0 && $width <= $board_config['avatar_max_width'] && $height <= $board_config['avatar_max_height'] )
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+includes/usercp_register.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 455
+		$avatar_sql = user_avatar_delete($userdata['user_avatar_type'], $userdata['user_avatar']);
+	}
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+	else
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+modcp.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 466
+			$new_forum_id = intval($HTTP_POST_VARS['new_forum']);
+			$old_forum_id = $forum_id;
+
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+			$sql = 'SELECT forum_id FROM ' . FORUMS_TABLE . '
+				WHERE forum_id = ' . $new_forum_id;
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not select from forums table', '', __LINE__, __FILE__, $sql);
+			}
+			
+			if (!$db->sql_fetchrow($result))
+			{
+				message_die(GENERAL_MESSAGE, 'New forum does not exist');
+			}
+
+			$db->sql_freeresult($result);
+
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 773
+				$new_forum_id = intval($HTTP_POST_VARS['new_forum_id']);
+				$topic_time = time();
+				
+
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# 
+				$sql = 'SELECT forum_id FROM ' . FORUMS_TABLE . '
+					WHERE forum_id = ' . $new_forum_id;
+				if ( !($result = $db->sql_query($sql)) )
+				{
+					message_die(GENERAL_ERROR, 'Could not select from forums table', '', __LINE__, __FILE__, $sql);
+				}
+			
+				if (!$db->sql_fetchrow($result))
+				{
+					message_die(GENERAL_MESSAGE, 'New forum does not exist');
+				}
+
+				$db->sql_freeresult($result);
+
+
+
+# 
+#-----[ OPEN ]--------------------------------------------- 
+# 
+viewtopic.php
+
+#
+#-----[ FIND ]---------------------------------------------
+# Line 1110
+		$message = str_replace('\"', '"', substr(@preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "@preg_replace('#\b(" . str_replace('\\', '\\\\', $highlight_match) . ")\b#i', '<span style=\"color:#" . $theme['fontcolor3'] . "\"><b>\\\\1</b></span>', '\\0')", '>' . $message . '<'), 1, -1));
+
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+# 
+		$message = str_replace('\"', '"', substr(@preg_replace('#(\>(((?>([^><]+|(?R)))*)\<))#se', "@preg_replace('#\b(" . str_replace('\\', '\\\\', addslashes($highlight_match)) . ")\b#i', '<span style=\"color:#" . $theme['fontcolor3'] . "\"><b>\\\\1</b></span>', '\\0')", '>' . $message . '<'), 1, -1));
+
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+
+# EoM

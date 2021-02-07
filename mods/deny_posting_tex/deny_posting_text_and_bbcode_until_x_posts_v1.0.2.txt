@@ -1,0 +1,218 @@
+##############################################################
+## MOD Title: Deny Posting Text and BBcode Until x Posts
+## MOD Author: alexi02 < N/A > (Alejandro Iannuzzi) http://www.uzzisoft.com
+## MOD Description: If the user is below the post restriction and they post any text in the text list or use BBcode then their post is denied from being posted
+## MOD Version: 1.0.2
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+## Files To Edit: includes/functions_post.php
+##                language/lang_english/lang_main.php
+##                language/lang_english/lang_admin.php
+## Included Files: admin/admin_deny_text_and_bbcode.php
+##                 templates/subSilver/admin/deny_text_and_bbcode.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##      A quick solution to stop those spammers who post URLs on their first post.
+##
+##############################################################
+## MOD History:
+##
+##  2007-01-23 - Version 1.0.2
+##      - Fixed BBcode error message that always appeared
+##
+##  2006-11-16 - Version 1.0.1
+##      - Using sprintf() instead of preg_replace()
+##      - Removed 'Delete' and 'Information' language entries as they are already in phpBB
+##      - Changed <BR /> to <br /> in the tpl file
+##      - Using intval instead of htmlspecialchars on the id
+##      - Changed some brackets to be on newlines
+##      - Added addslashes() to correctly insert \ and ' values
+##      - Using bbencode_second_pass() and comparing it to the original message for any bbcode changes
+##      - Added Admin checking so their posts aren't been checked for text or BBcode
+##
+##  2006-11-03 - Version 1.0.0
+##      - Improved the code
+##
+##  2006-09-26 - Version 0.3.0
+##      - Text List in ACP improved
+##
+##  2006-09-26 - Version 0.2.0
+##      - ACP added
+##
+##  2006-09-23 - Version 0.1.0
+##      - Initial Release (for phpBB 2.0.21)
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# Change phpbb_ to your table prefix
+#
+INSERT INTO `phpbb_config` (`config_name`, `config_value`) VALUES ('deny_status', '0');
+INSERT INTO `phpbb_config` (`config_name`, `config_value`) VALUES ('deny_text', '0');
+INSERT INTO `phpbb_config` (`config_name`, `config_value`) VALUES ('deny_bbcode', '0');
+INSERT INTO `phpbb_config` (`config_name`, `config_value`) VALUES ('deny_post_restrict', '1');
+
+#
+#-----[ COPY ]------------------------------------------ 
+#
+copy root/admin/admin_deny_text_and_bbcode.php to admin/admin_deny_text_and_bbcode.php
+copy root/templates/subSilver/admin/deny_text_and_bbcode.tpl to templates/subSilver/admin/deny_text_and_bbcode.tpl
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+global $userdata, $user_ip;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+        //
+        // Start Deny Posting Text and BBcode until x posts
+        //
+
+        // If enabled and the user is under the post restriction
+        if ($board_config['deny_status'] == 1 && $userdata['user_posts'] < $board_config['deny_post_restrict'] && $userdata['user_level'] != ADMIN) {
+
+           // If text to deny has some text
+           if ($board_config['deny_text']) {
+
+              // Split the text to deny
+              $deny_text = explode("\n",$board_config['deny_text']);
+
+              // Search for deny text in Post
+              for ($x = 0; $x < count($deny_text); $x++) {
+                 if (stristr($post_message,$deny_text[$x])) {
+
+                    $deny_text_error = sprintf($lang['Deny_text_bbcode_error_text'],$deny_text[$x],$board_config['deny_post_restrict']);
+
+                    message_die(GENERAL_MESSAGE, $deny_text_error);
+                 }
+              }
+           }
+
+           // If Disable BBcode is enabled
+           if ($board_config['deny_bbcode'] == 1) {
+
+              // Check if post message is not the same after bbencode_second_pass()
+              // The message will be changed if there is some bbcode and that's
+              // how we know if there was BBcode in the message
+
+              $bbencode_message = bbencode_second_pass($post_message, $bbcode_uid);
+
+              if ($post_message != $bbencode_message) {
+                 $bbcode_error = sprintf($lang['Deny_text_bbcode_error_bbcode'], $board_config['deny_post_restrict']);
+
+                 message_die(GENERAL_MESSAGE, $bbcode_error);
+              }
+           }
+        }
+
+        //
+        // End Deny Posting Text and BBcode until x posts
+        //
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//
+// Start Deny Posting Text and BBcode until x posts
+//
+
+$lang['Deny_Posting_Text_and_BBcode'] = 'Deny Posting Text and BBcode';
+
+$lang['Deny_text_bbcode_title'] = 'Deny Posting Specific Text and BBcode Until x Posts';
+$lang['Deny_text_bbcode_explain'] = 'From this control panel you can change the text that won\'t be allowed to be posted as well as whether they are allowed to use BBcode in their post. These rules won\'t apply for users who have posted more or equal to the post restriction specified by you.';
+
+$lang['Deny_text_bbcode_settings_title'] = 'Settings';
+$lang['Deny_text_bbcode_status_text'] = 'Status';
+$lang['Deny_text_bbcode_bbcode_text'] = 'Disallow BBcode';
+$lang['Deny_text_bbcode_bbcode_explain'] = 'If enabled, users won\'t be able to post BBcode.';
+$lang['Deny_text_bbcode_restriction_text'] = 'Post Restriction';
+$lang['Deny_text_bbcode_restriction_explain'] = 'Users below this amount of posts won\'t be allowed <BR/>to post text in the Text List or BBcode (if enabled).';
+$lang['Deny_text_bbcode_text'] = 'Text';
+$lang['Deny_text_bbcode_add_text'] = 'Add New Text';
+$lang['Deny_text_bbcode_action_text'] = 'Action';
+
+$lang['Deny_text_bbcode_error_input_post_restriction'] = 'Deny Posting Specific Text and BBcode Until x Posts can\'t be enabled: You need to input the post restriction.';
+$lang['Deny_text_bbcode_error_more_than_zero'] = 'must be more than 0.';
+$lang['Deny_text_bbcode_error_id'] = 'Invalid Text ID.';
+$lang['Deny_text_bbcode_success_update'] = 'Settings have been updated.';
+$lang['Deny_text_bbcode_success_submit'] = 'Text "%s" has been added.';
+$lang['Deny_text_bbcode_success_delete'] = 'Text "%s" has been removed.';
+
+$lang['Deny_text_bbcode_enabled'] = 'Enabled';
+$lang['Deny_text_bbcode_disabled'] = 'Disabled';
+$lang['Deny_text_bbcode_submit'] = 'Submit';
+$lang['Deny_text_bbcode_update'] = 'Update';
+$lang['Deny_text_bbcode_reset'] = 'Reset';
+
+//
+// End Deny Posting Text and BBcode until x posts
+//
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+
+?>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//
+// Start Deny Posting Text and BBcode until x posts
+//
+
+$lang['Deny_text_bbcode_error_text'] = 'The text "%s" is not allowed until you have made %d posts.';
+$lang['Deny_text_bbcode_error_bbcode'] = 'BBcode is not allowed until you have made %d posts.';
+
+//
+// End Deny Posting Text and BBcode until x posts
+//
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

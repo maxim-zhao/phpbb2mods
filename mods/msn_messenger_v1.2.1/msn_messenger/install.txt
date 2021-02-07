@@ -1,0 +1,384 @@
+##############################################################
+## MOD Title: MSN Messenger
+## MOD Author: kkroo < princeomz2004@hotmail.com > (Omar Ramadan) http://phpbb-login.sourceforge.net
+## MOD Description: While viewing a profile, the MSN Messenger field will no longer be the boring plain text, now it will be an image resembling the user's MSN online status linking to an MSN conversation with them. It will also allow you to add the user to your MSN buddy list.
+## MOD Version: 1.2.1
+## 
+## Installation Level: Easy
+## Installation Time: 5 minutes
+## Files To Edit: includes/usercp_viewprofile.php
+##                language/lang_english/lang_admin.php
+##                language/lang_english/lang_main.php
+##                templates/subSilver/profile_view_body.tpl
+##                templates/subSilver/overall_header.tpl
+##                templates/subSilver/subSilver.cfg
+##                includes/page_header.php
+##                viewtopic.php
+##                privmsg.php
+## Included Files: root/admin/admin_msn.php
+##                 root/templates/subSilver/admin/admin_msn.tpl
+##                 root/templates/subSilver/images/lang_english/icon_msn_add.gif
+##                 root/templates/subSilver/images/lang_english/icon_msn_offline.gif
+##                 root/templates/subSilver/images/lang_english/icon_msn_online.gif
+##                 root/templates/subSilver/images/lang_english/icon_msn_unknown.gif
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: The online status server is configurable in the admin section. It would be highly appreciated if you linked to my site, http://phpbb-login.sourceforge.net. For a list of online status servers, look at this http://www.onlinestatus.org/usage.php
+##############################################################
+## MOD History:
+## 
+## 2006-09-28 - Version 1.2.1
+## Fixed XSS vulnerability.
+## 
+## 2006-09-02 - Version 1.2.0
+## Changed the javascript code to the msnim protocol so that it can support browsers other than IE. I also added an email validator and a new list of online status servers.
+## 
+## 2006-07-01 - Version 1.1.0
+## Edited a few items in the sourcecode.
+## 
+## 2006-04-04 - Version 1.0.1
+## Edited bug with image path.
+## 
+## 2006-03-17 - Version 1.0.0
+## Edited small bug, ready to submit to DB.
+##
+## 2006-02-24 - Version 0.0.1
+## Added a variable that will allow the MOD to work on templates with different color schemes, and I removed the link to the online status server, and made the script just start a conversation from the current page.
+##  
+## 2006-02-22 - Version 0.0.0
+## MOD Released
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy root/admin/admin_msn.php to admin/admin_msn.php
+copy root/templates/subSilver/admin/admin_msn.tpl to templates/subSilver/admin/admin_msn.tpl
+copy root/templates/subSilver/images/lang_english/icon_msn_add.gif to templates/subSilver/images/lang_english/icon_msn_add.gif
+copy root/templates/subSilver/images/lang_english/icon_msn_offline.gif to templates/subSilver/images/lang_english/icon_msn_offline.gif
+copy root/templates/subSilver/images/lang_english/icon_msn_online.gif to templates/subSilver/images/lang_english/icon_msn_online.gif
+copy root/templates/subSilver/images/lang_english/icon_msn_unknown.gif to templates/subSilver/images/lang_english/icon_msn_unknown.gif
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$msn_img = ( $profiledata['user_msnm'] ) ? $profiledata['user_msnm'] : '&nbsp;';
+$msn = $msn_img;
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+//
+// MSN Messenger MOD by Omar Ramadan
+//
+
+$msn_onlinestatus_server_img = $board_config['msn_server'];
+
+$msn_img = ( $profiledata['user_msnm'] ) ? ' <a href="#" onclick="SendMSNMessage(\'' . addslashes( $profiledata['user_msnm'] ) . '\'); return false;"><img src="' . $msn_onlinestatus_server_img . $profiledata['user_msnm'] . '/' : '&nbsp;';
+$msn_img2 = ( $profiledata['user_msnm'] ) ? '" alt="' . sprintf($lang['MSN_Send'], $profiledata['username']) . '" title="' . sprintf($lang['MSN_Send'], $profiledata['username']) . '" border="0" /></a>' : '&nbsp;';
+$msn = $profiledata['user_msnm'];
+
+$script_name = preg_replace('/^\/?(.*?)\/?$/', '\1', trim($board_config['script_path']));
+$script_name = ( $script_name != '' ) ? $script_name . '/' : '';
+$server_name = trim($board_config['server_name']);
+$server_port = ( $board_config['server_port'] <> 80 ) ? ':' . trim($board_config['server_port']) . '/' : '/';
+
+$forum_url = $server_name . $server_port . $script_name;
+
+$msn_add = sprintf($lang['MSN_Add'], $profiledata['username']);
+$msn_img = ( $profiledata['user_msnm'] ) ? '<span class="gen">' . $msn_img . 'onurl=' . $forum_url. $images['icon_msn_online'] . '/offurl=' . $forum_url .$images['icon_msn_offline'] . '/unknownurl=' . $forum_url . $images['icon_msn_unknown'] . $msn_img2. '</span>' : '';
+$msn_add_img = ( $profiledata['user_msnm'] ) ? '<span class="gen"><a href="#" onclick="AddMSNContact(\'' . addslashes( $profiledata['user_msnm'] ) . '\'); return false;"><img src="' . $images['icon_msn_add'] . '" alt="' . $msn_add . '" title= "' . $msn_add . '" border="0" /></a></span>' : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'MSN_IMG' => $msn_img,
+	'MSN' => $msn,
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+	// MSN Messenger MOD by Omar Ramadan
+
+	'MSN_IMG' => $msn_img,
+	'MSN_ADD_IMG' => $msn_add_img,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all Folks!
+// -------------------------------------------------
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//
+// MSN Messenger
+//
+
+$lang['MSN_Messenger'] = 'MSN Messenger';
+$lang['MSN_Explain'] = 'Here you can manage which online status server you want to use to show the user\'s MSN online status.';
+$lang['MSN_Form_Explain'] = 'Choose which online status server that you would like to use.';
+$lang['Advanced_explain'] = 'Advanced users, you can define different servers here. Don\'t fill out both simple and Advanced! If you are going to use advanced, select "Using Advanced Field" and fill out the URL to the server. If you are going to use basic, leave the advanced fields as they are.';
+$lang['MSN_Updated'] = 'MSN Messenger Configuration Updated Successfully';
+$lang['Click_return_msn'] = 'Click %sHere%s to return to MSN Messenger Configuration';
+$lang['All_values_empty'] = 'You must define a value for one set of fields';
+$lang['Advanced'] = 'Using Advanced Field';
+$lang['Advanced_user'] = 'Advanced User';
+$lang['Basic_user'] = 'Basic User';
+$lang['Image_Server'] = 'Image Server';
+$lang['MSN_Error_Updating'] = 'Error Updating MSN Messenger Data';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all, Folks!
+// -------------------------------------------------
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//
+// MSN Messenger
+//
+
+$lang['MSN_Send'] = 'Talk to %s over MSN Messenger';
+$lang['MSN_Add'] = 'Add %s to your MSN Messenger buddy list';
+$lang['MSN_Error_Retrieving'] = 'Error Retrieving MSN Messenger Data';
+$lang['MSN_Invalid_email'] = 'This users MSN email is Invalid.';
+
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<tr> 
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_MESSENGER}:</span></td>
+		  <td class="row1" valign="middle"><span class="gen">{MSN}</span></td>
+		</tr>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+<!-- MSN MESSENGER MOD BY OMAR RAMADAN http://phpbb-login.sourceforge.net START -->
+		<tr> 
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_MESSENGER}:</span></td>
+		  <td class="row1" valign="middle"><span class="gen">{MSN_IMG}</span></td>
+		  <td class="row1" valign="middle"><span class="gen">{MSN_ADD_IMG}</span></td>
+		</tr>
+<!-- MSN MESSENGER MOD BY OMAR RAMADAN http://phpbb-login.sourceforge.net END -->
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+</head>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+<!-- MSN MESSENGER MOD BY OMAR RAMADAN http://phpbb-login.sourceforge.net START -->
+<script type="text/javascript">
+
+function validate_email(str) {
+
+		var at="@"
+		var dot="."
+		var lat=str.indexOf(at)
+		var lstr=str.length
+		var ldot=str.indexOf(dot)
+		if (str.indexOf(at)==-1){
+		   return false
+		}
+
+		if (str.indexOf(at)==-1 || str.indexOf(at)==0 || str.indexOf(at)==lstr){
+		   return false
+		}
+
+		if (str.indexOf(dot)==-1 || str.indexOf(dot)==0 || str.indexOf(dot)==lstr){
+		    return false
+		}
+
+		 if (str.indexOf(at,(lat+1))!=-1){
+		    return false
+		 }
+
+		 if (str.substring(lat-1,lat)==dot || str.substring(lat+1,lat+2)==dot){
+		    return false
+		 }
+
+		 if (str.indexOf(dot,(lat+2))==-1){
+		    return false
+		 }
+		
+		 if (str.indexOf(" ")!=-1){
+		    return false
+		 }
+
+ 		 return true					
+	}
+	
+
+function SendMSNMessage(name)
+{
+	if (! validate_email(name) )
+	{
+		alert("{L_INVALID_EMAIL}");
+		return false;
+	}
+	else
+	{
+		document.location.href = "msnim:chat?contact=" + name;
+		return false;
+	}
+}
+
+function AddMSNContact(name)
+{
+	if (! validate_email(name) )
+	{
+		alert("{L_INVALID_EMAIL}");
+		return false;
+	}
+	else
+	{
+		document.location.href = "msnim:add?contact=" + name;
+		return false;
+	}
+}
+</script>
+
+<!-- MSN MESSENGER MOD BY OMAR RAMADAN http://phpbb-login.sourceforge.net END -->
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_USERNAME' => $lang['Username'],
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	'L_INVALID_EMAIL' => $lang['MSN_Invalid_email'],
+	
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$msn_img = ( $postrow[$i]['user_msnm'] ) ? '<a href="' . $temp_url . '"><img src="' . $images['icon_msnm'] . '" alt="' . $lang['MSNM'] . '" title="' . $lang['MSNM'] . '" border="0" /></a>' : '';
+		$msn = ( $postrow[$i]['user_msnm'] ) ? '<a href="' . $temp_url . '">' . $lang['MSNM'] . '</a>' : '';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	
+		//
+		// MSN Messenger MOD by Omar Ramadan
+		//
+
+		$msn_onlinestatus_server_img = $board_config['msn_server'];
+		$msn_img = ( $postrow[$i]['user_msnm'] ) ? ' <a href="#" onclick="SendMSNMessage(\'' . addslashes( $postrow[$i]['user_msnm'] ) . '\'); return false;"><img src="' . $msn_onlinestatus_server_img . $postrow[$i]['user_msnm'] . '/' : '&nbsp;';
+		$msn_img2 = ( $postrow[$i]['user_msnm'] ) ? '" alt="' . sprintf($lang['MSN_Send'], $poster) . '" title="' . sprintf($lang['MSN_Send'], $poster) . '" border="0" /></a>' : '&nbsp;';
+		$script_name = preg_replace('/^\/?(.*?)\/?$/', '\1', trim($board_config['script_path']));
+		$script_name = ( $script_name != '' ) ? $script_name . '/' : '';
+		$server_name = trim($board_config['server_name']);
+		$server_port = ( $board_config['server_port'] <> 80 ) ? ':' . trim($board_config['server_port']) . '/' : '/';
+
+		$forum_url = $server_name . $server_port . $script_name;
+		$msn_img = ( $postrow[$i]['user_msnm'] ) ? '<span class="gen">' . $msn_img . 'onurl=' . $forum_url. $images['icon_msn_online'] . '/offurl=' . $forum_url .$images['icon_msn_offline'] . '/unknownurl=' . $forum_url . $images['icon_msn_unknown'] . $msn_img2. '</span>' : '';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	$msn_img = ( $privmsg['user_msnm'] ) ? '<a href="' . $temp_url . '"><img src="' . $images['icon_msnm'] . '" alt="' . $lang['MSNM'] . '" title="' . $lang['MSNM'] . '" border="0" /></a>' : '';
+	$msn = ( $privmsg['user_msnm'] ) ? '<a href="' . $temp_url . '">' . $lang['MSNM'] . '</a>' : '';
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+	//
+	// MSN Messenger MOD by Omar Ramadan
+	//
+
+	$msn_onlinestatus_server_img = $board_config['msn_server'];
+	$msn_img = ( $privmsg['user_msnm'] ) ? ' <a href="#" onclick="SendMSNMessage(\'' . addslashes( $privmsg['user_msnm'] ) . '\'); return false;"><img src="' . $msn_onlinestatus_server_img . $privmsg['user_msnm'] . '/' : '&nbsp;';
+	$msn_img2 = ( $privmsg['user_msnm'] ) ? '" alt="' . sprintf($lang['MSN_Send'], $userdata['username']) . '" title="' . sprintf($lang['MSN_Send'], $userdata['username']) . '" border="0" /></a>' : '&nbsp;';
+	$script_name = preg_replace('/^\/?(.*?)\/?$/', '\1', trim($board_config['script_path']));
+	$script_name = ( $script_name != '' ) ? $script_name . '/' : '';
+	$server_name = trim($board_config['server_name']);
+	$server_port = ( $board_config['server_port'] <> 80 ) ? ':' . trim($board_config['server_port']) . '/' : '/';
+
+	$forum_url = $server_name . $server_port . $script_name;
+	$msn_img = ( $privmsg['user_msnm'] ) ? '<span class="gen">' . $msn_img . 'onurl=' . $forum_url. $images['icon_msn_online'] . '/offurl=' . $forum_url .$images['icon_msn_offline'] . '/unknownurl=' . $forum_url . $images['icon_msn_unknown'] . $msn_img2. '</span>' : '';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------
+#
+$images['icon_msnm'] = "$current_template_images/{LANG}/icon_msnm.gif";
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+
+// START MSN Messenger MOD by kkroo
+$images['icon_msn_online'] = "$current_template_images/{LANG}/icon_msn_online.gif";
+$images['icon_msn_offline'] = "$current_template_images/{LANG}/icon_msn_offline.gif";
+$images['icon_msn_unknown'] = "$current_template_images/{LANG}/icon_msn_unknown.gif";
+$images['icon_msn_add'] = "$current_template_images/{LANG}/icon_msn_add.gif";
+// END MSN Messenger MOD by kkroo
+
+#
+#-----[ SQL ]------------------------------------------
+#
+
+INSERT INTO `phpbb_config` ( `config_name` , `config_value` )
+VALUES (
+'msn_server', 'http://www.funnyweb.dk:8080/msn/'
+);
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

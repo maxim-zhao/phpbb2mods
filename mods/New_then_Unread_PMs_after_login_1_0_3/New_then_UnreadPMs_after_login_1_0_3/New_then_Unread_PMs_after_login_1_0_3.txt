@@ -1,0 +1,252 @@
+##############################################################
+## MOD Title: New then Unread PMs after login
+## MOD Author: lefty74 < lefty_74@hotmail.com > (H Carstens) http://www.lefty74.com
+## MOD Description: Normally, phpbb shows the number of new messages. With this Mod once the amount
+## 					of new messages have been displayed and the user starts browsing in the forum, the display will change
+##					to the amount of unread messages in his/her inbox. The display will be in a different colour to the standard
+##					until all messages have been read.
+## MOD Version: 1.0.3
+##
+## Installation Level: (Easy)
+## Installation Time: 5 Minutes
+## Files To Edit: privmsg.php,
+##      includes/page_header.php,
+##      language/lang_english/lang_main.php,
+##      templates/subSilver/overall_header.tpl
+## Included Files: (N/A)
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2006-08-27 - Version 1.0.0
+##      - Initial release
+##
+##   2006-08-29 - Version 1.0.1
+##      - Bug fix & removal of unnecessary mod code
+##
+##   2006-09-10 - Version 1.0.1a
+##      - Corrected Files to Edit text from index.php to read privmsg.php,
+##		  (Thanks to nuttynovas)
+##
+##   2006-09-12 - Version 1.0.2
+##      - Bug fix to resolve Javascript error,
+##		  (Thanks to IPB_Refugee)
+##
+##   2007-01-14 - Version 1.0.3
+##      - added counter for unread msg to avoid 
+##			the problem of having a value in the user_unread_privmsg 
+##			from unread msgs sent by deleted users
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+#
+#-----[ FIND ]------------------------------------------
+#
+if ( $mode == 'newpm' )
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//
+// Update unread status 
+//
+// BEGIN comment lefty74 added this counter so hopefully will get rid of the unread messages still stuck from deleted users
+$sql = "SELECT COUNT(privmsgs_type) AS total_unread
+		FROM " . PRIVMSGS_TABLE . " 
+		WHERE privmsgs_type = " . PRIVMSGS_UNREAD_MAIL . "
+		AND privmsgs_to_userid = " . $userdata['user_id'];
+		
+if( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, 'Could not query total privmsgs_type information', '', __LINE__, __FILE__, $sql);
+}
+
+$total_unread = ($row = $db->sql_fetchrow($result) ) ? intval($row['total_unread']) : 0;
+// END comment lefty74 added this counter so hopefully will get rid of the unread messages still stuck from deleted users
+
+$sql = "UPDATE " . USERS_TABLE . "
+	SET user_unread_privmsg = $total_unread + user_new_privmsg, user_new_privmsg = 0, user_last_privmsg = " . $userdata['session_start'] . " 
+	WHERE user_id = " . $userdata['user_id'];
+if ( !$db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not update private message new/read status for user', '', __LINE__, __FILE__, $sql);
+}
+
+$sql = "UPDATE " . PRIVMSGS_TABLE . "
+	SET privmsgs_type = " . PRIVMSGS_UNREAD_MAIL . " 
+	WHERE privmsgs_type = " . PRIVMSGS_NEW_MAIL . " 
+		AND privmsgs_to_userid = " . $userdata['user_id'];
+if ( !$db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not update private message new/read status (2) for user', '', __LINE__, __FILE__, $sql);
+}
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// Update unread status 
+//
+$sql = "UPDATE " . USERS_TABLE . "
+	SET user_unread_privmsg = user_unread_privmsg + user_new_privmsg, user_new_privmsg = 0, user_last_privmsg = " . $userdata['session_start'] . " 
+	WHERE user_id = " . $userdata['user_id'];
+if ( !$db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not update private message new/read status for user', '', __LINE__, __FILE__, $sql);
+}
+
+$sql = "UPDATE " . PRIVMSGS_TABLE . "
+	SET privmsgs_type = " . PRIVMSGS_UNREAD_MAIL . " 
+	WHERE privmsgs_type = " . PRIVMSGS_NEW_MAIL . " 
+		AND privmsgs_to_userid = " . $userdata['user_id'];
+if ( !$db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not update private message new/read status (2) for user', '', __LINE__, __FILE__, $sql);
+}
+
+//
+// Reset PM counters
+//
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//
+// Reset PM counters
+//
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	else
+	{
+		$l_privmsgs_text = $lang['No_new_pm'];
+
+		$s_privmsg_new = 0;
+		$icon_pm = $images['pm_no_new_msg'];
+	}
+
+	if ( $userdata['user_unread_privmsg'] )
+	{
+		$l_message_unread = ( $userdata['user_unread_privmsg'] == 1 ) ? $lang['Unread_pm'] : $lang['Unread_pms'];
+		$l_privmsgs_text_unread = sprintf($l_message_unread, $userdata['user_unread_privmsg']);
+	}
+	else
+	{
+		$l_privmsgs_text_unread = $lang['No_unread_pm'];
+	}
+}
+else
+{
+	$icon_pm = $images['pm_no_new_msg'];
+	$l_privmsgs_text = $lang['Login_check_pm'];
+	$l_privmsgs_text_unread = '';
+	$s_privmsg_new = 0;
+}
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// BEGIN New then Unread PMs after login MOD
+// 	previous text
+//	else
+//	{
+//		$l_privmsgs_text = $lang['No_new_pm'];
+//		$s_privmsg_new = 0;
+//		$icon_pm = $images['pm_no_new_msg'];
+//	}
+//
+//	if ( $userdata['user_unread_privmsg'] )
+//	{
+//		$l_message_unread = ( $userdata['user_unread_privmsg'] == 1 ) ? $lang['Unread_pm'] : $lang['Unread_pms'];
+//		$l_privmsgs_text_unread = sprintf($l_message_unread, $userdata['user_unread_privmsg']);
+//	}
+//	else
+//	{
+//		$l_privmsgs_text_unread = $lang['No_unread_pm'];
+//	}
+//}
+//else
+//{
+//	$icon_pm = $images['pm_no_new_msg'];
+//	$l_privmsgs_text = $lang['Login_check_pm'];
+//	$l_privmsgs_text_unread = '';
+//	$s_privmsg_new = 0;
+//}
+	else
+	{
+	if ( $userdata['user_unread_privmsg'] )
+	{
+		$l_message_unread = ( $userdata['user_unread_privmsg'] == 1 ) ? $lang['Unread_pm'] : $lang['Unread_pms'];
+		$l_privmsgs_text = sprintf($l_message_unread, $userdata['user_unread_privmsg']);
+		$s_privmsg_new = 0;
+	}
+	else
+	{
+		$l_privmsgs_text = $lang['No_unread_pm'];
+		$s_privmsg_new = 0;
+	}
+	}
+	}
+else
+{
+	$icon_pm = $images['pm_no_new_msg'];
+	$l_privmsgs_text = $lang['Login_check_pm'];
+	$s_privmsg_new = 0;
+}
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['New_pms'] =
+$lang['New_pm'] =
+$lang['No_new_pm'] =
+$lang['Unread_pms'] =
+$lang['Unread_pm'] =
+$lang['No_unread_pm'] =
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// BEGIN New then Unread PMs after login MOD
+$lang['New_pms'] = '<span style="color: #e85123;"><b>You have %d new messages</b></span>'; // You have 2 new messages
+$lang['New_pm'] = '<span style="color: #e85123;"><b>You have %d new message</b></span>'; // You have 1 new message
+$lang['No_new_pm'] = 'You have no new messages';
+$lang['Unread_pms'] = '<span style="color: #e85123;"><b>You have %d unread messages</b></span>';
+$lang['Unread_pm'] = '<span style="color: #e85123;"><b>You have %d unread message</b></span>';
+$lang['No_unread_pm'] = 'You have no unread messages';
+// END New then Unread PMs after login MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+						<td height="25" align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_PROFILE}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_profile.gif" width="12" height="13" border="0" alt="{L_PROFILE}" hspace="3" />{L_PROFILE}</a>&nbsp; &nbsp;<a href="{U_PRIVATEMSGS}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_message.gif" width="12" height="13" border="0" alt="{PRIVATE_MESSAGE_INFO}" hspace="3" />{PRIVATE_MESSAGE_INFO}</a>&nbsp; &nbsp;<a href="{U_LOGIN_LOGOUT}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_login.gif" width="12" height="13" border="0" alt="{L_LOGIN_LOGOUT}" hspace="3" />{L_LOGIN_LOGOUT}</a>&nbsp;</span></td>
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+						<td height="25" align="center" valign="top" nowrap="nowrap"><span class="mainmenu">&nbsp;<a href="{U_PROFILE}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_profile.gif" width="12" height="13" border="0" alt="{L_PROFILE}" hspace="3" />{L_PROFILE}</a>&nbsp; &nbsp;<a href="{U_PRIVATEMSGS}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_message.gif" width="12" height="13" border="0" hspace="3" />{PRIVATE_MESSAGE_INFO}</a>&nbsp; &nbsp;<a href="{U_LOGIN_LOGOUT}" class="mainmenu"><img src="templates/subSilver/images/icon_mini_login.gif" width="12" height="13" border="0" alt="{L_LOGIN_LOGOUT}" hspace="3" />{L_LOGIN_LOGOUT}</a>&nbsp;</span></td>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

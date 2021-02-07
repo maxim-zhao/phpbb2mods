@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/2000/REC-xhtml1-20000126/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>Approval MOD</title>
+  <style type="text/css">
+   <!--
+    body          { color:0; background-color:#ecf3f7; font:normal 10pt Tahoma,Verdana,sans-serif; }
+    a             { color:#444; }
+    a:hover       { color:#000; }
+    h1, h2, h3    { font-family:Arial,sans-serif; text-transform:uppercase; }
+    h1            { font-size:14pt; }
+    h2            { font-size:12pt; margin:30pt 0 5pt 0; }
+    h3            { font-size:10pt; margin:30pt 0 0 0; }
+    li            { margin:10pt 0; }
+   .toc           { margin:10pt 0; padding:0; }
+   .toc li        { margin:0; padding:0;}
+   .source, .warn { margin:10pt 0; padding:10pt; }
+   .source        { font:normal 8pt monospace; background-color:#efefef; border:1px solid grey; }
+   .warn          { background-color:#fcc; border:1px solid red; }
+   .foot          { padding:10pt; text-align:right; font-size:8pt; }
+   -->
+  </style>
+ </head>
+ <body>
+  <h1>Approval MOD v2.0</h1>
+  <h3>Table of Contents</h3>
+  <ul class="toc">
+   <li><a href="#intro">Introduction</a></li>
+   <li><a href="#general">General Overview</a></li>
+   <li><a href="#posting">Posting Behaviour</a></li>
+   <li><a href="#warning">Optional User Warning</a></li>
+   <li><a href="#hiding">Hiding Unapproved Posts</a></li>
+   <li><a href="#notify">Moderators Notification</a></li>
+   <li><a href="#approval">Posts Approval</a></li>
+   <li><a href="#modcp">Mass Approval via Moderator Control Panel</a></li>
+   <li><a href="#search">Modified Search Behaviour</a></li>
+   <li><a href="#performance">Performance Impact</a></li>
+   <li><a href="#install">Compatibility and Installation</a></li>
+   <li><a href="#extras">Additional Scripts</a></li>
+   <li><a href="#support">Support and Bug Reports</a></li>
+  </ul>
+  <h2 id="about">Introduction</h2>
+  <p>
+   This MOD allows hiding the contents of new posts until they have been approved by the moderators. It can be used to combat spam bots that make random posts in the public forums or for extended moderation in any forum with sensitive topics (religion, politics, etc.) where post screening is required to maintain forum integrity. The MOD is quite flexible in its settings and allows you to configure various approval options per forum. It allows you to specify groups of users whose posts should (or should not) be moderated. The MOD can be set up to take a user's total number of posts into account to decide whether the approval is required or not.<br /><br />More detailed information on this MOD's options and settings is given below.
+  </p>
+  <h2 id="general">General Overview</h2>
+  <p>
+   This MOD renames the standard <strong>Is Moderator/Not Moderator</strong> user/group permissions into <strong>Approval Level</strong> permissions and adds 3 new options to it, thus giving a choice of 5 options in total:
+  </p>
+  <p>
+   <img src="approval_mod_1.png" alt="Figure 1" />
+  </p>
+  <p>
+   It also adds new forum approval options which can be configured independently per forum:
+  </p>
+  <p>
+   <img src="approval_mod_2.png" alt="Figure 2" />
+  </p>
+  <p>
+   Finally, it changes the Ranks behaviour so that it is possible to specify whether a person who has certain rank can post freely:
+  </p>
+  <p>
+   <img src="approval_mod_3.png" alt="Figure 3" />
+  </p>
+  <p>
+   Every time a new post is made, the user's Approval Level permissions and forum's default approval settings are matched to determine whether the post will require approval before becoming available. The matching logic is as follows:
+  </p>
+  <p>
+   <img src="approval_mod_chart.gif" alt="Diagram 1" />
+  </p>
+  <p>
+   NOTE ON USER/GROUP PERMISSIONS: If the user belongs to several groups with conflicting permissions for a given forum, the order of permission preference is as follows:
+  </p>
+  <ul>
+   <li><strong>Moderator</strong> and <strong>Can approve posts</strong> will override any other Approval Levels set by different groups as well as the forum default setting</li>
+   <li><strong>Must be approved</strong> and <strong>Doesn't need approval</strong> will override the default forum setting</li>
+   <li><strong>Doesn't need approval</strong> will override <strong>Must be approved</strong></li>
+  </ul>
+  <h2 id="posting">Posting Behaviour</h2>
+  <p>
+   When the user requiring approval is making a new post, the subject and the text of the post are replaced by a generic message stating that the post is awaiting approval. This does not affect admins, moderators and those who have permission to approve posts. They will be able to see the original posted message (with an additional label that the post has not yet been approved). Non-anonymous users can also see and edit <em>their own</em> not yet approved messages. The unapproved message cannot be quoted in replies (quoting is allowed for the moderators and the original authors of the post). Replying to the topic is disabled until the topic's first post is approved. Additionally, it is possible to set an option to require approval for the first post in the topic only, so that the new topics must be approved but not the replies in them (per-forum setting).
+  </p>
+  <p>
+   <img src="approval_mod_4.png" alt="Figure 4" />
+  </p>
+  <h2 id="warning">Optional User Warning</h2>
+  <p>
+   If the user is making a post which will require approval an optional warning could be displayed at the top of the new post page during posting. This warns the user that the post contents will not be visible until approved by the moderator. This is per-forum setting and can be turned on or off.
+  </p>
+  <p>
+   <img src="approval_mod_5.png" alt="Figure 5" />
+  </p>
+  <h2 id="hiding">Hiding Unapproved Posts</h2>
+  <p>
+   It is possible to completely hide all the posts that have not yet been approved from viewing by non-moderators. It means that normal users won't even see the &quot;post is awaiting approval&quot; message. Mods and admins, however, can see all the posts with a special approval note next to the subject but to the normal users it will appear as if no message was posted at all. This also includes Forums/Topics/Posts statistics which will be changed automatically depending on the user authorization level, i.e., the mods and admins will see the real number of posts/topics in the forums and topics index (as well as statistics for unapproved posts in brackets) while the normal users will only see the number of posts that have been approved and can actually be viewed. Hiding unapproved posts is a 'per-forum' setting.
+  </p>
+  <p>
+   <img src="approval_mod_6.png" alt="Figure 6" />
+  </p>
+  <h2 id="notify">Moderators Notification</h2>
+  <p>
+   As soon as the unapproved post is made (or edited) by a standard user an e-mail can be automatically sent to all of the moderators and the users allowed to approve posts in a given forum. The e-mail contains a link to the new post as well as the contents of the posted message itself. In addition, the message contains a link which can be used to approve the post directly without having to read  it in the actual forum. Moderators notification is a 'per-forum' setting.
+  </p>
+  <h2 id="approval">Posts Approval</h2>
+  <p>
+   Normally, only the moderators are able to approve posts in the forums. However, it is possible to give any user the special permission &quot;Can Approve Posts&quot; allowing this user to approve and delete unapproved posts in certain forum(s). It is also possible to enable the forum option &quot;Topic starter can approve topic posts&quot; which will allow any user to approve posts <em>only</em> in the topic started by that user. A user that is allowed to approve posts will see a new &quot;approve&quot; button in the topic view which allows approving the post. The button has been designed to match the default subSilver theme as shown below (next to the &quot;edit&quot; button):
+  </p>
+  <p>
+   <img src="approval_mod_7.png" alt="Figure 7" />
+  </p>
+  <h2 id="modcp">Mass Approval via Moderator Control Panel</h2>
+  <p>
+   This MOD adds a new &quot;Approve&quot; button to the &quot;Lock/Unlock/Move/Delete&quot; buttons in the Moderator Control Panel. This allows mass approval of all the posts inside one or more topics with a single click. Moderators can also view the full thread before mass-approving it directly from the Control Panel (in a new browser window opened by clicking on the 'approval info' link).
+  </p>
+  <p>
+   <img src="approval_mod_8.png" alt="Figure 8" />
+  </p>
+  <h2 id="search">Modified Search Behaviour</h2>
+  <p>
+   Unapproved topics/posts will not appear in search results (even when admin or moderator is searching the forums). In addition, the moderators can search for all unapproved posts in all the forums where they are assigned as the actual mods. This functionality can be accessed using the new search link on the forum index page. The link appears only when there are unapproved posts that the currently logged on user is able to approve:
+  </p>
+  <p>
+   <img src="approval_mod_9.png" alt="Figure 9" />
+  </p>
+  <h2 id="performance">Performance Impact</h2>
+  <p>
+   What makes this MOD different from similar MODs is that it has very few additional SQL queries. This means that the overall performance of the board is virtually unaffected. To be more precise, there are no new SQL tables created by this MOD and there are <strong>NO additional SQL queries</strong> for viewing posts / browsing the board. There may be (and may be not, depending on the settings) one additional (tiny) query when the new post is being submitted or edited, one query for getting the list of moderators for e-mail notification and one or two queries when the post is being deleted or mass-approved by a moderator. The rest of the functionality is possible thanks to the existing (slightly modified) SQL queries.
+  </p>
+  <h2 id="install">Compatibility and Installation</h2>
+  <ul>
+   <li>
+    This MOD has only been tested with the basic distribution of phpBB version 2.0.22 which was the current version at the time of MOD validation. There is <em>absolutely</em> no guarantee it will work with any earlier phpBB version. It will also not work with phpBB 3.0 also known as Olympus. I will not support or address any problems arising from using this MOD with non supported versions of phpBB or modified phpBB distributions. See this MOD's official support topic at <a href="http://www.phpbb.com/">www.phpbb.com</a> for the information about compatibility with phpBB version later than 2.0.22.
+   </li>
+   <li>
+    This MOD is <a href="http://area51.phpbb.com/phpBB/viewforum.php?f=15">EasyMOD</a> friendly. Since the Approval MOD is a fairly complex MOD it is <strong>highly recommended to use EasyMOD</strong> to install it. This will significantly reduce the chances of making a mistake that could cause general forum malfunction.
+   </li>
+   <li>
+    This MOD has French, German and Russian translations (together with the localised subSilver &quot;approve&quot; icons). Please have a look into the 'contrib/languages' directory for the additional mini-MODs and icons necessary for localisation. If you wish to replace the default 'approve' icon, replace the 'templates/subSilver/images/icon_approve.gif' file with the icon of your choice.
+   </li>
+   <li>
+    If your board has multiple languages installed it is normal to get warnings about failed FIND command in the <strong>lang_faq.php</strong> file when using EasyMOD. Those warnings can be ignored and the lang_faq.php for your additional languages can be edited manually (1 line only). Check the approval_mod.txt around line #2365 to get an idea what is being added to the lang_faq.php. This is for user information only and does not affect the MOD's functionality.
+   </li>
+   <li>
+    This MOD has only been tested with MySQL and MS-SQL backends. There are some custom SQL queries in phpBB that depend on the database back-end. Unfortunately, I have no means of testing with Oracle or Postresql databases but I believe the queries should work OK with them as well. Please let me know if you are running those databases and it works ok (or not).
+   </li>
+   <li>
+    This MOD most likely will NOT work or will work improperly with any other MOD that changes message posting or topic/forum viewing behaviour. <div class="warn"><strong>To increase the chances of a successful installation I highly recommend to install the Approval MOD after all other MODs have been installed!</strong> This way it is easy to see if the MOD is likely to conflict with the rest of your MODs (warnings and faulty FINDs during the installation) and it also makes it easy to roll-back in case something goes really wrong.</div>
+   </li>
+   <li>
+    This MOD has been tested and adjusted for compatibility with a few MODs known to conflict with or affect the Approval MOD functionality:
+    <ul>
+     <li><a href="http://www.phpbb.com/community/viewtopic.php?t=74505">Attachment MOD</a> (see below for more information)</li>
+     <li><a href="http://www.phpbb.com/community/viewtopic.php?t=147363">Topic Display Order MOD</a></li>
+     <li><a href="http://www.phpbb.com/community/viewtopic.php?t=350442">Last Topic Title On Index MOD</a></li>
+     <li><a href="http://www.phpbbhacks.com/download/345">Global Announcements MOD</a></li>
+     <li><a href="http://www.phpbb.com/community/viewtopic.php?t=187868">Email Digests MOD</a></li>
+     <li><a href="http://www.afsvlaanderen.be/topics_anywhere/">Topics Anywhere MOD</a></li>
+     <li><a href="http://www.phpbb.com/community/viewtopic.php?t=336974">Simple Subforums MOD</a></li>
+    </ul>
+    There is a fix for each of these MODs available in the 'contrib/fixes' directory. The fixes should be installed <strong>after</strong> all MODs (including the Approval MOD) have been installed.<br />
+   </li>
+   <li>
+    A couple of MODs are known to be compatible without any modifications, althouth they do modify common code in the viewforum.php:
+    <ul>
+     <li><a href="http://www.phpbb.com/community/viewtopic.php?t=150853">Announces Suite MOD</a></li>
+     <li><a href="http://www.phpbb.com/community/viewtopic.php?t=219682">Topic Cement MOD</a></li>
+    </ul>
+    To be compatible these MODs should be installed <strong>before</strong> the Approval MOD.
+   </li>
+   <li>
+    This MOD is compatible with the Attachment MOD. It is recommended to install the Attachment MOD <strong>before</strong> the Approval MOD. If the  Attachment MOD is installed after the Approval MOD, two commands in the Attachment MOD's install file must be modified before its installation. Find the following two lines in the Attachment MOD <em>install.txt</em> file and delete everything after the <strong>&lt;/a&gt;</strong> tag until the end of the line, so that the resulting lines look as follows:
+    <div class="source">
+     &lt;td class=&quot;row1&quot;&gt;&amp;nbsp;&lt;span class=&quot;topictitle&quot;&gt;{topicrow.TOPIC_TYPE}&lt;a href=&quot;{topicrow.U_VIEW_TOPIC}&quot; class=&quot;topictitle&quot;&gt;{topicrow.TOPIC_TITLE}&lt;/a&gt;
+     <br /><br />
+     &lt;td class=&quot;row1&quot; width=&quot;100%&quot;&gt;&lt;span class=&quot;topictitle&quot;&gt;{topicrow.NEWEST_POST_IMG}{topicrow.TOPIC_TYPE}&lt;a href=&quot;{topicrow.U_VIEW_TOPIC}&quot; class=&quot;topictitle&quot;&gt;{topicrow.TOPIC_TITLE}&lt;/a&gt;
+    </div>
+    As stated above, the compatibility fix for the Attachment MOD (available in the 'contrib/fixes' directory) must be installed after both Attachment and Approval MODs have been installed.
+   </li>
+  </ul>
+  <h2 id="extras">Additional Scripts</h2>
+  <p>
+   There are some useful scripts included in the 'contrib/scripts' directory.
+  </p>
+  <ul>
+   <li><strong>contrib/scripts/admin/admin_sync_all.php</strong><br />Should your board's posts counters become corrupt for any reason (server crash, errors in MOD installation, etc) this script performs the compete sync of all posts/topic/forums statistics including the approval data. It appears that there are admin functions to sync everything in phpBB original code but there is no way to access them from the web interface! (Nothing to do with the Approval MOD, by the way). The 'sync' links in the admin_forums page only synchronize forum's overall stats, but topics data is still left untouched. I have created a mini add-on that invokes the hidden 'sync-all' functions. You can put it directly into your 'admin' folder. Afterwards, you should see a new menu item called 'Sync All' in your 'Forums' section of the admin index (left admin frame). Simply click on the 'Sync All' link to synchronize everything. It would make sense to do that when there is low user activity on your forum, especially if it contains a lot of posts.</li>
+   <li><strong>contrib/scripts/admin/admin_approval_reset.php</strong><br />If the 'sync-all' script above fails to restore order on your board and you still have corrupt approval stats you can try to reset the approval status for all posts. <strong>Warning!</strong> Using this script will make all posts on your board <strong>approved</strong>! As above, copy the script directly into your 'admin' folder. Afterwards, you should see a new menu item called 'Reset Approval' in your 'Forums' section of the admin index. Simply click on the 'Reset Approval' link to make all posts approved and reset the approval counters. It is <strong>highly recommended</strong> to run the 'sync-all' script (above) afterwards.</li>
+   <li><strong>contrib/scripts/install/approve_sql_uninstall.php</strong><br />Use this script to easily get rid of the SQL modification introduced by the Approval MOD. This should only be used if you have <strong>uninstalled</strong> the Approval MOD from your board and you want to clean the SQL tables from the Approval data. Copy the 'install' directory from the 'contrib/scripts' to the root of phpBB installation and call the script through the web page: 'http://&lt;host&gt;/&lt;board&gt;/install/approve_sql_uninstall.php'</li>
+  </ul>
+  <h2 id="support">Support And Bug Reports</h2>
+  <p>
+   MOD support will be given directly in the MOD's official topic at phpBB.com. You can also send me a private message via the phpBB board or an e-mail at <a href="mailto:soft@purple-yonder.com">soft@purple-yonder.com</a>.
+  </p>
+  <p class="foot">
+   Last updated: 21 Oct 2007
+  </p>
+ </body>
+</html>

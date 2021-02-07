@@ -1,0 +1,48 @@
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+posting.php 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+if ( $board_config['allow_draft'] || $userdata['user_level'] == ADMIN ) 
+
+# 
+#-----[ REPLACE WITH]------------------------------------------------ 
+# 
+if ( ($board_config['allow_draft'] || $userdata['user_level'] == ADMIN) && $userdata['user_id'] != ANONYMOUS ) 
+
+# 
+#-----[ OPEN ]------------------------------------------------ 
+# 
+viewtopic.php 
+
+# 
+#-----[ FIND ]------------------------------------------------ 
+# 
+if ( !empty($forum_topic_data['topic_vote']) ) 
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------------ 
+# 
+$tsql = "SELECT * FROM " . POSTS_TABLE . " p , " . TOPICS_TABLE . " t 
+WHERE t.topic_id = $topic_id 
+AND p.post_id = $post_id 
+AND p.topic_id = t.topic_id"; 
+
+$tresult = $db->sql_query($tsql); 
+
+if( !$tresult ) 
+{ 
+message_die(GENERAL_ERROR, "Couldn't obtain draft posts from database", "", __LINE__, __FILE__, $sql); 
+} 
+
+$tdraft = $db->sql_fetchrow($tresult); 
+
+if ( (!empty($forum_topic_data['topic_vote'])) && ( $tdraft['post_draft'] == '0' || !($userdata['user_id'] != $tdraft['poster_id'])) ) 
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]-------------------------------- 
+# 
+# EoM

@@ -1,0 +1,125 @@
+############################################################## 
+## MOD Title:		[Pre] BBCode to preserve columns and other formatting (upgrade from version 1.0.2 to 1.0.3)
+## MOD Author: asinshesq < N/A > (Alan) N/A
+## MOD Description:	Allow users to design surveys that will appear at the top of a topic.  Users will be able to .
+##			respond to the survey by clicking a button...each user response will appear at the topic head
+##
+## MOD Version:		1.0.3b
+## 
+## Installation Level:	Easy
+## Installation Time:	5 Minutes ( 1 minute with easymod) 
+##
+## Files To Edit:	includes/bbcode.php
+##			templates/subSilver/overall_header.tpl
+##
+## Included Files:	none
+##
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes:	This is just an upgrade mod.  To use it, you must have [Pre] BBcode mod version 1.0.2 already installed.
+##			If you haven't already installed that mod, install the latest version of that mod directly and don't use this upgrade.
+##
+##			Note: This version word wraps if the text gets too long (although it will not break a single long word
+##		 	but will only break between words).  If you do not want word wrap, leave out
+##			the change to templates/subSilver/overall_header.tpl.
+##
+############################################################## 
+## MOD History:
+##
+##  05-21-2006  - Version 1.0.3b
+##		- no changes...just repacked so that it could be checked with phpbb2.0.20
+##
+##  04-24-2005  - Version 1.0.3
+##		- changed code (as per suggestion by HSorgYves ... thanks!) so that it no longer eats backslashes inside of [pre]; tags;
+##		  added a change to overall_header.tpl and bbcode.php to make pre word_wrap
+##		  (but note that is a trade-off since word wrap may mess up your columns if you go far enough on the screen to 
+##		  trigger a skipped line, so if you do not want this feature don't make the changes described for
+##		  templates/subSilver/overall_header.tpl)
+##
+##  12-16-2004  - Version 1.0.2
+##		- added an acknowledgement to another programmer, but no substantive changes from the prior version
+##
+##  12-05-2004  - Version 1.0.1
+##		- updated for multi bbcode mod version 1.4.0c
+##
+##  12-05-2004  - Version 1.0.0
+##		  initial version for use with multi bbcode version 1.2.1
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/bbcode.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$text = str_replace("[pre:$uid]", $bbcode_tpl['pre_open'], $text);
+	$text = str_replace("[/pre:$uid]", $bbcode_tpl['pre_close'], $text);
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	$text = preg_replace("#\[pre:$uid\](.*?)\[/pre:$uid\]#sie", "'${bbcode_tpl['pre_open']}' . str_replace('\\\"', '\"', str_replace(array('\r\n', '\n', '\r'), '<br />', '\\1')) . '${bbcode_tpl['pre_close']}'", $text);
+	$text = str_replace("<br /><br />", "<br />&nbsp;<br />", $text);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+	$text = preg_replace("#\[pre\](.*?)\[/pre\]#sie", 'stripslashes(str_replace("\n", "", "[pre:$uid]\\1[/pre:$uid]"))', $text);
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+	$text = preg_replace("#\[pre\](.*?)\[/pre\]#si", "[pre:$uid]\\1[/pre:$uid]", $text);
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<style type="text/css">
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+/* Pre block */
+pre {
+white-space: -moz-pre-wrap; /* Mozilla, supported since 1999 */
+white-space: -pre-wrap; /* Opera 4 - 6 */
+white-space: -o-pre-wrap; /* Opera 7 */
+white-space: pre-wrap; /* CSS3 - Text module (Candidate Recommendation) http://www.w3.org/TR/css3-text/#white-space */
+font-family: {T_FONTFACE3}; 
+font-size: {T_FONTSIZE3}px;
+}
+</style>
+<!--[if gte IE 5]>
+	<style type="text/css">
+	pre {
+	white-space: normal;
+	word-wrap: break-word;
+	width="100%"; /* this assures that page 'haslayout' for IE so that you skip the IE bug where characters get repeated */
+	}
+	</style>
+<![endif]-->
+<style type="text/css">
+/* end of Pre block */
+	
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

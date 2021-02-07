@@ -1,0 +1,345 @@
+##############################################################
+## MOD Title: ActionMod 
+## MOD Author: dvandersluis < daniel@codexed.com > (Daniel Vandersluis) http://www.codexed.com
+## MOD Description: Allows actions to be taken on posts 
+## MOD Version: 1.0.4a
+##
+## Installation Level: Easy
+## Installation Time: ~15 Minutes
+## Files To Edit: 5
+##		viewtopic.php
+##		includes/constants.php
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/viewtopic_body.tpl
+## Included Files: 4
+##		doaction.php
+##		admin/admin_actions.php
+##		templates/admin/actions_list_body.php
+##		templates/admin/actions_edit_body.php
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##		- Adds an admin page to add/edit/delete actions
+##		- Actions can also be made inactive, in which case
+##		  they won't show up as options in viewtopic, and
+##		  inactive actions that were previously performed
+##		  will be hidden.
+##
+##############################################################
+## MOD History:
+##
+##	 2006-05-19
+##		Version 1.0.4a
+##		- Removed template dependency in viewtopic_body.tpl
+##
+##		Version 1.0.4
+##		- Fixed big bug with action statuses
+##		- Added missing L_NO_ACTION language const
+##		- Fixed output of actions so that it fits in with the
+##		  rest of the template (subSilver).
+##
+##		Version 1.0.3
+##		- Fixed a number of MOD bugs
+##		- Added constant POST_ACTION_URL
+##		- Changed how Actions work with Guests: now guests
+##		  will not be allowed to do actions on posts (in
+##		  previous versions, it would just create a line
+##		  with 'Anonymous: <action>' anyways).
+##
+##	 2006-05-01
+##		Version 1.0.2a
+##		- Replaced a hardcoded reference to GET variable p with POST_POST_URL
+##
+##	 2006-04-30
+##		Version 1.0.2
+##		- Removed MySQL dependencies
+##		- Increaded phpBB MOD standards-compliance
+##
+##   2006-04-17
+##		Version 1.0.1
+##		- A number of bug fixes (including errors in SQL statements, spelling errors)
+##		- Now using an int field instead of timestamp, and removed COMMENT = ...
+##			from the tables (DBMS compliance)
+##		- Added some phpBB compliance
+##		- Replaced one instance of hard coded text with language reference
+##		- Increased security
+##
+##   2006-04-07
+##		Version 1.0.0
+##      - initial version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------------------------
+# 
+# You can also use install/install-<DBMS>.php if you don't
+# want to manually update the SQL (there is an install
+# file for each DBMS).
+CREATE TABLE `phpbb_actions` (
+	`action_id` INT NOT NULL AUTO_INCREMENT,
+	`action_name` VARCHAR( 50 ) NOT NULL,
+	`action_text` VARCHAR( 50 ) NOT NULL,
+	`action_status` TINYINT( 1 ) NOT NULL DEFAULT '1',
+	PRIMARY KEY ( `action_id` )
+);
+
+CREATE TABLE `phpbb_actions_performed` (
+	`id` INT NOT NULL AUTO_INCREMENT,
+	`action_id` INT NOT NULL,
+	`performer_id` INT NOT NULL,
+	`post_id` INT NOT NULL,
+	`action_time` INT NOT NULL,
+	PRIMARY KEY ( `id` ),
+	UNIQUE `performed_id` (`action_id`,`performer_id`,`post_id`)
+);
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy admin/admin_actions.php to admin/admin_actions.php
+copy templates/admin/*.* to templates/subSilver/admin/*.*
+copy doaction.php to doaction.php
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all Folks!
+// -------------------------------------------------
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+// +ActionMod
+$lang['Action'] = 'Action';
+$lang['Actions'] = 'Actions';
+$lang['Actions_title'] = "Actions Administration";
+$lang['Actions_explain'] = "Actions can be performed by users on posts. Using this form, you can edit, view or delete existing Actions, or add new ones.";
+$lang['Actions_name'] = "Action Name";
+$lang['Actions_text'] = "Action Text";
+$lang['Actions_status'] = "Action Status";
+$lang['Actions_status_active'] = "Active";
+$lang['Actions_status_inactive'] = "Inactive";
+$lang['Actions_no_actions'] = "There are no defined actions";
+$lang['Add_new_action'] = "Add New Action";
+$lang['Must_select_action'] = "You must select an action.";
+$lang['Must_enter_action_text'] = "You must enter some text to go with this action.";
+$lang['Action_updated'] = "The action was successfully updated.";
+$lang['Action_added'] = "The action was successfully added.";
+$lang['Action_removed'] = "The action was successfully deleted.";
+$lang['Click_return_actionsadmin'] = 'Click %sHere%s to return to Action Administration';
+// -ActionMod
+
+#
+#-----[ OPEN ]----------------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+//
+// That's all, Folks!
+// -------------------------------------------------
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------------
+#
+// +ActionMod
+$lang['Actions_this_post'] = 'this post';
+$lang['Actions_no_actions'] = 'There are no existing actions.';
+$lang['Login_for_action'] = "In order to perform actions, you must log in first.";
+// -ActionMod
+
+#
+#-----[ OPEN ]----------------------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+define('POST_GROUPS_URL', 'g');
+
+#
+#-----[ AFTER, ADD ]----------------------------------------------------
+#
+// +ActionMod
+define('POST_ACTION_URL', 'a');
+// -ActionMod
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+
+#
+#-----[ AFTER, ADD ]----------------------------------------------------
+#
+// +ActionMod
+define('ACTIONS_TABLE', $table_prefix.'actions');
+define('ACTIONS_PERFORMED_TABLE', $table_prefix.'actions_performed');
+// -ActionMod
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------------
+#
+// +ActionMod
+define('ACTION_ACTIVE', 1);
+define('ACTION_INACTIVE', 0);
+// -ActionMod
+
+#
+#-----[ OPEN ]----------------------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+<!-- END postrow -->
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------------
+#
+	<!-- +ActionMod -->
+	<!-- BEGIN switch_actions_defined -->
+	<tr>
+		<td class="{postrow.ROW_CLASS}" width="150">&nbsp;</td>
+		<td class="{postrow.ROW_CLASS} gensmall" width="100%">
+			<!-- BEGIN action -->
+				<a class="nav" style="font-size: 10px;" href="{postrow.switch_actions_defined.action.ACTION_URL}">
+					{postrow.switch_actions_defined.action.ACTION_NAME} {L_ACTIONS_THIS_POST}</a>
+				{postrow.switch_actions_defined.action.ACTION_SEPARATOR}
+			<!-- END action -->
+			<!-- BEGIN is_guest -->
+				<a class="nav" style="font-size: 10px;" href="{GUEST_REDIRECT_URL}">{GUEST_MESSAGE}</a>
+			<!-- END is_guest -->
+			<br />
+			<!-- BEGIN actions_performed -->
+			<a class="nav" style="font-size: 10px;" href="{postrow.switch_actions_defined.actions_performed.ACTION_URL}">{postrow.switch_actions_defined.actions_performed.ACTION_PERFORMER}</a>: {postrow.switch_actions_defined.actions_performed.ACTION_TEXT}<br />
+			<!-- END actions_performed -->
+		</td>
+	</tr>
+	<!-- END switch_actions_defined -->
+	<!-- -ActionMod -->
+#
+#-----[ OPEN ]----------------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+    'L_GOTO_PAGE' => $lang['Goto_page'],
+
+#
+#-----[ AFTER, ADD ]----------------------------------------------------
+#
+	// +ActionMod
+	'L_ACTIONS_THIS_POST' => $lang['Actions_this_post'],
+	// -ActionMod
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+}
+
+$template->pparse('body');
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------------------
+#
+	// +ActionMod
+	//
+	// Get Actions that can be performed
+	//
+	$sql = "SELECT *
+		FROM " . ACTIONS_TABLE . "
+		WHERE action_status = " . ACTION_ACTIVE;
+
+	if (!$result = $db->sql_query($sql))
+	{
+		message_die(CRITICAL_ERROR, "Could not get actions data!", "", __LINE__, __FILE__, $sql);
+	}
+	elseif (($count = $db->sql_numrows($result)) > 0)
+	{
+		$action_counter = 0;
+		$template->assign_block_vars("postrow.switch_actions_defined", array());
+		
+		if ($userdata['user_id'] == -1)
+		{
+
+			$template->assign_block_vars("postrow.switch_actions_defined.is_guest", array() );
+			$template->assign_vars( array(
+				'GUEST_REDIRECT_URL' => append_sid("login.php"),
+				'GUEST_MESSAGE'		 => $lang['Login_for_action'])
+			);
+		}
+		else
+		{
+			while ($action = $db->sql_fetchrow($result))
+			{
+				$action_counter++;
+				$template->assign_block_vars("postrow.switch_actions_defined.action", array(
+					'ACTION_NAME' => $action['action_name'],
+					'ACTION_URL' => append_sid("doaction.$phpEx?" . POST_ACTION_URL . "={$action['action_id']}&" . POST_POST_URL
+						. "={$postrow[$i]['post_id']}"),
+					'ACTION_SEPARATOR' => ($action_counter < $count) ? " :: " : "")
+				);
+			}
+		}
+	}
+
+	//
+	// Get Actions performed on this topic
+	//
+	$sql = "SELECT u.user_id, u.username, a.action_text
+		FROM " . ACTIONS_PERFORMED_TABLE . " AS ap
+		JOIN " . ACTIONS_TABLE . " AS a
+			ON a.action_id = ap.action_id
+		JOIN " . USERS_TABLE . " AS u
+			ON u.user_id = ap.performer_id
+		WHERE post_id = " . $postrow[$i]['post_id'] . "
+			AND a.action_status = " . ACTION_ACTIVE . "
+		ORDER BY action_time ASC";
+
+	if (!$result = $db->sql_query($sql))
+	{
+		message_die(CRITICAL_ERROR, "Could not get performed actions data!", "", __LINE__, __FILE__, $sql);
+	}
+	
+	while ($action_performed = $db->sql_fetchrow($result))
+	{
+		$template->assign_block_vars("postrow.switch_actions_defined.actions_performed", array(
+			'ACTION_PERFORMER' => $action_performed['username'],
+			'ACTION_TEXT' => $action_performed['action_text'],
+			'ACTION_URL' => append_sid("profile.$phpEx?mode=viewprofile&" . POST_USERS_URL . "={$action_performed['user_id']}"))
+		);
+	}
+	// -ActionMod
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,177 @@
+##############################################################
+## MOD Title:		Simply Merge Threads
+## MOD Author:		Ptirhiik < please_use_the_board@clanmckeen.com > (Pierre) http://ptifo.clanmckeen.com
+## MOD Description:	This mod allows to merge two topics
+##
+## MOD Version:		1.0.2
+##
+## Installation Level:	Easy
+## Installation Time:	10 Minutes
+## Files To Edit: 
+##			viewtopic.php
+##			includes/functions.php
+##			templates/subSilver/subSilver.cfg
+##
+## Included Files:	root/*.*
+## License:		http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##	o To be able to edit your languages installed on the board, please install the administration
+##	language management tool included in the contrib/mod-lang_settings directory : MOD-lang_settings.txt
+##
+##############################################################
+## MOD History:
+##
+##   2008-08-31 - version 1.0.2
+##	- fix a possible security breach,
+##	- fix new topic title not working,
+##	- preload forum id when possible,
+##	- adjust the install instructions to make the copies easier and to match phpBB 2.0.23
+## 
+##   2003-10-21 - Version 1.0.1
+##	- add the use of the lang settings
+##	- add the use of the topics list
+##	- fix the loose of poll while merging a poll to a topic without a poll
+##
+##   2003-07-27 - Version 1.0.0
+##	- first release
+##
+##   2003-07-12 - Version 0.0.1
+##      - first beta
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ COPY ]------------------------------------------------
+#
+COPY root/*.* TO *.*
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : merge -----------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$topic_mod .= "<a href=\"modcp.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;mode=split&amp;sid=" . $userdata['session_id'] . '"><img src="' . $images['topic_mod_split'] . '" alt="' . $lang['Split_topic'] . '" title="' . $lang['Split_topic'] . '" border="0" /></a>&nbsp;';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : merge -----------------------------------------------------------------------------------
+//-- add
+	$topic_mod .= '<a href="' . append_sid("merge.$phpEx?" . POST_TOPIC_URL . '=' . $topic_id) . '"><img src="' . $images['topic_mod_merge'] . '" alt="' . $lang['Merge_topics'] . '" title="' . $lang['Merge_topics'] . '" border="0" /></a>&nbsp;';
+//-- fin mod : merge -------------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# This part can already be existing : if so, just skip it
+#
+//-- mod : language settings -----------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	if ( defined('IN_ADMIN') )
+	{
+		if( !file_exists(@phpbb_realpath($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_admin.'.$phpEx)) )
+		{
+			$board_config['default_lang'] = 'english';
+		}
+
+		include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_admin.' . $phpEx);
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+# This part can already be existing : if so, just skip it
+#
+
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+	include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			if ( !empty($board_config['default_lang']) )
+			{
+				include($phpbb_root_path . 'language/lang_' . $board_config['default_lang'] . '/lang_main.'.$phpEx);
+			}
+			else
+			{
+				include($phpbb_root_path . 'language/lang_english/lang_main.'.$phpEx);
+			}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : language settings -----------------------------------------------------------------------
+//-- add
+			include($phpbb_root_path . './includes/lang_extend_mac.' . $phpEx);
+//-- fin mod : language settings -------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : topics list -----------------------------------------------------------------------------
+//-- mod : merge -----------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : merge -----------------------------------------------------------------------------------
+//-- add
+$images['topic_mod_merge'] = "$current_template_images/topic_merge.gif";
+//-- fin mod : merge -------------------------------------------------------------------------------
+//-- mod : topics list -----------------------------------------------------------------------------
+//-- add
+$images['folder_global_announce']		= "$current_template_images/folder_announce.gif";
+$images['folder_global_announce_new']		= "$current_template_images/folder_announce_new.gif";
+$images['folder_global_announce_own']		= "$current_template_images/folder_announce_own.gif";
+$images['folder_global_announce_new_own']	= "$current_template_images/folder_announce_new_own.gif";
+$images['folder_own']				= "$current_template_images/folder_own.gif";
+$images['folder_new_own']			= "$current_template_images/folder_new_own.gif";
+$images['folder_hot_own']			= "$current_template_images/folder_hot_own.gif";
+$images['folder_hot_new_own']			= "$current_template_images/folder_new_hot_own.gif";
+$images['folder_locked_own']			= "$current_template_images/folder_lock_own.gif";
+$images['folder_locked_new_own']		= "$current_template_images/folder_lock_new_own.gif";
+$images['folder_sticky_own']			= "$current_template_images/folder_sticky_own.gif";
+$images['folder_sticky_new_own']		= "$current_template_images/folder_sticky_new_own.gif";
+$images['folder_announce_own']			= "$current_template_images/folder_announce_own.gif";
+$images['folder_announce_new_own']		= "$current_template_images/folder_announce_new_own.gif";
+//-- fin mod : topics list -------------------------------------------------------------------------
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

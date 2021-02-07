@@ -1,0 +1,485 @@
+[size=18]phpBB 2.0.11 to phpBB 2.0.12 Code Changes[/size]
+
+
+
+These are the Changes from phpBB 2.0.11 to phpBB 2.0.12 summed up into a little Mod. This might be very helpful if you want to update your Board and have installed a bunch of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.
+
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in the 'REPLACE WITH'-Statement.
+When you find a 'DELETE'-Statement, the Code have to be deleted.
+
+After you have finished this tutorial, you have to upload the update_to_latest.php file, execute it and then delete it from your webspace.
+
+Ok, lets start:
+
+
+[size=18][color=blue][list][*]admin/admin_db_utilities.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 696[/color]
+[code]
+
+			$tables = array('auth_access', 'banlist', 'categories', 'config', 'disallow', 'forums', 'forum_prune', 'groups', 'posts', 'posts_text', 'privmsgs', 'privmsgs_text', 'ranks', 'search_results', 'search_wordlist', 'search_wordmatch', 'sessions', 'smilies', 'themes', 'themes_name', 'topics', 'topics_watch', 'user_group', 'users', 'vote_desc', 'vote_results', 'vote_voters', 'words');
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			$tables = array('auth_access', 'banlist', 'categories', 'config', 'disallow', 'forums', 'forum_prune', 'groups', 'posts', 'posts_text', 'privmsgs', 'privmsgs_text', 'ranks', 'search_results', 'search_wordlist', 'search_wordmatch', 'sessions', 'smilies', 'themes', 'themes_name', 'topics', 'topics_watch', 'user_group', 'users', 'vote_desc', 'vote_results', 'vote_voters', 'words', 'confirm');
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/index.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 562[/color]
+[code]
+
+			"L_NO_GUESTS_BROWSING" => $lang['No_users_browsing'])
+		);
+	}
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+
+	// Check for new version
+	$current_version = explode('.', '2' . $board_config['version']);
+	$minor_revision = (int) $current_version[2];
+
+	$errno = 0;
+	$errstr = $version_info = '';
+
+	if ($fsock = @fsockopen('www.phpbb.com', 80, $errno, $errstr))
+	{
+		@fputs($fsock, "GET /updatecheck/20x.txt HTTP/1.1\r\n");
+		@fputs($fsock, "HOST: www.phpbb.com\r\n");
+		@fputs($fsock, "Connection: close\r\n\r\n");
+
+		$get_info = false;
+		while (!@feof($fsock))
+		{
+			if ($get_info)
+			{
+				$version_info .= @fread($fsock, 1024);
+			}
+			else
+			{
+				if (@fgets($fsock, 1024) == "\r\n")
+				{
+					$get_info = true;
+				}
+			}
+		}
+		@fclose($fsock);
+
+		$version_info = explode("\n", $version_info);
+		$latest_head_revision = (int) $version_info[0];
+		$latest_minor_revision = (int) $version_info[2];
+		$latest_version = (int) $version_info[0] . '.' . (int) $version_info[1] . '.' . (int) $version_info[2];
+
+		if ($latest_head_revision == 2 && $minor_revision == $latest_minor_revision)
+		{
+			$version_info = '<p style="color:green">' . $lang['Version_up_to_date'] . '</p>';
+		}
+		else
+		{
+			$version_info = '<p style="color:red">' . $lang['Version_not_up_to_date'];
+			$version_info .= '<br />' . sprintf($lang['Latest_version_info'], $latest_version) . sprintf($lang['Current_version_info'], '2' . $board_config['version']) . '</p>';
+		}
+	}
+	else
+	{
+		if ($errstr)
+		{
+			$version_info = '<p style="color:red">' . sprintf($lang['Connect_socket_error'], $errstr) . '</p>';
+		}
+		else
+		{
+			$version_info = '<p>' . $lang['Socket_functions_disabled'] . '</p>';
+		}
+	}
+	
+	$version_info .= '<p>' . $lang['Mailing_list_subscribe_reminder'] . '</p>';
+	
+
+	$template->assign_vars(array(
+		'VERSION_INFO'	=> $version_info,
+		'L_VERSION_INFORMATION'	=> $lang['Version_information'])
+	);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]common.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 56[/color]
+[code]
+
+	$test = array('HTTP_GET_VARS' => NULL, 'HTTP_POST_VARS' => NULL, 'HTTP_COOKIE_VARS' => NULL, 'HTTP_SERVER_VARS' => NULL, 'HTTP_ENV_VARS' => NULL, 'HTTP_POST_FILES' => NULL);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$test = array('HTTP_GET_VARS' => NULL, 'HTTP_POST_VARS' => NULL, 'HTTP_COOKIE_VARS' => NULL, 'HTTP_SERVER_VARS' => NULL, 'HTTP_ENV_VARS' => NULL, 'HTTP_POST_FILES' => NULL, 'phpEx' => NULL, 'phpbb_root_path' => NULL);
+[/code]
+
+[*]
+[color=blue]FIND - Line 75[/color]
+[code]
+
+else if (@ini_get('register_globals') == '1' || strtolower(@ini_get('register_globals')) == 'on')
+{
+	// PHP4+ path
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$not_unset = array('HTTP_GET_VARS', 'HTTP_POST_VARS', 'HTTP_COOKIE_VARS', 'HTTP_SERVER_VARS', 'HTTP_SESSION_VARS', 'HTTP_ENV_VARS', 'HTTP_POST_FILES', 'phpEx', 'phpbb_root_path');
+[/code]
+
+[*]
+[color=blue]FIND - Line 92[/color]
+[code]
+
+	unset($input['input']);
+	
+	while (list($var,) = @each($input))
+	{
+		unset($$var);
+	}
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	unset($input['input']);
+	unset($input['not_unset']);
+
+	while (list($var,) = @each($input))
+	{
+		if (!in_array($var, $not_unset))
+		{
+			unset($$var);
+		}
+	}
+[/code]
+
+[*]
+[color=blue]FIND - Line 207[/color]
+[code]
+
+$client_ip = ( !empty($HTTP_SERVER_VARS['REMOTE_ADDR']) ) ? $HTTP_SERVER_VARS['REMOTE_ADDR'] : ( ( !empty($HTTP_ENV_VARS['REMOTE_ADDR']) ) ? $HTTP_ENV_VARS['REMOTE_ADDR'] : $REMOTE_ADDR );
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+$client_ip = ( !empty($HTTP_SERVER_VARS['REMOTE_ADDR']) ) ? $HTTP_SERVER_VARS['REMOTE_ADDR'] : ( ( !empty($HTTP_ENV_VARS['REMOTE_ADDR']) ) ? $HTTP_ENV_VARS['REMOTE_ADDR'] : getenv('REMOTE_ADDR') );
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/functions.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 80[/color]
+[code]
+
+	$username = htmlspecialchars(rtrim(trim($username), "\\"));
+	$username = substr(str_replace("\\'", "'", $username), 0, 25);
+	$username = str_replace("'", "\\'", $username);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$username = substr(htmlspecialchars(str_replace("\'", "'", trim($username))), 0, 25);
+	$username = phpbb_rtrim($username, "\\");	
+	$username = str_replace("'", "\'", $username);
+[/code]
+
+[*]
+[color=blue]FIND - Line 83[/color]
+[code]
+
+
+	return $username;
+}
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+
+// added at phpBB 2.0.12 to fix a bug in PHP 4.3.10 (only supporting charlist in php >= 4.1.0)
+function phpbb_rtrim($str, $charlist = false)
+{
+	if ($charlist === false)
+	{
+		return rtrim($str);
+	}
+	
+	$php_version = explode('.', PHP_VERSION);
+
+	// php version < 4.1.0
+	if ((int) $php_version[0] < 4 || ((int) $php_version[0] == 4 && (int) $php_version[1] < 1))
+	{
+		while ($str{strlen($str)-1} == $charlist)
+		{
+			$str = substr($str, 0, strlen($str)-1);
+		}
+	}
+	else
+	{
+		$str = rtrim($str, $charlist);
+	}
+
+	return $str;
+}
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 608[/color]
+[code]
+
+			$debug_text .= '</br /><br />Line : ' . $err_line . '<br />File : ' . $err_file;
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			$debug_text .= '</br /><br />Line : ' . $err_line . '<br />File : ' . basename($err_file);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/page_tail.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 38[/color]
+[code]
+
+	'PHPBB_VERSION' => '2' . $board_config['version'],
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+//	'PHPBB_VERSION' => '2' . $board_config['version'],
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/template.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 233[/color]
+[code]
+
+       		$filename = phpbb_realpath($this->root . '/' . $filename);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+       		$filename = ($rp_filename = phpbb_realpath($this->root . '/' . $filename)) ? $rp_filename : $filename;
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_avatar.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 54[/color]
+[code]
+
+{
+	global $board_config, $userdata;
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$avatar_file = basename($avatar_file);
+[/code]
+
+[*]
+[color=blue]FIND - Line 69[/color]
+[code]
+
+function user_avatar_gallery($mode, &$error, &$error_msg, $avatar_filename)
+{
+	global $board_config;
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+
+	$avatar_filename = str_replace(array('../', '..\\', './', '.\\'), '', $avatar_filename);
+	if ($avatar_filename{0} == '/' || $avatar_filename{0} == "\\")
+	{
+		return '';
+	}
+
+[/code]
+
+[*]
+[color=blue]FIND - Line 235[/color]
+[code]
+
+				$move_file = 'copy';
+			}
+
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+			if (!is_uploaded_file($avatar_filename))
+			{
+				message_die(GENERAL_ERROR, 'Unable to upload file', '', __LINE__, __FILE__);
+			}
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_register.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 462[/color]
+[code]
+
+			$avatar_mode = ( !empty($user_avatar_name) ) ? 'local' : 'remote';
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			$avatar_mode = (empty($user_avatar_name)) ? 'remote' : 'local';
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]language/lang_english/lang_admin.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND[/color]
+[code]
+
+//
+// That's all Folks!
+// -------------------------------------------------
+[/code]
+
+[color=blue]BEFORE, ADD[/color]
+[code]
+
+//
+// Version Check
+//
+$lang['Version_up_to_date'] = 'Your installation is up to date, no updates are available for your version of phpBB.';
+$lang['Version_not_up_to_date'] = 'Your installation does <b>not</b> seem to be up to date. Updates are available for your version of phpBB, please visit <a href="http://www.phpbb.com/downloads.php" target="_new">http://www.phpbb.com/downloads.php</a> to obtain the latest version.';
+$lang['Latest_version_info'] = 'The latest available version is <b>phpBB %s</b>.';
+$lang['Current_version_info'] = 'You are running <b>phpBB %s</b>.';
+$lang['Connect_socket_error'] = 'Unable to open connection to phpBB Server, reported error is:<br />%s';
+$lang['Socket_functions_disabled'] = 'Unable to use socket functions.';
+$lang['Mailing_list_subscribe_reminder'] = 'For the latest information on updates to phpBB, why not <a href="http://www.phpbb.com/support/" target="_new">subscribe to our mailing list</a>.';
+$lang['Version_information'] = 'Version Information';
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]templates/subSilver/admin/index_body.tpl[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 80[/color]
+[code]
+
+</table>
+
+<br />
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+
+<h1>{L_VERSION_INFORMATION}</h1>
+
+{VERSION_INFO}
+
+<br />
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]templates/subSilver/overall_footer.tpl[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 8[/color]
+[code]
+
+	Powered by phpBB {PHPBB_VERSION} line, with phpBB linked to www.phpbb.com. If you refuse
+	to include even this then support on our forums may be affected. 
+
+	The phpBB Group : 2002
+// -->
+Powered by <a href="http://www.phpbb.com/" target="_phpbb" class="copyright">phpBB</a> {PHPBB_VERSION} &copy; 2001, 2002 phpBB Group<br />{TRANSLATION_INFO}</span></div>
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	Powered by phpBB line, with phpBB linked to www.phpbb.com. If you refuse
+	to include even this then support on our forums may be affected.
+
+	The phpBB Group : 2002
+// -->
+Powered by <a href="http://www.phpbb.com/" target="_phpbb" class="copyright">phpBB</a> &copy; 2001, 2005 phpBB Group<br />{TRANSLATION_INFO}</span></div>
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]templates/subSilver/simple_footer.tpl[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 8[/color]
+[code]
+
+	Powered by phpBB {PHPBB_VERSION} line, with phpBB linked to www.phpbb.com. If you refuse
+	to include even this then support on our forums may be affected. 
+
+	The phpBB Group : 2002
+// -->
+Powered by <a href="http://www.phpbb.com/" target="_phpbb" class="copyright">phpBB</a> {PHPBB_VERSION} &copy; 2001,2002 phpBB Group</span></div>
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	Powered by phpBB line, with phpBB linked to www.phpbb.com. If you refuse
+	to include even this then support on our forums may be affected. 
+
+	The phpBB Group : 2002
+// -->
+Powered by <a href="http://www.phpbb.com/" target="_phpbb" class="copyright">phpBB</a> &copy; 2001, 2005 phpBB Group</span></div>
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]viewtopic.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 498[/color]
+[code]
+
+	unset($words);
+
+	$highlight = urlencode($HTTP_GET_VARS['highlight']);
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$highlight_match = phpbb_rtrim($highlight_match, "\\");
+[/code]
+
+[/list]

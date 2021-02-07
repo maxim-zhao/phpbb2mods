@@ -1,0 +1,252 @@
+##############################################################
+## MOD Title: Reorder ACP Categories 
+## MOD Author: dvandersluis < daniel@codexed.com > (Daniel Vandersluis) http://www.codexed.com
+## MOD Description: Allows board admins to change the order that ACP
+##		categories will display.
+## MOD Version: 1.0.3
+##
+## Installation Level: Easy
+## Installation Time: ~5 Minutes
+## Files To Edit: 4
+##		admin/index.php
+##		includes/constants.php
+##		language/lang_english/lang_admin.php
+##		templates/subSilver/admin/index_navigate.tpl
+## Included Files: 2
+##		admin/admin_category_order.php
+##		templates/subSilver/admin/acp_category_list_body.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##		The cat_display field in the SQL is not yet used,
+##		but kept for future-compatibility without having
+##		to re-edit the same files.
+##		See contrib/categorize_panel.txt if you want to put
+## 		the Reorder Categories under a category itself,
+##		rather than in the root section where it is currently.
+##
+##############################################################
+## MOD History:
+##
+##	 2006-06-05
+##		Version 1.0.3
+##		- Fixed bugs that lead to denial on MODDB.
+##		- Included missing admin/admin_category_order.php to
+##		  zip.
+##
+##	 2006-05-16
+##		Version 1.0.2
+##		- Included some bug fixes that were missing from the
+##		  previous version.
+##
+##		Version 1.0.1
+##		- Fixed some MOD bugs
+##
+##		Version 1.0.0
+##		- Fixed so that the order can be properly saved.
+##		- Fixed bug that was causing things like "Admin Cat ##"
+##		  to appear in the ACP navigation pane.
+##		- Added Admin panel (currently located in the root
+##		  section of the nav pane).
+##
+##   2006-05-14
+##		Version 0.0.1
+##		- allows for categories to be reordered, but does
+##		  not have any way to save orders other than
+##		  directly interfacing with the DB.
+##      - initial version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------------------------
+#
+CREATE TABLE `phpbb_admin_categories` (
+	`id` INT(11) NOT NULL AUTO_INCREMENT,
+	`cat_identifier` VARCHAR(255) NOT NULL,
+	`cat_order` INT(11) NOT NULL DEFAULT '0',
+	`cat_display` VARCHAR(255) DEFAULT NULL,
+	PRIMARY KEY  (`id`)
+);
+
+#
+#-----[ COPY ]-----------------------------------------
+#
+copy admin/admin_category_order.php to admin/admin_category_order.php
+copy templates/admin/acp_category_list_body.tpl to templates/subSilver/admin/acp_category_list_body.tpl
+
+#
+#-----[ OPEN ]-----------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]-----------------------------------------
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+
+#
+#-----[ AFTER, ADD ]-----------------------------------
+#
+// +Reorder ACP Categories
+define('ADMIN_CATS_TABLE', $table_prefix.'admin_categories'); 
+// -Reorder ACP Categories
+
+#
+#-----[ FIND ]-----------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]----------------------------------
+#
+// +Reorder ACP Categories
+define('DIR_UP', 1);
+define('DIR_DOWN', -1);
+// -Reorder ACP Categories
+#
+#-----[ OPEN ]-----------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]-----------------------------------------
+#
+//
+// That's all Folks!
+
+#
+#-----[ BEFORE, ADD ]----------------------------------
+#
+// +Reorder ACP Categories
+$lang['Reorder_ACP_categories'] = "Reorder Categories";
+$lang['ACP_cat_display'] = "Category Title";
+$lang['ACP_cat_title'] = "Reorder ACP Categories";
+$lang['ACP_cat_explain'] = "ACP Categories are the headings in the navigation list on the left hand pane. Use this form to change the order they are displayed in. Categories not explicitly ordered will be displayed alphabetically by internal identifier after the ordered ones.";
+$lang['ACP_cat_moved'] = "The category was successfully moved.";
+$lang['Reorder'] = "Re-Order";
+$lang['Click_return_catadmin'] = 'Click %sHere%s to return to ACP Category Administration';
+// -Reorder ACP Categories
+
+#
+#-----[ OPEN ]-----------------------------------------
+#
+admin/index.php
+
+#
+#-----[ FIND ]-----------------------------------------
+#
+//
+// End functions
+// -------------
+
+#
+#-----[ BEFORE, ADD ]----------------------------------
+#
+// +Reorder ACP Categories
+function number_first_sort($s, $t)
+{
+	$s = preg_replace('/Admin_cat_/', '', $s);
+	$t = preg_replace('/Admin_cat_/', '', $t);
+
+	if (is_numeric($s) && is_numeric($t))
+	{
+		return $t - $s;
+	}
+	elseif (is_numeric($s) && !is_numeric($t))
+	{
+		return -1;
+	}
+	elseif (is_numeric($t) && !is_numeric($s))
+	{
+		return 1;
+	}
+	else 
+	{
+		return strcmp($s, $t);
+	}
+}
+// -Reorder ACP Categories
+#
+#-----[ FIND ]-----------------------------------------
+#
+		"L_ADMIN_INDEX" => $lang['Admin_Index'], 
+
+#
+#-----[ AFTER, ADD ]-----------------------------------
+#
+		// +Reorder ACP Categories
+		"L_REORDER_CATS" => $lang['Reorder_ACP_categories'],
+		"U_REORDER_CATS" => append_sid("admin_category_order.$phpEx"),
+		// -Reorder ACP Categories
+
+#
+#-----[ FIND ]-----------------------------------------
+#
+	ksort($module);
+
+#
+#-----[ REPLACE WITH ]---------------------------------
+#
+	// +Reorder ACP Categories
+	$sql = "SELECT cat_order, cat_display, cat_identifier
+		FROM " . ADMIN_CATS_TABLE;
+	
+	if (!$result = $db->sql_query($sql))
+	{
+		message_die(GENERAL_ERROR, "Couldn't obtain admin category information.", "", __LINE__, __FILE__, $sql);
+	}
+
+	while ($row = $db->sql_fetchrow($result))
+	{
+		if (!isset($module[$row['cat_identifier']]))
+		{
+			continue;
+		}
+
+		$uid = "Admin_cat_{$row['cat_order']}";
+		$lang[$uid] = (!empty($row['cat_display'])) ? $row['cat_display']
+			: (isset($lang[$row['cat_identifier']]) ? $lang[$row['cat_identifier']]
+				: preg_replace('/_/', ' ', $row['cat_identifier']));
+		$module[$uid] = $module[$row['cat_identifier']];
+		unset($module[$row['cat_identifier']]);
+	}
+		
+	uksort($module, "number_first_sort");
+	// -Reorder ACP Categories
+
+#
+#-----[ OPEN ]-----------------------------------------
+#
+templates/subSilver/admin/index_navigate.tpl
+
+#
+#-----[ FIND ]-----------------------------------------
+#
+{L_PREVIEW_FORUM}
+</tr>
+
+#
+#-----[ AFTER, ADD ]-----------------------------------
+#
+		<!-- +Reorder ACP Categories -->
+		<tr>
+			<td class="row1">
+				<span class="genmed">
+					<a href="{U_REORDER_CATS}" target="main" class="genmed">{L_REORDER_CATS}</a>
+				</span>
+			</td>
+		</tr>
+		<!-- -Reorder ACP Categories -->
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

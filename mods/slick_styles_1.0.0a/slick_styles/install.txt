@@ -1,0 +1,321 @@
+##############################################################
+## MOD Title: Slick Style Admin
+## MOD Author: damnian < damnian at phpbb dot cc > (Dmitry Shechtman) http://www.phpbb.cc
+## MOD Description: Better style management
+## MOD Version: 1.0.0
+## 
+## Installation Level: Easy
+## Installation Time: 15 minutes
+## Files To Edit: 2
+##  admin/admin_styles.php
+##  templates/subSilver/admin/styles_list_body.tpl
+##
+## Included Files: N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: 
+##############################################################
+## MOD History:
+## 
+## 2006-11-17 - Version 1.0.0
+##      - Initial release
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_styles.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	$module['Styles']['Add_new'] = 
+	$module['Styles']['Create_new'] = 
+	$module['Styles']['Manage'] = 
+	$module['Styles']['Export'] = 
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	// Start add - Slick Style Admin MOD
+	$module['Manage']['Styles'] = $file;
+	// End add - Slick Style Admin MOD
+	// Slick Style Admin MOD: 4 lines removed
+#
+#-----[ FIND ]------------------------------------------
+#
+switch( $mode )
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Slick Style Admin MOD
+if( isset($HTTP_POST_VARS['addnew']) )
+{
+	$mode = 'addnew';
+}
+else if( isset($HTTP_POST_VARS['create']) )
+{
+	$mode = 'create';
+}
+else if( isset($HTTP_POST_VARS['export']) )
+{
+	$mode = 'export';
+}
+// End add - Slick Style Admin MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$install_to = 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'install_to'
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+'template_name'
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'install_to'
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+'template_name'
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'install_to'
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+'template_name'
+#
+#-----[ FIND ]------------------------------------------
+#
+$style_name = 
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		// Slick Style Admin MOD: 1 line removed
+#
+#-----[ FIND ]------------------------------------------
+#
+for($i = 0; $i < count($template_name) && !$found; $i++)
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			for($j = 0; $j < count($template_name); $j++)
+#
+#-----[ FIND ]------------------------------------------
+#
+if( $template_name[$i]['style_name'] == $style_name )
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				// Slick Style Admin MOD: 1 line removed
+				// Start add - Slick Style Admin MOD
+				$style_name = $template_name[$j]['style_name'];
+										
+				$sql = "SELECT themes_id 
+					FROM " . THEMES_TABLE . " 
+					WHERE style_name = '" . str_replace("\'", "''", $style_name) . "'";
+				if(!$result = $db->sql_query($sql))
+				{
+					message_die(GENERAL_ERROR, "Could not query themes table!", "", __LINE__, __FILE__, $sql);
+				}
+
+				if(!$db->sql_numrows($result))
+				// End add - Slick Style Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+while(list($key, $val) = 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$template_name[$i]
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$template_name[$j]
+#
+#-----[ FIND ]------------------------------------------
+#
+					}
+				}
+			}
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+					}
+			// Slick Style Admin MOD: 2 lines removed
+#
+#-----[ FIND ]------------------------------------------
+#
+$message = $lang['Theme_installed']
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			// Start add - Slick Style Admin MOD
+					$found = TRUE;
+				}
+			}
+			
+			if ($found)
+			{
+				$message = $lang['Theme_installed'] . "<br /><br />" . sprintf($lang['Click_return_styleadmin'], "<a href=\"" . append_sid("admin_styles.$phpEx") . "\">", "</a>") . "<br /><br />" . sprintf($lang['Click_return_admin_index'], "<a href=\"" . append_sid("index.$phpEx?pane=right") . "\">", "</a>");
+			}
+			else
+			{
+				$message = $lang['Style_exists'] . "<br /><br />" . sprintf($lang['Click_return_styleadmin'], "<a href=\"" . append_sid("admin_styles.$phpEx") . "\">", "</a>") . "<br /><br />" . sprintf($lang['Click_return_admin_index'], "<a href=\"" . append_sid("index.$phpEx?pane=right") . "\">", "</a>");
+			}
+			// End add - Slick Style Admin MOD
+			// Slick Style Admin MOD: 1 line removed
+#
+#-----[ FIND ]------------------------------------------
+#
+"U_STYLES_INSTALL" => 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+install_to
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+template_name
+#
+#-----[ FIND ]------------------------------------------
+#
+$themes_explain = $lang['Create_theme_explain'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Slick Style Admin MOD
+				$selected['template_name'] = isset($HTTP_POST_VARS['template_name']) ? $HTTP_POST_VARS['template_name'] : '';
+				// End add - Slick Style Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+if($HTTP_POST_VARS['export_template']
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+['export_template']
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+['template_name']
+#
+#-----[ FIND ]------------------------------------------
+#
+$template_name = 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+['export_template']
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+['template_name']
+#
+#-----[ FIND ]------------------------------------------
+#
+$s_template_select = 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+"export_template"
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+"template_name"
+#
+#-----[ FIND ]------------------------------------------
+#
+$style_rowset = 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+		// Start add - Slick Style Admin MOD
+		if( $dir = @opendir($phpbb_root_path . 'templates/') )
+		{
+			$s_template_select = '<select name="template_name">';
+			while( $file = @readdir($dir) )
+			{
+				if( !is_file(phpbb_realpath($phpbb_root_path . 'templates/' . $file)) && !is_link(phpbb_realpath($phpbb_root_path . 'templates/' .$file)) && $file != "." && $file != ".." && $file != "CVS" )
+				{
+					$s_template_select .= '<option value="' . $file . '">' . $file . "</option>\n";
+				}
+			}
+			$s_template_select .= '</select>';
+		}
+		else
+		{
+			message_die(GENERAL_MESSAGE, $lang['No_template_dir']);
+		}
+		// End add - Slick Style Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+"L_STYLES_TITLE" => 
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+			// Start add - Slick Style Admin MOD
+			"S_ACTION" => append_sid("admin_styles.$phpEx"),
+			"S_TEMPLATE_SELECT" => $s_template_select,
+
+			"L_ADD_NEW" => $lang['Add_new'],
+			"L_CREATE_NEW" => $lang['Create_new'],
+			"L_EXPORT" => $lang['Export'],
+			// End add - Slick Style Admin MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/styles_list_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+<table cellspacing="1"
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+<form method="post" action="{S_ACTION}">
+#
+#-----[ FIND ]------------------------------------------
+#
+<!-- END styles -->
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="catBottom" align="center" colspan="4">{S_TEMPLATE_SELECT}
+			<input type="submit" name="addnew" value="{L_ADD_NEW}" class="mainoption" />
+			<input type="submit" name="create" value="{L_CREATE_NEW}" class="liteoption" />
+			<input type="submit" name="export" value="{L_EXPORT}" class="liteoption" />
+		</td>
+	</tr>
+#
+#-----[ FIND ]------------------------------------------
+#
+</table>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+</form>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

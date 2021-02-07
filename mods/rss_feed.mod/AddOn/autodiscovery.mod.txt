@@ -1,0 +1,79 @@
+############################################################## 
+## MOD Title: RSS Autodiscovery Add-On for RSS Feed 2.x 
+## MOD Author: chyduskam < chuduskam@debilarius.ru > (Egor Naklonyaeff) N/A 
+## MOD Description: RSS Autodiscovery using <link> tag in HTTP <head> section 
+## MOD Version: 1.0.1
+## 
+## Installation Level: Easy 
+## Installation Time: 3 Minutes 
+## Files To Edit: 1 
+##    includes/page_header.php 
+## Included Files: n/a 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: Compatible with RSS Feed MOD and RSS Content Syndicator MOD
+##############################################################
+## MOD History: 
+## 
+##   2005-01-14 - Version 1.0.1 
+##      - fix missing quote in string after "else" 
+##   2005-01-10 - Version 1.0.0 
+##      - initial release 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ OPEN ]------------------------------------------------------- 
+# 
+includes/page_header.php 
+
+# 
+#-----[ FIND ]---------------------------------------- 
+# 
+// 
+// Parse and show the overall header. 
+// 
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------- 
+# 
+// BEGIN RSS autodiscovery 
+$rss_forum_id =( isset($HTTP_GET_VARS[POST_FORUM_URL]))? intval($HTTP_GET_VARS[POST_FORUM_URL]): 0; 
+$rss_path = preg_replace('/^\/?(.*?)\/?$/', '\1', trim($board_config['script_path'])); 
+$rss_script = ( $rss_path != '' ) ? $rss_path . '/rss.' . $phpEx : 'rss.'. $phpEx; 
+$rss_server_name = trim($board_config['server_name']); 
+$rss_server_protocol = ( $board_config['cookie_secure'] ) ? 'https://' : 'http://'; 
+$rss_server_port = ( $board_config['server_port'] <> 80 ) ? ':' . trim($board_config['server_port']) . '/' : '/'; 
+$rss_url=$rss_server_protocol . $rss_server_name . $rss_server_port . $rss_script; 
+if($rss_forum_id!=0){ 
+      $rss_link='<link rel="alternate" type="application/rss+xml" title="RSS" href="'.$rss_url.'?f='.$rss_forum_id.'" />'."\n"; 
+      $rss_link.='<link rel="alternate" type="application/atom+xml" title="Atom" href="'.$rss_url.'?atom&f='.$rss_forum_id.'" />'."\n"; 
+} 
+else 
+{ 
+       $rss_link='<link rel="alternate" type="application/rss+xml" title="RSS" href="'.$rss_url.'" />'."\n"; 
+      $rss_link.='<link rel="alternate" type="application/atom+xml" title="Atom" href="'.$rss_url.'?atom'.'" />'."\n"; 
+} 
+// END RSS autodiscovery 
+
+# 
+#-----[ FIND ]---------------------------------------- 
+# 
+// 
+// The following assigns all _common_ variables that may be used at any point 
+// in a template. 
+
+# 
+#-----[ BEFORE, ADD ]---------------------------------- 
+# 
+$nav_links_html.=$rss_link; //  RSS autodiscovery 
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

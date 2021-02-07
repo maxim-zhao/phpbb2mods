@@ -1,0 +1,724 @@
+##############################################################
+## MOD Title: Slick Forum Admin
+## MOD Author: damnian < damnian at phpbb dot cc > (Dmitry Shechtman) http://www.phpbb.cc
+## MOD Description: Better forum management
+## MOD Version: 1.2.0
+## 
+## Installation Level: Easy
+## Installation Time: 20 minutes
+## Files To Edit: 6
+##  admin/admin_forum_prune.php
+##  admin/admin_forumauth.php
+##  admin/admin_forums.php
+##  language/lang_english/lang_admin.php
+##  templates/subSilver/admin/forum_admin_body.tpl
+##  templates/subSilver/admin/forum_edit_body.tpl
+##
+## Included Files: N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##      Fully compatible with Attachment MOD
+##############################################################
+## MOD History:
+## 
+## 2007-01-18 - Version 1.2.0
+##      - Added permissions to forum settings
+##      - Minor syntax fix
+##      - Minor template fixes
+## 
+## 2006-11-13 - Version 1.0.0
+##      - Initial release
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_forum_prune.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$module['Forums']['Prune']
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	// Slick Forum Admin MOD: 1 line removed
+#
+#-----[ FIND ]------------------------------------------
+#
+		$forum_sql = "AND forum_id = $forum_id";
+	}
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Start add - Slick Forum Admin MOD
+else if( isset($HTTP_GET_VARS[POST_CAT_URL]) || isset($HTTP_POST_VARS[POST_CAT_URL])  )
+{
+	$cat_id = ( isset($HTTP_POST_VARS[POST_CAT_URL]) ) ? intval($HTTP_POST_VARS[POST_CAT_URL]) : intval($HTTP_GET_VARS[POST_CAT_URL]);
+	$forum_sql = "AND c.cat_id = $cat_id";
+}
+// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$sql = "SELECT f.*
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+f.*
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, c.cat_title
+#
+#-----[ FIND ]------------------------------------------
+#
+$forum_rows = array();
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Slick Forum Admin MOD
+if( $db->sql_numrows($result) == 0 )
+{
+	message_die(GENERAL_MESSAGE, 'No_forums');
+}
+// End add - Slick Forum Admin MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+			'FORUM_POSTS' => 
+		);
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+	// Start add - Slick Forum Admin MOD
+	$message = $lang['Prune_success'] . '<br /><br />' . sprintf($lang['Click_return_forumadmin'],  '<a href="' . append_sid("admin_forums.$phpEx") . '">', "</a>");
+	// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'L_PRUNE_RESULT' => 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang['Prune_success']
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$message
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+if( empty($HTTP_POST_VARS[POST_FORUM_URL])
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+empty($HTTP_POST_VARS[POST_FORUM_URL])
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+&& empty($HTTP_GET_VARS[POST_FORUM_URL]) && empty($HTTP_POST_VARS[POST_CAT_URL]) && empty($HTTP_GET_VARS[POST_CAT_URL])
+#
+#-----[ FIND ]------------------------------------------
+#
+$forum_id = intval($HTTP_POST_VARS[POST_FORUM_URL]);
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		// Slick Forum Admin MOD: 1 line removed
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$forum_name = 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$forum_rows[0]['forum_name']
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+( isset($cat_id) ? $forum_rows[0]['cat_title'] : $forum_rows[0]['forum_name'] )
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$hidden_input = 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+POST_FORUM_URL
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+( isset($cat_id) ? POST_CAT_URL : POST_FORUM_URL )
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$forum_id
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+( isset($cat_id) ? $cat_id : $forum_id )
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'L_FORUM' => 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang['Forum']
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+isset($cat_id) ? $lang['Category'] : $lang['Forum']
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_forumauth.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$module['Forums']['Permissions']
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	// Slick Forum Admin MOD: 1 line removed
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'META' => '<meta http-equiv="refresh" 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+"admin_forumauth.$phpEx?" . POST_FORUM_URL . "=$forum_id"
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+"admin_forums.$phpEx"
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$message = $lang['Forum_auth_updated']
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang['Click_return_forumauth']
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$lang['Click_return_forumadmin']
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+"admin_forumauth.$phpEx"
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+"admin_forums.$phpEx"
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_forums.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$module['Forums']['Manage']
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	// Start add - Slick Forum Admin MOD
+	$module['Manage']['Forums'] = $file;
+	// End add - Slick Forum Admin MOD
+	// Slick Forum Admin MOD: 1 line removed
+#
+#-----[ FIND ]------------------------------------------
+#
+require('./pagestart.' . $phpEx);
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+// Start add - Slick Forum Admin MOD
+$pruneall = ( isset($HTTP_POST_VARS['pruneall']) ) ? TRUE : FALSE;
+$no_page_header = $pruneall;
+// End add - Slick Forum Admin MOD
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+// Start add - Slick Forum Admin MOD
+$pruneall = ( isset($HTTP_POST_VARS['pruneall']) ) ? TRUE : FALSE;
+if ($pruneall)
+{
+	redirect(append_sid("admin/admin_forum_prune.$phpEx?" . POST_FORUM_URL . "=-1", true));
+}
+// End add - Slick Forum Admin MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$forum_auth_ary = array(
+	"auth_view" => AUTH_ALL, 
+	"auth_read" => AUTH_ALL, 
+	"auth_post" => AUTH_REG, 
+	"auth_reply" => AUTH_REG, 
+	"auth_edit" => AUTH_REG, 
+	"auth_delete" => AUTH_REG, 
+	"auth_sticky" => AUTH_MOD, 
+	"auth_announce" => AUTH_MOD, 
+	"auth_vote" => AUTH_REG, 
+	"auth_pollcreate" => AUTH_REG
+);
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+// Slick Forum Admin MOD: 12 lines removed
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// Mode setting
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start add - Slick Forum Admin MOD
+//
+// Start program - define vars
+//
+//                View      Read      Post      Reply     Edit     Delete    Sticky   Announce    Vote      Poll
+$simple_auth_ary = array(
+	0  => array(AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_MOD, AUTH_MOD, AUTH_REG, AUTH_REG),
+	1  => array(AUTH_ALL, AUTH_ALL, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_MOD, AUTH_MOD, AUTH_REG, AUTH_REG),
+	2  => array(AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_REG, AUTH_MOD, AUTH_MOD, AUTH_REG, AUTH_REG),
+	3  => array(AUTH_ALL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_MOD, AUTH_ACL, AUTH_ACL),
+	4  => array(AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_ACL, AUTH_MOD, AUTH_ACL, AUTH_ACL),
+	5  => array(AUTH_ALL, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD),
+	6  => array(AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD, AUTH_MOD),
+);
+
+$simple_auth_types = array($lang['Public'], $lang['Registered'], $lang['Registered'] . ' [' . $lang['Hidden'] . ']', $lang['Private'], $lang['Private'] . ' [' . $lang['Hidden'] . ']', $lang['Moderators'], $lang['Moderators'] . ' [' . $lang['Hidden'] . ']', $lang['Custom']);
+$forum_auth_fields = array('auth_view', 'auth_read', 'auth_post', 'auth_reply', 'auth_edit', 'auth_delete', 'auth_sticky', 'auth_announce', 'auth_vote', 'auth_pollcreate');
+
+if (function_exists('attach_setup_forum_auth'))
+{
+	$field_names = array();
+	attach_setup_forum_auth($simple_auth_ary, $forum_auth_fields, $field_names);
+}
+// End add - Slick Forum Admin MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+// Begin function block
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Start add - Slick Forum Admin MOD
+function simple_auth($forum_row)
+{
+	global $simple_auth_ary, $forum_auth_fields, $lang;
+
+	for ($i = 0; $i < count($simple_auth_ary); $i++)
+	{
+		$matched = 1;
+		$forum_auth_ary = $simple_auth_ary[$i];
+		for ($j = 0; $j < count($forum_auth_ary); $j++)
+		{
+			if ($forum_row[$forum_auth_fields[$j]] != $forum_auth_ary[$j])
+			{
+				$matched = 0;
+				break;
+			}
+		}
+		if ($matched)
+		{
+			return $i;
+		}
+	}
+	return $i;
+}
+// End add - Slick Forum Admin MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$prune_enabled = '';
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Slick Forum Admin MOD
+				$s_simple_auth = simple_auth($row);
+				// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+$prune_enabled = '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Slick Forum Admin MOD
+				$s_simple_auth = 1;
+				// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->set_filenames(array(
+	"body" => "admin/forum_edit_body.tpl")
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+			// Start add - Slick Forum Admin MOD
+			$simple_auth = '<select name="simpleauth">';
+
+			$matched = 0;
+			for($j = 0; $j < count($simple_auth_types); $j++)
+			{
+				if ($j < count($simple_auth_types) - 1 || !$matched)
+				{
+					$selected = ( $s_simple_auth == $j ) ? ' selected="selected"' : '';
+					$simple_auth .= '<option value="' . $j . '"' . $selected . '>' . $simple_auth_types[$j] . '</option>';
+				}
+				if ($s_simple_auth == $j)
+				{
+					$matched = 1;
+				}
+			}
+
+			$simple_auth .= '</select>';
+			// End add - Slick Forum Admin MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'S_CAT_LIST' => 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Slick Forum Admin MOD
+				'S_AUTH_LEVELS_SELECT' => $simple_auth,
+				// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'L_CATEGORY' => 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Slick Forum Admin MOD
+				'L_PERMISSIONS' => $lang['Permissions'],
+				// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+			//
+			// Default permissions of public :: 
+			//
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			// Start add - Slick Forum Admin MOD
+			$forum_auth_ary = $simple_auth_ary[intval($HTTP_POST_VARS['simpleauth'])];
+			// End add - Slick Forum Admin MOD
+			// Slick Forum Admin MOD: 3 lines removed
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+while( list($field, $value)
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			// Slick Forum Admin MOD: 1 line replaced
+			for( $i = 0; $i < count($forum_auth_ary); $i++ )
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$field_sql .= 
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				// Slick Forum Admin MOD: 1 line replaced
+				$field_sql .= ', ' . $forum_auth_fields[$i];
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$value_sql .= 
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+				// Slick Forum Admin MOD: 1 line replaced
+				$value_sql .= ', ' . $forum_auth_ary[$i];
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "UPDATE " . FORUMS_TABLE . "
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+			// Start add - Slick Forum Admin MOD
+			$sql = '';
+			if( intval($HTTP_POST_VARS['simpleauth']) < count($simple_auth_types) - 1 )
+			{
+				$simple_ary = $simple_auth_ary[intval($HTTP_POST_VARS['simpleauth'])];
+
+				for($i = 0; $i < count($simple_ary); $i++)
+				{
+					$sql .= ', ' . $forum_auth_fields[$i] . ' = ' . $simple_ary[$i];
+				}
+			}
+			// End add - Slick Forum Admin MOD
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+SET forum_name = 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+intval($HTTP_POST_VARS['prune_enable'])
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ . $sql
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'L_EDIT' => 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	// Start add - Slick Forum Admin MOD
+	'L_PRUNE' => $lang['Prune_Action'],
+	'L_PRUNE_ALL_FORUMS' => $lang['Prune_all_forums'],
+	// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'U_CAT_EDIT' => 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			// Start add - Slick Forum Admin MOD
+			'U_CAT_PRUNE' => append_sid("admin_forum_prune.$phpEx?" . POST_CAT_URL . "=$cat_id"),
+			// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+if ($forum_rows[$j]['cat_id'] == $cat_id)
+{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				// Start add - Slick Forum Admin MOD
+				$simple_auth = $simple_auth_types[simple_auth($forum_rows[$j])];
+				// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'NUM_POSTS' => 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					// Start add - Slick Forum Admin MOD
+					'PERMISSIONS' => $simple_auth,
+					// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+'U_FORUM_EDIT' => 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					// Start add - Slick Forum Admin MOD
+					'U_FORUM_PERMISSIONS' => append_sid("admin_forumauth.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;adv=1"),
+					'U_FORUM_PRUNE' => append_sid("admin_forum_prune.$phpEx?" . POST_FORUM_URL . "=$forum_id"),
+					// End add - Slick Forum Admin MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$lang['Hidden'] = 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Start add - Slick Forum Admin MOD
+$lang['Custom'] = 'Custom';
+// End add - Slick Forum Admin MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+$lang['Do_Prune'] = 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Start add - Slick Forum Admin MOD
+$lang['Prune_Action'] = 'Prune';
+$lang['Prune_all_forums'] = 'Prune all forums';
+// End add - Slick Forum Admin MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/forum_admin_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+<th class="thHead" colspan="{%:1}"
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+%:1 +2
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+<a href="{catrow.U_CAT_EDIT}"
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<td class="cat">&nbsp;</td>
+		<td class="cat" align="center" valign="middle"><span class="gen"><a href="{catrow.U_CAT_PRUNE}">{L_PRUNE}</a></span></td>
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+<a href="{catrow.U_CAT_MOVE_UP}"
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+<a href="{catrow.U_CAT_MOVE_DOWN}">{L_MOVE_DOWN}</a></span>
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+</span>
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+&nbsp;
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+valign="middle"
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ nowrap="nowrap"
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+&nbsp;
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+<a href="{catrow.U_CAT_MOVE_DOWN}">{L_MOVE_DOWN}</a>
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+<a href="{catrow.forumrow.U_FORUM_EDIT}"
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<td class="row2" align="center" valign="middle"><span class="gen"><a href="{catrow.forumrow.U_FORUM_PERMISSIONS}">{catrow.forumrow.PERMISSIONS}</a></span></td>
+		<td class="row1" align="center" valign="middle"><span class="gen"><a href="{catrow.forumrow.U_FORUM_PRUNE}">{L_PRUNE}</a></span></td>
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+<td colspan="{%:1}" 
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+%:1 +2
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+<td colspan="{%:1}" 
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+%:1 +2
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+<td colspan="{%:1}" 
+#
+#-----[ INCREMENT ]------------------------------------------
+#
+%:1 +2
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ value="{L_CREATE_CATEGORY}" />
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+&nbsp;<input type="submit" class="liteoption" name="pruneall" value="{L_PRUNE_ALL_FORUMS}" />
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/forum_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial match
+<td class="row2"><select name="c">
+</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr> 
+	  <td class="row1">{L_PERMISSIONS}</td>
+	  <td class="row2">{S_AUTH_LEVELS_SELECT}</td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

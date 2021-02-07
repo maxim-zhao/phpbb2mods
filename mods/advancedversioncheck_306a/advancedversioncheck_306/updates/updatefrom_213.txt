@@ -1,0 +1,345 @@
+################################################################ MOD Title: Advanced Version Check - Upgrade 2.1.3 to 3.0.6## MOD Author: Fountain of Apples < webmacster87@gmail.com > (Douglas Bell) http://foamods.sourceforge.net## MOD Description: Adds a Version Check system to phpBB that checks for the latest version of phpBB and various other phpBB MODs that may be installed.## MOD Version: 3.0.6#### Installation Level: Easy## Installation Time: 5 Minutes## Files To Edit: common.php
+##		admin/index.php
+##		includes/constants.php
+##		language/lang_english/lang_admin.php
+##		templates/subSilver/admin/index_body.tpl## Included Files: admin/admin_download_phpbb.php
+##		admin/admin_version.php
+##		admin/admin_version_manage.php
+##		admin/admin_version_config.php
+##		admin/admin_version_log.php
+##		admin/avc_mods/avc_avc.php
+##		includes/constants_avc.php
+##		includes/functions_avc.php
+##		includes/functions_insert_pm.php
+##		includes/functions_insert_post.php
+##		includes/xml.php
+##		language/lang_english/lang_avc.php
+##		templates/subSilver/admin/avc_index_summary.tpl
+##		templates/subSilver/admin/avc_phpbbversion_body.tpl
+##		templates/subSilver/admin/download_phpbb_body.tpl
+##		templates/subSilver/admin/version_body.tpl
+##		templates/subSilver/admin/version_manage.tpl
+##		templates/subSilver/admin/version_config.tpl
+##		templates/subSilver/admin/version_log.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2################################################################ For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/################################################################ Author Notes:#### This script will update Advanced Version Check v. 2.1.3 (alpha) to 3.0.6.  If you are not currently running version 2.1.3, refer to versions.txt in the updates/ directory to determine which script you need to run.
+##
+## Please note that AVC 3.0.6 now requires phpBB 2.0.19 or later to be installed. If your board is not currently using phpBB 2.0.19, you need to update it now by installing the Code Changes MOD at < http://www.phpbb.com/phpBB/catdb.php?cat=48 >. However, DO NOT MAKE ANY MODIFICATIONS TO templates/subSilver/admin/index_body.tpl, JUST SKIP THEM. Then, apply the changes in this script.
+##
+## For complete Author's Notes and Version History, see the install file in the root directory of this zip.################################################################ Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+DELETE index_avc FROM phpbb_version_config;
+INSERT INTO phpbb_version_config VALUES ('background_check', 1);
+INSERT INTO phpbb_version_config VALUES ('show_admin_index', 1);
+INSERT INTO phpbb_version_config VALUES ('update_email', 0);
+INSERT INTO phpbb_version_config VALUES ('email_address', '');
+INSERT INTO phpbb_version_config VALUES ('update_pm', 0);
+INSERT INTO phpbb_version_config VALUES ('pm_id', '');
+INSERT INTO phpbb_version_config VALUES ('update_post', 0);
+INSERT INTO phpbb_version_config VALUES ('post_forum', '');
+INSERT INTO phpbb_version_config VALUES ('post_contents', '');
+
+CREATE TABLE phpbb_version_log (
+    log_id INTEGER(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+    log_timestamp INTEGER(11) NOT NULL DEFAULT 0,
+    mod_name VARCHAR(250) NOT NULL DEFAULT '',
+    log_action TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (log_id)
+);
+#
+#-----[ COPY ]---------------------------------------------
+#
+copy root/admin/admin_version.php to admin/admin_version.php
+copy root/admin/admin_version_manage.php to admin/admin_version_manage.php
+copy root/admin/admin_version_config.php to admin/admin_version_config.php
+copy root/admin/admin_version_log.php to admin/admin_version_log.php
+copy root/admin/admin_download_phpbb.php to admin/admin_download_phpbb.php
+copy root/admin/avc_mods/avc_avc.php to admin/avc_mods/avc_avc.php
+copy root/includes/constants_avc.php to includes/constants_avc.php
+copy root/includes/functions_avc.php to includes/functions_avc.php
+copy root/language/lang_english/lang_avc.php to language/lang_english/lang_avc.php
+copy root/templates/subSilver/admin/avc_index_summary.tpl to templates/subSilver/admin/avc_index_summary.tpl
+copy root/templates/subSilver/admin/avc_phpbbversion_body.tpl to templates/subSilver/admin/avc_phpbbversion_body.tpl
+copy root/templates/subSilver/admin/download_phpbb_body.tpl to templates/subSilver/admin/download_phpbb_body.tpl
+copy root/templates/subSilver/admin/version_manage.tpl to templates/subSilver/admin/version_manage.tpl
+copy root/templates/subSilver/admin/version_body.tpl to templates/subSilver/admin/version_body.tpl
+copy root/templates/subSilver/admin/version_config.tpl to templates/subSilver/admin/version_config.tpl
+copy root/templates/subSilver/admin/version_log.tpl to templates/subSilver/admin/version_log.tpl
+#
+#-----[ OPEN ]---------------------------------------------
+#
+common.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+$board_config = array();
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+// MOD: Advanced Version Check
+$version_config = array();
+// END MOD: Advanced Version Check
+#
+#-----[ FIND ]---------------------------------------------
+#
+	message_die(GENERAL_MESSAGE, 'Please_remove_install_contrib');
+}
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+
+// MOD: Advanced Version Check
+include_once($phpbb_root_path . 'includes/constants_avc.'.$phpEx);
+// Prepare our $version_config array
+$sql = "SELECT *
+	FROM " . VERSION_CONFIG_TABLE;
+if( !($result = $db->sql_query($sql)) )
+{
+	message_die(GENERAL_ERROR, $lang['No_Version_Config'], "", __LINE__, __FILE__, $sql);
+}
+while ( $row = $db->sql_fetchrow($result) )
+{
+	$version_config[$row['config_name']] = $row['config_value'];
+}
+$db->sql_freeresult($result);
+
+//
+// If Background Checking is on, run the Version Check -- we're restricting
+// this one to an interval only
+//
+if ( $version_config['background_check'] || defined('IN_AVC') )
+{
+	avc_version_check();
+}
+elseif ( defined('AVC_ADMIN_INDEX') )
+{
+	if ( !$version_config['show_admin_index'] )
+	{
+		avc_one_version_check(PHPBB_MOD_ID);
+	}
+	else
+	{
+		avc_version_check();
+	}
+// END MOD: Advanced Version Check
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/index.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+define('IN_PHPBB', 1);
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+// MOD: Advanced Version Check
+define('AVC_ADMIN_INDEX', 1);
+// END MOD: Advanced Version Check
+#
+#-----[ FIND ]---------------------------------------------
+#
+require('./pagestart.' . $phpEx);
+// MOD: Advanced Version Check
+// This will be needed later for the Version Check Summary
+include($phpbb_root_path . 'includes/constants_avc.' . $phpEx);
+// END MOD: Advanced Version Check
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+require('./pagestart.' . $phpEx);
+#
+#-----[ FIND ]---------------------------------------------
+#
+END remove */
+
+	//
+	// Let's just grab all the SQL we need and get everything ready
+	//
+	if($version_config['index_avc'] == 1)
+	{
+		$sql = "SELECT mod_id, mod_name, mod_status, mod_topic_loc , mod_download_loc, mod_current_version,mod_new_version, mod_time_stamp, mod_file_name, mod_domain_loc, mod_file_loc
+			FROM " . VERSION_CHECK_TABLE . " WHERE mod_status = 1 AND mod_current_version < mod_new_version
+			ORDER BY mod_id";	
+		if( !$q_mod = $db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Could not select Version Check info from database.', "", __LINE__, __FILE__, $sql);
+		}
+		$total_mods = $db->sql_numrows($q_mod) )
+		$mod_rows = $db->sql_fetchrowset($q_mod);
+
+		//
+		// If there's no MODs here, then none of them are updated
+		//
+		if (empty($mod_rows))
+		{
+			$template->assign_block_vars('switch_version_check_none', array(
+				'L_MOD_NONE_HEADER' => $lang['Version_check'],
+				'L_NO_UPDATES' => $lang['MODs_uptodate'])
+			);
+		}
+		//
+		// There ARE some MODs with updates, get ready
+		//
+		else
+		{
+			$template->assign_block_vars('switch_version_check_on', array(
+				'L_MOD_NAME_HEADER' => $lang['MOD_Name'],
+				'L_LATEST_VERSION_HEADER' => $lang['Latest_version'],
+				'L_CURRENT_VERSION_HEADER' => $lang['Current_version'],
+				'L_DOWNLOAD_MOD_HEADER' => $lang['Download'],
+				'L_VERSION_CHECK_HEADER' => $lang['Version_check'],
+				'L_INDEX_SUMMARY_EXPLAIN' => sprintf($lang['Index_summary_explain'], '<a href="' . append_sid('admin_version.' .$phpEx) . '">', '</a>'))
+			);
+			//
+			// Loop through each updated MOD
+			//
+			for($i = 0;$i < $total_mods;$i++)
+			{
+				if($mod_rows[$i]['mod_new_version'] > $mod_rows[$i]['mod_current_version'] )
+				{
+					$fcolor = 'color:red';
+				}
+				else
+				{
+					$fcolor = 'color:green';
+				}
+				$template->assign_block_vars('switch_version_check_on.switch_version_check_loop', array(
+					'L_MOD_NAME' => $mod_rows[$i]['mod_name'],
+					'U_TOPIC_LOC' => $mod_rows[$i]['mod_topic_loc'],
+					'L_LATEST_VERSION' => $mod_rows[$i]['mod_new_version'],
+					'L_CURRENT_VERSION' => $mod_rows[$i]['mod_current_version'],
+					'L_DOWNLOAD_MOD' => $lang['Download'],
+					'U_DOWNLOAD_MOD' => $mod_rows[$i]['mod_download_loc'],
+					'F_COLOR' => $fcolor,
+					'L_RECHECK_V' => $lang['Run_check'])
+				);
+			}
+		}
+	}
+// END MOD: Advanced Version Check
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+END remove */
+
+// Isn't it nice? This one function deals with the whole thing! :P
+avc_display_index();
+// END MOD: Advanced Version Check
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+// MOD: Advanced Version Check
+define('VERSION_CHECK_TABLE', $table_prefix.'version_check');
+define('VERSION_CONFIG_TABLE', $table_prefix.'version_config');
+// END MOD: Advanced Version Check
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+#
+#-----[ OPEN ]---------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+// MOD: Advanced Version Check
+/* The following is original phpBB code that we are removing:
+//
+// Version Check
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+//
+// Version Check
+#
+#-----[ FIND ]---------------------------------------------
+#
+$lang['Version_information'] = 'Version Information';
+END remove */
+// END MOD: Advanced Version Check
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+$lang['Version_information'] = 'Version Information';
+#
+#-----[ OPEN ]---------------------------------------------
+#
+templates/subSilver/admin/index_body.tpl
+#
+#-----[ FIND ]---------------------------------------------
+#
+<!-- Advanced Version Check -->
+<!-- BEGIN switch_version_check_on -->
+<h1>{switch_version_check_on.L_VERSION_CHECK_HEADER}</h1>
+<p>{switch_version_check_on.L_INDEX_SUMMARY_EXPLAIN}</p>
+<br />
+<table width="100%" cellpadding="4" cellspacing="1" border="0" class="forumline">
+  <tr>
+    <th width="20%" nowrap="nowrap" height="25" class="thCornerL">{switch_version_check_on.L_MOD_NAME_HEADER}</th>    
+    <th width="20%" nowrap="nowrap" height="25" class="thTop">{switch_version_check_on.L_CURRENT_VERSION_HEADER}</th>
+	<th width="20%" nowrap="nowrap" height="25" class="thTop">{switch_version_check_on.L_LATEST_VERSION_HEADER}</th>
+    <th width="20%" nowrap="nowrap" height="25" class="thCornerR">{switch_version_check_on.L_DOWNLOAD_MOD_HEADER}</th>
+  </tr>
+  <!-- BEGIN switch_version_check_loop -->
+  <tr>
+    <td class="row1" nowrap="nowrap" align="center"><a href="{switch_version_check_on.switch_version_check_loop.U_TOPIC_LOC}" target="_blank">{switch_version_check_on.switch_version_check_loop.L_MOD_NAME}</a></td>
+    <td class="row1" nowrap="nowrap" align="center"><b><span style="color:green">{switch_version_check_on.switch_version_check_loop.L_CURRENT_VERSION}</span></b></td>
+    <td class="row2" nowrap="nowrap" align="center"><b><span style="{switch_version_check_on.switch_version_check_loop.F_COLOR}">{switch_version_check_on.switch_version_check_loop.L_LATEST_VERSION}</span></b></td>
+    <td class="row2" nowrap="nowrap" align="center"><a href="{switch_version_check_on.switch_version_check_loop.U_DOWNLOAD_MOD}" target="_blank">{switch_version_check_on.switch_version_check_loop.L_DOWNLOAD_MOD}</a></td>
+ </tr>
+
+<!-- END switch_version_check_loop -->  
+</table>
+
+<br />
+<!-- END switch_version_check_on -->
+
+<!-- BEGIN switch_version_check_none -->
+<h1>{switch_version_check_none.L_MOD_NONE_HEADER}</h1>
+<p style="color:green">{switch_version_check_none.L_NO_UPDATES}</p>
+<!-- END switch_version_check_none -->
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+<!-- Advanced Version Check -->
+<!-- <h1>{L_VERSION_INFORMATION}</h1>
+
+{VERSION_INFO}
+
+<br /> -->
+{AVC_INDEX_SUMMARY}
+#
+#-----[ FIND ]---------------------------------------------
+#
+<!-- Advanced Version Check
+The following is original phpBB code that we are removing:
+<br />
+
+<h1>{L_VERSION_INFORMATION}</h1>
+
+{VERSION_INFO}
+End Remove -->
+
+<br />
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#  
+<br />
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

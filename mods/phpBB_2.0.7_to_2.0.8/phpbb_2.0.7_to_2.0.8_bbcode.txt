@@ -1,0 +1,558 @@
+[size=18]phpBB 2.0.7 to phpBB 2.0.8 Code Changes[/size]
+
+
+
+These are the Changes from phpBB 2.0.7 to phpBB 2.0.8 summed up into a little Mod. This might be very helpful if you want to update your Board and have installed a bunch of Mods. Then it's normally easier to apply the Code Changes than to install all Mods again.
+
+When you find a 'AFTER, ADD'-Statement, the Code have to be added after the last line quoted in the 'FIND'-Statement.
+When you find a 'BEFORE, ADD'-Statement, the Code have to be added before the first line quoted in the 'FIND'-Statement.
+When you find a 'REPLACE WITH'-Statement, the Code quoted in the 'FIND'-Statement have to be replaced completely with the quoted Code in the 'REPLACE WITH'-Statement.
+When you find a 'DELETE'-Statement, the Code have to be deleted.
+
+After you have finished this tutorial, you have to upload the update_to_208.php file (found within every phpBB Package), execute it and then delete it from your webspace.
+
+From phpBB 2.0.7 to 2.0.8 there were no database changes, except the version number increment.
+
+Ok, lets start:
+
+
+[size=18][color=blue][list][*]admin/admin_forumauth.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 105[/color]
+[code]
+
+			$simple_ary = $simple_auth_ary[$HTTP_POST_VARS['simpleauth']];
+
+			for($i = 0; $i < count($simple_ary); $i++)
+			{
+				$sql .= ( ( $sql != '' ) ? ', ' : '' ) . $forum_auth_fields[$i] . ' = ' . $simple_ary[$i];
+			}
+
+			$sql = "UPDATE " . FORUMS_TABLE . " SET $sql WHERE forum_id = $forum_id";
+		}
+		else
+		{
+			for($i = 0; $i < count($forum_auth_fields); $i++)
+			{
+				$value = $HTTP_POST_VARS[$forum_auth_fields[$i]];
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			$simple_ary = $simple_auth_ary[intval($HTTP_POST_VARS['simpleauth'])];
+
+			for($i = 0; $i < count($simple_ary); $i++)
+			{
+				$sql .= ( ( $sql != '' ) ? ', ' : '' ) . $forum_auth_fields[$i] . ' = ' . $simple_ary[$i];
+			}
+
+			if (is_array($simple_ary))
+			{
+				$sql = "UPDATE " . FORUMS_TABLE . " SET $sql WHERE forum_id = $forum_id";
+			}
+		}
+		else
+		{
+			for($i = 0; $i < count($forum_auth_fields); $i++)
+			{
+				$value = intval($HTTP_POST_VARS[$forum_auth_fields[$i]]);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_forums.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 60[/color]
+[code]
+
+	$mode = ( isset($HTTP_POST_VARS['mode']) ) ? $HTTP_POST_VARS['mode'] : $HTTP_GET_VARS['mode'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$mode = htmlspecialchars($mode);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_groups.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 54[/color]
+[code]
+
+	$mode = ( isset($HTTP_POST_VARS['mode']) ) ? $HTTP_POST_VARS['mode'] : $HTTP_GET_VARS['mode'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$mode = htmlspecialchars($mode);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_ranks.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 43[/color]
+[code]
+
+	$mode = ($HTTP_GET_VARS['mode']) ? $HTTP_GET_VARS['mode'] : $HTTP_POST_VARS['mode'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$mode = htmlspecialchars($mode);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_smilies.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 62[/color]
+[code]
+
+	$mode = ( isset($HTTP_POST_VARS['mode']) ) ? $HTTP_POST_VARS['mode'] : $HTTP_GET_VARS['mode'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$mode = htmlspecialchars($mode);
+[/code]
+
+[*]
+[color=blue]FIND - Line 319[/color]
+[code]
+
+			$smiley_id = ( !empty($HTTP_POST_VARS['id']) ) ? $HTTP_POST_VARS['id'] : $HTTP_GET_VARS['id'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+			$smiley_id = intval($smiley_id);
+[/code]
+
+[*]
+[color=blue]FIND - Line 340[/color]
+[code]
+
+			$smiley_id = ( !empty($HTTP_POST_VARS['id']) ) ? $HTTP_POST_VARS['id'] : $HTTP_GET_VARS['id'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+			$smiley_id = intval($smiley_id);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_styles.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 61[/color]
+[code]
+
+	$mode = ( isset($HTTP_GET_VARS['mode']) ) ? $HTTP_GET_VARS['mode'] : $HTTP_POST_VARS['mode'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$mode = htmlspecialchars($mode);
+[/code]
+
+[*]
+[color=blue]FIND - Line 492[/color]
+[code]
+
+				$style_id = $HTTP_GET_VARS['style_id'];
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+				$style_id = intval($HTTP_GET_VARS['style_id']);
+[/code]
+
+[*]
+[color=blue]FIND - Line 707[/color]
+[code]
+
+				WHERE template_name = '$template_name'";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+				WHERE template_name = '" . str_replace("\'", "''", $template_name) . "'";
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_ug_auth.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 60[/color]
+[code]
+
+$user_id = intval($user_id);
+$group_id = intval($group_id);
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+$adv = intval($adv);
+$mode = htmlspecialchars($mode);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_user_ban.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 280[/color]
+[code]
+
+				$where_sql .= ( ( $where_sql != '' ) ? ', ' : '' ) . $user_list[$i];
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+				$where_sql .= ( ( $where_sql != '' ) ? ', ' : '' ) . intval($user_list[$i]);
+[/code]
+
+[*]
+[color=blue]FIND - Line 293[/color]
+[code]
+
+				$where_sql .= ( ( $where_sql != '' ) ? ', ' : '' ) . $ip_list[$i];
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+				$where_sql .= ( ( $where_sql != '' ) ? ', ' : '' ) . str_replace("\'", "''", $ip_list[$i]);
+[/code]
+
+[*]
+[color=blue]FIND - Line 306[/color]
+[code]
+
+				$where_sql .= ( ( $where_sql != '' ) ? ', ' : '' ) . $email_list[$i];
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+				$where_sql .= ( ( $where_sql != '' ) ? ', ' : '' ) . str_replace("\'", "''", $email_list[$i]);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_users.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 52[/color]
+[code]
+
+	$mode = ( isset( $HTTP_POST_VARS['mode']) ) ? $HTTP_POST_VARS['mode'] : $HTTP_GET_VARS['mode'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$mode = htmlspecialchars($mode);
+[/code]
+
+[*]
+[color=blue]FIND - Line 842[/color]
+[code]
+
+				$category = $HTTP_POST_VARS['avatarcategory'];
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+				$category = htmlspecialchars($HTTP_POST_VARS['avatarcategory']);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/admin_words.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 44[/color]
+[code]
+
+	$mode = ($HTTP_GET_VARS['mode']) ? $HTTP_GET_VARS['mode'] : $HTTP_POST_VARS['mode'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$mode = htmlspecialchars($mode);
+[/code]
+
+[*]
+[color=blue]FIND - Line 67[/color]
+[code]
+
+		$word_id = ( isset($HTTP_GET_VARS['id']) ) ? $HTTP_GET_VARS['id'] : 0;
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		$word_id = ( isset($HTTP_GET_VARS['id']) ) ? intval($HTTP_GET_VARS['id']) : 0;
+[/code]
+
+[*]
+[color=blue]FIND - Line 117[/color]
+[code]
+
+		$word_id = ( isset($HTTP_POST_VARS['id']) ) ? $HTTP_POST_VARS['id'] : 0;
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		$word_id = ( isset($HTTP_POST_VARS['id']) ) ? intval($HTTP_POST_VARS['id']) : 0;
+[/code]
+
+[*]
+[color=blue]FIND - Line 154[/color]
+[code]
+
+		if( isset($HTTP_POST_VARS['id']) ||  isset($HTTP_GET_VARS['id']) )
+		{
+			$word_id = ( isset($HTTP_POST_VARS['id']) ) ? $HTTP_POST_VARS['id'] : $HTTP_GET_VARS['id'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+			$word_id = intval($word_id);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]admin/pagestart.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 59[/color]
+[code]
+
+	redirect($url);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	redirect("index.$phpEx?sid=" . $userdata['session_id']);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/bbcode.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 284[/color]
+[code]
+
+	$text = preg_replace("#\[img\]((ht|f)tp://)([^\r\n\t<\"]*?)\[/img\]#sie", "'[img:$uid]\\1' . str_replace(' ', '%20', '\\3') . '[/img:$uid]'", $text);
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$text = preg_replace("#\[img\]((ht|f)tp://)([^ \?&=\"\n\r\t<]*?(\.(jpg|jpeg|gif|png)))\[/img\]#sie", "'[img:$uid]\\1' . str_replace(' ', '%20', '\\3') . '[/img:$uid]'", $text);
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/functions_search.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 201[/color]
+[code]
+
+						$value_sql .= ( ( $value_sql != '' ) ? ', ' : '' ) . '(\'' . $word[$i] . '\', 0)';
+						break;
+					case 'mssql':
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+					case 'mssql-odbc':
+[/code]
+
+[*]
+[color=blue]FIND - Line 226[/color]
+[code]
+
+						VALUES $value_sql"; 
+					break;
+				case 'mssql':
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+				case 'mssql-odbc':
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]includes/usercp_register.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 180[/color]
+[code]
+
+	$user_avatar_local = ( isset($HTTP_POST_VARS['avatarselect']) && !empty($HTTP_POST_VARS['submitavatar']) && $board_config['allow_avatar_local'] ) ? $HTTP_POST_VARS['avatarselect'] : ( ( isset($HTTP_POST_VARS['avatarlocal'])  ) ? htmlspecialchars($HTTP_POST_VARS['avatarlocal']) : '' );
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+	$user_avatar_local = ( isset($HTTP_POST_VARS['avatarselect']) && !empty($HTTP_POST_VARS['submitavatar']) && $board_config['allow_avatar_local'] ) ? htmlspecialchars($HTTP_POST_VARS['avatarselect']) : ( ( isset($HTTP_POST_VARS['avatarlocal'])  ) ? htmlspecialchars($HTTP_POST_VARS['avatarlocal']) : '' );
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]login.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 86[/color]
+[code]
+
+						$url = ( !empty($HTTP_POST_VARS['redirect']) ) ? htmlspecialchars($HTTP_POST_VARS['redirect']) : "index.$phpEx";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+						$url = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : "index.$phpEx";
+[/code]
+
+[*]
+[color=blue]FIND - Line 96[/color]
+[code]
+
+					$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? htmlspecialchars($HTTP_POST_VARS['redirect']) : '';
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+					$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : '';
+[/code]
+
+[*]
+[color=blue]FIND - Line 111[/color]
+[code]
+
+			$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? htmlspecialchars($HTTP_POST_VARS['redirect']) : "";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+			$redirect = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : "";
+[/code]
+
+[*]
+[color=blue]FIND - Line 133[/color]
+[code]
+
+		if (!empty($HTTP_POST_VARS['redirect']) || !empty($HTTP_GET_VARS['redirect']))
+		{
+			$url = (!empty($HTTP_POST_VARS['redirect'])) ? htmlspecialchars($HTTP_POST_VARS['redirect']) : htmlspecialchars($HTTP_GET_VARS['redirect']);
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+			$url = str_replace('&', '&', $url);
+[/code]
+
+[*]
+[color=blue]FIND - Line 143[/color]
+[code]
+
+		$url = ( !empty($HTTP_POST_VARS['redirect']) ) ? htmlspecialchars($HTTP_POST_VARS['redirect']) : "index.$phpEx";
+[/code]
+
+[color=blue]REPLACE WITH[/color]
+[code]
+
+		$url = ( !empty($HTTP_POST_VARS['redirect']) ) ? str_replace('&', '&', htmlspecialchars($HTTP_POST_VARS['redirect'])) : "index.$phpEx";
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]privmsg.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 2079[/color]
+[code]
+
+
+if ( $row = $db->sql_fetchrow($result) )
+{
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$i = 0;
+[/code]
+
+[*]
+[color=blue]FIND - Line 2114[/color]
+[code]
+
+
+		$row_color = ( !($i % 2) ) ? $theme['td_color1'] : $theme['td_color2'];
+		$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+		$i++;
+[/code]
+
+[/list]
+[size=18][color=blue][list][*]search.php[/color][/size][/list]
+[list=1]
+[*]
+[color=blue]FIND - Line 72[/color]
+[code]
+
+$search_id = ( isset($HTTP_GET_VARS['search_id']) ) ? $HTTP_GET_VARS['search_id'] : '';
+
+$show_results = ( isset($HTTP_POST_VARS['show_results']) ) ? $HTTP_POST_VARS['show_results'] : 'posts';
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+$show_results = ($show_results == 'topics') ? 'topics' : 'posts';
+[/code]
+
+[*]
+[color=blue]FIND - Line 148[/color]
+[code]
+
+else if ( $search_keywords != '' || $search_author != '' || $search_id )
+{
+	$store_vars = array('search_results', 'total_match_count', 'split_search', 'sort_by', 'sort_dir', 'show_results', 'return_chars');
+[/code]
+
+[color=blue]AFTER, ADD[/color]
+[code]
+
+	$search_results = '';
+[/code]
+
+[/list]

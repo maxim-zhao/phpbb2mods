@@ -1,0 +1,302 @@
+############################################################## 
+## MOD Title: Block Open Proxy Registrants - Extended Configurator
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/terra/wordpress/
+## MOD Description: Adds a few features to the proxy checker in the ACP.
+## MOD Version: 2.2.1
+##
+## Installation Level: Intermediate
+## Installation Time: 5 Minutes
+##
+## Files To Edit: 4
+##      language/lang_english/lang_admin.php
+##      includes/constants.php
+##      templates/subSilver/admin/proxy_main_body.tpl
+##      admin/admin_proxy.php
+##
+## Included Files: 1
+##      templates/subSilver/admin/proxy_config_body.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##   See the Author Notes in the orig. install.txt.
+##
+############################################################## 
+## MOD History: 
+##
+##     See the MOD History in the orig. install.txt.
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy templates/subSilver/admin/proxy_config_body.tpl to templates/subSilver/admin/proxy_config_body.tpl
+#
+#-----[ SQL ]-------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('ip_link','http://network-tools.com/default.asp?host=%s');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('proxy_dnsbls',1);
+CREATE TABLE phpbb_dnsbls (
+   url char(255),
+   domain_name char(100)
+);
+INSERT INTO phpbb_dnsbls (url, domain_name) VALUES ('http://www.spews.org/ask.cgi?x=%s','%s.l1.spews.dnsbl.sorbs.net');
+INSERT INTO phpbb_dnsbls (url, domain_name) VALUES ('http://www.spamhaus.org/query/bl?ip=%s','%s.sbl-xbl.spamhaus.org');
+INSERT INTO phpbb_dnsbls (url, domain_name) VALUES ('http://dsbl.org/listing?%s','%s.list.dsbl.org');
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------
+#
+define('PROXY_TABLE', $table_prefix.'proxies');
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+define('DNSBL_TABLE', $table_prefix.'dnsbls');
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+$lang['proxy_error500']
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+
+$lang['proxy_dnsbl_listings'] = 'DNSBL Entries';
+$lang['proxy_desc_dnsbl'] = 'Configure features that only affect the proxy checker in the ACP.  When providing a URL, %s should go in place of the actual IP address.';
+$lang['proxy_config'] = 'Extended MOD Configuration';
+$lang['proxy_extended_config'] = 'Features only affecting the proxy checker in the ACP can be <a href="%s">configured here</a>';
+$lang['proxy_check_dnsbls'] = 'Check Against DNSBLs';
+$lang['proxy_check_dnsbls_desc'] = 'Does this in addition to scanning for proxies when testing via the ACP.';
+$lang['proxy_ip_link'] = 'IP Address Link';
+$lang['proxy_ip_link_desc'] = 'Determines which website will peform whois lookups on IP addresses.';
+$lang['proxy_dnsbl_domain'] = 'DNSBL Domain';
+$lang['proxy_dnsbl_link'] = 'DNSBL Link';
+$lang['proxy_dnsbl_desc'] = 'Determines which DNSBLs will be checked when testing via the ACP.';
+$lang['add_dnsbl'] = 'DNSBL has been successfully added!';
+$lang['remove_dnsbl'] = 'DNSBL has been successfully removed!';
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/proxy_main_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_SETTINGS}</th>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+	<tr>
+		<td class="row2" colspan="2"><span class="gensmall">{L_EXTENDED_CONFIG}</span></td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_proxy.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$template->set_filenames(array(
+			"body" => "admin/proxy_test_body.tpl")
+		);
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+		if ( $board_config['proxy_dnsbls'] )
+		{
+			// load dnsbl list
+			$sql ="SELECT * FROM " . DNSBL_TABLE;
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR,'Unable to load DNSBL list',__FILE__,__LINE__,$sql);
+			}
+
+			// build "live" dnsbl list
+			$dnsbl = array();
+			$rev = implode('.',array_reverse(explode('.', $ip_address)));
+			while ( $row = $db->sql_fetchrow($result) )
+			{
+				$lookup = sprintf($row['domain_name'],$rev);
+				if ($lookup != gethostbyname($lookup))
+				{
+					$dnsbl[] = sprintf($row['url'],$ip_address);
+				}
+			}
+
+			// prepare it for output
+			if ( $num_dnsbl = count($dnsbl) )
+			{
+				$test_results .= '<br /> <br />'.$lang['proxy_dnsbl_listings'].': ';
+				for ($num=0;$num<$num_dnsbl;$num++)
+				{
+					$test_results .= '<a href="'.$dnsbl[$num].'">['.$num.']</a> ';
+				}
+			}
+		}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					'IP_LINK' => "http://network-tools.com/default.asp?host=$ip_address",
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+					'IP_LINK' => sprintf($board_config['ip_link'],$ip_address),
+#
+#-----[ FIND ]------------------------------------------
+#
+	default:
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	case 'add_dnsbl':
+	case 'remove_dnsbl':
+		$sql = ($mode == 'remove_dnsbl') ?
+			"DELETE FROM " . DNSBL_TABLE . " 
+			WHERE domain_name = '".str_replace("\'","''",$HTTP_GET_VARS['domain'])."'" :
+			"INSERT INTO " . DNSBL_TABLE . " (domain_name, url) 
+			VALUES ('".str_replace("\'","''",$HTTP_POST_VARS['domain'])."','".str_replace("\'","''",$HTTP_POST_VARS['url'])."')";
+			
+		if ( !$db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, 'Unable to alter DNSBL list', '', __LINE__, __FILE__, $sql);
+		}
+
+		$message = sprintf($lang[$mode], htmlspecialchars(stripslashes($HTTP_GET_VARS['domain']))) . "<br /><br />" . sprintf($lang['proxy_return'],"<a href=\"" . append_sid("admin_proxy.$phpEx?mode=config") . "\">","</a>") . "<br /><br />" . sprintf($lang['Click_return_admin_index'], "<a href=\"" . append_sid("index.$phpEx?pane=right") . "\">", "</a>");
+
+		message_die(GENERAL_MESSAGE, $message);
+	case 'config':
+		$sql = "SELECT *
+			FROM " . CONFIG_TABLE . " 
+			WHERE config_name IN ('proxy_dnsbls','ip_link')";
+
+		if(!$result = $db->sql_query($sql))
+		{
+			message_die(CRITICAL_ERROR, "Could not query config information in admin_proxy", "", __LINE__, __FILE__, $sql);
+		}
+
+		while( $row = $db->sql_fetchrow($result) )
+		{
+			$config_name = $row['config_name'];
+			$config_value = $row['config_value'];
+			$default_config[$config_name] = isset($HTTP_POST_VARS['submit']) ? str_replace("'", "\'", $config_value) : $config_value;
+
+			$new[$config_name] = ( isset($HTTP_POST_VARS[$config_name]) ) ? $HTTP_POST_VARS[$config_name] : $default_config[$config_name];
+
+			if ( isset($HTTP_POST_VARS['submit']) && $mode == 'config' )
+			{
+				$sql = "UPDATE " . CONFIG_TABLE . " SET
+					config_value = '" . str_replace("\'", "''", $new[$config_name]) . "'
+					WHERE config_name = '$config_name'";
+				if( !$db->sql_query($sql) )
+				{
+					message_die(GENERAL_ERROR, "Failed to update general configuration for $config_name", "", __LINE__, __FILE__, $sql);
+				}
+			}
+		}
+
+		if( isset($HTTP_POST_VARS['submit']) && $mode == 'config' )
+		{
+			$message = $lang['Config_updated'] . "<br /><br />" . sprintf($lang['proxy_return'], "<a href=\"" . append_sid("admin_proxy.$phpEx?mode=config") . "\">", "</a>") . "<br /><br />" . sprintf($lang['Click_return_admin_index'], "<a href=\"" . append_sid("index.$phpEx?pane=right") . "\">", "</a>");
+
+			message_die(GENERAL_MESSAGE, $message);
+		}
+
+		$dnsbls_yes = ( $new['proxy_dnsbls'] ) ? "checked=\"checked\"" : "";
+		$dnsbls_no = ( !$new['proxy_dnsbls'] ) ? "checked=\"checked\"" : "";
+
+		$sql = "SELECT * FROM " . DNSBL_TABLE;
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR,'Unable to load DNSBL list',__FILE__,__LINE__,$sql);
+		}
+		if ( $row = $db->sql_fetchrow($result) )
+		{
+			$i = 0;
+			do
+			{
+				$template->assign_block_vars('dnsbl_row', array(
+					'ROW_NUMBER' => $i + ($start + 1),
+					'ROW_CLASS' => ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'],
+					'U_DOMAIN' => $row['domain_name'],
+					'U_LINK' => $row['url'],
+
+					'U_DELETE' => append_sid("admin_proxy.$phpEx?mode=remove_dnsbl&amp;domain=".htmlspecialchars($row['domain_name'])))
+				);
+				$i++;
+			}
+			while ( $row = $db->sql_fetchrow($result) );
+		}
+
+		$template->set_filenames(array(
+			"body" => "admin/proxy_config_body.tpl")
+		);
+
+		$template->assign_vars(array(
+			"S_CONFIG_ACTION" => append_sid("admin_proxy.$phpEx?mode=config"), 
+			"S_DNSBL_ACTION" => append_sid("admin_proxy.$phpEx?mode=add_dnsbl"), 
+
+			"L_YES" => $lang['Yes'],
+			"L_NO" => $lang['No'],
+			"L_TITLE" => $lang['proxy_title'],
+			"L_DESC" => $lang['proxy_desc_dnsbl'],
+			"L_RETURN" => sprintf($lang['proxy_return'], '<a href="#" onclick="history.go(-1); return false">', '</a>'),
+			"L_CONFIG" => $lang['proxy_config'],
+			"L_CHECK_DNSBLS" => $lang['proxy_check_dnsbls'],
+			"L_CHECK_DNSBLS_DESC" => $lang['proxy_check_dnsbls_desc'],
+			"L_IP_LINK" => $lang['proxy_ip_link'],
+			"L_IP_LINK_DESC" => $lang['proxy_ip_link_desc'],
+			"L_DNSBL_DOMAIN" => $lang['proxy_dnsbl_domain'],
+			"L_DNSBL_LINK" => $lang['proxy_dnsbl_link'],
+			"L_DNSBL_DESC" => $lang['proxy_dnsbl_desc'],
+			"L_ADD" => $lang['Add_new'],
+			"L_DELETE" => $lang['Delete'],
+			"L_SUBMIT" => $lang['Submit'],
+			"L_RESET" => $lang['Reset'],
+
+			"ROW_NUMBER" => $i + ($start + 1),
+			"ROW_CLASS" => ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'],
+
+			"S_IP_LINK" => $new['ip_link'],
+			"S_DNSBLS_YES" => $dnsbls_yes,
+			"S_DNSBLS_NO" => $dnsbls_no)
+		);
+
+		break;
+#
+#-----[ FIND ]------------------------------------------
+#
+					'IP_LINK' => "http://network-tools.com/default.asp?host=$ip_address",
+#
+#-----[ REPLACE WITH ]----------------------------------
+#
+					'IP_LINK' => sprintf($board_config['ip_link'],$ip_address),
+#
+#-----[ FIND ]------------------------------------------
+#
+			"L_LIST_DESC" => $lang['proxy_list_desc'],
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+			"L_EXTENDED_CONFIG" => sprintf($lang['proxy_extended_config'],append_sid("admin_proxy.$phpEx?mode=config")),
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

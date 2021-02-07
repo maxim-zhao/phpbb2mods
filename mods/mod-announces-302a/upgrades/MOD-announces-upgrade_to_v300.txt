@@ -1,0 +1,1457 @@
+############################################################## 
+## MOD Title: Announces Suite - upgrade from v 2.0.0 to v 3.0.0
+## MOD Author: Ptirhiik < admin@rpgnet-fr.com > (Pierre) http://rpgnet.clanmckeen.com
+## MOD Description:
+##		This mod is to upgrade from v 2.0.0 to v 3.0.0
+## MOD Version: 3.0.0
+## 
+## Installation Level: Easy
+## Installation Time: 20 Minutes
+## Files To Edit:
+##		index.php
+##		posting.php
+##		viewforum.php
+##
+##		admin/admin_board.php
+##		admin/admin_forumauth.php
+##		admin/admin_ug_auth.php
+##
+##		includes/auth.php
+##		includes/constants.php
+##		includes/functions.php
+##		includes/functions_post.php
+##		includes/page_header.php
+##
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##
+##		templates/subSilver/subSilver.cfg
+##		templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files:
+##		functions_announces.php
+##		functions_topics_list.php
+##		topics_list_box.tpl
+##
+##		mod_announces.php
+##
+##		mod-mods_settings/functions_mods_settings.php
+##		mod-mods_settings/admin_board_extend.php
+##		mod-mods_settings/board_config_extend_body.tpl
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##	For a new installation, please used MOD-announces-part1.txt & MOD-announces-part2.txt files
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2003-09-10 - Version 3.0.0
+##      - review the code to use functions_topics_list.php
+##	- add the mods_settings mod usage for user prefs
+##	- add the global announcement
+## 
+##   2003-07-14 - Version 2.0.0
+##      - add annnounces duration on topic
+##	- add prune announces process
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+ALTER TABLE phpbb_auth_access ADD auth_global_announce TINYINT(1) NOT NULL AFTER auth_announce;
+ALTER TABLE phpbb_forums ADD auth_global_announce TINYINT(2) NOT NULL AFTER auth_announce;
+UPDATE phpbb_forums SET auth_global_announce=5;
+#
+#-----[ SQL ]-------------------------------------------------
+#
+#
+# This part is optional : do it only if you want your users to be able to choose their setup
+#	if you want so, you'll have to install the MOD-mods_settings mod included in the pack
+#
+ALTER TABLE phpbb_users ADD user_announcement_date_display TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_announcement_display TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_announcement_display_forum TINYINT(1) DEFAULT '1' NOT NULL;
+#
+#-----[ COPY ]------------------------------------------------
+#
+delete templates/subSilver/viewforum_box.tpl
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy functions_announces.php to includes/functions_announces.php
+copy functions_topics_list.php to includes/functions_topics_list.php
+copy topics_list_box.tpl to templates/subSilver/topics_list_box.tpl
+#
+#-----[ COPY ]------------------------------------------------
+#
+#
+# those ones are a part of the MOD-mods_settings mod, and are required for Announces Suite v 3.0.0
+#
+copy mod_announces.php to includes/mods_settings/mod_announces.php
+copy mod-mods_settings/functions_mods_settings.php to includes/functions_mods_settings.php
+copy mod-mods_settings/admin_board_extend.php to admin/admin_board_extend.php
+copy mod-mods_settings/board_config_extend_body.tpl to templates/subSilver/admin/board_config_extend_body.tpl
+#
+#-----[ OPEN ]------------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+include($phpbb_root_path . 'common.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/functions_announces.'. $phpEx);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$viewcatkey = 'c' . $viewcat;
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+		$viewcatkey = POST_CAT_URL . $viewcat;
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$is_auth_type = 'auth_announce';
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+		else if ( $topic_type == POST_GLOBAL_ANNOUNCE )
+		{
+			$is_auth_type = 'auth_global_announce';
+		}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search, the full line is longer
+#
+		$select_sql = ( !$submit ) ?
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	, t.topic_announce_duration
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, t.topic_title
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, t.topic_announce_duration
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+# here we step back to original code
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- delete
+//		$sql = "SELECT f.*, t.topic_id, t.topic_status, t.topic_type, t.topic_first_post_id, t.topic_last_post_id, t.topic_vote, p.post_id, p.poster_id" . $select_sql . " 
+//			FROM " . POSTS_TABLE . " p, " . TOPICS_TABLE . " t, " . FORUMS_TABLE . " f" . $from_sql . " 
+//			WHERE p.post_id = $post_id 
+//				AND t.topic_id = p.topic_id 
+//				AND f.forum_id = p.forum_id
+//				$where_sql";
+//-- add
+		$sql = "SELECT f.*, t.topic_id, t.topic_status, t.topic_type, t.topic_announce_duration, t.topic_first_post_id, t.topic_last_post_id, t.topic_vote, p.post_id, p.poster_id" . $select_sql . " 
+			FROM " . POSTS_TABLE . " p, " . TOPICS_TABLE . " t, " . FORUMS_TABLE . " f" . $from_sql . " 
+			WHERE p.post_id = $post_id 
+				AND t.topic_id = p.topic_id 
+				AND f.forum_id = p.forum_id
+				$where_sql";
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+		$sql = "SELECT f.*, t.topic_id, t.topic_status, t.topic_type, t.topic_first_post_id, t.topic_last_post_id, t.topic_vote, p.post_id, p.poster_id" . $select_sql . " 
+			FROM " . POSTS_TABLE . " p, " . TOPICS_TABLE . " t, " . FORUMS_TABLE . " f" . $from_sql . " 
+			WHERE p.post_id = $post_id 
+				AND t.topic_id = p.topic_id 
+				AND f.forum_id = p.forum_id
+				$where_sql";
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- delete
+//				submit_post($mode, $post_data, $return_message, $return_meta, $forum_id, $topic_id, $post_id, $poll_id, $topic_type, $bbcode_on, $html_on, $smilies_on, $attach_sig, $bbcode_uid, str_replace("\'", "''", $username), str_replace("\'", "''", $subject), str_replace("\'", "''", $message), str_replace("\'", "''", $poll_title), $poll_options, $poll_length);
+//-- add
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+#
+#-----[ FIND ]------------------------------------------------
+#				
+				submit_post($mode, $post_data, $return_message, $return_meta, $forum_id, $topic_id, $post_id, $poll_id, $topic_type, $topic_announce_duration, $bbcode_on, $html_on, $smilies_on, $attach_sig, $bbcode_uid, str_replace("\'", "''", $username), str_replace("\'", "''", $subject), str_replace("\'", "''", $message), str_replace("\'", "''", $poll_title), $poll_options, $poll_length);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	, $topic_announce_duration
+//-- modify
+				submit_post($mode, $post_data, $return_message, $return_meta, $forum_id, $topic_id, $post_id, $poll_id, $topic_type, $bbcode_on, $html_on, $smilies_on, $attach_sig, $bbcode_uid, str_replace("\'", "''", $username), str_replace("\'", "''", $subject), str_replace("\'", "''", $message), str_replace("\'", "''", $poll_title), $poll_options, $poll_length, $topic_announce_duration);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$topic_type_toggle .= ' /> ' . $lang['Post_Announcement'] . '&nbsp;&nbsp;';
+	}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+	if( $is_auth['auth_global_announce'] )
+	{
+		$topic_type_toggle .= '<input type="radio" name="topictype" value="' . POST_GLOBAL_ANNOUNCE . '"';
+		if ( $post_data['topic_type'] == POST_GLOBAL_ANNOUNCE || $topic_type == POST_GLOBAL_ANNOUNCE )
+		{
+			$topic_type_toggle .= ' checked="checked"';
+		}
+		$topic_type_toggle .= ' /> ' . $lang['Post_Global_Announcement'] . '&nbsp;&nbsp;';
+	}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+include($phpbb_root_path . 'common.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/functions_announces.'. $phpEx);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// End session management
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/mods_settings/mod_announces.' . $phpEx);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$sql = "SELECT t.*, u.username
+	FROM " . TOPICS_TABLE .
+	WHERE t.forum_id = $forum_id
+		AND t.topic_poster =
+		AND p.post_id =
+		AND p.poster_id =
+		AND t.topic_type = " . POST_ANNOUNCE . "
+	ORDER BY
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	( [../..]" . ( !intval($board_config['announcement_display_forum']) ? " OR t.topic_type = " . POST_GLOBAL_ANNOUNCE : '' ) . ")
+// and
+//	( [../..] OR t.topic_type = " . POST_GLOBAL_ANNOUNCE . ")
+// and
+//	t.topic_type DESC,
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+t.forum_id
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+(
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+$forum_id
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+" . ( (intval($board_config['announcement_display_forum']) == 0) ? " OR t.topic_type = " . POST_GLOBAL_ANNOUNCE : '' ) . ")
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+t.topic_type = " . POST_ANNOUNCE . "
+#
+#-----[ IN-LINE REPLACE WITH ]--------------------------------
+#
+(t.topic_type = " . POST_ANNOUNCE . " OR t.topic_type = " . POST_GLOBAL_ANNOUNCE . ")
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+ORDER BY
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+ t.topic_type DESC,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+$sql = "SELECT t.*, 
+	FROM " . TOPICS_TABLE
+	WHERE t.forum_id =
+		AND t.topic_poster =
+		AND p.post_id =
+		AND p2.post_id =
+		AND u2.user_id =
+		AND t.topic_type <> " . POST_ANNOUNCE
+		$limit_topics_time
+	ORDER BY
+	LIMIT
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	AND t.topic_type <> " . POST_GLOBAL_ANNOUNCE . "
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+		AND t.topic_type <> " . POST_ANNOUNCE . "
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+ AND t.topic_type <> " . POST_GLOBAL_ANNOUNCE . "
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+announces_from_forums('f' . $forum_id);
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+announces_from_forums(POST_FORUM_URL . $forum_id);
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'FOLDER_ANNOUNCE_NEW_IMG' => $images['folder_announce_new'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+	'FOLDER_GLOBAL_ANNOUNCE_IMG'		=> $images['folder_global_announce'],
+	'FOLDER_GLOBAL_ANNOUNCE_NEW_IMG'	=> $images['folder_global_announce_new'],
+	'L_GLOBAL_ANNOUNCEMENT'				=> $lang['Post_Global_Announcement'],
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$topic_type = $lang['Topic_Announcement'] . ' ';
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+		else if( $topic_type == POST_GLOBAL_ANNOUNCE )
+		{
+			$topic_type = $lang['Topic_Global_Announcement'] . ' ';
+		}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$folder_new = $images['folder_announce_new'];
+			}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+			else if( $topic_rowset[$i]['topic_type'] == POST_GLOBAL_ANNOUNCE )
+			{
+				$folder			= $images['folder_global_announce'];
+				$folder_new		= $images['folder_global_announce_new'];
+			}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+		if (function_exists(get_announces_title) && !empty($topic_rowset[$i]['topic_announce_duration']))
+		{
+			$topic_title .= '</a></span>&nbsp;&nbsp;<span class="gensmall"><a name="ann_' . $topic_id . '">' . get_announces_title( $topic_rowset[$i]['topic_time'], $topic_rowset[$i]['topic_announce_duration'] ) . '</span><span class="topictitle">';
+		}
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+# here we setp back to the original code
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+$smtp_no = ( !$new['smtp_delivery'] ) ? "checked=\"checked\"" : "";
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+$announcement_display_yes			= ( $new['announcement_display'] ) ? 'checked="checked"' : '';
+$announcement_display_no			= (!$new['announcement_display'] ) ? 'checked="checked"' : '';
+$announcement_display_forum_yes		= ( $new['announcement_display_forum'] ) ? 'checked="checked"' : '';
+$announcement_display_forum_no		= (!$new['announcement_display_forum'] ) ? 'checked="checked"' : '';
+$announcement_prune_strategy_normal	= ( intval($new['announcement_prune_strategy']) == POST_NORMAL ) ? 'checked="checked"' : '';
+$announcement_prune_strategy_sticky	= ( intval($new['announcement_prune_strategy']) == POST_STICKY ) ? 'checked="checked"' : '';
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+$smtp_no = ( !$new['smtp_delivery'] ) ? "checked=\"checked\"" : "";
+#
+#-----[ FIND ]------------------------------------------------
+#
+$template->assign_vars(array(
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+	'L_ANNOUNCEMENT_SETTINGS'			=> $lang['Announce_settings'],
+	'L_ANNOUNCEMENT_DISPLAY'			=> $lang['announcement_display'],
+	'ANNOUNCEMENT_DISPLAY_YES'			=> $announcement_display_yes,
+	'ANNOUNCEMENT_DISPLAY_NO'			=> $announcement_display_no,
+	'L_ANNOUNCEMENT_DISPLAY_FORUM'		=> $lang['announcement_display_forum'],
+	'ANNOUNCEMENT_DISPLAY_FORUM_YES'	=> $announcement_display_forum_yes,
+	'ANNOUNCEMENT_DISPLAY_FORUM_NO'		=> $announcement_display_forum_no,
+	'L_ANNOUCEMENT_DURATION'			=> $lang['announcement_duration'],
+	'L_ANNOUCEMENT_DURATION_EXPLAIN'	=> $lang['announcement_duration_explain'],
+	'ANNOUCEMENT_DURATION'				=> intval($new['announcement_duration']),
+	'L_ANNOUNCEMENT_PRUNE_STRATEGY'		=> $lang['announcement_prune_strategy'],
+	'L_ANNOUNCEMENT_PRUNE_EXPLAIN'		=> $lang['announcement_prune_strategy_explain'],
+	'L_PRUNE_STRATEGY_NORMAL'			=> $lang['Post_Normal'],
+	'L_PRUNE_STRATEGY_STICKY'			=> $lang['Post_Sticky'],
+	'TOPIC_NORMAL'						=> POST_NORMAL,
+	'TOPIC_STICKY'						=> POST_STICKY,
+	'PRUNE_STRATEGY_NORMAL'				=> $announcement_prune_strategy_normal,
+	'PRUNE_STRATEGY_STICKY'				=> $announcement_prune_strategy_sticky,
+	'L_DAYS'							=> $lang['Days'],
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+$template->assign_vars(array(
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_forumauth.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+#
+//                View      Read      Post
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added for each row a new column for global announcement filled with auth_admin
+// and add Global Ann in the comment header
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+   Vote
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+Global Ann
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+#
+	0  => array(AUTH_ALL
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, AUTH_REG, AUTH_REG),
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, AUTH_ADMIN
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+#
+	1  => array(AUTH_ALL
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, AUTH_REG, AUTH_REG),
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, AUTH_ADMIN
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+#
+	2  => array(AUTH_REG
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, AUTH_REG, AUTH_REG),
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, AUTH_ADMIN
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+#
+	3  => array(AUTH_ALL
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, AUTH_ACL, AUTH_ACL),
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, AUTH_ADMIN
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+#
+	4  => array(AUTH_ACL
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, AUTH_ACL, AUTH_ACL),
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, AUTH_ADMIN
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+#
+	5  => array(AUTH_ALL
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, AUTH_MOD, AUTH_MOD),
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, AUTH_ADMIN
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+#
+	6  => array(AUTH_MOD
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, AUTH_MOD, AUTH_MOD),
+);
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, AUTH_ADMIN
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+#
+$forum_auth_fields = array('auth_view'
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	, 'auth_global_announce'
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, 'auth_vote', 'auth_pollcreate');
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, 'auth_global_announce'
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'auth_vote' => $lang['Vote'], 
+	'auth_pollcreate' => $lang['Pollcreate']);
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+	'auth_global_announce' => $lang['Global_announce'],
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_ug_auth.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+# this is a partial search : the full line is longer
+#
+$forum_auth_fields = array('auth_view', 
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	, 'auth_global_announce'
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, 'auth_vote', 'auth_pollcreate');
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, 'auth_global_announce'
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'auth_vote' => AUTH_VOTE, 
+	'auth_pollcreate' => AUTH_POLLCREATE);
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+	'auth_global_announce' => AUTH_GLOBAL_ANNOUNCE,
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'auth_vote' => $lang['Vote'], 
+	'auth_pollcreate' => $lang['Pollcreate']);
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+	'auth_global_announce' => $lang['Global_announce'],
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/auth.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$a_sql = 'a.auth_view, a.auth_read
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we added
+//	, a.auth_global_announce
+// and
+//	, 'auth_global_announce
+//-- modify
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, a.auth_vote, a.auth_pollcreate';
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, a.auth_global_announce
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$auth_fields = array('auth_view', 'auth_read'
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, 'auth_vote', 'auth_pollcreate');
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, 'auth_global_announce'
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+			$auth_fields = array('auth_announce');
+			break;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+		case AUTH_GLOBAL_ANNOUNCE:
+			$a_sql = 'a.auth_global_announce';
+			$auth_fields = array('auth_global_announce');
+			break;
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+define('AUTH_GLOBAL_ANNOUNCE', 21);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+# here we step back to the original code
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+function announces_prune($force_prune=false)
+{
+	global $db, $board_config;
+
+	// do we prune the announces ?
+	$today_time = time();
+	$today = mktime( 23,59,59, date( "m", $today_time), date("d", $today_time), date("Y", $today_time));
+	$do_prune = false;
+
+	// last prune date
+	if (!isset($board_config['announcement_last_prune']) || (intval($board_config['announcement_last_prune']) < $today) || $force_prune)
+	{
+		$do_prune = true;
+		if (!isset($board_config['announcement_last_prune']))
+		{
+			$sql = "INSERT INTO " . CONFIG_TABLE . " (config_name, config_value) VALUES('announcement_last_prune', '$today')";
+			if( !$db->sql_query($sql) ) message_die(GENERAL_ERROR, 'Could not insert key announcement_last_prune into the config table', '', __LINE__, __FILE__, $sql);
+		}
+		else
+		{
+			$sql = "UPDATE " . CONFIG_TABLE . " SET config_value = '$today' WHERE config_name= 'announcement_last_prune'";
+			if( !$db->sql_query($sql) ) message_die(GENERAL_ERROR, 'Could not update key announcement_last_prune in the config table', '', __LINE__, __FILE__, $sql);
+		}
+		$board_config['announcement_last_prune'] = $today;
+	}
+
+	// is the prune function activated ?
+	$default_duration = isset($board_config['announcement_duration']) ? intval($board_config['announcement_duration']) : 7;
+	if ($default_duration <= 0) $do_prune = false;
+
+	// process fix and prune
+	if ($do_prune)
+	{
+		// fix announces duration
+		$default_duration = isset($board_config['announcement_duration']) ? intval($board_config['announcement_duration']) : 7;
+		$sql = "UPDATE " . TOPICS_TABLE . " 
+				SET topic_announce_duration = $default_duration 
+				WHERE topic_announce_duration = 0 
+					AND (topic_type=" . POST_ANNOUNCE . " OR topic_type=" . POST_GLOBAL_ANNOUNCE .")";
+		if( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Could not update topic duration list', '', __LINE__, __FILE__, $sql);
+
+		// prune announces
+		$prune_strategy = isset($board_config['announcement_prune_strategy']) ? intval($board_config['announcement_prune_strategy']) : POST_NORMAL;
+		$sql = "UPDATE " . TOPICS_TABLE . " 
+				SET topic_type = $prune_strategy 
+				WHERE (topic_announce_duration > -1) 
+					AND ( (topic_time + topic_announce_duration * 86400) <= $today )
+					AND (topic_type=" . POST_ANNOUNCE . " OR topic_type=" . POST_GLOBAL_ANNOUNCE .")";
+		if( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Could not update topic type to prune announcements', '', __LINE__, __FILE__, $sql);
+	}
+}
+
+function announces_from_forums($cur='Root', $force_prune=false)
+{
+	global $db, $template, $board_config, $userdata, $phpEx, $lang, $images, $HTTP_COOKIE_VARS;
+	global $tree;
+
+	// fix and prune announces
+	announces_prune($force_prune);
+
+	// get the start point
+	$type = 'c';
+	$id = 0;
+	if ($cur != 'Root')
+	{
+		$type = substr($cur, 0, 1);
+		$id = intval(substr($cur, 1));
+		if ($id == 0) $type = 'c';
+	}
+
+	// display
+	$announce_index = isset($board_config['announcement_display']) ? intval($board_config['announcement_display']) : true;
+	$announce_forum = isset($board_config['announcement_display_forum']) ? intval($board_config['announcement_display_forum']) : true;
+	$announce = ( (($type == 'c') && $announce_index) || (($type == 'f') && $announce_forum) );
+	if (!$announce) return false;
+
+	// read the forums authorized
+	$cat_hierarchy = function_exists(get_auth_keys);
+	$sql_cat = '';
+	if (!$cat_hierarchy)
+	{
+		// standard read
+		$is_auth = array();
+		$is_auth = auth(AUTH_ALL, AUTH_LIST_ALL, $userdata);
+
+		// get the list of authorized forums
+		$keys = array();
+		while (list($forum_id, $forum_auth) = each($is_auth))
+		{
+			if ( $forum_auth['auth_read'] && ('f' . $forum_id != $cur) ) $keys[] = $forum_id;
+		}
+
+		// get the parent cat id
+		$main_id = 0;
+		$forum_id = 0;
+		if (($type == 'c') && ($id != 0))
+		{
+			$main_id = $id;
+			$forum_id = 0;
+		}
+		else if ($type == 'f')
+		{
+			$forum_id = $id;
+
+			// read the selected forum
+			$sql = "SELECT * FROM " . FORUMS_TABLE . " WHERE forum_id=$forum_id";
+			if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Could not obtain forum information', '', __LINE__, __FILE__, $sql);
+			if ($row = $db->sql_fetchrow($result))
+			{
+				$main_id = $row['cat_id'];
+			}
+		}
+
+		// finaly, get the forums involved
+		$s_auth = '';
+		if (!empty($keys)) $s_auth = implode(', ', $keys);
+		$sql_cat = (!empty($main_id)) ? "cat_id=$main_id" : '';
+		$sql_forum = (!empty($forum_id)) ? "forum_id <> $forum_id" : '';
+		if (!empty($s_auth)) $s_auth = "forum_id IN ($s_auth)";
+		if (($sql_cat != '') && ($sql_forum != ''))
+		{
+			$sql_forum = " AND $sql_forum";
+		}
+		if ((($sql_cat != '') || ($sql_forum != '')) && ($s_auth != ''))
+		{
+			$s_auth = " AND $s_auth";
+		}
+		$sql = "SELECT * FROM " . FORUMS_TABLE . " WHERE $sql_cat $sql_forum $s_auth";
+		if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Could not obtain forum information', '', __LINE__, __FILE__, $sql);
+		$forum_ids = array();
+		while ($row = $db->sql_fetchrow($result)) $forum_ids[] = $row['forum_id'];
+	}
+	else
+	{
+		// compliency with categories hierarchy v2 mod
+		// get auth key
+		$keys = array();
+		$keys = get_auth_keys($cur, true, -1, -1, 'auth_read');
+		$forum_ids = array();
+		for ($i=1; $i < count($keys['id']); $i++)
+		{
+			if ( ($tree['type'][$keys['idx'][$i]] == 'f') && ($tree['auth'][ $keys['id'][$i] ]['auth_read']) )
+			{
+				if ($tree['id'][$keys['idx'][$i]] != $id) $forum_ids[] = $tree['id'][$keys['idx'][$i]];
+			}
+		}
+
+		// go to root on this branch
+		if (isset($tree['main'][$tree['keys'][$cur]]))
+		{
+			$wcur = $tree['main'][ $tree['keys'][$cur] ];
+			while ($wcur != 'Root')
+			{
+				if ( ($tree['type'][ $tree['keys'][$wcur] ] == 'f') && ($tree['auth'][$wcur]['auth_read']) )
+				{
+					if ($tree['id'][ $tree['keys'][$wcur] ] != $id) $forum_ids[] = $tree['id'][ $tree['keys'][$wcur] ];
+				}
+				$wcur = isset($tree['main'][$tree['keys'][$wcur]]) ? $tree['main'][$tree['keys'][$wcur]] : 'Root';
+			}
+		}
+	}
+
+	if (count($forum_ids) <= 0) return false;
+
+	// topic types
+	$sql_type = "t.topic_type IN (" . POST_ANNOUNCE . ", " . POST_GLOBAL_ANNOUNCE . ")";
+	if (($cur != 'Root') && (substr($cur, 0, 1) == 'f'))
+	{
+		$sql_type = "t.topic_type = " . POST_ANNOUNCE;
+	}
+
+	// get topics data
+	$sql = "SELECT t.*, u.username, u.user_id, u2.username as user2, u2.user_id as id2, p.post_time, p.post_username, f.forum_name
+			FROM " . TOPICS_TABLE . " t, " . USERS_TABLE . " u, " . POSTS_TABLE . " p, " . USERS_TABLE . " u2, " . FORUMS_TABLE . " f
+			WHERE t.forum_id IN ( " . implode(', ', $forum_ids) . ")
+				AND t.topic_poster = u.user_id
+				AND p.post_id = t.topic_last_post_id
+				AND p.poster_id = u2.user_id
+				AND $sql_type
+				AND f.forum_id = t.forum_id
+			ORDER BY t.topic_type DESC, t.topic_last_post_id DESC ";
+	if ( !($result = $db->sql_query($sql)) ) message_die(GENERAL_ERROR, 'Could not obtain topic information', '', __LINE__, __FILE__, $sql);
+	while ($row = $db->sql_fetchrow($result)) $topic_rowset[] = $row;
+	$db->sql_freeresult($result);
+	if (count($topic_rowset) <= 0) return false;
+	
+	// Define censored word matches
+	$orig_word = array();
+	$replacement_word = array();
+	obtain_word_list($orig_word, $replacement_word);
+
+	// read the user cookie
+	$tracking_topics	= ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_t']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . "_t"]) : array();
+	$tracking_forums	= ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f']) ) ? unserialize($HTTP_COOKIE_VARS[$board_config['cookie_name'] . "_f"]) : array();
+	$tracking_all		= ( isset($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all']) ) ? intval($HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_f_all']) : NULL;
+
+	// choose template
+	$template->set_filenames(array(
+		'announces' => 'viewforum_box.tpl')
+	);
+
+	// header
+	$template->assign_vars(array(
+		'L_TITLE'		=> $lang['Board_announcement'],
+		'L_REPLIES'		=> $lang['Replies'],
+		'L_AUTHOR'		=> $lang['Author'],
+		'L_VIEWS'		=> $lang['Views'],
+		'L_LASTPOST'	=> $lang['Last_Post'],
+		)
+	);
+
+	// display topics
+	$color = false;
+	for ($i=0; $i < count($topic_rowset); $i++)
+	{
+		$topic_id		= $topic_rowset[$i]['topic_id'];
+		$topic_title	= ( count($orig_word) ) ? preg_replace($orig_word, $replacement_word, $topic_rowset[$i]['topic_title']) : $topic_rowset[$i]['topic_title'];
+		$replies		= $topic_rowset[$i]['topic_replies'];
+		$topic_type		= $topic_rowset[$i]['topic_type'];
+		if( $topic_type == POST_GLOBAL_ANNOUNCE )
+		{
+			$topic_type = $lang['Topic_global_announcement'] . ' ';
+		}
+		else if( $topic_type == POST_ANNOUNCE )
+		{
+			$topic_type = $lang['Topic_Announcement'] . ' ';
+		}
+		else if( $topic_type == POST_STICKY )
+		{
+			$topic_type = $lang['Topic_Sticky'] . ' ';
+		}
+		else
+		{
+			$topic_type = '';		
+		}
+		if( $topic_rowset[$i]['topic_vote'] )
+		{
+			$topic_type .= $lang['Topic_Poll'] . ' ';
+		}
+		if( $topic_rowset[$i]['topic_status'] == TOPIC_MOVED )
+		{
+			$topic_type = $lang['Topic_Moved'] . ' ';
+			$topic_id = $topic_rowset[$i]['topic_moved_id'];
+			$folder_image =  $images['folder'];
+			$folder_alt = $lang['Topics_Moved'];
+			$newest_post_img = '';
+		}
+		else
+		{
+			if( $topic_rowset[$i]['topic_type'] == POST_GLOBAL_ANNOUNCE )
+			{
+				$folder = $images['folder_global_announce'];
+				$folder_new = $images['folder_global_announce_new'];
+			}
+			else if( $topic_rowset[$i]['topic_type'] == POST_ANNOUNCE )
+			{
+				$folder = $images['folder_announce'];
+				$folder_new = $images['folder_announce_new'];
+			}
+			else if( $topic_rowset[$i]['topic_type'] == POST_STICKY )
+			{
+				$folder = $images['folder_sticky'];
+				$folder_new = $images['folder_sticky_new'];
+			}
+			else if( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED )
+			{
+				$folder = $images['folder_locked'];
+				$folder_new = $images['folder_locked_new'];
+			}
+			else
+			{
+				if($replies >= $board_config['hot_threshold'])
+				{
+					$folder = $images['folder_hot'];
+					$folder_new = $images['folder_hot_new'];
+				}
+				else
+				{
+					$folder = $images['folder'];
+					$folder_new = $images['folder_new'];
+				}
+			}
+			$newest_post_img = '';
+			if( $userdata['session_logged_in'] )
+			{
+				if( $topic_rowset[$i]['post_time'] > $userdata['user_lastvisit'] ) 
+				{
+					if( !empty($tracking_topics) || !empty($tracking_forums) || !empty($tracking_all) )
+					{
+						$unread_topics = true;
+						if( !empty($tracking_topics[$topic_id]) )
+						{
+							if( $tracking_topics[$topic_id] >= $topic_rowset[$i]['post_time'] )
+							{
+								$unread_topics = false;
+							}
+						}
+						if( !empty($tracking_forums[$forum_id]) )
+						{
+							if( $tracking_forums[$forum_id] >= $topic_rowset[$i]['post_time'] )
+							{
+								$unread_topics = false;
+							}
+						}
+						if( !empty($tracking_all) )
+						{
+							if( $tracking_all >= $topic_rowset[$i]['post_time'] )
+							{
+								$unread_topics = false;
+							}
+						}
+						if ( $unread_topics )
+						{
+							$folder_image = $folder_new;
+							$folder_alt = $lang['New_posts'];
+							$newest_post_img = '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=newest") . '"><img src="' . $images['icon_newest_reply'] . '" alt="' . $lang['View_newest_post'] . '" title="' . $lang['View_newest_post'] . '" border="0" /></a> ';
+						}
+						else
+						{
+							$folder_image = $folder;
+							$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+							$newest_post_img = '';
+						}
+					}
+					else
+					{
+						$folder_image = $folder_new;
+						$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['New_posts'];
+						$newest_post_img = '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;view=newest") . '"><img src="' . $images['icon_newest_reply'] . '" alt="' . $lang['View_newest_post'] . '" title="' . $lang['View_newest_post'] . '" border="0" /></a> ';
+					}
+				}
+				else 
+				{
+					$folder_image = $folder;
+					$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+					$newest_post_img = '';
+				}
+			}
+			else
+			{
+				$folder_image = $folder;
+				$folder_alt = ( $topic_rowset[$i]['topic_status'] == TOPIC_LOCKED ) ? $lang['Topic_locked'] : $lang['No_new_posts'];
+				$newest_post_img = '';
+			}
+		}
+		// generate list of page for the topic
+		$goto_page = '';
+		if( ( $replies + 1 ) > $board_config['posts_per_page'] )
+		{
+			$total_pages = ceil( ( $replies + 1 ) / $board_config['posts_per_page'] );
+			$goto_page = ' [ <img src="' . $images['icon_gotopost'] . '" alt="' . $lang['Goto_page'] . '" title="' . $lang['Goto_page'] . '" />' . $lang['Goto_page'] . ': ';
+			$times = 1;
+			for($j = 0; $j < $replies + 1; $j += $board_config['posts_per_page'])
+			{
+				$goto_page .= '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=" . $topic_id . "&amp;start=$j") . '">' . $times . '</a>';
+				if( $times == 1 && $total_pages > 4 )
+				{
+					$goto_page .= ' ... ';
+					$times = $total_pages - 3;
+					$j += ( $total_pages - 4 ) * $board_config['posts_per_page'];
+				}
+				else if ( $times < $total_pages )
+				{
+					$goto_page .= ', ';
+				}
+				$times++;
+			}
+			$goto_page .= ' ] ';
+		}
+
+		$view_topic_url		= append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id");
+		$topic_author		 = ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '=' . $topic_rowset[$i]['user_id']) . '">' : '';
+		$topic_author		.= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? $topic_rowset[$i]['username'] : ( ( $topic_rowset[$i]['post_username'] != '' ) ? $topic_rowset[$i]['post_username'] : $lang['Guest'] );
+		$topic_author		.= ( $topic_rowset[$i]['user_id'] != ANONYMOUS ) ? '</a>' : '';
+		$first_post_time	= create_date($board_config['default_dateformat'], $topic_rowset[$i]['topic_time'], $board_config['board_timezone']);
+		$last_post_time		= create_date($board_config['default_dateformat'], $topic_rowset[$i]['post_time'], $board_config['board_timezone']);
+		$last_post_author	= ( $topic_rowset[$i]['id2'] == ANONYMOUS ) ? ( ($topic_rowset[$i]['post_username2'] != '' ) ? $topic_rowset[$i]['post_username2'] . ' ' : $lang['Guest'] . ' ' ) : '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . '='  . $topic_rowset[$i]['id2']) . '">' . $topic_rowset[$i]['user2'] . '</a>';
+		$last_post_url		= '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $topic_rowset[$i]['topic_last_post_id']) . '#' . $topic_rowset[$i]['topic_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" border="0" /></a>';
+		$views				= $topic_rowset[$i]['topic_views'];
+
+		// categories hierarchy v 2 compliancy
+		$nav_tree = '';
+		if ($cat_hierarchy)
+		{
+			$nav_tree = make_cat_nav_tree('f' . $topic_rowset[$i]['forum_id'], '', 'gensmall');
+		}
+		else
+		{
+			$nav_tree = '<a href="' . append_sid("viewforum.$phpEx?f=" . $topic_rowset[$i]['forum_id']) . '" class="gensmall">' . $topic_rowset[$i]['forum_name'] . '</a>';
+		}
+
+		$color = !$color;
+		$template->assign_block_vars('topicrow_box', array(
+			'ROW_CLASS'				=> ($color) ? 'row1' : 'row2',
+			'FORUM_ID'				=> $forum_id,
+			'TOPIC_ID'				=> $topic_id,
+			'TOPIC_FOLDER_IMG'		=> $folder_image,
+			'TOPIC_AUTHOR'			=> $topic_author,
+			'GOTO_PAGE'				=> !empty($goto_page) ? '<br />' . $goto_page : '',
+			'REPLIES'				=> $replies,
+			'NEWEST_POST_IMG'		=> $newest_post_img,
+			'TOPIC_TITLE'			=> $topic_title,
+			'TOPIC_TYPE'			=> '', // $topic_type,
+			'VIEWS'					=> $views,
+			'FIRST_POST_TIME'		=> $first_post_time,
+			'LAST_POST_TIME'		=> $last_post_time,
+			'LAST_POST_AUTHOR'		=> $last_post_author,
+			'LAST_POST_IMG'			=> $last_post_url,
+			'L_TOPIC_FOLDER_ALT'	=> $folder_alt,
+			'U_VIEW_TOPIC'			=> $view_topic_url,
+			'TOPIC_NAV_TREE'		=> $nav_tree,
+			)
+		);
+	} // end for
+	$template->assign_var_from_handle('BOARD_ANNOUNCES', 'announces');
+}
+//-- fin mod : announces ---------------------------------------------------------------------------
+function get_db_stat($mode)
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+function get_db_stat($mode)
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- delete
+// function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_id, &$post_id, &$poll_id, &$topic_type, &$bbcode_on, &$html_on, &$smilies_on, &$attach_sig, &$bbcode_uid, &$post_username, &$post_subject, &$post_message, &$poll_title, &$poll_options, &$poll_length)
+//-- add
+function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_id, &$post_id, &$poll_id, &$topic_type, &$topic_announce_duration, &$bbcode_on, &$html_on, &$smilies_on, &$attach_sig, &$bbcode_uid, &$post_username, &$post_subject, &$post_message, &$poll_title, &$poll_options, &$poll_length)
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- mod : announces -------------------------------------------------------------------------------
+// here we have added
+//	, $topic_announce_duration = 0
+//-- modify
+function submit_post($mode, &$post_data, &$message, &$meta, &$forum_id, &$topic_id, &$post_id, &$poll_id, &$topic_type, &$bbcode_on, &$html_on, &$smilies_on, &$attach_sig, &$bbcode_uid, &$post_username, &$post_subject, &$post_message, &$poll_title, &$poll_options, &$poll_length, $topic_announce_duration = 0)
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+// display announces in a box on index
+$announcement_display = false;
+if ( !isset($board_config['announcement_display']) )
+{
+	$sqlw = "INSERT INTO ".CONFIG_TABLE." (config_name,config_value) VALUES('announcement_display','" . $announcement_display . "')";
+	if ( !($resultw = $db->sql_query($sqlw)) ) message_die(GENERAL_ERROR, 'Could not add key announcement_display in config table', '', __LINE__, __FILE__, $sql);
+	$board_config['announcement_display'] = $announcement_display;
+}
+$announcement_display = intval($board_config['announcement_display']);
+
+// display announces in a box on forums
+$announcement_display_forum = false;
+if ( !isset($board_config['announcement_display_forum']) )
+{
+	$sqlw = "INSERT INTO ".CONFIG_TABLE." (config_name,config_value) VALUES('announcement_display_forum','" . $announcement_display_forum . "')";
+	if ( !($resultw = $db->sql_query($sqlw)) ) message_die(GENERAL_ERROR, 'Could not add key announcement_display_forum in config table', '', __LINE__, __FILE__, $sql);
+	$board_config['announcement_display_forum'] = $announcement_display_forum;
+}
+$announcement_display_forum = intval($board_config['announcement_display_forum']);
+
+// annoucement duration before pruning : default is 7 days
+$announcement_duration = 7;
+if ( !isset($board_config['announcement_duration']) )
+{
+	$sqlw = "INSERT INTO ".CONFIG_TABLE." (config_name,config_value) VALUES('announcement_duration','" . $announcement_duration . "')";
+	if ( !($resultw = $db->sql_query($sqlw)) ) message_die(GENERAL_ERROR, 'Could not add key announcement_duration in config table', '', __LINE__, __FILE__, $sql);
+	$board_config['announcement_duration'] = $announcement_duration;
+}
+$announcement_duration = intval($board_config['announcement_duration']);
+
+// pruning strategy
+$announcement_prune_strategy = POST_NORMAL;
+if ( !isset($board_config['announcement_prune_strategy']) )
+{
+	$sqlw = "INSERT INTO ".CONFIG_TABLE." (config_name,config_value) VALUES('announcement_prune_strategy','" . $announcement_prune_strategy . "')";
+	if ( !($resultw = $db->sql_query($sqlw)) ) message_die(GENERAL_ERROR, 'Could not add key announcement_prune_strategy in config table', '', __LINE__, __FILE__, $sql);
+	$board_config['announcement_prune_strategy'] = $announcement_prune_strategy;
+}
+$announcement_prune_strategy = intval($board_config['announcement_prune_strategy']);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/mods_settings/mod_announces.' . $phpEx);
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+//-- mod : mods settings ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+$lang['Announce_settings'] = 'Announcements Settings';
+$lang['announcement_display'] = 'Display board announcements on index';
+$lang['announcement_display_forum'] = 'Display board announcements on forums';
+$lang['announcement_prune_strategy'] = 'Announcement prune strategy';
+$lang['announcement_prune_strategy_explain'] = 'This is what will be the type of the announcement topic after being pruned';
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+$lang['Configuration_extend']	= 'Configuration +';
+$lang['Override_user_choices']	= 'Override user choices';
+//-- end of mod : mods settings --------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+$lang['Board_announcement'] = 'Board Announcements';
+$lang['announcement_duration'] = 'Announcement duration';
+$lang['announcement_duration_explain'] = 'This is the number of days an announcement remains. Use -1 in order to set it permanent';
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+$lang['Board_announcement']						= 'Board Announcements';
+$lang['announcement_duration']					= 'Announcement duration';
+$lang['announcement_duration_explain']			= 'This is the number of days an announcement remains. Use -1 in order to set it permanent';
+$lang['Announce_settings']						= 'Announcements';
+$lang['announcement_date_display']				= 'Display announcement dates';
+$lang['announcement_display']					= 'Display board announcements on index';
+$lang['announcement_display_forum']				= 'Display board announcements on forums';
+$lang['announcement_prune_strategy']			= 'Announcement prune strategy';
+$lang['announcement_prune_strategy_explain']	= 'This is what will be the type of the announcement topic after being pruned';
+
+$lang['Global_announce']						= 'Global announce';
+$lang['Sorry_auth_global_announce']				= 'Sorry, but only %s can post global announcements in this forum.';
+$lang['Post_Global_Announcement']				= 'Global Announcement';
+$lang['Topic_Global_Announcement']				= '<b>Global Announcement:</b>';
+
+$lang['Announces_from_to']						= '(from %s to %s)';
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : announces -------------------------------------------------------------------------------
+//-- add
+$images['folder_global_announce'] = "$current_template_images/folder_announce.gif";
+$images['folder_global_announce_new'] = "$current_template_images/folder_announce_new.gif";
+//-- fin mod : announces ---------------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+# here we step back to the original code
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+<!-- mod : announces -->
+<h1>{L_CONFIGURATION_TITLE}</h1>
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<h1>{L_CONFIGURATION_TITLE}</h1>
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+		<th class="thHead" colspan="2">{L_ANNOUNCEMENT_SETTINGS}</th>
+	</tr>
+	<tr>
+		<td class="row1">{L_ANNOUNCEMENT_DISPLAY}</td>
+		<td class="row2"><input type="radio" name="announcement_display" value="1" {ANNOUNCEMENT_DISPLAY_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="announcement_display" value="0" {ANNOUNCEMENT_DISPLAY_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ANNOUNCEMENT_DISPLAY_FORUM}</td>
+		<td class="row2"><input type="radio" name="announcement_display_forum" value="1" {ANNOUNCEMENT_DISPLAY_FORUM_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="announcement_display_forum" value="0" {ANNOUNCEMENT_DISPLAY_FORUM_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ANNOUCEMENT_DURATION}<br /><span class="gensmall">{L_ANNOUCEMENT_DURATION_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" maxlength="4" size="4" name="announcement_duration" value="{ANNOUCEMENT_DURATION}" />&nbsp;{L_DAYS}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_ANNOUNCEMENT_PRUNE_STRATEGY}<br /><span class="gensmall">{L_ANNOUNCEMENT_PRUNE_EXPLAIN}</span></td>
+		<td class="row2"><input type="radio" name="announcement_prune_strategy" value="{TOPIC_NORMAL}" {PRUNE_STRATEGY_NORMAL} /> {L_PRUNE_STRATEGY_NORMAL}&nbsp;&nbsp;<input type="radio" name="announcement_prune_strategy" value="{TOPIC_STICKY}" {PRUNE_STRATEGY_STICKY} /> {L_PRUNE_STRATEGY_STICKY}</td>
+	</tr>
+	<tr>
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+	<tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

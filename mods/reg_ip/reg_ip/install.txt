@@ -1,0 +1,148 @@
+##############################################################
+## MOD Title: Log IP Address on Registration
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/terra/wordpress/
+## MOD Description: Logs the IP address of users when they register.
+## MOD Version: 1.0.1
+##
+## Installation Level: Intermediate
+## Installation Time: 5 Minutes
+##
+## Files To Edit: 4
+##      includes/usercp_register.php
+##      admin/admin_users.php
+##      templates/subSilver/admin/user_edit_body.tpl
+##      language/lang_english/lang_admin.php
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##     Although there are a number MODs out there that do this already, none of them
+##     have been validated by the phpBB MOD Team.  This MOD attempts to fill this void.
+##
+##     Also, since I don't know who the first person to make a MOD like this was, I'll
+##     just sorta credit Jarf with the idea:
+##     http://www.phpbb.com/community/viewtopic.php?t=28580
+##
+##     The latest version of this mod can be found here:
+##     http://www.frostjedi.com/terra/scripts/phpbb/reg_ip.zip
+##
+##     For support / comments / whatever, visit here:
+##     http://www.phpbb.com/community/viewtopic.php?t=281477
+##
+############################################################## 
+## MOD History: 
+##
+##   2006-05-07 - Version 1.0.1
+##      - fixed an incompatability between this MOD and my Birthdays MOD.
+##        more info: http://www.phpbb.com/community/viewtopic.php?p=2125055#p2125055
+##      - fixed a small typo in code added to user_edit_body.tpl.
+##   2005-04-13 - Version 1.0.0
+##      - initial release
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------
+#
+ALTER TABLE phpbb_users ADD user_regip CHAR(8) NOT NULL DEFAULT '0';
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+# this is only a partial match
+#
+			$sql = "INSERT INTO " . USERS_TABLE . "
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+ user_icq,
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------
+#
+ user_regip,
+#
+#-----[ FIND ]------------------------------------------
+# this is only a partial match
+#
+				VALUES ($user_id,
+#
+#-----[ IN-LINE FIND ]---------------------------------
+#
+, '" . str_replace("\'", "''", $icq)
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------
+#
+, '" . $userdata['session_ip'] . "'
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$icq = $this_userdata['user_icq'];
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+		$user_regip = decode_ip($this_userdata['user_regip']);
+#
+#-----[ FIND ]------------------------------------------
+#
+			'YIM' => $yim,
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+			'USER_REGIP' => $user_regip,
+#
+#-----[ FIND ]------------------------------------------
+#
+			'L_ICQ_NUMBER' => $lang['ICQ'],
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+			'L_REGIP' => $lang['Registration_IP'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr> 
+	  <td class="catsides" colspan="2">&nbsp;</td>
+	</tr>
+	<tr> 
+	  <th class="thSides" colspan="2">{L_PROFILE_INFO}</th>
+#
+#-----[ BEFORE, ADD ]-----------------------------------
+#
+	<tr> 
+	  <td class="row1"><span class="gen">{L_REGIP}: </span></td>
+	  <td class="row2"><span class="gen">{USER_REGIP}</span></td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+# this is a partial match
+#
+$lang['Install_No_PCRE']
+#
+#-----[ AFTER, ADD ]------------------------------------
+#
+$lang['Registration_IP'] = 'Registration IP Address';
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

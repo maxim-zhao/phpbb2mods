@@ -1,0 +1,179 @@
+##############################################################
+## MOD Title: File Attachment Mod v2 addon (thumbnail settings)
+## MOD Author: rxu < rxu@sunlan.ru > (N/A) N/A
+## MOD Description: Adds the ability to define thumbnail max width and quality through phpBB admin panel. Makes thumbnails to be created in original image dimensions (not greater) when it's lower then defined thumbnail max width.
+## MOD Version: 1.1.1
+## 
+## Installation Level: Easy
+## Installation Time: 9 minutes
+## Files To Edit: admin/admin_attachments.php
+##                templates/subSilver/admin/attach_cat_body.tpl
+##                attach_mod/includes/functions_thumbs.php
+##                language/lang_english/lang_admin_attach.php
+## Included Files: 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+## Generator: Phpbb.ModTeam.Tools
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: Addon needs File Attachment Mod v2 to be installed before.
+## Thumbnail quality setting only affects on jpeg images type.
+## This version has been tested and works with phpBB 2.0.21 and File Attachment Mod v2.45.
+##############################################################
+## MOD History:
+## 
+## 2006-10-04 - Version 1.0.0
+##      -Initial release
+## 
+## 2006-11-09 - Version 1.1.0
+##      -Added the ability to define thumbnail quality trough phpBB admin panel. 
+## 
+## 2006-11-14 - Version 1.1.1
+##      -Minor bugs fixed
+## 
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+INSERT INTO phpbb_attachments_config (config_name, config_value) VALUES ('img_max_thumb_size','400');
+INSERT INTO phpbb_attachments_config (config_name, config_value) VALUES ('img_thumb_quality','90');
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_attachments.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_MIN_THUMB_FILESIZE_EXPLAIN'	=> $lang['Image_min_thumb_filesize_explain'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'L_MAX_THUMB_SIZE'				=> $lang['Image_max_thumb_size'],
+		'L_MAX_THUMB_SIZE_EXPLAIN'		=> $lang['Image_max_thumb_size_explain'],
+		'L_THUMB_QUALITY'				=> $lang['Image_thumb_quality'],
+		'L_THUMB_QUALITY_EXPLAIN'		=> $lang['Image_thumb_quality_explain'],
+#
+#-----[ FIND ]------------------------------------------
+#
+		'IMAGE_MIN_THUMB_FILESIZE'	=> $new_attach['img_min_thumb_filesize'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'IMAGE_MAX_THUMB_SIZE'		=> $new_attach['img_max_thumb_size'],
+		'IMAGE_THUMB_QUALITY'		=> $new_attach['img_thumb_quality'],
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/attach_cat_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+		<td class="row1" width="80%">{L_MIN_THUMB_FILESIZE}<br /><span class="gensmall">{L_MIN_THUMB_FILESIZE_EXPLAIN}</span></td>
+		<td class="row2"><input type="text" size="7" maxlength="15" name="img_min_thumb_filesize" value="{IMAGE_MIN_THUMB_FILESIZE}" class="post" /> {L_BYTES}</td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1" width="80%">{L_MAX_THUMB_SIZE} <br /><span class="gensmall">{L_MAX_THUMB_SIZE_EXPLAIN}</span></td>
+		<td class="row2"><input type="text" size="3" maxlength="4" name="img_max_thumb_size" value="{IMAGE_MAX_THUMB_SIZE}" class="post" /></td>
+	</tr>
+	<tr>
+		<td class="row1" width="80%">{L_THUMB_QUALITY} <br /><span class="gensmall">{L_THUMB_QUALITY_EXPLAIN}</span></td>
+		<td class="row2"><input type="text" size="2" maxlength="3" name="img_thumb_quality" value="{IMAGE_THUMB_QUALITY}" class="post" /></td>
+	</tr>
+#
+#-----[ OPEN ]------------------------------------------
+#
+attach_mod/includes/functions_thumbs.php
+#
+#-----[ FIND ]------------------------------------------
+#
+function get_img_size_format($width, $height)
+{
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	global $attach_config;
+#
+#-----[ FIND ]------------------------------------------
+#
+	$max_width = 400;
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	$max_width = (int) $attach_config['img_max_thumb_size'];
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ($width > $height)
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	if ($width > $max_width || $height > $max_width)
+	{
+#
+#-----[ FIND ]------------------------------------------
+#
+		else 
+		{
+			return array(
+				round($width * ($max_width / $height)),
+				round($height * ($max_width / $height))
+			);
+		}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	}
+	
+	return array($width, $height);
+#
+#-----[ FIND ]------------------------------------------
+#
+function create_thumbnail($source, $new_file, $mimetype)
+#
+#-----[ FIND ]------------------------------------------
+#
+	$img_filesize = (@file_exists($source)) ? @filesize($source) : false;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$thumbnail_quality = (int) $attach_config['img_thumb_quality'];
+$thumbnail_quality = ( ($thumbnail_quality > 100) || ($thumbnail_quality < 0) ) ? 90 : $thumbnail_quality;
+#
+#-----[ FIND ]------------------------------------------
+#
+					imagejpeg($new_image, $new_file, 90);
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+					imagejpeg($new_image, $new_file, $thumbnail_quality);
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin_attach.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Image_search_imagick'] =
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Image_max_thumb_size'] = 'Maximum Thumbnail side size';
+$lang['Image_max_thumb_size_explain'] = 'If an Image biggest side size is smaller than this defined size, Thumbnail will be equal to an Image.';
+$lang['Image_thumb_quality'] = 'Thumbnail quality';
+$lang['Image_thumb_quality_explain'] = 'Set quality of thumbs, that ranges from 0 (worst quality, smaller thumb filesize) to 100 (best quality, biggest thumb filesize).';
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

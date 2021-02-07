@@ -1,0 +1,220 @@
+##############################################################
+## MOD Title: Admin User Notes
+## MOD Author: eviL3 < evil@phpbbmodders.com > (Igor Wiedler) http://phpbbmodders.com/
+## MOD Description: This MOD will allow the Admin to store Notes
+##                  about a user in their profile. These will
+##                  not be visible to the user himself, but only
+##                  to the Admins.
+##
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit: admin/admin_users.php
+##                includes/usercp_viewprofile.php
+##                language/lang_english/lang_main.php
+##                templates/subSilver/profile_view_body.tpl
+##                templates/subSilver/admin/user_edit_body.tpl
+##
+## Included Files: n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+#############################################################
+## Author Notes:
+## Thanks to tomlevens for his "Edit User's Postcount" MOD :)
+## Also thanks to pentapenguin for "Quick Admin User Options"
+## Thanks to deejaybet for the idea
+##
+##############################################################
+## MOD History:
+##
+##   2006-07-22 - Version 0.1.0
+##      - First Release
+##
+##   2006-07-24 - Version 0.1.1
+##      - Removed unneeded lang entry
+##
+##   2006-08-06 - Version 1.0.0
+##      - Updated version number for submission
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------------------------
+#
+ALTER TABLE phpbb_users ADD user_admin_notes TEXT NOT NULL;
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$signature = ( !empty($HTTP_POST_VARS['signature']) ) ? trim(str_replace('<br />', "\n", $HTTP_POST_VARS['signature'] ) ) : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$user_admin_notes = ( !empty($HTTP_POST_VARS['user_admin_notes']) ) ? trim(str_replace('<br />', "\n", $HTTP_POST_VARS['user_admin_notes'] ) ) : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+      $signature = htmlspecialchars(stripslashes($signature));
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+      $user_admin_notes = htmlspecialchars(stripslashes($user_admin_notes));
+
+#
+#-----[ FIND ]------------------------------------------
+#
+         $sql = "UPDATE " . USERS_TABLE . "
+            SET
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, user_sig = '" . str_replace("\'", "''", $signature) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, user_admin_notes = '" . str_replace("\'", "''", $user_admin_notes) . "'
+
+#
+#-----[ FIND ]------------------------------------------
+#
+      $user_allowpm = $this_userdata['user_allow_pm'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+      $admin_notes = $this_userdata['user_admin_notes'];
+
+#
+#-----[ FIND ]------------------------------------------
+#
+         $s_hidden_fields .= '<input type="hidden" name="user_allowpm" value="' . $user_allowpm . '" />';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+         $s_hidden_fields .= '<input type="hidden" name="user_admin_notes" value="' . $user_admin_notes . '" />';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+         'RANK_SELECT_BOX' => $rank_select_box,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+         'ADMIN_NOTES' => $admin_notes,
+         'L_ADMIN_NOTES' =>  $lang['Admin_notes'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+'AVATAR_IMG' => $avatar_img,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+'ADMIN_NOTES' => $profiledata['user_admin_notes'],
+'L_ADMIN_NOTES' => $lang['Admin_notes'],
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$template->pparse('body');
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+if ( $userdata['user_level'] == ADMIN )
+{
+  $template->assign_block_vars('switch_admin_notes', array());
+}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// That's all, Folks!
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+$lang['Admin_notes'] = 'Admin User Notes';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		<tr>
+		  <td valign="top" align="right" nowrap="nowrap"><span class="gen">{L_INTERESTS}:</span></td>
+		  <td> <b><span class="gen">{INTERESTS}</span></b></td>
+		</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+<!-- BEGIN switch_admin_notes -->
+		<tr>
+		  <td valign="top" align="right" nowrap="nowrap"><span class="gen"><b>{L_ADMIN_NOTES}:</b></span></td>
+		  <td> <span class="gen">{ADMIN_NOTES}</span></td>
+		</tr>
+<!-- END switch_admin_notes -->
+		
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# NOTE: you will need to do this for all your templates!
+#
+   <tr>
+      <td class="row1"><span class="gen">{L_SELECT_RANK}</span></td>
+      <td class="row2"><select name="user_rank">{RANK_SELECT_BOX}</select></td>
+   </tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+   <tr>
+      <td class="row1"><span class="gen">{L_ADMIN_NOTES}</span></td>
+      <td class="row2"><textarea class="post" name="user_admin_notes" rows="6" cols="45">{ADMIN_NOTES}</textarea></td>
+   </tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

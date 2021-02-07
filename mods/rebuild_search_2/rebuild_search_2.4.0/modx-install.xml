@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en-gb">Rebuild Search</title>
+		<description lang="en-gb"><![CDATA[This mod allows admins to index all posts in their forum by rebuilding the search tables. Rebuild progress can be stopped and resumed at a later time and some time/db statistics are displayed while rebuilding.]]></description>
+		<author-notes><![CDATA[- The original author (until 1.0.0) was GUI < spam@nickm.org > (Nick Muerdter).
+After that version, he gave me (chatasos) the permission to continue with his mod.
+This is almost a completely new mod based on GUI's original idea.
+
+- If you want to upgrade from GUI's version to this one, just follow the instructions for installing.
+Upgrading or installing from scratch requires exactly the same steps.
+
+- When upgrading from versions 2.1.x to 2.2.0 or later, you have to run the db command
+"DROP table `phpbb_search_rebuild`" before proceeding with the install,
+because the mod's table has changed its structure.
+
+- When upgrading from version 2.2.0 to a later version, you just have to copy (overwrite)
+all the files to their appropriate directory. No changes have been made in the DB.
+
+- You must have javascript enabled in your browser in order to have the script work flawlessly.
+It may seem to work fine with javascript disabled, but you'll loose a lot of its functionality.
+
+- The automatic progress of the mod depends on the META tag "refresh" being allowed in your browser.
+Some browsers (Opera) give you the option of disabling it, so please keep this in mind.
+
+- When running the mod it's better to have your forum disabled, because db usage is getting very high.
+Mod under normal circumstances doesn't have any problems when some posts are deleted/inserted while
+processing is on, since it automatically recalculates its parameters. But to be on the safe side,
+try to have your board disabled while processing.
+
+- There might be some problems when calculating the db sizes on non-MySQL databases,
+so please if you find any, inform the relevant topic on the phpBB site.
+
+- jelv1 (John Elvin) has reported a bug on phpbb's synonym handling routine (in 2.0.19) which you can find
+here : http://www.phpbb.com/bugs/viewreport.php?b=824.
+Maybe you want to implement first John's fix and afterwards run this mod.
+
+- The mod takes only 4-5 minutes to install, but you'd better read the following instructions
+if you don't know what to do after installing.
+
+
+Instructions (quite detailed)
+-----------------------------
+This mod will index every post in your forum, rebuilding the search tables.
+
+This is useful when :
+
+- You have imported posts from another forum
+- You have lost/deleted/corrupted your phpbb search tables in one way or another
+- You want to transfer your db to another server (you can skip the copying of search tables
+which are usually quite a lot of MB and create them on the new server from scratch)
+- You have updated the "search_stopwords.txt" file (running the mod will remove these words from the search tables)
+- Users cannot find what they are searching for in your forum (although there could many other reasons for this)
+
+You can stop whenever you like and the next time you run it again, you'll have the option of
+continuing from where you left off.
+
+It may take a long time to show its progress (depending on "Posts per cycle" and "Time limit"),
+so please do not move from its progress page until it is complete, unless of course you want to interrupt it.
+
+
+phpBB search operation (not fully verified)
+----------------------
+The search function of phpBB uses 3 tables:
+
+- search_wordlist (this contains a unique entry for each word that has been posted in the forum)
+- search_wordmatch (this contains pairs of data of which posts include which words from the search_wordlist)
+- search_results (this contains the last searches the users executed)
+
+phpBB marks heavily used words by changing the "word_common" field in the search_wordlist from 0 to 1 and then
+deleting them from the search_wordmatch table.
+Heavily used words are those who appear in the search_wordmatch table more than (4/10 * total_posts) times.
+phpBB doesn't check for common words before adding them into the tables. It justs adds them first
+and then deletes them if they are found to be common.
+
+Also phpBB uses a blacklist of words (a text file containing one word per line) that you don't want to be indexed.
+If you are using the default english language, this file is "language/lang_english/search_stopwords.txt".
+
+If you want to find your most commonly used words, so you can put some of them into this blacklist,
+you can run the following db query in phpmyadmin, before running this mod :
+
+SELECT swl.word_id, swl.word_text, COUNT(swm.word_id) as total
+FROM `phpbb_search_wordlist` swl, `phpbb_search_wordmatch` swm
+WHERE swl.word_id = swm.word_id
+GROUP BY swm.word_id
+ORDER BY total
+DESC LIMIT 0,50
+
+Also, you may want to check for inconsistencies in the phpbb post tables using the following 2 sql queries:
+
+SELECT p.*
+FROM phpbb_posts p
+LEFT JOIN phpbb_posts_text pt ON p.post_id = pt.post_id
+WHERE pt.post_id IS NULL;
+
+SELECT pt.*
+FROM phpbb_posts_text pt
+LEFT JOIN phpbb_posts p ON p.post_id = pt.post_id
+WHERE p.post_id IS NULL;
+
+If you get any output from the above 2 queries, it means you have some records in one table but not their
+pair record on the other table. So it should be better to fix them before running this mod.
+
+
+Main page
+---------
+You can find the mod under the Admin CP -> General Admin -> Rebuild Search.
+When you run the mod, you can change the following parameters:
+
+1) Starting post_id
+You can choose from which post to start processing, according to some conditions:
+
+a) Start from post_id 0, which means from the 1st post of your forum
+b) Start from the post_id which you stopped the last time you ran the mod
+
+- If you haven't run the mod at all, then you can only start from the beginning.
+- If you have run the mod, but there have been new posts after that, then you can start from the beginning
+(so process all posts), or continue from the post you last processed (so process only the new posts).
+- If you have run the mod, but aborted/stopped during its operation, then you can start from the beginning
+(so process all posts), or continue from the post you last aborted/stopped (so process only the remaining posts).
+
+According to your choice on this option, some other values (No of posts, Posts per cycle) are changed automatically
+to help you.
+
+If you are getting strange post numbers while processing, you can try to start from the beginning, hoping
+they'll be corrected.
+
+The post_id doesn't refer to the a/a number of a post while counting posts.
+When you have 5 sequencial posts, their a/a numbers are 1,2,3,4,5 but their post_ids can be 2,7,10,23,56.
+
+Note : At this time you cannot change this value by hand. This is something that might change in the future,
+although i can't find any real reason for implementing such a feature.
+
+2) Clear search tables
+When you start from the beginning (post_id 0) you have the option of clearing the forum search tables.
+In all the other cases, clearing of search tables is disabled and should not be used.
+
+You have 3 options here :
+
+NO: do not clear the search tables
+DELETE: all records from the 3 phpbb search tables are deleted (slower, safer, working on all databases)
+TRUNCATE: all 3 phpbb search tables are truncated (faster, riskier, possibly working on all databases)
+
+You should choose TRUNCATE, if you also want to zero the auto_increment values of the search tables.
+
+When clearing is enabled, phpbb search tables are cleared (initialized) before starting the processing.
+Regardless of whether clearing is enabled or disabled, post processing always includes removal and insertion of posts.
+This is so, because if you try to insert a post without removing it first, you might come up with "double" records
+in phpbb search tables because at the same time someone else in the forum could be editing that post.
+Of course you can use Fast mode (see below for restrictions) if you want to bypass the removal of posts.
+
+3) No of posts
+You can choose how many posts to process totally. This value is automatically filled with the total
+posts in your forum (when you haven't processed any posts, or you have processed all posts),
+or with the remaining posts (when you have stopped the processing at a previous time).
+
+Of course you can put your own value here.
+
+4) Posts per cycle
+You can choose how many posts to process per cycle. The word "cycle" refers to the amount of posts
+belonging to the same "group" which is processed one at a time (it's like a batch of posts).
+So, if you choose to process 200 posts totally, at 20 posts per cycle, you'll spend 200/20=10 cycles
+in order to complete the whole processing.
+
+If you are getting timeouts while processing, you should try lowering this value (see also the Time limit option).
+Also small numbers (20-50) will help you watch much easier the progress.
+
+Normally the mod calculates processing times per post and "adjusts" (decreases) this value automatically,
+so it shouldn't timeout whatever value you use here. But always there can be exceptions,
+especially when a large post follows many short ones.
+
+Of course if you think you have a fast server/db setup you can always risk increasing it.
+
+6) Time limit
+You can choose the maximum time in seconds the mod is allowed to run before it moves to the next processing cycle.
+The mod is using as default the value of 300 secs, which is usually found on many webservers.
+
+If you are getting timeouts while processing, you should try decreasing it (see also the Posts per cycle option).
+
+If you're using Mozilla, mod will probably be able to get the webserver's timeout and inform you about this,
+so you'd better keep your value below this. IE doesn't support this feature.
+
+Also older IE versions are known to have problems with large waiting times, so you'd better try an alternative
+browser like Mozilla.
+
+If your php is running in safe mode, mod will inform you of php's timeout, so you'd better keep your
+value below this number too.
+
+5) Refresh rate
+You can choose how much time to wait after a cycle has finished and until the next one begins.
+This is called the refresh time and it's time that actually nothing happens.
+You can always press the "Next" button, if you don't want to wait until the timer expires,
+but you cannot press it while processing is on (the button displays "Processing..." during that time),
+because you are in the risk of bypassing some posts while processing and messing with the db.
+
+Note : This feature might seem quite helpful when "debugging" mod's usage: you can put a low number
+of posts per cycle and a high refresh rate, so you can watch the progress screen as it changes
+and take screenshots easily.
+
+6) Disable board
+You can disable your board while processing, so online users won't mess with the db. Normally there should be
+no problem if you leave it enabled, since the mod is acting like "editing" posts when processing them
+and as you know whoever gets there last is the one who wins. The main reason why you'd want to disable it,
+is if you have many users online and the db usage gets high; that way you can prevent the forum from becoming sluggish.
+
+Keep in mind that if the rebuilding process times out and you have choosen to disable your board,
+you'll probably end up with a disabled board. That means you'll have to enable it manually from your admin config.
+
+If the rebuilding process finishes ok or is aborted by the user and you have choosen to disable your board,
+then the board will be automatically enabled afterwards.
+
+If your board is already disabled though the admin configuration (before running this mod), you can't change this option.
+
+7) Fast mode
+This mod makes the rebuilding run a little bit faster, since it bypasses the word/post removing process.
+When you enable this option, you have to start from the beginning the rebuilding and the following default values
+are set automatically (you can't change most of them):
+
+Starting post_id is set to 0
+Clear search table method is set to TRUNCATE
+The posts per cycle is set to 20 posts
+The time limit is set to 60 secs
+The refresh rate is set to 0 secs (no waiting)
+Board is automatically disabled
+
+Use this option only when you want to process the whole board from the beginning to the end
+and you don't mind keeping it disabled while the rebuilding is running.
+I guess it's mostly recommended for small or inactive/backup boards.
+
+
+Progress Screen
+-------------------
+When you press the "Rebuild Search" button, the button label changes to "Processing..." and becomes disabled
+until the first group of posts has been processed (or time limit has expired).
+After that, a progress screen appears which displays various information about the posts already
+processed and the ones that follow, like processing time details and database size details.
+Also the percentage of completed posts (session/total) is displayed in both numerical and graphical format.
+
+When you see the message "Timer expired at x secs", it means that the mod couldn't process all the posts you told it to
+and moved to the next cycle before the timer you have defined expires. Everything is continuing to work
+fine, so there is no real need to worry, but you may want to lower the "Posts per cycle" value in order to
+avoid such timeouts.
+
+When you see the message "x posts deleted while procesessing", it means that some of the posts that were supposed
+to be processed, were deleted by someone on your forum during the processing. Normally this shouldn't be a problem.
+
+In order for the mod to move to the next processing cycle, one of the following conditions must be met:
+
+a) All "Posts per cycle" have been processed
+b) "Time limit" has expired
+
+As noted on the bottom of the screen, all estimated values are calculated approximately
+based on current percent of completion. I know this might not be the best way to do it,
+but it works quite well as the percent increases and it provides some interesting infos.
+
+
+Operation aborting
+------------------
+The "Cancel" button at the bottom allows you to interrupt the processing of posts at your will.
+
+If you press it while processing is on (left button says "Processing..." during that time), the group of posts
+that was being processed at that time will continue to be processed, although you may think that the script has stopped.
+This is the default php/apache behaviour and i don't think i can do much about it.
+
+If you press it while the refresh timer is shown (left button says "Next" during that time), the processing of the last
+group of posts will have finished, so the script has finished too.
+
+Also, if you have pressed it during processing, then please take note of the following:
+
+When you return to the main page, if you see a message "please wait..." at the bottom, this means that probably the
+processing of the last cycle hasn't finished yet and you'll have to wait a little more. So keep refreshing this page until
+the message disappears (you'll see that the starting post_id has changed when it finishes).
+Of course you can continue if you like without waiting, but keep in mind that you'll be beginning a new processing session
+while the previous hasn't finished yet, whatever that means for your database.
+
+
+NOTE : This mod indexes your posts (by rebuilding the search tables) exactly the same way phpbb does on each post
+when it's written. So if afterwards you cannot find some words of a specific post that has been indexed,
+try to edit that post using phpbb and check again if you can find them. If you cannot find them,
+then search for these words isn't "working" on your forum (there could be various reasons for this).
+
+So, if you can't find a keyword, which you're sure it exists in your posts, then please make sure that:
+
+1) It's not included in your "language/lang_xxx/search_stopwords.txt" file.
+The words included in this file, are not indexed in the search tables.
+2) It hasn't been flagged as too common in the db. You can run the following query in order to check that:
+
+SELECT *
+FROM `phpbb_search_wordlist`
+WHERE `word_common` != 0
+
+This will show you all the words that have been flagged as too common in the phpbb db,
+which means that they are not indexed in the search tables.]]></author-notes>
+		<author-group>
+			<author>
+				<realname>Tassos Chatzithomaoglou</realname>
+				<email>chatasos@psclub.gr</email>
+				<username>chatasos</username>
+				<homepage>http://www.psclub.gr</homepage>
+				<contributions />
+			</author>
+		</author-group>
+		<mod-version>
+			<major>2</major>
+			<minor>4</minor>
+			<revision>0</revision>
+		</mod-version>
+		<installation>
+			<level>easy</level>
+			<time>300</time>
+			<target-version>
+				<target-primary>2.0</target-primary>
+				<target-major allow="exact">2</target-major>
+				<target-minor allow="exact">0</target-minor>
+			</target-version>
+		</installation>
+		<history>
+			<entry>
+				<date>2006-06-17</date>
+				<rev-version>
+					<major>2</major>
+					<minor>4</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Added Fast mode option</change>
+					<change> Changed the board disabling function</change>
+					<change> Various small fixes</change>
+					<change> Updated instructions</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-02-04</date>
+				<rev-version>
+					<major>2</major>
+					<minor>2</minor>
+					<revision>2</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Added optimization to search tables when processing has finished</change>
+					<change> Updated some code according to phpbb 2.0.19 code</change>
+					<change> Updated instructions</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-11-21</date>
+				<rev-version>
+					<major>2</major>
+					<minor>2</minor>
+					<revision>1</revision>
+					<release>b</release>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Fixed bug where board was enabled after aborting rebuild operation,</change>
+					<change>lthough board was disabled through admin config (thanks Snapdragon)</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-10-03</date>
+				<rev-version>
+					<major>2</major>
+					<minor>2</minor>
+					<revision>1</revision>
+					<release>a</release>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Added translation for some hardcoded strings</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-09-15</date>
+				<rev-version>
+					<major>2</major>
+					<minor>2</minor>
+					<revision>1</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Moved some html into a seperate template</change>
+					<change> Various small fixes</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-09-03</date>
+				<rev-version>
+					<major>2</major>
+					<minor>2</minor>
+					<revision>0</revision>
+					<release>b</release>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Changed the total posts calculation function</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-09-03</date>
+				<rev-version>
+					<major>2</major>
+					<minor>2</minor>
+					<revision>0</revision>
+					<release>a</release>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Fixed a mysql incompatibility</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-09-03</date>
+				<rev-version>
+					<major>2</major>
+					<minor>2</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Cleaned up code a little</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-09-02</date>
+				<rev-version>
+					<major>2</major>
+					<minor>2</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Changed mod's db table (final)</change>
+					<change> Changed color percent calculation</change>
+					<change> Fixed db size calculations (sql problem)</change>
+					<change> Cleaned up code a little</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-08-31</date>
+				<rev-version>
+					<major>2</major>
+					<minor>1</minor>
+					<revision>9</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Added animated progress bar (courtesy of phpBB3)</change>
+					<change> Fixed bug of deleting posts while processing</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-08-31</date>
+				<rev-version>
+					<major>2</major>
+					<minor>1</minor>
+					<revision>8</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Changed mod's db table (again!)</change>
+					<change> Changed db size calculations (much better now)</change>
+					<change> Cleaned up code a little</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-08-30</date>
+				<rev-version>
+					<major>2</major>
+					<minor>1</minor>
+					<revision>7</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Added check if board is already disabled</change>
+					<change> Updated the instructions (about phpBB search operation)</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-08-30</date>
+				<rev-version>
+					<major>2</major>
+					<minor>1</minor>
+					<revision>6</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Changed mod's db table (again)</change>
+					<change> Cleaned up code a lot</change>
+					<change> Redesigned the progress screen (much better now)</change>
+					<change> Added session/total information</change>
+					<change> Added option for DELETE/TRUNCATE when clearing the search tables</change>
+					<change> Added option for disabling the board while processing</change>
+					<change> Changed time limit calculations (again)</change>
+					<change> Optimized some functions</change>
+					<change> Updated the instructions</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-08-28</date>
+				<rev-version>
+					<major>2</major>
+					<minor>1</minor>
+					<revision>5</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Changed mod's db table (hopefully faster now)</change>
+					<change> Optimized some functions</change>
+					<change> Added phpBB search operation details in instructions</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-08-27</date>
+				<rev-version>
+					<major>2</major>
+					<minor>1</minor>
+					<revision>4</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Rewritten time limit function in order to avoid timeouts (much better now)</change>
+					<change> Updated the instructions</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-08-27</date>
+				<rev-version>
+					<major>2</major>
+					<minor>1</minor>
+					<revision>3</revision>
+					<release>a</release>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Added check for webserver timeout in time limit</change>
+					<change> Fixed various IE incompatibilities</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-08-27</date>
+				<rev-version>
+					<major>2</major>
+					<minor>1</minor>
+					<revision>3</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Fixed estimated db size calculation</change>
+					<change> Enabled the time limit option</change>
+					<change> Added check for safe mode in time limit</change>
+					<change> Optimized some functions</change>
+					<change> Updated the instructions</change>
+					<change> Various minor fixes</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-08-26</date>
+				<rev-version>
+					<major>2</major>
+					<minor>1</minor>
+					<revision>2</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Changed process aborting code</change>
+					<change> Fixed submit handling code, added input validation</change>
+					<change> Added $lang vars where missing</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-08-24</date>
+				<rev-version>
+					<major>2</major>
+					<minor>1</minor>
+					<revision>1</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Changed the rebuild_status code</change>
+					<change> Fixed a sql query to be compatible with mySQL &lt; 4.0.0 (thanks smokedog)</change>
+					<change> Updated the instructions a little</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2005-08-22</date>
+				<rev-version>
+					<major>2</major>
+					<minor>1</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Completely new version by chatasos, almost written from scratch</change>
+					<change> Many new features added (see author notes for details)</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2003-10-03</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Initial Release by GUI</change>
+				</changelog>
+			</entry>
+		</history>
+	</header>
+	<action-group>
+		<sql><![CDATA[
+CREATE TABLE `phpbb_search_rebuild` (
+  `rebuild_session_id` mediumint(8) unsigned NOT NULL auto_increment,
+  `start_post_id` mediumint(8) unsigned NOT NULL default '0',
+  `end_post_id` mediumint(8) unsigned NOT NULL default '0',
+  `start_time` int(11) NOT NULL default '0',
+  `end_time` int(11) NOT NULL default '0',
+  `last_cycle_time` int(11) NOT NULL default '0',
+  `session_time` int(11) NOT NULL default '0',
+  `session_posts` mediumint(8) unsigned NOT NULL default '0',
+  `session_cycles` mediumint(8) unsigned NOT NULL default '0',
+  `search_size` int(10) unsigned NOT NULL default '0',
+  `rebuild_session_status` tinyint(1) NOT NULL default '0',
+  PRIMARY KEY  (`rebuild_session_id`),
+  KEY `end_post_id` (`end_post_id`)
+);
+]]></sql>
+		<copy>
+			<file from="root/admin/admin_rebuild_search.php"  to="admin/admin_rebuild_search.php" />
+			<file from="root/includes/functions_admin_rebuild_search.php"  to="includes/functions_admin_rebuild_search.php" />
+			<file from="root/language/lang_english/lang_admin_rebuild_search.php"  to="language/lang_english/lang_admin_rebuild_search.php" />
+			<file from="root/templates/subSilver/admin/rebuild_search.tpl"  to="templates/subSilver/admin/rebuild_search.tpl" />
+			<file from="root/templates/subSilver/admin/rebuild_search_progress.tpl"  to="templates/subSilver/admin/rebuild_search_progress.tpl" />
+			<file from="root/templates/subSilver/admin/rebuild_search_percent.tpl"  to="templates/subSilver/admin/rebuild_search_percent.tpl" />
+			<file from="root/templates/subSilver/images/progress_bar.gif"  to="templates/subSilver/images/progress_bar.gif" />
+			<file from="root/templates/subSilver/images/progress_bar_full.gif"  to="templates/subSilver/images/progress_bar_full.gif" />
+		</copy>
+		<open src="language/lang_english/lang_admin.php">
+			<edit>
+				<find><![CDATA[//
+// Index]]></find>
+				<action type="before-add"><![CDATA[/********************
+* MOD: Rebuild Search
+********************/
+// BEGIN : BEFORE, ADD
+$lang['Rebuild_Search'] = 'Rebuild Search';
+// END : BEFORE, ADD
+]]></action>
+			</edit>
+		</open>
+		<open src="templates/subSilver/subSilver.cfg">
+			<edit>
+				<find><![CDATA[//
+// Vote graphic length defines the maximum length of a vote result]]></find>
+				<action type="before-add"><![CDATA[/********************
+* MOD: Rebuild Search
+********************/
+// BEGIN : BEFORE, ADD
+$images['progress_bar']	= "$current_template_images/progress_bar.gif";
+$images['progress_bar_full']	= "$current_template_images/progress_bar_full.gif";
+// END : BEFORE, ADD
+]]></action>
+			</edit>
+		</open>
+	</action-group>
+</mod>

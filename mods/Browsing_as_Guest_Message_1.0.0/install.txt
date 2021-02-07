@@ -1,0 +1,102 @@
+##############################################################
+## MOD Title: Browsing as Guest Message
+## MOD Author: xx521xx < N/A > (N/A) N/A
+## MOD Description: This simple MOD will add a message to the top of
+##                  your forum that is only visible to guests. The
+##                  message says "You are browsing the forum as a guest.
+##                  Log in or register to access additional features."
+##                  The words "log in" and "register" are direct links
+##                  to the login and registration pages.
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: ~3 Minutes
+## Files To Edit: includes/page_header.php, language/lang_english/lang_main.php,
+##                templates/subSilver/overall_header.tpl
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: When a user who isn't logged in views your forum after
+## installing this MOD, a yellow bar with the message "You are browsing
+## the forum as a guest. Log in or register to access additional features"
+## will be displayed at the top of your forum. The words "log in" and
+## "register" are direct links to the login and registration pages.
+##
+## This MOD is only available in English, and directions are only
+## available for the subSilver template - but these instructions will
+## likely work with other templates as well, due to the nature of the
+## template edit used in this MOD.
+##############################################################
+## MOD History:
+##
+##   12/22/06 - Version 1.0.0
+##      - First version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ OPEN ]----------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]----------------------------
+#
+//
+// Get basic (usernames + totals) online
+#
+#-----[ BEFORE, ADD ]--------------------
+#
+$browsing_as_guest = ( !$userdata['session_logged_in'] ) ? sprintf($lang['Browsing_as_guest'], append_sid($phpbb_root_path.'login.'.$phpEx), append_sid($phpbb_root_path.'profile.'.$phpEx.'?mode=register')) : '';
+
+
+#
+#-----[ FIND ]---------------------------
+#
+'L_PRIVATEMSGS' => $lang['Private_Messages'],
+#
+#-----[ AFTER, ADD ]---------------------
+#
+	'L_BROWSING_AS_GUEST' => $browsing_as_guest,
+#
+#-----[ OPEN ]---------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]---------------------------
+#
+// Global Header strings
+//
+#
+#-----[ AFTER, ADD ]---------------------
+#
+$lang['Browsing_as_guest'] = 'You are browsing the forum as a guest. <a href="%1$s">Log in</a> or <a href="%2$s">register</a> to access additional features.';
+#
+#-----[ OPEN ]---------------------------
+#
+# Apply this change to all templates
+#
+templates/subSilver/overall_header.tpl
+#
+#-----[ FIND ]---------------------------
+#
+<a name="top"></a>
+#
+#-----[ AFTER, ADD ]---------------------
+#
+<!-- BEGIN switch_user_logged_out -->
+	<div style="position: absolute; top: 0px; left: 0px; right: 0px; width: 100%; color: black; background-color: #FFFFCC; text-align: center;">
+		{L_BROWSING_AS_GUEST}
+	</div>
+<!-- END switch_user_logged_out -->
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

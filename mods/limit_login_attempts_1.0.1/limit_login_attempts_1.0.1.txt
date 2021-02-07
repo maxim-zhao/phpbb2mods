@@ -1,0 +1,304 @@
+##############################################################
+## MOD Title: Limit login attempts
+## MOD Author: Manipe < admin@manipef1.com > (N/A) http://www.manipef1.com
+## MOD Description: Deters people from guessing users' passwords by locking him/her out of login.php after a number of wrong guesses for a certain amount of time. Both the number and the time can be set in the admin panel. Includes cookie and ip tracking for maximum security.
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: ~ 5 Minutes
+## Files To Edit:
+##		admin/admin_board.php
+##		includes/constants.php
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/admin/board_config_body.tpl
+##		login.php
+##
+## Included Files:
+##		contrib/db_update.php
+##		updates/update_to_1.0.1.txt
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##	The number of failed attempts and the times can be set in the ACP, under General Admin -> Configuration
+##
+##	Instead of running the SQL commands yourself, you can also let db_update.php do it for you.
+##	Upload it to the root folder on your system and run it from there. Make sure to delete the file after use.
+##
+##	Made by request from this topic-  http://www.phpbb.com/phpBB/viewtopic.php?t=340199
+##
+##############################################################
+## MOD History:
+##
+##
+##   2005-12-05 - Version 1.0.1
+##	- Changed where code is to be added in login.php. Language file was not initiated
+##	- Changed db_update.php file to a more secure one
+##
+##   2005-11-14 - Version 1.0.0
+##	- Times are now configurable in the ACP
+##	- Added $lang variable for error message when login attempts have exceeded the allowed amount
+##	- Added constant for phpbb_login table
+##	- Changed phpbb_login table column from 'time' to 'login_time' due to it being a reserved keyword
+##	- Altered code causing error
+##
+##   2005-11-10 - Version 0.0.1
+##	- Beta version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+CREATE TABLE `phpbb_login` (
+  `ip` varchar(8) NOT NULL default '',
+  `number` tinyint(1) NOT NULL default '1',
+  `login_time` int(11) NOT NULL default '0'
+);
+INSERT INTO `phpbb_config`(`config_name`, `config_value`) VALUES ('login_tries', 5);
+INSERT INTO `phpbb_config`(`config_name`, `config_value`) VALUES ('login_locked_out', 15);
+INSERT INTO `phpbb_config`(`config_name`, `config_value`) VALUES ('login_try', 1440);
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"L_RESET" => $lang['Reset'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Limit login attempts MOD, By Manipe (Begin)
+	"L_LOGIN_MAX_FAILED" => $lang['Login_max_failed'],
+	"L_LOGIN_MAX_FAILED_EXPLAIN" => $lang['Login_max_failed_explain'],
+	"L_LOGIN_TIME_LOCKED" => $lang['Login_time_locked'],
+	"L_LOGIN_TIME_LOCKED_EXPLAIN" => $lang['Login_time_locked_explain'],
+	"L_LOGIN_TIME_ZERO" => $lang['Login_time_zero'],
+	"L_LOGIN_TIME_ZERO_EXPLAIN" => $lang['Login_time_zero_explain'],
+
+	"LOGIN_MAX_FAILED" => $new['login_tries'],
+	"LOGIN_TIME_LOCKED" => $new['login_locked_out'],
+	"LOGIN_TIME_ZERO" => $new['login_try'],
+// Limit login attempts MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/constants.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Limit login attempts MOD, By Manipe (Begin)
+define('LOGIN_TABLE', $table_prefix.'login');
+// Limit login attempts MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Limit login attempts MOD, By Manipe (Begin)
+$lang['Login_max_failed'] = 'Maximum number of login attempts';
+$lang['Login_max_failed_explain'] = 'Insert the number of times a user can submit a wrong password when logging in, before they are unable to access login.php.';
+$lang['Login_time_locked'] = 'Time a user will be locked out of login.php';
+$lang['Login_time_locked_explain'] = 'Enter in minutes the time that a user will not be able to access login.php after entering the above amount of wrong passwords. Set this to 0 disable this function.';
+$lang['Login_time_zero'] = 'Time before number of wrong passwords is reset';
+$lang['Login_time_zero_explain'] = 'Enter in minutes the time before any wrong passwords submitted by a user is reset to 0. Please note also that once a user has successfully logged in, the data is deleted for that person.';
+// Limit login attempts MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Limit login attempts MOD, By Manipe (Begin)
+$lang['Too_many_logins'] = 'You have tried to log in too many times. Please try again in a while.';
+// Limit login attempts MOD, By Manipe (End)
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		<td class="row1">{L_AUTOLOGIN_TIME}
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="max_autologin_time" value="{AUTOLOGIN_TIME}" /></td>
+	</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+		<td class="row1">{L_LOGIN_MAX_FAILED} <br /><span class="gensmall">{L_LOGIN_MAX_FAILED_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="3" name="login_tries" value="{LOGIN_MAX_FAILED}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LOGIN_TIME_LOCKED} <br /><span class="gensmall">{L_LOGIN_TIME_LOCKED_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="6" maxlength="255" name="login_locked_out" value="{LOGIN_TIME_LOCKED}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LOGIN_TIME_ZERO} <br /><span class="gensmall">{L_LOGIN_TIME_ZERO_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="6" maxlength="255" name="login_try" value="{LOGIN_TIME_ZERO}" /></td>
+	</tr>
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+login.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+init_userprefs($userdata);
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Limit login attempts MOD, By Manipe (Begin)
+
+// Check for number of login times
+//
+$sql = "SELECT number, login_time
+	FROM " . LOGIN_TABLE . "
+	WHERE ip = '$user_ip'";
+if ( !$result = $db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not retrieve login times', '', __LINE__, __FILE__, $sql);
+}
+
+$row = $db->sql_fetchrow($result);
+$sql_times = $row['number'];
+$sql_date = $row['login_time'];
+$cookie_times = $HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_login_amount'];
+$cookie_date = $HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_login_time'];
+
+if (($cookie_times >= $board_config['login_tries'] || $sql_times >= $board_config['login_tries']) && ($cookie_date > time() - 60*$board_config['login_locked_out'] || $sql_date > time() - 60*$board_config['login_locked_out']))
+{
+	message_die(GENERAL_MESSAGE, $lang['Too_many_logins']);
+}
+
+//
+// Delete old login data
+//
+$sql = "DELETE FROM " . LOGIN_TABLE . "
+	WHERE (login_time < " . (time() - (60*$board_config['login_try'])) . ")
+		OR (login_time < " . (time() - (60*$board_config['login_locked_out'])) . " AND number >= " . $board_config['login_tries'] . ")";
+if ( !$result = $db->sql_query($sql) )
+{
+	message_die(GENERAL_ERROR, 'Could not delete login times', '', __LINE__, __FILE__, $sql);
+}
+if ( ( $cookie_date < (time() - (60*$board_config['login_try'])) ) || ( ($cookie_date < (time() - (60*$board_config['login_locked_out']))) && ($cookie_times >= $board_config['login_tries']) ) )
+{
+	setcookie($board_config['cookie_name'] . '_login_amount', '', time() - 31536000, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+	setcookie($board_config['cookie_name'] . '_login_time', '', time() - 31536000, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+}
+// Limit login attempts MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					if( $session_id )
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Limit login attempts MOD, By Manipe (Begin)
+					//
+					// Successful login, so delete login details for this ip
+					//
+					$sql = "DELETE FROM " . LOGIN_TABLE . "
+						WHERE ip = '$user_ip'";
+					if ( !$result = $db->sql_query($sql) )
+					{
+						message_die(GENERAL_ERROR, 'Could not delete login times', '', __LINE__, __FILE__, $sql);
+					}
+					setcookie($board_config['cookie_name'] . '_login_amount', '', time() - 31536000, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+					setcookie($board_config['cookie_name'] . '_login_time', '', time() - 31536000, $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+// Limit login attempts MOD, By Manipe (End)
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+					message_die(GENERAL_MESSAGE, $message);
+				}
+			}
+		}
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+// Limit login attempts MOD, By Manipe (Begin)
+					//
+					// Unsuccessful login, take note of the number of times the user has tried to log in.
+					//
+					setcookie($board_config['cookie_name'] . '_login_amount', $HTTP_COOKIE_VARS[$board_config['cookie_name'] . '_login_amount']+1, time()+60*$board_config['login_try'], $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+					setcookie($board_config['cookie_name'] . '_login_time', time(), time()+60*$board_config['login_try'], $board_config['cookie_path'], $board_config['cookie_domain'], $board_config['cookie_secure']);
+
+					$sql = "SELECT number
+						FROM " . LOGIN_TABLE . "
+						WHERE ip = '$user_ip'";
+					if ( !$result = $db->sql_query($sql) )
+					{
+						message_die(GENERAL_ERROR, 'Could not retrieve login times', '', __LINE__, __FILE__, $sql);
+					}
+
+					if ( !$row = $db->sql_fetchrow($result) )
+					{
+						$sql = "INSERT INTO " . LOGIN_TABLE . " (ip, number, login_time)
+							VALUES ('$user_ip', 1, " . time() . ")";
+					}
+					else
+					{
+						$sql = "UPDATE " . LOGIN_TABLE . "
+							SET number = number + 1, login_time = " . time() . "
+							WHERE ip = '$user_ip'";
+					}
+
+					if ( !$result = $db->sql_query($sql) )
+					{
+						message_die(GENERAL_ERROR, 'Could not insert login times', '', __LINE__, __FILE__, $sql);
+					}
+// Limit login attempts MOD, By Manipe (End)
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

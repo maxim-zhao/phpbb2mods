@@ -1,0 +1,479 @@
+############################################################## 
+## MOD Title: Split topic type : upgrade to 2.0.0
+## MOD Author: Ptirhiik < admin@rpgnet-fr.com > (Pierre) http://www.rpgnet-fr.com
+## MOD Description:
+##		Upgrade for Split topic type from v 1.0.5 to v 2.0.0
+##
+## MOD Version: 2.0.0
+## 
+## Installation Level: Easy
+## Installation Time: 10 Minutes
+## Files To Edit:
+##		viewforum.php
+##		admin/admin_board.php
+##		includes/page_header.php
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/viewforum_body.tpl
+##		templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files:
+##		mod-topics_list/functions_topics_list.php
+##		mod-topics_list/topics_list_box.tpl
+##
+##		mod_split_topic_type.php
+##		mod-mods_settings/admin_board_extend.php
+##		mod-mods_settings/functions_mods_settings.php
+##		mod-mods_settings/board_config_extend_body.tpl
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##	o This mod is not a full mod but an upgrade, it requires Split topic type v 1.0.5 to be installed
+##		For a new installation, please use MOD-split_topic_type.txt description.
+##
+##	o users can choose their prefered setup (required full mods settings mod to be installed).
+##		Admin can also choose to override the users choice for each setup parameter. 
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2003-09-09 - Version 2.0.0
+##      - use of the functions_topics_list
+##	- use the mods_settings for user preferences
+##
+##   2003-07-13 - Version 1.0.5
+##      - allow to split the topic in boxes
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+#
+# This part is optional : do it only if you want your users to be able to choose their setup
+#	if you want so, you'll have to install the MOD-mods_settings mod included in the pack
+#
+# note also you haven't to add the user_split_global_announce if you don't use global announces mod
+#
+ALTER TABLE phpbb_users ADD user_split_global_announce TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_split_announce TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_split_sticky TINYINT(1) DEFAULT '1' NOT NULL;
+ALTER TABLE phpbb_users ADD user_split_topic_split TINYINT(1) DEFAULT '0' NOT NULL;
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy mod-topics_list/functions_topics_list.php to includes/functions_topics_list.php
+copy mod-topics_list/topics_list_box.tpl to templates/subSilver/topics_list_box.tpl
+#
+#-----[ COPY ]------------------------------------------------
+#
+#
+# those ones are a part of the MOD-mods_settings mod, and are required for split topic type v 2.0.0
+#
+copy mod_split_topic_type.php to includes/mods_settings/mod_split_topic_type.php
+copy mod-mods_settings/functions_mods_settings.php to includes/functions_mods_settings.php
+copy mod-mods_settings/admin_board_extend.php to admin/admin_board_extend.php
+copy mod-mods_settings/board_config_extend_body.tpl to templates/subSilver/admin/board_config_extend_body.tpl
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewforum.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+include($phpbb_root_path . 'common.'.$phpEx);
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/functions_topics_list.'. $phpEx);
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Okay, lets dump out the page ...
+//
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+#************************************************************************************
+#					NOTE :
+#					------
+# /!\ Important : I strongly recommand to mute all the lines between the nexts 
+#     ---------  			/* and */ 
+#		by adding // in front of each lines or by deleting all.
+#
+# ie: // if( $total_topics )
+#
+#************************************************************************************
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+// adjust the item id
+for ($i=0; $i < count($topic_rowset); $i++)
+{
+	$topic_rowset[$i]['topic_id'] = POST_TOPIC_URL . $topic_rowset[$i]['topic_id'];
+}
+
+// set the bottom sort option
+$footer = $lang['Display_topics'] . ':&nbsp;' . $select_topic_days . '&nbsp;' . ( !empty($s_display_order) ? $s_display_order : '') . '<input type="submit" class="liteoption" value="' . $lang['Go'] . '" name="submit" />';
+
+// send the list
+$allow_split_type = true;
+$display_nav_tree = false;
+topic_list('TOPICS_LIST_BOX', 'topics_list_box', $topic_rowset, '', $allow_split_type, $display_nav_tree, $footer);
+//-- delete
+/*
+//---------------------------------------
+//
+// Note : all the code that was standing there stands now in functions_topics_list.php, topic_list() func
+//
+//---------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+	$template->assign_block_vars('row', array());
+	$template->assign_block_vars('row.footer', array());
+
+	$template->assign_block_vars('row', array());
+	$template->assign_block_vars('row.footer_table', array());
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+*/
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+}
+else
+{
+	//
+	// No topics
+	//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- delete
+/*
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Parse the page and print
+//
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+*/
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+# here we step back to the original file
+#
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : split topic type ------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+<?php
+#
+#-----[ FIND ]------------------------------------------------
+#
+$smtp_no = ( !$new['smtp_delivery'] ) ? "checked=\"checked\"" : "";
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+if ( isset($lang['Post_global_announcement']) )
+{
+	$split_global_announce_yes = ( $new['split_global_announce'] ) ? 'checked="checked"' : '';
+	$split_global_announce_no  = (!$new['split_global_announce'] ) ? 'checked="checked"' : '';
+}
+$split_announce_yes		= ( $new['split_announce'] ) ? 'checked="checked"' : '';
+$split_announce_no		= (!$new['split_announce'] ) ? 'checked="checked"' : '';
+$split_sticky_yes		= ( $new['split_sticky'] )   ? 'checked="checked"' : '';
+$split_sticky_no		= (!$new['split_sticky'] )   ? 'checked="checked"' : '';
+$split_topic_split_yes	= ( $new['split_topic_split'] ) ? 'checked="checked"' : '';
+$split_topic_split_no	= (!$new['split_topic_split'] ) ? 'checked="checked"' : '';
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+$smtp_no = ( !$new['smtp_delivery'] ) ? "checked=\"checked\"" : "";
+#
+#-----[ FIND ]------------------------------------------------
+#
+$template->assign_vars(array(
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+	'L_ANNOUNCEMENT_SETTINGS'	=> $lang['Announce_settings'],
+	'L_SPLIT_GLOBAL_ANNOUNCE'	=> $lang['split_global_announce'],
+	'L_SPLIT_ANNOUNCE'			=> $lang['split_announce'],
+	'L_SPLIT_STICKY'			=> $lang['split_sticky'],
+	'L_SPLIT_TOPIC_SPLIT'		=> $lang['split_topic_split'],
+	'SPLIT_GLOBAL_ANNOUNCE_YES'	=> $split_global_announce_yes,
+	'SPLIT_GLOBAL_ANNOUNCE_NO'	=> $split_global_announce_no,
+	'SPLIT_ANNOUNCE_YES'		=> $split_announce_yes,
+	'SPLIT_ANNOUNCE_NO'			=> $split_announce_no,
+	'SPLIT_STICKY_YES'			=> $split_sticky_yes,
+	'SPLIT_STICKY_NO'			=> $split_sticky_no,
+	'SPLIT_TOPIC_SPLIT_YES'		=> $split_topic_split_yes,
+	'SPLIT_TOPIC_SPLIT_NO'		=> $split_topic_split_no,
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+$template->assign_vars(array(
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+if ( isset($lang['Post_global_announcement']) ) $template->assign_block_vars('switch_global_announce', array());
+//-- fin mod : split topic type --------------------------------------------------------------------
+$template->pparse("body");
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+$template->pparse("body");
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+// split global announce
+$switch_split_global_announce = isset($lang['Post_global_announcement']);
+if ( isset($lang['Post_global_announcement']) && !isset( $board_config['split_global_announce'] ) )
+{
+	$sqlw = "INSERT INTO ".CONFIG_TABLE." (config_name,config_value) VALUES('split_global_announce','" . $switch_split_global_announce . "')";
+	if ( !($resultw = $db->sql_query($sqlw)) ) message_die(GENERAL_ERROR, 'Could not add key split_annonce in config table', '', __LINE__, __FILE__, $sql);
+	$board_config['split_global_announce'] = $switch_split_global_announce;
+}
+if ( isset($lang['Post_global_announcement']) )
+{
+	$switch_split_global_announce = intval($board_config['split_global_announce']);
+}
+
+// split standard announce
+$switch_split_announce = true;
+if ( !isset( $board_config['split_announce'] ) )
+{
+	$sqlw = "INSERT INTO ".CONFIG_TABLE." (config_name,config_value) VALUES('split_announce','" . $switch_split_announce . "')";
+	if ( !($resultw = $db->sql_query($sqlw)) ) message_die(GENERAL_ERROR, 'Could not add key split_annonce in config table', '', __LINE__, __FILE__, $sql);
+	$board_config['split_announce'] = $switch_split_announce;
+}
+$switch_split_announce = intval($board_config['split_announce']);
+
+// split sticky
+$switch_split_sticky = true;
+if ( !isset( $board_config['split_sticky'] ) )
+{
+	$sqlw = "INSERT INTO ".CONFIG_TABLE." (config_name,config_value) VALUES('split_sticky','" . $switch_split_sticky . "')";
+	if ( !($resultw = $db->sql_query($sqlw)) ) message_die(GENERAL_ERROR, 'Could not add key split_sticky in config table', '', __LINE__, __FILE__, $sql);
+	$board_config['split_sticky'] = $switch_split_sticky;
+}
+$switch_split_sticky = intval($board_config['split_sticky']);
+
+// split in box
+$split_topic_split = false;
+if ( !isset($board_config['split_topic_split']) )
+{
+	$sqlw = "INSERT INTO ".CONFIG_TABLE." (config_name,config_value) VALUES('split_topic_split','" . $split_topic_split . "')";
+	if ( !($resultw = $db->sql_query($sqlw)) ) message_die(GENERAL_ERROR, 'Could not add key split_topic_split in config table', '', __LINE__, __FILE__, $sql);
+	$board_config['split_topic_split'] = $split_topic_split;
+}
+$split_topic_split = intval($board_config['split_topic_split']);
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+include_once($phpbb_root_path . 'includes/mods_settings/mod_split_topic_type.' . $phpEx);
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+//-- mod : split topic type ------------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+<?php
+//-- mod : mods settings ---------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+# Moved to lang_main.php
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+$lang['Announce_settings'] = 'Announcements Settings';
+$lang['split_global_announce'] = 'Split global announcement';
+$lang['split_announce'] = 'Split announcement';
+$lang['split_sticky'] = 'Split sticky';
+$lang['split_topic_split'] = 'Seperate topic types in different boxes';
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+//-- mod : mods settings ---------------------------------------------------------------------------
+//-- add
+$lang['Configuration_extend']	= 'Configuration +';
+$lang['Override_user_choices']	= 'Override user choices';
+//-- end of mod : mods settings --------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+//-- mod : split topic type ------------------------------------------------------------------------
+//-- add
+$lang['Announce_settings']		= 'Announcements';
+$lang['split_global_announce']	= 'Split global announcement';
+$lang['split_announce']			= 'Split announcement';
+$lang['split_sticky']			= 'Split sticky';
+$lang['split_topic_split']		= 'Seperate topic types in different boxes';
+//-- fin mod : split topic type --------------------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/viewforum_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<!-- BEGIN row -->
+	<!-- BEGIN header_table -->
+  <table border="0" cellpadding="4" cellspacing="1" width="100%" class="forumline">
+	<tr> 
+	  <th width="100%" colspan="2" align="center" height="25" class="thCornerL" nowrap="nowrap">&nbsp;{row.header_table.TITLE}&nbsp;</th>
+	  <th width="50" align="center" class="thTop" nowrap="nowrap">&nbsp;{L_REPLIES}&nbsp;</th>
+	  <th width="100" align="center" class="thTop" nowrap="nowrap">&nbsp;{L_AUTHOR}&nbsp;</th>
+	  <th width="50" align="center" class="thTop" nowrap="nowrap">&nbsp;{L_VIEWS}&nbsp;</th>
+	  <th width="150" align="center" class="thCornerR" nowrap="nowrap">&nbsp;{L_LASTPOST}&nbsp;</th>
+	</tr>
+	<!-- END header_table -->
+	<!-- BEGIN header_row -->
+	<tr>
+	  <td colspan="6" align="left" class="catLeft"><span class="cattitle">{row.header_row.TITLE}</span></td>
+	</tr>
+	<!-- END header_row -->
+	</tr>
+	<!-- BEGIN topicrow -->
+	<tr> 
+	  <td class="row1" align="center" valign="middle" width="20"><img src="{row.topicrow.TOPIC_FOLDER_IMG}" width="19" height="18" alt="{row.topicrow.L_TOPIC_FOLDER_ALT}" title="{row.topicrow.L_TOPIC_FOLDER_ALT}" /></td>
+	  <td class="row1" width="100%"><span class="topictitle">{row.topicrow.NEWEST_POST_IMG}{row.topicrow.TOPIC_TYPE}<a href="{row.topicrow.U_VIEW_TOPIC}" class="topictitle">{row.topicrow.TOPIC_TITLE}</a></span><span class="gensmall"><br />
+		{row.topicrow.GOTO_PAGE}</span></td>
+	  <td class="row2" align="center" valign="middle"><span class="postdetails">{row.topicrow.REPLIES}</span></td>
+	  <td class="row3" align="center" valign="middle"><span class="name">{row.topicrow.TOPIC_AUTHOR}</span></td>
+	  <td class="row2" align="center" valign="middle"><span class="postdetails">{row.topicrow.VIEWS}</span></td>
+	  <td class="row3Right" align="center" valign="middle" nowrap="nowrap"><span class="postdetails">{row.topicrow.LAST_POST_TIME}<br />{row.topicrow.LAST_POST_AUTHOR} {row.topicrow.LAST_POST_IMG}</span></td>
+	</tr>
+	<!-- END topicrow -->
+	<!-- BEGIN switch_no_topics -->
+	<tr> 
+	  <td class="row1" colspan="6" height="30" align="center" valign="middle"><span class="gen">{L_NO_TOPICS}</span></td>
+	</tr>
+	<!-- END switch_no_topics -->
+	<!-- BEGIN footer -->
+	<tr> 
+	  <td class="catBottom" align="center" valign="middle" colspan="6" height="28"><span class="genmed">{L_DISPLAY_TOPICS}:&nbsp;{S_SELECT_TOPIC_DAYS}&nbsp; 
+		<input type="submit" class="liteoption" value="{L_GO}" name="submit" />
+		</span></td>
+	</tr>
+	<!-- END footer -->
+	<!-- BEGIN footer_table -->
+  </table>
+	<!-- BEGIN space -->
+  <br class="gensmall">
+	<!-- END space -->
+	<!-- END footer_table -->
+	<!-- END row -->
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+{TOPICS_LIST_BOX}
+#
+#-----[ OPEN ]------------------------------------------------
+#
+# here we step back to the original version
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+<!-- mod : split topic type -->
+<h1>{L_CONFIGURATION_TITLE}</h1>
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+<h1>{L_CONFIGURATION_TITLE}</h1>
+#
+#-----[ FIND ]------------------------------------------------
+#
+	</tr>
+	<tr>
+		<th class="thHead" colspan="2">{L_ANNOUNCEMENT_SETTINGS}</th>
+	</tr>
+	<!-- BEGIN switch_global_announce -->
+	<tr>
+		<td class="row1">{L_SPLIT_GLOBAL_ANNOUNCE}</td>
+		<td class="row2"><input type="radio" name="split_global_announce" value="1" {SPLIT_GLOBAL_ANNOUNCE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="split_global_announce" value="0" {SPLIT_GLOBAL_ANNOUNCE_NO} /> {L_NO}</td>
+	</tr>
+	<!-- END switch_global_announce -->
+	<tr>
+		<td class="row1">{L_SPLIT_ANNOUNCE}</td>
+		<td class="row2"><input type="radio" name="split_announce" value="1" {SPLIT_ANNOUNCE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="split_announce" value="0" {SPLIT_ANNOUNCE_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_SPLIT_STICKY}</td>
+		<td class="row2"><input type="radio" name="split_sticky" value="1" {SPLIT_STICKY_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="split_sticky" value="0" {SPLIT_STICKY_NO} /> {L_NO}</td>
+	</tr>
+	<tr>
+		<td class="row1">{L_SPLIT_TOPIC_SPLIT}</td>
+		<td class="row2"><input type="radio" name="split_topic_split" value="1" {SPLIT_TOPIC_SPLIT_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="split_topic_split" value="0" {SPLIT_TOPIC_SPLIT_NO} /> {L_NO}</td>
+	</tr>
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

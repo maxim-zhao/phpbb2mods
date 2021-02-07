@@ -1,0 +1,509 @@
+############################################################## 
+## MOD Title:	Under construction posts	
+## MOD Author:	Dr DLP < N/A> ( Malicious Rabbit ) http://www.web-lapin.levillage.org/forum/	
+## MOD Description: Allow users to make their posts a draft , so they can begin a post and finish it later .
+## Since it is finished , others uses will see an "under construction" message .
+##
+## MOD Version:		1.0.3
+## 
+## Installation Level:	Easy
+## Installation Time:	20 Minutes ( 1 minute with easymod) 
+## Files To Edit:
+##			posting.php
+##			viewtopic.php
+##			admin/admin_board.php
+##			includes/functions_post.php
+##			includes/topic_review.php
+##			includes/usercp_viewprofile.php
+##			language/lang_english/lang_admin.php
+##			language/lang_english/lang_main.php
+##			templates/subSilver/posting_body.tpl
+##			templates/subSilver/profile_view_body.tpl
+##			templates/subSilver/admin/board_config_body.tpl
+##
+## Included Files: N/A
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+##
+##	This mod was created for the phpbb.com KMR
+##
+############################################################## 
+## MOD History:
+##
+##   2003-11-16 - Version 1.0.3
+##	- ADD : posts are displayed in red if the user is authed ( ie can moderate the post or is the author ) , into the topics and the reviews 
+##	- FIX : polls are displayed if users are not seeing the first post 
+##
+##   2003-11-15 - Version 1.0.2
+##      - FIX : guests cannot anymore make their post under construction 
+##	- ADD : polls are no longer shown if the post is under construction 
+##
+##   2003-11-15 - Version 1.0.1
+##	- first release
+##
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ SQL ]-------------------------------------------------
+#
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('allow_draft', '1');
+ALTER TABLE phpbb_posts ADD post_draft smallint(1) unsigned NOT NULL default '0';
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+posting.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+		$select_sql = ( !$submit ) ? ", t.topic_title
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+p.enable_sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, p.post_draft
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$smilies_on = ( $submit || $refresh ) ? ( ( !empty($HTTP_POST_VARS['disable_smilies']) ) ? 0 : TRUE ) : ( ( $userdata['user_id'] == ANONYMOUS ) ? $board_config['allow_smilies'] : $userdata['user_allowsmile'] );
+}
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+if ( ($submit || $refresh) && $is_auth['auth_read'])
+{
+	$draft_on = ( !empty($HTTP_POST_VARS['draft']) ) ? TRUE : 0;
+}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+submit_post($mode, $post_data,
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+$poll_length
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+,$draft_on
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$message = $post_info['post_text'];
+
+#
+#-----[ REPLACE WITH ]---------------------------------------- 
+#
+		if ( $mode == 'quote' && $post_info['post_draft'] =='1' )
+		{
+			$message = $lang['Draft_on'];
+		}
+		else
+		{
+
+			$message = $post_info['post_text'];
+		}
+
+#
+#-----[ FIND ]---------------------------------------- 
+#
+			$smilies_on = ( $post_info['enable_smilies'] ) ? true : false;
+
+#
+#-----[ AFTER, ADD ]---------------------------------- 
+#
+			$draft_on = ( $post_info['post_draft'] ) ? true : false;
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Topic type selection
+
+#
+#-----[ BEFORE, ADD ]---------------------------------------- 
+#
+if ( ($board_config['allow_draft'] || $userdata['user_level'] == ADMIN) && $userdata['user_id'] != ANONYMOUS )
+{
+	$template->assign_block_vars('switch_draft_checkbox', array());
+}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'L_NOTIFY_ON_REPLY' => $lang['Notify'], 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'L_DRAFT_POST' => $lang['Draft_posting'],
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'S_NOTIFY_CHECKED' => ( $notify_user ) ? 'checked="checked"' : '', 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'S_DRAFT_CHECKED' => ( $draft_on ) ? 'checked="checked"' : '', 
+
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+if ( !empty($forum_topic_data['topic_vote']) )
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+$sql = "SELECT t.topic_first_post_id , p.poster_id , p.post_draft 
+FROM " . TOPICS_TABLE . " t , " . POSTS_TABLE . " p
+WHERE p.post_id = t.topic_first_post_id
+AND t.topic_id = $topic_id";
+$result = $db->sql_query($sql);
+if( !$result )
+{
+	message_die(GENERAL_ERROR, "Couldn't obtain draft posts from database", "", __LINE__, __FILE__, $sql);
+}
+$tdraft = $db->sql_fetchrow($tresult);
+
+if ( (!empty($forum_topic_data['topic_vote'])) && ( !($tdraft['post_draft'] == '1' ) || !($tdraft['poster_id'] != $userdata['user_id'])))
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	$message = $postrow[$i]['post_text'];
+
+#
+#-----[ REPLACE WITH ]------------------------------------------------
+#
+	if ( $postrow[$i]['post_draft'] =='1' && $userdata['user_id'] != $postrow[$i]['user_id'] && !$is_auth['auth_mod'] )
+	{
+		$message = $lang['Draft_on'];
+	}
+	else if ( ( $postrow[$i]['post_draft'] =='1' && (( $is_auth['auth_mod'] ) || !($userdata['user_id'] != $postrow[$i]['user_id'])) ))
+	{
+
+		$message = '<b>'.$lang['Draft_on'].'&nbsp;</b><font color="red">'.$postrow[$i]['post_text'].'</font>';
+	}
+	else
+	{
+
+		$message = $postrow[$i]['post_text'];
+	}
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$namechange_no = ( !$new['allow_namechange'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+$draft_yes = ( $new['allow_draft'] ) ? "checked=\"checked\"" : "";
+$draft_no = ( !$new['allow_draft'] ) ? "checked=\"checked\"" : "";
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"L_ALLOW_NAME_CHANGE" => $lang['Allow_name_change'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	"L_ALLOW_DRAFT" => $lang['Draft_allow'],
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"NAMECHANGE_NO" => $namechange_no,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------------
+#
+	"DRAFT_YES" => $draft_yes,
+	"DRAFT_NO" => $draft_no,
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/functions_post.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+function submit_post($mode, &$post_data
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+)
+
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------
+#
+, &$draft_on
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+# this is a partial search : the full line is longer
+#
+$sql = ($mode != "editpost") ? "INSERT INTO " . POSTS_TABLE
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+enable_smilies, enable_sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, post_draft
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+$smilies_on, $attach_sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, $draft_on
+
+#
+#-----[ IN-LINE FIND ]---------------------------------------- 
+#
+, enable_sig = $attach_sig
+
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------- 
+#
+, post_draft = $draft_on
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/topic_review.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$message = $row['post_text'];
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+			if ( $row['post_draft'] =='1' && $userdata['user_id'] != $row['user_id'] && !$is_auth['auth_mod'])
+			{
+				$message = $lang['Draft_on'];
+			}
+			else if ( ( $row['post_draft'] =='1' && (( $is_auth['auth_mod'] ) || !($userdata['user_id'] != $row['user_id'])) ))
+			{
+
+				$message = '<b>'.$lang['Draft_on'].'&nbsp;</b><font color="red">'.$row['post_text'].'</font>';
+			}
+			else
+			{
+
+				$message = $row['post_text'];
+			}
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+includes/usercp_viewprofile.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Generate page
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+if ( (!($profiledata['user_id'] != $userdata['user_id'])) || $userdata['user_level'] == ADMIN )
+{
+	$template->assign_block_vars("draft", array());
+	
+	$sql = "SELECT *	
+		FROM " . POSTS_TABLE . " p , " . TOPICS_TABLE . " t
+		WHERE p.post_draft = 1
+		AND p.poster_id = ".$profiledata['user_id']."
+		AND p.topic_id = t.topic_id
+		ORDER BY p.post_time ";
+
+	$result = $db->sql_query($sql);
+
+	if( !$result )
+	{
+		message_die(GENERAL_ERROR, "Couldn't obtain draft posts from database", "", __LINE__, __FILE__, $sql);
+	}
+
+	$draft = $db->sql_fetchrowset($result);
+
+	for($i = 0; $i < count($draft); $i++)
+	{
+		$row_class = ( !($i % 2) ) ? $theme['td_class1'] : $theme['td_class2'];
+
+		$template->assign_block_vars("draft.draft_topics", array(
+			"ROW_CLASS" => $row_class,
+			"DRAFTED_POST" =>  $draft[$i]['topic_title'], 
+			"DRAFTED_POST_LOC" => append_sid("viewtopic.$phpEx?" . POST_POST_URL . "=".$draft[$i]['post_id']."#".$draft[$i]['post_id'].""))
+		);
+	}
+}
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+$template->assign_vars(array(
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+	'L_DRAFTED_POSTED' => $lang['Drafted_posts'], 
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_admin.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+$lang['Draft_allow']='Allow users to make their posts a draft';
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+?>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+$lang['Draft_posting']="Make this post a draft";
+$lang['Draft_on']="Post Under construction !";
+$lang['Drafted_posts']="Your drafts";
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/posting_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		  <!-- END switch_notify_checkbox -->
+
+#
+#-----[ AFTER, ADD ]-----------------------------------------
+#
+		  <!-- BEGIN switch_draft_checkbox -->
+		  <tr> 
+			<td> 
+			  <input type="checkbox" name="draft" {S_DRAFT_CHECKED} />
+			</td>
+			<td><span class="gen">{L_DRAFT_POST}</span></td>
+		  </tr>
+		  <!-- END switch_draft_checkbox -->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+<table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr> 
+	<td align="right"><span class="nav"><br />{JUMPBOX}</span></td>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+<!-- BEGIN draft -->
+<table class="forumline" width="100%" cellspacing="1" cellpadding="3" border="0" align="center">
+  <tr> 
+	<th class="thHead" colspan="2" height="15" nowrap="nowrap">{L_DRAFTED_POSTED}</th>
+  </tr>
+	<!-- BEGIN draft_topics -->
+  <tr> 
+	<td class="{draft.draft_topics.ROW_CLASS}" align="center"><span class="gen"><a href="{draft.draft_topics.DRAFTED_POST_LOC}">{draft.draft_topics.DRAFTED_POST}</a></span></td>
+  </tr>
+	<!-- END draft_topics -->
+</table>
+<!-- END draft -->
+
+#
+#-----[ OPEN ]------------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	<tr>
+	  <th class="thHead" colspan="2">{L_AVATAR_SETTINGS}</th>
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+	<tr>
+		<td class="row1">{L_ALLOW_DRAFT}</td>
+		<td class="row2"><input type="radio" name="allow_draft" value="1" {DRAFT_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_draft" value="0" {DRAFT_NO} /> {L_NO}</td>
+	</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

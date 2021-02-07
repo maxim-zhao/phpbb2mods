@@ -1,0 +1,944 @@
+############################################################## 
+## MOD Title: FACES.MD Mod 
+## MOD Author: valik_90 < phpBB@mail.md > (Valentin Politov) http://www.phpbb.com.md/ 
+## MOD Description: Adds to profile link to profile from FACES.MD 
+## MOD Version: 1.0.5 
+## 
+## Installation Level: Intermediate 
+## Installation Time: 15 Minutes 
+## Files To Edit: groupcp.php, 
+##                memberlist.php, 
+##                privmsg.php,
+##                viewtopic.php,
+##                admin/admin_users.php,
+##                includes/functions_validate.php,
+##                includes/usercp_register.php,
+##                includes/usercp_viewprifile.php,
+##                language/lang_english/lang_main.php,
+##                templates/subSilver/subSilver.cfg,
+##                templates/subSilver/memberlist_body.tpl,
+##                templates/subSilver/privmsg_read_body.tpl,
+##                templates/subSilver/profile_add_body.tpl,
+##                templates/subSilver/profile_view_body.tpl,
+##                templates/subSilver/viewtopic_body.tpl,
+##                templates/subSilvet/admin/user_edit_body.tpl
+##      
+## Included Files: templates/subSilver/images/icon_faces.gif
+## 
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: 
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2006-03-05 - Version 1.0.0 
+##      - First release 
+## 
+##   2006-03-07 - Version 1.0.1 
+##      - Fix errors 
+## 
+##   2006-03-15 - Version 1.0.2 
+##      - Fix files titles errors 
+## 
+##   2006-03-25 - Version 1.0.3 
+##      - Fix another errors 
+## 
+##   2006-04-13 - Version 1.0.4 
+##      - Again fix errors 
+##
+##   2006-04-17 - Version 1.0.5 
+##      - Once again fix errors 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+#
+#-----[ SQL ]------------------------------------------
+#
+ALTER TABLE `phpbb_users` ADD `user_faces` VARCHAR( 25 ) ;
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy icon_faces.gif to templates/subSilver/images/icon_faces.gif
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+groupcp.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+function generate_user_info(&$row, $date_format, $group_mod, &$from, &$posts, &$joined, &$poster_avatar, &$profile_img, &$profile, &$search_img, &$search, &$pm_img, &$pm, &$email_img, &$email, &$www_img, &$www, &$icq_status_img, &$icq_img, &$icq, &$aim_img, &$aim, &$msn_img, &$msn, &$yim_img, &$yim)
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+&$www,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ &$faces_img, &$faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+        $www = ( $row['user_website'] ) ? '<a href="' . $row['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+        $faces_img = ( $row['user_faces'] ) ? '<a href="http://www.faces.md/?' . $row['user_faces'] . '" target="_userfaces"><img src="' . $images['icon_faces'] . '" alt="' . $lang['Faces'] . '" title="' . $lang['Faces'] . '" border="0" /></a>' : '';
+        $faces = ( $row['user_faces'] ) ? '<a href="http://www.faces.md/?' . $row['user_faces'] . '" target="_userfaces">' . $lang['Faces'] . '</a>' : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$sql = "SELECT username, user_id, user_viewemail, user_posts, user_regdate, user_from, user_website, user_email, user_icq, user_aim, user_yim, user_msnm
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+user_email,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ user_faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$sql = "SELECT u.username, u.user_id, u.user_viewemail, u.user_posts, u.user_regdate, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_msnm, ug.user_pending
+		FROM " . USERS_TABLE . " u, " . USER_GROUP_TABLE . " ug
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_email,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ u.user_faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$sql = "SELECT u.username, u.user_id, u.user_viewemail, u.user_posts, u.user_regdate, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_msnm
+		FROM " . GROUPS_TABLE . " g, " . USER_GROUP_TABLE . " ug, " . USERS_TABLE . " u
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_email,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ u.user_faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	generate_user_info($group_moderator, $board_config['default_dateformat'], $is_moderator, $from, $posts, $joined, $poster_avatar, $profile_img, $profile, $search_img, $search, $pm_img, $pm, $email_img, $email, $www_img, $www, $icq_status_img, $icq_img, $icq, $aim_img, $aim, $msn_img, $msn, $yim_img, $yim);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$www,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ $faces_img, $faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_WEBSITE' => $lang['Website'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'L_FACES' => $lang['Faces'],
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'MOD_WWW' => $www,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'MOD_FACES_IMG' => $faces_img,
+		'MOD_FACES' => $faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		generate_user_info($group_members[$i], $board_config['default_dateformat'], $is_moderator, $from, $posts, $joined, $poster_avatar, $profile_img, $profile, $search_img, $search, $pm_img, $pm, $email_img, $email, $www_img, $www, $icq_status_img, $icq_img, $icq, $aim_img, $aim, $msn_img, $msn, $yim_img, $yim);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$www,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ $faces_img, $faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				'WWW' => $www,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				'FACES_IMG' => $faces_img,
+				'FACES' => $faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				generate_user_info($modgroup_pending_list[$i], $board_config['default_dateformat'], $is_moderator, $from, $posts, $joined, $poster_avatar, $profile_img, $profile, $search_img, $search, $pm_img, $pm, $email_img, $email, $www_img, $www, $icq_status_img, $icq_img, $icq, $aim_img, $aim, $msn_img, $msn, $yim_img, $yim);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$www,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ $faces_img, $faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					'WWW' => $www,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					'FACES_IMG' => $faces_img,
+					'FACES' => $faces,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+memberlist.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$mode_types_text = array($lang['Sort_Joined'], $lang['Sort_Username'], $lang['Sort_Location'], $lang['Sort_Posts'], $lang['Sort_Email'],  $lang['Sort_Website'], $lang['Sort_Top_Ten']);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang['Sort_Website'],
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ $lang['Faces'],
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$mode_types = array('joined', 'username', 'location', 'posts', 'email', 'website', 'topten');
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'website',
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ 'faces',
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_WEBSITE' => $lang['Website'],
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'L_FACES' => $lang['Faces'],
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	case 'website':
+		$order_by = "user_website $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	case 'faces':
+		$order_by = "user_faces $sort_order LIMIT $start, " . $board_config['topics_per_page'];
+		break;
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$sql = "SELECT username, user_id, user_viewemail, user_posts, user_regdate, user_from, user_website, user_email, user_icq, user_aim, user_yim, user_msnm, user_avatar, user_avatar_type, user_allowavatar
+	FROM " . USERS_TABLE . "
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+user_email,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ user_faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$www = ( $row['user_website'] ) ? '<a href="' . $row['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$faces_img = ( $row['user_faces'] ) ? '<a href="http://www.faces.md/?' . $row['user_faces'] . '" target="_userfaces"><img src="' . $images['icon_faces'] . '" alt="' . $lang['Faces'] . '" title="' . $lang['Faces'] . '" border="0" /></a>' : '';
+		$faces = ( $row['user_faces'] ) ? '<a href="http://www.faces.md/?' . $row['user_faces'] . '" target="_userfaces">' . $lang['Faces'] . '</a>' : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'WWW' => $www,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'FACES_IMG' => $faces_img,
+			'FACES' => $faces,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial search, main line is longer
+#
+	$sql = "SELECT u.username AS username_1, u.user_id AS user_id_1, u2.username AS username_2, u2.user_id AS user_id_2, u.user_sig_bbcode_uid, u.user_posts, u.user_from, u.user_website, u.user_email,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_email,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ u.user_faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$www = ( $privmsg['user_website'] ) ? '<a href="' . $privmsg['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	$faces_img = ( $privmsg['user_faces'] ) ? '<a href="http://www.faces.md/?' . $privmsg['user_faces'] . '" target="_userfaces"><img src="' . $images['icon_faces'] . '" alt="' . $lang['Faces'] . '" title="' . $lang['Faces'] . '" border="0" /></a>' : '';
+	$faces = ( $privmsg['user_faces'] ) ? '<a href="http://www.faces.md/?' . $privmsg['user_faces'] . '" target="_userfaces">' . $lang['Faces'] . '</a>' : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'WWW' => $www,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'FACES_IMG' => $faces_img,
+		'FACES' => $faces,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial search, main line is longer
+#
+$sql = "SELECT u.username, u.user_id, u.user_posts, u.user_from, u.user_website, u.user_email,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+u.user_email,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ u.user_faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$www = ( $postrow[$i]['user_website'] ) ? '<a href="' . $postrow[$i]['user_website'] . '" target="_userwww">' . $lang['Visit_website'] . '</a>' : '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$faces_img = ( $postrow[$i]['user_faces'] ) ? '<a href="http://www.faces.md/?' . $postrow[$i]['user_faces'] . '" target="_userfaces"><img src="' . $images['icon_faces'] . '" alt="' . $lang['Faces'] . '" title="' . $lang['Faces'] . '" border="0" /></a>' : '';
+		$faces = ( $postrow[$i]['user_faces'] ) ? '<a href="http://www.faces.md/?' . $postrow[$i]['user_faces'] . '" target="_userfaces">' . $lang['Faces'] . '</a>' : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$www = '';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		$faces_img = '';
+		$faces = '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'WWW' => $www,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'FACES_IMG' => $faces_img,
+		'FACES' => $faces,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_users.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$icq = ( !empty($HTTP_POST_VARS['icq']) ) ? trim(strip_tags( $HTTP_POST_VARS['icq'] ) ) : '';
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+		$faces = ( !empty($HTTP_POST_VARS['faces']) ) ? trim(strip_tags( $HTTP_POST_VARS['faces'] ) ) : '';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		validate_optional_fields($icq, $aim, $msn, $yim, $website, $location, $occupation, $interests, $signature);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$icq,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ $faces, 
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$icq = stripslashes($icq);
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+			$faces = htmlspecialchars(stripslashes($faces));
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial search, main line is longer
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) . "', user_icq = '" . str_replace("\'", "''", $icq) . "',
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+user_icq = '" . str_replace("\'", "''", $icq) . "',
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ user_faces = '" . str_replace("\'", "''", $faces) . "',
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$icq = stripslashes($icq);
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+			$faces = htmlspecialchars(stripslashes($faces));
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$icq = $this_userdata['user_icq'];
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+		$faces = htmlspecialchars($this_userdata['user_faces']);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="email" value="' . str_replace("\"", "&quot;", $email) . '" />';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="faces" value="' . str_replace("\"", "&quot;", $faces) . '" />';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'EMAIL' => $email,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+			'FACES' => $faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			'L_ICQ_NUMBER' => $lang['ICQ'],
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+			'L_FACES' => $lang['Faces'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_validate.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+function validate_optional_fields(&$icq, &$aim, &$msnm, &$yim, &$website, &$location, &$occupation, &$interests, &$sig)
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+&$icq,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ &$faces,
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_register.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial search, main line is longer
+#
+	$strip_var_list = array('email' => 'email',
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'email' => 'email',
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ 'faces' => 'faces',
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	validate_optional_fields($icq, $aim, $msn, $yim, $website, $location, $occupation, $interests, $signature);
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$icq,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ $faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		$icq = stripslashes($icq);
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+		$faces = stripslashes($faces);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial search, main line is longer
+#
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql . "user_email = '" . str_replace("\'", "''", $email) ."',
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+user_email = '" . str_replace("\'", "''", $email) ."',
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ user_faces = '" . str_replace("\'", "''", $faces) ."',
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "INSERT INTO " . USERS_TABLE . "	(user_id, username, user_regdate, user_password, user_email, user_icq, user_website, user_occ, user_from, user_interests, user_sig, user_sig_bbcode_uid, user_avatar, user_avatar_type, user_viewemail, user_aim, user_yim, user_msnm, user_attachsig, user_allowsmile, user_allowhtml, user_allowbbcode, user_allow_viewonline, user_notify, user_notify_pm, user_popup_pm, user_timezone, user_dateformat, user_lang, user_style, user_level, user_allow_pm, user_active, user_actkey)
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+user_email,
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ user_faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				VALUES ($user_id, '" . str_replace("\'", "''", $username) . "', " . time() . ", '" . str_replace("\'", "''", $new_password) . "', '" . str_replace("\'", "''", $email) . "', '" . str_replace("\'", "''", $icq) . "', '" . str_replace("\'", "''", $website) . "', '" . str_replace("\'", "''", $occupation) . "', '" . str_replace("\'", "''", $location) . "', '" . str_replace("\'", "''", $interests) . "', '" . str_replace("\'", "''", $signature) . "', '$signature_bbcode_uid', $avatar_sql, $viewemail, '" . str_replace("\'", "''", str_replace(' ', '+', $aim)) . "', '" . str_replace("\'", "''", $yim) . "', '" . str_replace("\'", "''", $msn) . "', $attachsig, $allowsmilies, $allowhtml, $allowbbcode, $allowviewonline, $notifyreply, $notifypm, $popup_pm, $user_timezone, '" . str_replace("\'", "''", $user_dateformat) . "', '" . str_replace("\'", "''", $user_lang) . "', $user_style, 0, 1, ";
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+'" . str_replace("\'", "''", $email) . "',
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ '" . str_replace("\'", "''", $faces) . "',
+
+#
+#-----[ FIND ]------------------------------------------
+#
+					'EMAIL_ADDRESS' => $email,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+					'FACES' => $faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$icq = stripslashes($icq);
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	$faces = stripslashes($faces);
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$icq = $userdata['user_icq'];
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	$faces = $userdata['user_faces'];
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	display_avatar_gallery($mode, $avatar_category, $user_id, $email, $current_email, $coppa, $username, $email, $new_password, $cur_password, $password_confirm, $icq,
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ $icq,
+
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+ $faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'ICQ' => $icq,
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+		'FACES' => $faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_ICQ_NUMBER' => $lang['ICQ'],
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+		'L_FACES' => $lang['Faces'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/usercp_viewprofile.php
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$www = ( $profiledata['user_website'] ) ? '<a href="' . $profiledata['user_website'] . '" target="_userwww">' . $profiledata['user_website'] . '</a>' : '&nbsp;';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$faces_img = ( $profiledata['user_faces'] ) ? '<a href="http://www.faces.md/?' . $profiledata['user_faces'] . '" target="_userfaces"><img src="' . $images['icon_faces'] . '" alt="' . $lang['Faces'] . '" title="' . $lang['Faces'] . '" border="0" /></a>' : '&nbsp;';
+$faces = ( $profiledata['user_faces'] ) ? '<a href="http://www.faces.md/?' . $profiledata['user_faces'] . '" target="_userfaces">' . $profiledata['user_faces'] . '</a>' : '&nbsp;';
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'WWW' => $www,
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'FACES_IMG' => $faces_img,
+	'FACES' => $faces,
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_ICQ_NUMBER' => $lang['ICQ'],
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	'L_FACES' => $lang['Faces'],
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Website']
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Faces'] = 'FACES.MD profile';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$images['icon_www'] = "$current_template_images/{LANG}/icon_www.gif";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$images['icon_faces'] = "$current_template_images/icon_faces.gif";
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/memberlist_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <th class="thCornerR" nowrap="nowrap">{L_WEBSITE}</th>
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	  <th class="thTop" nowrap="nowrap">{L_WEBSITE}</th>
+	  <th class="thCornerR" nowrap="nowrap">{L_FACES}</th>
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="{memberrow.ROW_CLASS}" align="center">&nbsp;{memberrow.WWW_IMG}&nbsp;</td>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	  <td class="{memberrow.ROW_CLASS}" align="center">&nbsp;{memberrow.FACES_IMG}&nbsp;</td>
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="catBottom" colspan="8" height="28">&nbsp;</td>
+
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+	  <td class="catBottom" colspan="9" height="28">&nbsp;</td>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/privmsgs_read_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+{WWW_IMG} {AIM_IMG} {YIM_IMG} {MSN_IMG}
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+{WWW_IMG}
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+{FACES_IMG}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_add_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_ICQ_NUMBER}:</span></td>
+	  <td class="row2">
+		<input type="text" name="icq" class="post" style="width: 100px"  size="10" maxlength="15" value="{ICQ}" />
+	  </td>
+	</tr>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_FACES}:</span></td>
+	  <td class="row2">
+		<input type="text" name="faces" class="post" style="width: 100px"  size="10" maxlength="25" value="{FACES}" />
+	  </td>
+	</tr>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/profile_view_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		<tr>
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_WEBSITE}:&nbsp;</span></td>
+		  <td><span class="gen"><b>{WWW}</b></span></td>
+		</tr>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<tr>
+		  <td valign="middle" align="right" nowrap="nowrap"><span class="gen">{L_FACES}:&nbsp;</span></td>
+		  <td><span class="gen"><b>{FACES}</b></span></td>
+		</tr>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/viewtopic_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+# This is a partial search, main line is longer
+#
+				<td valign="middle" nowrap="nowrap">{postrow.PROFILE_IMG} {postrow.PM_IMG} {postrow.EMAIL_IMG} {postrow.WWW_IMG}
+
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+{postrow.WWW_IMG}
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+{postrow.FACES_IMG}
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_ICQ_NUMBER}</span></td>
+	  <td class="row2">
+		<input class="post" type="text" name="icq" size="10" maxlength="15" value="{ICQ}" />
+	  </td>
+	</tr>
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	<tr>
+	  <td class="row1"><span class="gen">{L_FACES}</span></td>
+	  <td class="row2">
+		<input class="post" type="text" name="faces" size="10" maxlength="25" value="{FACES}" />
+	  </td>
+	</tr>
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

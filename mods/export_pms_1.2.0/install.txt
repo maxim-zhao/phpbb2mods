@@ -1,0 +1,200 @@
+##############################################################
+## MOD Title: Export PMs to XML
+## MOD Author: OlivierW < N/A > (N/A) http://pctuning.free.fr/
+## MOD Description: Allow to export all your PMs to XML format
+## MOD Version: 1.2.0
+##
+## Installation Level: (Easy)
+## Installation Time: 8 Minutes
+## Files To Edit:
+##		privmsg.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/privmsgs_body.tpl
+##		templates/subSilver/privmsgs_read_body.tpl
+##		templates/subSilver/subSilver.cfg
+##
+## Included Files: (export_privmsgs.php, msg_export.gif)
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##############################################################
+## MOD History:
+##
+##   2005-03-26 - Version 1.0.0
+##      - Initial release
+##
+##   2005-03-27 - Version 1.0.1
+##      - Fixing a small bug (special characters in the subject of the PM are allowed)
+##
+##   2005-03-27 - Version 1.1.0
+##      - Changed the XML format to a more intelligent one ;)
+##
+##   2005-04-15 - Version 1.1.1
+##      - Fixing a bug when the user hasn't any PM
+##
+##   2007-12-18 - Version 1.1.2
+##      - Checked that the MOD still works in phpBB 2.0.22 (no code modification since v1.1.1)
+##      - Modified the syntax of install.txt to use the correct MOD Template syntax
+##
+##   2008-01-16 - Version 1.2.0
+##      - Modifications asked by the phpBB Team (code cleaning)
+##      - Correction for HTTPS forums
+##      - Removed uneeded includes
+##	- Problem fixed by Krakuspm when used with HTTPS (header "Pragma: no-cache" removed)
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy export_privmsgs.php to export_privmsgs.php
+copy msg_export.gif to templates/subSilver/images/msg_export.gif
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+privmsg.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$savebox_url = ( $folder != 'savebox' || $mode != '' ) ? '<a href="' . append_sid("privmsg.$phpEx?folder=savebox") . '">' . $lang['Savebox'] . '</a>' : $lang['Savebox'];
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$export_img = '<a href="' . append_sid("export_privmsgs.$phpEx") . '"><img src="' . $images['pm_export'] . '" border="0" alt="' . $lang['Export'] . '" /></a>';
+$export_url = '<a href="' . append_sid("export_privmsgs.$phpEx") . '">' . $lang['Export'] . '</a>';
+
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	$template->assign_vars(array(
+		'INBOX_IMG' => $inbox_img, 
+		'SENTBOX_IMG' => $sentbox_img, 
+		'OUTBOX_IMG' => $outbox_img, 
+		'SAVEBOX_IMG' => $savebox_img, 
+		'INBOX' => $inbox_url, 
+
+		'POST_PM_IMG' => $post_img, 
+		'REPLY_PM_IMG' => $reply_img, 
+		'EDIT_PM_IMG' => $edit_img, 
+		'QUOTE_PM_IMG' => $quote_img, 
+		'POST_PM' => $post, 
+		'REPLY_PM' => $reply, 
+		'EDIT_PM' => $edit, 
+		'QUOTE_PM' => $quote, 
+
+		'SENTBOX' => $sentbox_url, 
+		'OUTBOX' => $outbox_url, 
+		'SAVEBOX' => $savebox_url, 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		'EXPORT_IMG' => $export_img, 
+		'EXPORT' => $export_url, 
+
+#
+#-----[ FIND ]------------------------------------------
+#
+//
+// Dump vars to template
+//
+$template->assign_vars(array(
+	'BOX_NAME' => $l_box_name, 
+	'INBOX_IMG' => $inbox_img, 
+	'SENTBOX_IMG' => $sentbox_img, 
+	'OUTBOX_IMG' => $outbox_img, 
+	'SAVEBOX_IMG' => $savebox_img, 
+	'INBOX' => $inbox_url, 
+	'SENTBOX' => $sentbox_url, 
+	'OUTBOX' => $outbox_url, 
+	'SAVEBOX' => $savebox_url, 
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	'EXPORT_IMG' => $export_img, 
+	'EXPORT' => $export_url, 
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Delete_message'] = 'Delete Message';
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Export'] = 'Export';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/privmsgs_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+		  <td>{SAVEBOX_IMG}</td>
+		  <td><span class="cattitle">{SAVEBOX} &nbsp;</span></td>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		  <td>{EXPORT_IMG}</td>
+		  <td><span class="cattitle">{EXPORT} &nbsp;</span></td>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/privmsgs_read_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<td valign="middle">{SAVEBOX_IMG}</td>
+	<td valign="middle"><span class="cattitle">{SAVEBOX}</span></td>
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<td valign="middle">{EXPORT_IMG}</td>
+	<td valign="middle"><span class="cattitle">{EXPORT}</span></td>
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/subSilver.cfg
+
+#
+#-----[ FIND ]------------------------------------------
+#
+$images['pm_no_new_msg'] = "";
+
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$images['pm_export'] = "$current_template_images/msg_export.gif";
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

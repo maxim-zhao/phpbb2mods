@@ -1,0 +1,126 @@
+##############################################################
+## MOD Title: Posts in Last 24 Hours
+## MOD Author: Throckmorton < lance at cylan dot net > (Lance Clarke) n/a 
+## MOD Description: Adds number of posts in the last 24 hours to your board stats
+## MOD Version: 1.0.1
+##
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+##
+## Files To Edit: index.php
+##                includes/functions.php
+##                language/lang_english/lang_main.php
+##
+## Included Files: n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes:
+##
+## Adds number of posts in the last 24 hours to your board stats
+## right after the "Our users have posted a total of XXX articles" line
+##
+## This MOD adds to the TOTAL_POSTS variable itself and therefore doesn't modify your templates
+## which means it should work with any template that displays total posts.
+##
+############################################################## 
+## MOD History: 
+## 
+##  2005-08-14 - Version 1.0.1
+##               Changes to header only, for ModDB compliance
+##               
+##  2005-08-09 - Version 1.0.0
+##             - Initial Release 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$total_posts = get_db_stat('postcount');
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$posts_last_24 = get_db_stat('last24');
+#
+#-----[ FIND ]------------------------------------------
+#
+else
+{
+	$l_total_post_s = $lang['Posted_articles_total'];
+}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+$l_posted_last_24_hours = $lang['Posted_last_24_hours'];
+#
+#-----[ FIND ]------------------------------------------
+#
+		'TOTAL_POSTS' => sprintf($l_total_post_s, $total_posts),
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+sprintf($l_total_post_s, $total_posts)
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ . sprintf($l_posted_last_24_hours, $posts_last_24)
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		case 'postcount':
+		case 'topiccount':
+			$sql = "SELECT SUM(forum_topics) AS topic_total, SUM(forum_posts) AS post_total
+				FROM " . FORUMS_TABLE;
+			break;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		case 'last24':
+			$sql = "SELECT COUNT(post_id) 
+				FROM " . POSTS_TABLE . " 
+				WHERE post_time > UNIX_TIMESTAMP() - 86400";
+			break;
+#
+#-----[ FIND ]------------------------------------------
+#
+		case 'topiccount':
+			return $row['topic_total'];
+			break;
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		case 'last24':
+			return $row['COUNT(post_id)'];
+			break;
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Posted_article_total'] = 'Our users have posted a total of <b>%d</b> article'; // Number of posts
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+$lang['Posted_last_24_hours'] = ', <b>%d</b> of them in the last 24 hours'; // Number of posts in last 24 hours
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------
+#
+# EoM

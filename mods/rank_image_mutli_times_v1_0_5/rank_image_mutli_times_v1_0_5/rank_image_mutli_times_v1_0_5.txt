@@ -1,0 +1,459 @@
+############################################################## 
+## MOD Title: Rank image show multi. times 
+## MOD Author: arrows10 < arrows10@columbus.rr.com > (Chris Eckelberry) http://www.arrows10.net/Forum/Main/ 
+## MOD Description: Will show the rank image multiple times depending on the setting in the edit ranks section. 
+## MOD Version: 1.0.5 
+## 
+## Installation Level: easy 
+## Installation Time: ~15 Minutes 
+## Files To Edit: language/lang_english/lang_admin.php,
+##                admin/admin_ranks.php
+##                templates/subSilver/admin/ranks_edit_body.tpl
+##                includes/usercp_viewprofile.php
+##                templates/subSilver/profile_view_body.tpl
+##                viewtopic.php
+##                templates/subSilver/viewtopic_body.tpl
+## Included Files: n/a 
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: This Mod will allow u to have a image for your ranks multiplied as many
+##               time as u see fit (up to 99 times). You can change the amount of times
+##               its displayed though the admin panel under Ranks area. I have included 
+##               a few screenshots for you to see what it does. I have also included a 
+##		     few images to use or u can use your own.
+##
+## Future Additions: When u click on the rank image it brings up a pop-up window
+##			   that will show the rank name, rank image and how many posts 
+##			   are required to get to this rank.
+##
+############################################################## 
+## MOD History: 
+## 
+##   2003-02-01 - Version 0.9.0 
+##      - Beta testing of mod 
+##
+##   2003-02-06 - Version 1.0.0 
+##      - Mod released 
+##      - updated code to work with phpBB v2.0.4
+## 
+##   2003-07-02 - Version 1.0.1 
+##      - got rid of a few lines of code not needed
+##      - changed lang_admin.php file per validation of mod
+##      - updated code to work with phpBB v2.0.5
+##      - rewrote install instructions for easier install 
+##      - added code to see rank image on rank list in admin panel
+## 
+##   2003-07-05 - Version 1.0.2 
+##      - Fixed 2 lines in admin_ranks.php were website address was hardcoded in (found by beggers)
+## 
+##   2003-07-07 - Version 1.0.3 
+##      - Renamed install file
+##      - Reworte the install instructions for the find and replace that did 25-30 lines
+##      - fixed so that if no image was chosen it would not show a red x(credit to Life is Pain)
+## 
+##   2003-07-07 - Version 1.0.4 
+##      - fixed were Rank Image wasnt showing on rank list page
+##
+##   2003-08-18 - Version 1.0.5 
+##      - updated code to work with phpBB v2.0.6
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+#
+#-----[ SQL ]------------------------------------------
+#
+
+ALTER TABLE phpbb_ranks ADD `rank_mal` tinyint(2) unsigned NOT NULL default '1' AFTER rank_image;
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+language/lang_english/lang_admin.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+$lang['Rank_image_explain'] = 'Use this to define a small image associated with the rank';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+$lang['Rank_repeat'] = 'Rank Image Repeat';
+$lang['Rank_repeat_explain'] = 'Use this to define how many times you want the rank image to repeat itself.';
+$lang['rank_images'] = 'Rank Image';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+admin/admin_ranks.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+			"IMAGE_DISPLAY" => ( $rank_info['rank_image'] != "" ) ? '<img src="../' . $rank_info['rank_image'] . '" />' : "",
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+			"REPEAT" => $rank_info['rank_mal'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+			"L_RANK_IMAGE_EXPLAIN" => $lang['Rank_image_explain'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+			"L_RANK_REPEAT" => $lang['Rank_repeat'],
+			"L_RANK_REPEAT_EXPLAIN" => $lang['Rank_repeat_explain'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+		$rank_image = ( (isset($HTTP_POST_VARS['rank_image'])) ) ? trim($HTTP_POST_VARS['rank_image']) : "";
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+		$rank_mal = ( isset($HTTP_POST_VARS['rank_mal']) ) ? intval($HTTP_POST_VARS['rank_mal']) : 1;
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+				SET rank_title = '" . str_replace("\'", "''", $rank_title) . "', rank_special = $special_rank, rank_min = $min_posts, rank_image = '" . str_replace("\'", "''", $rank_image) . "'
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+
+rank_image = '" . str_replace("\'", "''", $rank_image) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+, rank_mal = $rank_mal
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+			$sql = "INSERT INTO " . RANKS_TABLE . " (rank_title, rank_special, rank_min, rank_image)
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+
+, rank_image
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+, rank_mal
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+				VALUES ('" . str_replace("\'", "''", $rank_title) . "', $special_rank, $min_posts, '" . str_replace("\'", "''", $rank_image) . "')";
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+
+, '" . str_replace("\'", "''", $rank_image) . "'
+
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+, $rank_mal
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+			"L_RANK_MINIMUM" => $lang['Rank_minimum'],
+			
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+			"L_RANK_IMAGE" => $lang['rank_images'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+			$rank_min = $rank_rows[$i]['rank_min'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+			$rank_image = $rank_rows[$i]['rank_image'];
+			$rank_mal = $rank_rows[$i]['rank_mal'];
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+				"RANK_MIN" => $rank_min,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+				"RANK_IMAGE" => ( ($rank_image != '') ? str_repeat("<img src=\"../".$rank_image."\" border=\"0\">",$rank_mal) : ''),
+
+#
+#-----[ FIND ]------------------------------------------ 
+# 
+
+		"L_RANK_MINIMUM" => $lang['Rank_minimum'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+		"L_RANK_IMAGE" => $lang['rank_images'],
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+		$rank_min = $rank_rows[$i]['rank_min'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+		$rank_image = $rank_rows[$i]['rank_image'];
+		$rank_mal = $rank_rows[$i]['rank_mal'];
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+			"RANK_MIN" => $rank_min,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+			"RANK_IMAGE" => ( ($rank_image != '') ? str_repeat("<img src=\"../".$rank_image."\" border=\"0\">",$rank_mal) : ''),
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+templates/subSilver/admin/ranks_edit_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+		<td class="row2"><input class="post" type="text" name="rank_image" size="40" maxlength="255" value="{IMAGE}" /><br />{IMAGE_DISPLAY}</td>
+	</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+	<tr>
+		<td class="row1" width="38%"><span class="gen">{L_RANK_REPEAT}:</span><br />
+		<span class="gensmall">{L_RANK_REPEAT_EXPLAIN}</span></td>
+		<td class="row2"><input type="text" name="rank_mal" size="5" maxlength="2" value="{REPEAT}" /></td>
+	</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+templates/subSilver/admin/ranks_list_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+		<th class="thCornerL">{L_RANK}</th>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+		<th class="thTop">{L_RANK_IMAGE}</th>
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+		<td class="{ranks.ROW_CLASS}" align="center">{ranks.RANK}</td>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+		<td class="{ranks.ROW_CLASS}" align="center">{ranks.RANK_IMAGE}</td>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+includes/usercp_viewprofile.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+$rank_image = '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+$rank_mal = '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+         	$rank_image = ( $ranksrow[$i]['rank_image'] ) ? '<img src="' . $ranksrow[$i]['rank_image'] . '" alt="' . $poster_rank . '" title="' . $poster_rank . '" border="0" /><br />' : ''; 
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+
+         	$rank_image = $ranksrow[$i]['rank_image']; 
+         	$rank_mal = $ranksrow[$i]['rank_mal']; 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+         	$rank_image = ( $ranksrow[$i]['rank_image'] ) ? '<img src="' . $ranksrow[$i]['rank_image'] . '" alt="' . $poster_rank . '" title="' . $poster_rank . '" border="0" /><br />' : ''; 
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+
+         	$rank_image = $ranksrow[$i]['rank_image']; 
+         	$rank_mal = $ranksrow[$i]['rank_mal']; 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+	'RANK_IMAGE' => $rank_image,
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+
+	'RANK_IMAGE' => ( ($rank_image != '') ? str_repeat("<img src=\"".$rank_image."\" border=\"0\">",$rank_mal) : ''),
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+templates/subSilver/profile_view_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+	<td class="row1" height="6" valign="top" align="center">{AVATAR_IMG}<br /><span class="postdetails">{POSTER_RANK}</span></td>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+
+{POSTER_RANK}</span>
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+
+<br /><span class="postdetails">{RANK_IMAGE}</span>
+
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+
+viewtopic.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+	$rank_image = '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+
+	$rank_mal = '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+				$rank_image = ( $ranksrow[$j]['rank_image'] ) ? '<img src="' . $ranksrow[$j]['rank_image'] . '" alt="' . $poster_rank . '" title="' . $poster_rank . '" border="0" /><br />' : ''; 
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+
+				$rank_image = $ranksrow[$j]['rank_image']; 
+				$rank_mal = $ranksrow[$j]['rank_mal']; 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+				$rank_image = ( $ranksrow[$j]['rank_image'] ) ? '<img src="' . $ranksrow[$j]['rank_image'] . '" alt="' . $poster_rank . '" title="' . $poster_rank . '" border="0" /><br />' : ''; 
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+
+				$rank_image = $ranksrow[$j]['rank_image']; 
+				$rank_mal = $ranksrow[$j]['rank_mal']; 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+		'RANK_IMAGE' => $rank_image,
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+
+		'RANK_IMAGE' => ( ($rank_image != '') ? str_repeat("<img src=\"".$rank_image."\" border=\"0\">",$rank_mal) : ''),
+
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

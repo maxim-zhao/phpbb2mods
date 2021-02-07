@@ -1,0 +1,255 @@
+##############################################################
+## MOD Title: User-Specific Edit Disable
+## MOD Author: xx521xx < N/A > (N/A) N/A
+## MOD Description: Allows administrators to prevent specific users
+##                  from editing their posts.
+## MOD Version: 2.0.1
+##
+## Installation Level: Easy
+## Installation Time: ~10 Minutes
+## Files To Edit: admin/admin_users.php, posting.php, viewforum.php,
+## viewtopic.php, language/lang_english/lang_admin.php,
+## language/lang_english/lang_main.php,
+## templates/subSilver/admin/user_edit_body.tpl
+## Included Files: sql_updater.php
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: This MOD will add an option in the user management
+## section of the administration panel where admins can choose
+## to disable the post editing ability of certain users.
+##
+## This MOD was originally made for 2.0.6 in response to a MOD request
+## topic. None of this MOD's code has changed, so it should still work
+## with 2.0.6 (as well as all versions from 2.0.6 to 2.0.21).
+##
+## Note that instructions are only included for installing this MOD
+## with the default subSilver template, but they may work with other,
+## similarly-coded templates.
+#
+# PLEASE! Keep in mind that BEFORE, ADD and AFTER, ADD refer to new
+# lines - DO NOT add these in the middle of the lines previously found
+# or the MOD will NOT work as expected. You are usually asked to FIND
+# only a portion of a line, but you should perform the actions that
+# follow as if you had been asked to find the entire line. These
+# partial searches are used to increase the likelihood of being able
+# to find the proper lines on a heavily modified board.
+##############################################################
+## MOD History:
+##
+##   2007-2-21 - Version 2.0.1
+##      - Bug fix: fixed inability to disable editing through the ACP
+##
+##   2007-1-20 - Version 2.0.0
+##      - Renamed "User-Specific Edit Disable" (was "Disable Editing for Specific Users")
+##      - Core code rewritten; no longer using the built-in auth system
+##      - Fixed a potential security hole
+##      - Added an automatic SQL update file
+##      - Installation tips are only in the beginning of the instructions
+##          since quoting long lines can disrupt the funtion of EasyMod.
+##      - Changed the last find/edit slightly
+##      - Date format in this section changed
+##
+##   2006-11-30 - Version 1.0.0
+##      - Verified compatibility with phpBB 2.0.21
+##      - Changed which part of one line to find
+##      - Added installation tips
+##      - Re-formatted the HTML coding to more closely match phpBB standards
+##
+##    2003-??-?? - Version 0.0.0
+##      - First version, only released in the original MOD request topic
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ SQL ]------------------------
+#
+# You can use the included sql_updater.php to make this change
+# automatically. Simply upload the file to your phpBB root directory
+# (ex. www.yourdomain.com/phpBB2) and view it in your web browser.
+# To make the change manually, execute the following SQL query, but
+# be sure to change phpbb_ to the proper table prefix if yours is
+# different!
+#
+ALTER TABLE phpbb_users ADD user_auth_edit tinyint(1) default 1;
+#
+#-----[ OPEN ]-----------------------
+#
+posting.php
+#
+#-----[ FIND ]----------------------
+#
+//
+// What auth type do we need to check?
+//
+#
+#-----[ BEFORE, ADD ]---------------
+#
+//
+// Can this user edit their posts?
+//
+if ( $mode == 'edit' && !$userdata['user_auth_edit'] && $userdata['session_logged_in'] )
+{
+	message_die(GENERAL_MESSAGE, $lang['Editing_disabled_for_user']);
+}
+
+#
+#-----[ OPEN ]----------------------
+#
+viewforum.php
+#
+#-----[ FIND ]----------------------
+#
+$lang['Rules_edit_can']
+#
+#-----[ IN-LINE FIND ]---------------
+#
+$is_auth['auth_edit']
+#
+#-----[ IN-LINE AFTER, ADD ]---------
+#
+ && $userdata['user_auth_edit']
+#
+#-----[ OPEN ]-----------------------
+#
+viewtopic.php
+#
+#-----[ FIND ]-----------------------
+#
+$lang['Rules_edit_can']
+#
+#-----[ IN-LINE FIND ]---------------
+#
+$is_auth['auth_edit']
+#
+#-----[ IN-LINE AFTER, ADD ]---------
+#
+ && $userdata['user_auth_edit']
+#
+#-----[ FIND ]----------------------
+#
+$is_auth['auth_edit'] ) ||
+#
+#-----[ IN-LINE FIND ]--------------
+#
+if
+#
+#-----[ IN-LINE AFTER, ADD ]---------
+#
+ (
+#
+#-----[ IN-LINE FIND ]---------------
+#
+$is_auth['auth_mod'] )
+#
+#-----[ IN-LINE AFTER, ADD ]---------
+#
+ && $userdata['user_auth_edit'] )
+#
+#-----[ OPEN ]-----------------------
+#
+admin/admin_users.php
+#
+#-----[ FIND ]------------------------
+#
+$user_allowavatar = (
+#
+#-----[ AFTER, ADD ]----------------
+#
+		$allow_edit = ( isset($HTTP_POST_VARS['allowedit']) ) ? intval($HTTP_POST_VARS['allowedit']) : 1;
+#
+#-----[ FIND ]------------------------
+#
+SET " . $username_sql
+#
+#-----[ IN-LINE FIND ]--------------
+#
+$user_rank
+#
+#-----[ IN-LINE AFTER, ADD ]------
+#
+, user_auth_edit = $allow_edit
+#
+#-----[ FIND ]------------------------
+#
+value="edit"
+#
+#-----[ AFTER, ADD ]----------------
+#
+			$s_hidden_fields .= '<input type="hidden" name="allowedit" value="'.$this_userdata['user_auth_edit'].'" />';
+#
+#-----[ FIND ]-------------------------
+#
+'RANK_SELECT_BOX'
+#
+#-----[ AFTER, ADD ]----------------
+#
+			'ALLOW_EDIT' => ( $this_userdata['user_auth_edit'] ) ? 'checked="checked"' : '',
+			'DISALLOW_EDIT' => ( $this_userdata['user_auth_edit'] ) ? '' : 'checked="checked"',
+#
+#-----[ FIND ]-------------------------
+#
+'L_ALWAYS_ADD_SIGNATURE'
+#
+#-----[ AFTER, ADD ]-----------------
+#
+			'L_ALLOW_EDIT' => $lang['allow_edit'],
+			'L_ALLOW_EDIT_EXPLAIN' => $lang['allow_edit_explain'],
+#
+#-----[ OPEN ]------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]-------------------
+#
+$lang['User_special_explain']
+#
+#-----[ AFTER, ADD ]-----------
+#
+
+$lang['allow_edit'] = 'Can edit posts';
+$lang['allow_edit_explain'] = 'Note: this option does not affect administrators and moderators.';
+#
+#-----[ OPEN ]-------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]-------------------
+#
+$lang['Edit_own_posts']
+#
+#-----[ AFTER, ADD ]-------------
+#
+$lang['Editing_disabled_for_user'] = 'Sorry, but it appears that an administrator has disabled your ability to edit posts. If you believe this is a mistake, please contact the board administrators.';
+#
+#-----[ OPEN ]-------------------
+#
+templates/subSilver/admin/user_edit_body.tpl
+#
+#-----[ FIND ]--------------------
+#
+name="user_allowavatar" value="0"
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------
+#
+	<tr>
+		<td class="row1"><span class="gen">{L_ALLOW_EDIT}</span><br /><span class="gensmall">{L_ALLOW_EDIT_EXPLAIN}</span></td>
+		<td class="row2">
+		<input type="radio" name="allowedit" value="1" {ALLOW_EDIT} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="allowedit" value="0" {DISALLOW_EDIT} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

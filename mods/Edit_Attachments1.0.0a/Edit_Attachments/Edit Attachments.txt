@@ -1,0 +1,544 @@
+#################################################################
+## MOD Title: Edit Attachments
+## MOD Author: Wicher < N/A > (N/A) http://www.detecties.com/phpbb2018
+## MOD Description: Puts buttons arround attached image files attached by the attachments mod.
+##                  With those buttons you can manipulate the attached image file. 
+##                  The buttons will appear arround images as wel in normal postings as in private messages.
+##                  Users can make the choice between showing the buttons or not in there profile.
+##                  This mod requires: 
+##                   Attachments mod (http://www.opentools.de) 
+##                  AND 
+##                   eXtreme Styles mod (http://www.phpbbstyles.com)
+##                  Also this mod makes use of PHP's GD Library.
+##  
+## MOD Version: 1.0.0
+## 
+## Installation Level:  easy 
+## Installation Time:  10 minutes 
+## 
+## Files To Edit:    - attach_mod/displaying.php 
+##                   - includes/usercp_register.php
+##                   - language/lang_english/lang_main.php
+##                   - templates/subSilver/profile_add_body.tpl
+##                   - templates/subSilver/viewtopic_attach_body.tpl 
+##
+## 
+## Included Files: images/Buttons/90.jpg
+##                 images/Buttons/180.jpg
+##                 images/Buttons/270.jpg
+##                 images/Buttons/clear.jpg
+##                 images/Buttons/down_relief.jpg
+##                 images/Buttons/grayscale.jpg
+##                 images/Buttons/h1.jpg
+##                 images/Buttons/h2.jpg
+##                 images/Buttons/h3.jpg
+##                 images/Buttons/h4.jpg
+##                 images/Buttons/h5.jpg
+##                 images/Buttons/h6.jpg
+##                 images/Buttons/h7.jpg
+##                 images/Buttons/h8.jpg
+##                 images/Buttons/h9.jpg
+##                 images/Buttons/invert.jpg
+##                 images/Buttons/menuclose.jpg
+##                 images/Buttons/menuopen.jpg
+##                 images/Buttons/mirrorh.jpg
+##                 images/Buttons/mirrorv.jpg
+##                 images/Buttons/normsize.jpg
+##                 images/Buttons/rontgen.jpg
+##                 images/Buttons/up_relief.jpg
+##                 images/Buttons/zoomin.jpg
+##                 images/Buttons/zoomout.jpg
+## 
+## License:      http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+## 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:   
+##		   This mod has been tested on phpbb 2.0.21 
+## 
+############################################################## 
+## MOD History: 
+##
+## Version 1.0.0 10-11-2006 (submitted to phpbb.com)
+## 
+## BETA state 0.0.2 10-05-2006 (made public at phpbb.com)
+## 
+## DEVelopment state 0.0.1 09-20-2006 (not released)
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ DIY INSTRUCTIONS ]------------------------------------------ 
+# 
+If you want dutch language for this mod, look in the Contrib folder, you will find it there.
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+# change phpbb_ to the database prefix you use
+#
+ALTER TABLE phpbb_users ADD user_image_button_menu TINYINT(1) DEFAULT '1';
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy images/Buttons/90.jpg to images/Buttons/90.jpg
+copy images/Buttons/180.jpg to images/Buttons/180.jpg
+copy images/Buttons/270.jpg to images/Buttons/270.jpg
+copy images/Buttons/clear.jpg to images/Buttons/clear.jpg
+copy images/Buttons/down_relief.jpg to images/Buttons/down_relief.jpg
+copy images/Buttons/grayscale.jpg to images/Buttons/grayscale.jpg
+copy images/Buttons/h1.jpg to images/Buttons/h1.jpg
+copy images/Buttons/h2.jpg to images/Buttons/h2.jpg
+copy images/Buttons/h3.jpg to images/Buttons/h3.jpg
+copy images/Buttons/h4.jpg to images/Buttons/h4.jpg
+copy images/Buttons/h5.jpg to images/Buttons/h5.jpg
+copy images/Buttons/h6.jpg to images/Buttons/h6.jpg
+copy images/Buttons/h7.jpg to images/Buttons/h7.jpg
+copy images/Buttons/h8.jpg to images/Buttons/h8.jpg
+copy images/Buttons/h9.jpg to images/Buttons/h9.jpg
+copy images/Buttons/invert.jpg to images/Buttons/invert.jpg
+copy images/Buttons/menuclose.jpg to images/Buttons/menuclose.jpg
+copy images/Buttons/menuopen.jpg to images/Buttons/menuopen.jpg
+copy images/Buttons/mirrorh.jpg to images/Buttons/mirrorh.jpg
+copy images/Buttons/mirrorv.jpg to images/Buttons/mirrorv.jpg
+copy images/Buttons/normsize.jpg to images/Buttons/normsize.jpg
+copy images/Buttons/rontgen.jpg to images/Buttons/rontgen.jpg
+copy images/Buttons/up_relief.jpg to images/Buttons/up_relief.jpg
+copy images/Buttons/zoomin.jpg to images/Buttons/zoomin.jpg
+copy images/Buttons/zoomout.jpg to images/Buttons/zoomout.jpg
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+attach_mod/displaying.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+						$img_source = $filename;
+						$download_link = FALSE;
+						// END
+					}
+				}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+				// Begin Edit Attachments by Wicher
+				if ($userdata['user_image_button_menu'])
+				{
+				// get image dimensions
+				list($width, $height) = image_getdimension($filename);
+				// making sure there aint tokens in the string that could get in the way of javascript.
+				$tdname = strtolower ($display_name);
+				$tdname = str_replace (" ", "_", $tdname); 
+				$tdname = str_replace(array("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "`", "~", "!", "@", "#", "$", "%", "{", "}", "^", "&", "(", ")", "-", "=", "+", ";", "."), array("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""), $tdname);
+ 				unset($ext);
+				// Checking file extentions
+				$file_ext = substr($display_name, (strlen($display_name) - 3), strlen($display_name)); 
+				$file_ext = strtolower($file_ext);
+				$file_ext = substr($display_name, (strlen($display_name) - 3), strlen($display_name)); 
+				$file_ext = strtolower($file_ext);
+				if ($file_ext=='gif'){$ext=1;}
+				if ($file_ext=='jpg'){$ext=1;}
+				if ($file_ext=='png'){$ext=1;}
+				if ($file_ext=='bmp'){$ext=1;}
+				if ($file_ext=='pcx'){$ext=1;}
+				//making sure the TDNAME is uniek, someone might have posted twice the same picture with the same name.
+				$uniekpart = str_replace(array("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"), array("a", "b", "c", "d", "e", "f", "g", "h", "i", "j"), $attachments['_' . $post_id][$i]['attach_id']);
+				}
+				else
+				{
+				$ext=0;
+				}
+				// END Edit Attachments by Wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$template->assign_block_vars('postrow.attach.cat_images', array(
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+					// Begin Edit Attachments by Wicher
+					'WIDTH' => $width,
+					'EXT' => $ext,
+					'TDNAME' => $uniekpart.$tdname,
+					// END Edit Attachments by Wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+						$thumb_source = $thumbnail_filename;
+						// END
+					}
+				}
+				
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+				// Begin Edit Attachments by Wicher
+				if ($userdata['user_image_button_menu'])
+				{
+				// get image dimensions
+				list($width, $height) = image_getdimension($thumbnail_filename);
+				// making sure there aint tokens in the string that could get in the way of javascript.
+				$tdname = strtolower ($display_name);
+				$tdname = str_replace (" ", "_", $tdname); 
+				$tdname = str_replace(array("1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "`", "~", "!", "@", "#", "$", "%", "{", "}", "^", "&", "(", ")", "-", "=", "+", ";", "."), array("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""), $tdname);
+ 				unset($ext);
+				// Checking file extentions
+				$file_ext = substr($display_name, (strlen($display_name) - 3), strlen($display_name)); 
+				$file_ext = strtolower($file_ext);
+				$file_ext = substr($display_name, (strlen($display_name) - 3), strlen($display_name)); 
+				$file_ext = strtolower($file_ext);
+				if ($file_ext=='gif'){$ext=1;}
+				if ($file_ext=='jpg'){$ext=1;}
+				if ($file_ext=='png'){$ext=1;}
+				if ($file_ext=='bmp'){$ext=1;}
+				if ($file_ext=='pcx'){$ext=1;}
+				//making sure the TDNAME is uniek, someone might have posted twice the same picture with the same name.
+				$uniekpart = str_replace(array("1", "2", "3", "4", "5", "6", "7", "8", "9", "0"), array("a", "b", "c", "d", "e", "f", "g", "h", "i", "j"), $attachments['_' . $post_id][$i]['attach_id']);
+				}
+				else
+				{
+				$ext=0;
+				}
+				// END Edit Attachments by Wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$template->assign_block_vars('postrow.attach.cat_thumb_images', array(
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+					// Begin Edit Attachments by Wicher
+					'WIDTH' => $width,
+					'EXT' => $ext,
+					'TDNAME' => $uniekpart.$tdname,
+					// END Edit Attachments by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		}
+	}
+}
+
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+			$template->assign_vars(array(
+				'L_EDITIMAGE'=> $lang['edit_image'],
+				'L_NORMAL' => $lang['normal'],
+				'L_CLARITY1' => $lang['opacy1'],
+				'L_CLARITY2' => $lang['opacy2'],
+				'L_CLARITY3' => $lang['opacy3'],
+				'L_CLARITY4' => $lang['opacy4'],
+				'L_CLARITY5' => $lang['opacy5'],
+				'L_CLARITY6' => $lang['opacy6'],
+				'L_CLARITY7' => $lang['opacy7'],
+				'L_CLARITY8' => $lang['opacy8'],
+				'L_CLARITY9' => $lang['opacy9'],
+				'L_CLARITY10' => $lang['opacy10'],
+				'L_ZOOMIN' => $lang['zoomin'],
+				'L_ZOOMOUT' => $lang['zoomout'],
+				'L_NORMALSIZE' => $lang['normalsize'],
+				'L_CLOSE' =>$lang['close'],
+				'L_TURN90' => $lang['turn90'],
+				'L_TURN180' => $lang['turn180'],
+				'L_TURN270' => $lang['turn270'],
+				'L_MIRRORVERT' => $lang['morrorvertical'],
+				'L_MIRRORHORI' => $lang['mirrorhorizontal'],
+				'L_INVERT' => $lang['invert'],
+				'L_EMBOSS' => $lang['emboss'],
+				'L_ENGRAVE' => $lang['engrave'],
+				'L_GRAYSCALE' => $lang['grayscale'],
+				'L_XRAY' => $lang['xray'])
+			);
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_register.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	if ( $mode == 'register' )
+	{
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+	$image_button_menu = ( isset($HTTP_POST_VARS['image_button_menu']) ) ? ( ($HTTP_POST_VARS['image_button_menu']) ? TRUE : 0 ) : TRUE;
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$allowsmilies = ( isset($HTTP_POST_VARS['allowsmilies']) ) ? ( ($HTTP_POST_VARS['allowsmilies']) ? TRUE : 0 ) : $userdata['user_allowsmile'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		$image_button_menu = ( isset($HTTP_POST_VARS['image_button_menu']) ) ? ( ($HTTP_POST_VARS['image_button_menu']) ? TRUE : 0 ) : $userdata['user_image_button_menu'];
+# 
+#-----[ FIND ]------------------------------------------ 
+# note: this is a partal search, the full line is longer.
+SET " . $username_sql . $passwd_sql . "user_email = '"
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+user_email = '" . str_replace("\'", "''", $email) ."'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, user_image_button_menu = $image_button_menu
+# 
+#-----[ FIND ]------------------------------------------ 
+# note: this is a partal search, the full line is longer.
+$sql = "INSERT INTO " . USERS_TABLE . "	(user_id, use
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, user_email
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, user_image_button_menu 
+# 
+#-----[ FIND ]------------------------------------------ 
+# note: this is a partal search, the full line is longer.
+VALUES ($user_id, '" . str_replace
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, '" . str_replace("\'", "''", $email) . "'
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, $image_button_menu
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$allowsmilies = $userdata['user_allowsmile'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	$image_button_menu = $userdata['user_image_button_menu'];
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'ALWAYS_ALLOW_SMILIES_YES' => ( $allowsmilies ) ? 'checked="checked"' : '',
+		'ALWAYS_ALLOW_SMILIES_NO' => ( !$allowsmilies ) ? 'checked="checked"' : '',
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		'IMAGE_BUTTON_MENU_YES' => ( $image_button_menu ) ? 'checked="checked"' : '',
+		'IMAGE_BUTTON_MENU_NO' => ( !$image_button_menu ) ? 'checked="checked"' : '',
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		'L_ALWAYS_ALLOW_SMILIES' => $lang['Always_smile'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		'L_IMAGE_BUTTON_MENU' => $lang['image_buttons'],
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/profile_add_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<input type="radio" name="allowsmilies" value="0" {ALWAYS_ALLOW_SMILIES_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<tr> 
+	  <td class="row1"><span class="gen">{L_IMAGE_BUTTON_MENU}:</span></td>
+	  <td class="row2"> 
+		<input type="radio" name="image_button_menu" value="1" {IMAGE_BUTTON_MENU_YES} />
+		<span class="gen">{L_YES}</span>&nbsp;&nbsp; 
+		<input type="radio" name="image_button_menu" value="0" {IMAGE_BUTTON_MENU_NO} />
+		<span class="gen">{L_NO}</span></td>
+	</tr>
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewtopic_attach_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td colspan="2" align="center"><br /><img src="{postrow.attach.cat_images.IMG_SRC}" alt="{postrow.attach.cat_images.DOWNLOAD_NAME}" border="0" /><br /><br /></td>
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+		<!-- IF postrow.attach.cat_images.EXT > 0 -->
+		<td colspan="2" align="center">
+			<script>
+			function {postrow.attach.cat_images.TDNAME}zoomIn() {
+				var ImgTag = document.getElementById('{postrow.attach.cat_images.TDNAME}img');
+				var ImgTagwidth = ImgTag.getAttribute('width');
+				ImgTagwidth = parseInt(ImgTagwidth)+20;
+				ImgTag.setAttribute('width', ImgTagwidth);
+			} 
+			function {postrow.attach.cat_images.TDNAME}zoomOut() {
+				var ImgTag = document.getElementById('{postrow.attach.cat_images.TDNAME}img');
+				var ImgTagwidth = ImgTag.getAttribute('width');
+				ImgTagwidth = parseInt(ImgTagwidth)-20;
+				ImgTag.setAttribute('width', ImgTagwidth);
+			} 
+			function {postrow.attach.cat_images.TDNAME}zoomNorm() {
+				var ImgTag = document.getElementById('{postrow.attach.cat_images.TDNAME}img');
+				ImgTag.setAttribute('width', '{postrow.attach.cat_images.WIDTH}');
+			} 
+			function {postrow.attach.cat_images.TDNAME}hideButtons() {
+				document.all.{postrow.attach.cat_images.TDNAME}td0.innerHTML = '';
+				document.all.{postrow.attach.cat_images.TDNAME}td1.innerHTML = '';
+				document.all.{postrow.attach.cat_images.TDNAME}td2.innerHTML = '<button onclick="{postrow.attach.cat_images.TDNAME}showButtons()"><img src="images/Buttons/menuopen.jpg" alt="{L_EDITIMAGE} title="{L_EDITIMAGE}"></BUTTON>';
+				document.all.{postrow.attach.cat_images.TDNAME}td3.innerHTML = '';
+			} 
+			function {postrow.attach.cat_images.TDNAME}showButtons() {
+				if (document.getElementById('{postrow.attach.cat_images.TDNAME}').filters)
+				{
+					document.all.{postrow.attach.cat_images.TDNAME}td0.innerHTML = '<button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+"'"+'"><img src="images/Buttons/clear.jpg" alt="{L_NORMAL} / {L_CLARITY1}" title="{L_NORMAL} / {L_CLARITY1}"></button>';
+					document.all.{postrow.attach.cat_images.TDNAME}td1.innerHTML = '<button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.9)'+"'"+'"><img src="images/Buttons/h9.jpg" alt="{L_CLARITY2}" title="{L_CLARITY2}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.8)'+"'"+'"><img src="images/Buttons/h8.jpg" alt="{L_CLARITY3}" title="{L_CLARITY3}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.7)'+"'"+'"><img src="images/Buttons/h7.jpg" alt="{L_CLARITY4}" title="{L_CLARITY4}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.6)'+"'"+'"><img src="images/Buttons/h6.jpg" alt="{L_CLARITY5}" title="{L_CLARITY5}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.5)'+"'"+'"><img src="images/Buttons/h5.jpg" alt="{L_CLARITY6}" title="{L_CLARITY6}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.4)'+"'"+'"><img src="images/Buttons/h4.jpg" alt="{L_CLARITY7}" title="{L_CLARITY7}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.3)'+"'"+'"><img src="images/Buttons/h3.jpg" alt="{L_CLARITY8]" title="{L_CLARITY8]"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.2)'+"'"+'"><img src="images/Buttons/h2.jpg" alt="{L_CLARITY9}" title="{L_CLARITY9}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.1)'+"'"+'"><img src="images/Buttons/h1.jpg" alt="{L_CLARITY10}" title="{L_CLARITY10}"></BUTTON>&nbsp;<button onclick="{postrow.attach.cat_images.TDNAME}zoomIn()"><img src="images/Buttons/zoomin.jpg" alt="{L_ZOOMIN}" title="{L_ZOOMIN}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}zoomOut()"><img src="images/Buttons/zoomout.jpg" alt="{L_ZOOMOUT}" title="{L_ZOOMOUT}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}zoomNorm()"><img src="images/Buttons/normsize.jpg" alt="{L_NORMALSIZE}" title="{L_NORMALSIZE}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}hideButtons()"><img src="images/Buttons/menuclose.jpg" alt="{L_CLOSE}" title="{L_CLOSE}"></BUTTON>';
+				}
+				else
+				{
+					document.all.{postrow.attach.cat_images.TDNAME}td1.innerHTML = '<button onclick="{postrow.attach.cat_images.TDNAME}zoomIn()"><img src="images/Buttons/zoomin.jpg" alt="{L_ZOOMIN}" title="{L_ZOOMIN}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}zoomOut()"><img src="images/Buttons/zoomout.jpg" alt="{L_ZOOMOUT}" title="{L_ZOOMOUT}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}zoomNorm()"><img src="images/Buttons/normsize.jpg" alt="{L_NORMALSIZE}" title="{L_NORMALSIZE}"></BUTTON><button onclick="{postrow.attach.cat_images.TDNAME}hideButtons()"><img src="images/Buttons/menuclose.jpg" alt="{L_CLOSE}" title="{L_CLOSE}"></BUTTON>';
+					document.all.{postrow.attach.cat_images.TDNAME}td2.innerHTML = '';
+				}
+				if (document.getElementById('{postrow.attach.cat_images.TDNAME}').filters)
+				{
+					document.all.{postrow.attach.cat_images.TDNAME}td2.innerHTML = '<button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(rotation=1)'+"'"+'"><img src="images/Buttons/90.jpg" alt="{L_TURN90}" title="{L_TURN90}"></button><br /><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(rotation=2)'+"'"+'"><img src="images/Buttons/180.jpg" alt="{L_TURN180}" title="{L_TURN180}"></button><br /><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(rotation=3)'+"'"+'"><img src="images/Buttons/270.jpg" alt="{L_TURN270}" title="{L_TURN270}"></button><br /><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(mirror=1)'+"'"+'"><img src="images/Buttons/mirrorv.jpg" alt="{L_MIRRORVERT}" title="{L_MIRRORVERT}"></button><br /><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)'+"'"+'"><img src="images/Buttons/mirrorh.jpg" alt="{L_MIRRORHORI}" title="{L_MIRRORHORI}"></BUTTON>';
+					document.all.{postrow.attach.cat_images.TDNAME}td3.innerHTML = '<button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(invert=1)'+"'"+'"><img src="images/Buttons/invert.jpg" alt="{L_INVERT}" title="{L_INVERT}"></BUTTON><br /><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.emboss(emboss=1)'+"'"+'"><img src="images/Buttons/up_relief.jpg" alt="{L_EMBOSS}" title="{L_EMBOSS}"></BUTTON><br /><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.Engrave()'+"'"+'"><img src="images/Buttons/down_relief.jpg" alt="{L_ENGRAVE}" title="{L_ENGRAVE}"></BUTTON><br /><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(grayScale=1)'+"'"+'"><img src="images/Buttons/grayscale.jpg" alt="{L_GRAYSCALE}" title="{L_GRAYSCALE}"></BUTTON><br /><button onclick="{postrow.attach.cat_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(xray=1)'+"'"+'"><img src="images/Buttons/rontgen.jpg" alt="{L_XRAY}" title="{L_XRAY}"></BUTTON>';
+				}
+			}
+			</script>
+			<table cellpadding="0" cellspacing="0" border="0">
+				<tr> 
+					<td id="{postrow.attach.cat_images.TDNAME}td0" valign="bottom" align="right"></td>
+					<td id="{postrow.attach.cat_images.TDNAME}td1" colspan="2" valign="bottom" align="left"></td>
+				</tr>
+				<tr> 
+					<td id="{postrow.attach.cat_images.TDNAME}td2" valign="top" align="right"><button onclick="{postrow.attach.cat_images.TDNAME}showButtons()"><img src="images/Buttons/menuopen.jpg" alt="{L_EDITIMAGE}" title="{L_EDITIMAGE}"></BUTTON></td>
+					<td id="{postrow.attach.cat_images.TDNAME}" valign="top" align="left"><img id="{postrow.attach.cat_images.TDNAME}img" src="{postrow.attach.cat_images.IMG_SRC}" alt="{postrow.attach.cat_images.DOWNLOAD_NAME}" title="{postrow.attach.cat_images.DOWNLOAD_NAME}" border="0" width="{postrow.attach.cat_images.WIDTH}"/></td>
+   					<td id="{postrow.attach.cat_images.TDNAME}td3" valign="top" align="right"></td>
+				</tr>
+			</table>
+		</td>
+		<!-- ELSE -->
+		<td colspan="2" align="center"><br /><img src="{postrow.attach.cat_images.IMG_SRC}" alt="{postrow.attach.cat_images.DOWNLOAD_NAME}" border="0" /><br /><br /></td>
+		<!-- ENDIF -->
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td colspan="2" align="center"><br /><a href="{postrow.attach.cat_thumb_images.IMG_SRC}" target="_blank"><img src="{postrow.attach.cat_thumb_images.IMG_THUMB_SRC}" alt="{postrow.attach.cat_thumb_images.DOWNLOAD_NAME}" border="0" /></a><br /><br /></td>
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+		<!-- IF postrow.attach.cat_thumb_images.EXT > 0 -->
+		<td colspan="2" align="center">
+			<script>
+			function {postrow.attach.cat_thumb_images.TDNAME}zoomIn() {
+				var ImgTag = document.getElementById('{postrow.attach.cat_thumb_images.TDNAME}img');
+				var ImgTagwidth = ImgTag.getAttribute('width');
+				ImgTagwidth = parseInt(ImgTagwidth)+20;
+				ImgTag.setAttribute('width', ImgTagwidth);
+			} 
+			function {postrow.attach.cat_thumb_images.TDNAME}zoomOut() {
+				var ImgTag = document.getElementById('{postrow.attach.cat_thumb_images.TDNAME}img');
+				var ImgTagwidth = ImgTag.getAttribute('width');
+				ImgTagwidth = parseInt(ImgTagwidth)-20;
+				ImgTag.setAttribute('width', ImgTagwidth);
+			} 
+			function {postrow.attach.cat_thumb_images.TDNAME}zoomNorm() {
+				var ImgTag = document.getElementById('{postrow.attach.cat_thumb_images.TDNAME}img');
+				ImgTag.setAttribute('width', '{postrow.attach.cat_thumb_images.WIDTH}');
+			} 
+			function {postrow.attach.cat_thumb_images.TDNAME}hideButtons() {
+				document.all.{postrow.attach.cat_thumb_images.TDNAME}td0.innerHTML = '';
+				document.all.{postrow.attach.cat_thumb_images.TDNAME}td1.innerHTML = '';
+				document.all.{postrow.attach.cat_thumb_images.TDNAME}td2.innerHTML = '<button onclick="{postrow.attach.cat_thumb_images.TDNAME}showButtons()"><img src="images/Buttons/menuopen.jpg" alt="{L_EDITIMAGE} title="{L_EDITIMAGE}"></BUTTON>';
+				document.all.{postrow.attach.cat_thumb_images.TDNAME}td3.innerHTML = '';
+			} 
+			function {postrow.attach.cat_thumb_images.TDNAME}showButtons() {
+				if (document.getElementById('{postrow.attach.cat_thumb_images.TDNAME}').filters)
+				{
+					document.all.{postrow.attach.cat_thumb_images.TDNAME}td0.innerHTML = '<button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+"'"+'"><img src="images/Buttons/clear.jpg" alt="{L_NORMAL} / {L_CLARITY1}" title="{L_NORMAL} / {L_CLARITY1}"></button>';
+					document.all.{postrow.attach.cat_thumb_images.TDNAME}td1.innerHTML = '<button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.9)'+"'"+'"><img src="images/Buttons/h9.jpg" alt="{L_CLARITY2}" title="{L_CLARITY2}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.8)'+"'"+'"><img src="images/Buttons/h8.jpg" alt="{L_CLARITY3}" title="{L_CLARITY3}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.7)'+"'"+'"><img src="images/Buttons/h7.jpg" alt="{L_CLARITY4}" title="{L_CLARITY4}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.6)'+"'"+'"><img src="images/Buttons/h6.jpg" alt="{L_CLARITY5}" title="{L_CLARITY5}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.5)'+"'"+'"><img src="images/Buttons/h5.jpg" alt="{L_CLARITY6}" title="{L_CLARITY6}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.4)'+"'"+'"><img src="images/Buttons/h4.jpg" alt="{L_CLARITY7}" title="{L_CLARITY7}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.3)'+"'"+'"><img src="images/Buttons/h3.jpg" alt="{L_CLARITY8]" title="{L_CLARITY8]"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.2)'+"'"+'"><img src="images/Buttons/h2.jpg" alt="{L_CLARITY9}" title="{L_CLARITY9}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(opacity=.1)'+"'"+'"><img src="images/Buttons/h1.jpg" alt="{L_CLARITY10}" title="{L_CLARITY10}"></BUTTON>&nbsp;<button onclick="{postrow.attach.cat_thumb_images.TDNAME}zoomIn()"><img src="images/Buttons/zoomin.jpg" alt="{L_ZOOMIN}" title="{L_ZOOMIN}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}zoomOut()"><img src="images/Buttons/zoomout.jpg" alt="{L_ZOOMOUT}" title="{L_ZOOMOUT}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}zoomNorm()"><img src="images/Buttons/normsize.jpg" alt="{L_NORMALSIZE}" title="{L_NORMALSIZE}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}hideButtons()"><img src="images/Buttons/menuclose.jpg" alt="{L_CLOSE}" title="{L_CLOSE}"></BUTTON>';
+				}
+				else
+				{
+					document.all.{postrow.attach.cat_thumb_images.TDNAME}td1.innerHTML = '<button onclick="{postrow.attach.cat_thumb_images.TDNAME}zoomIn()"><img src="images/Buttons/zoomin.jpg" alt="{L_ZOOMIN}" title="{L_ZOOMIN}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}zoomOut()"><img src="images/Buttons/zoomout.jpg" alt="{L_ZOOMOUT}" title="{L_ZOOMOUT}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}zoomNorm()"><img src="images/Buttons/normsize.jpg" alt="{L_NORMALSIZE}" title="{L_NORMALSIZE}"></BUTTON><button onclick="{postrow.attach.cat_thumb_images.TDNAME}hideButtons()"><img src="images/Buttons/menuclose.jpg" alt="{L_CLOSE}" title="{L_CLOSE}"></BUTTON>';
+					document.all.{postrow.attach.cat_thumb_images.TDNAME}td2.innerHTML = '';
+				}
+				if (document.getElementById('{postrow.attach.cat_thumb_images.TDNAME}').filters)
+				{
+					document.all.{postrow.attach.cat_thumb_images.TDNAME}td2.innerHTML = '<button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(rotation=1)'+"'"+'"><img src="images/Buttons/90.jpg" alt="{L_TURN90}" title="{L_TURN90}"></button><br /><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(rotation=2)'+"'"+'"><img src="images/Buttons/180.jpg" alt="{L_TURN180}" title="{L_TURN180}"></button><br /><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(rotation=3)'+"'"+'"><img src="images/Buttons/270.jpg" alt="{L_TURN270}" title="{L_TURN270}"></button><br /><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(mirror=1)'+"'"+'"><img src="images/Buttons/mirrorv.jpg" alt="{L_MIRRORVERT}" title="{L_MIRRORVERT}"></button><br /><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(rotation=2, mirror=1)'+"'"+'"><img src="images/Buttons/mirrorh.jpg" alt="{L_MIRRORHORI}" title="{L_MIRRORHORI}"></BUTTON>';
+					document.all.{postrow.attach.cat_thumb_images.TDNAME}td3.innerHTML = '<button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(invert=1)'+"'"+'"><img src="images/Buttons/invert.jpg" alt="{L_INVERT}" title="{L_INVERT}"></BUTTON><br /><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.emboss(emboss=1)'+"'"+'"><img src="images/Buttons/up_relief.jpg" alt="{L_EMBOSS}" title="{L_EMBOSS}"></BUTTON><br /><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.Engrave()'+"'"+'"><img src="images/Buttons/down_relief.jpg" alt="{L_ENGRAVE}" title="{L_ENGRAVE}"></BUTTON><br /><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(grayScale=1)'+"'"+'"><img src="images/Buttons/grayscale.jpg" alt="{L_GRAYSCALE}" title="{L_GRAYSCALE}"></BUTTON><br /><button onclick="{postrow.attach.cat_thumb_images.TDNAME}.style.filter='+"'"+'progid:DXImageTransform.Microsoft.BasicImage(xray=1)'+"'"+'"><img src="images/Buttons/rontgen.jpg" alt="{L_XRAY}" title="{L_XRAY}"></BUTTON>';
+				}
+			}
+			</script>
+			<table cellpadding="0" cellspacing="0" border="0">
+				<tr> 
+					<td id="{postrow.attach.cat_thumb_images.TDNAME}td0" valign="bottom" align="right"></td>
+					<td id="{postrow.attach.cat_thumb_images.TDNAME}td1" colspan="2" valign="bottom" align="left"></td>
+				</tr>
+				<tr> 
+					<td id="{postrow.attach.cat_thumb_images.TDNAME}td2" valign="top" align="right"><button onclick="{postrow.attach.cat_thumb_images.TDNAME}showButtons()"><img src="images/Buttons/menuopen.jpg" alt="{L_EDITIMAGE}" title="{L_EDITIMAGE}"></BUTTON></td>
+					<td id="{postrow.attach.cat_thumb_images.TDNAME}" valign="top" align="left"><a href="{postrow.attach.cat_thumb_images.IMG_SRC}" target="_blank"><img id="{postrow.attach.cat_thumb_images.TDNAME}img" src="{postrow.attach.cat_thumb_images.IMG_THUMB_SRC}" alt="{postrow.attach.cat_thumb_images.DOWNLOAD_NAME}" title="{postrow.attach.cat_thumb_images.DOWNLOAD_NAME}" border="0" width="{postrow.attach.cat_thumb_images.WIDTH}"/></a></td>
+   					<td id="{postrow.attach.cat_thumb_images.TDNAME}td3" valign="top" align="right"></td>
+				</tr>
+			</table>
+		</td>
+		<!-- ELSE -->
+		<td colspan="2" align="center"><br /><a href="{postrow.attach.cat_thumb_images.IMG_SRC}" target="_blank"><img src="{postrow.attach.cat_thumb_images.IMG_THUMB_SRC}" alt="{postrow.attach.cat_thumb_images.DOWNLOAD_NAME}" border="0" /></a><br /><br /></td>
+		<!-- ENDIF -->
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Edit Attachments by Wicher
+$lang['edit_image'] = 'Edit image';
+$lang['normal'] = 'Normal';
+$lang['opacy1'] = 'Clarity 1';
+$lang['opacy2'] = 'Clarity 2';
+$lang['opacy3'] = 'Clarity 3';
+$lang['opacy4'] = 'Clarity 4';
+$lang['opacy5'] = 'Clarity 5';
+$lang['opacy6'] = 'Clarity 6';
+$lang['opacy7'] = 'Clarity 7';
+$lang['opacy8'] = 'Clarity 8';
+$lang['opacy9'] = 'Clarity 9';
+$lang['opacy10'] = 'Clarity 10';
+$lang['zoomin'] = 'Zoom in';
+$lang['zoomout'] = 'Zoom out';
+$lang['normalsize'] = 'Normal size';
+$lang['close'] = 'Close';
+$lang['turn90'] = 'Turn 90 degrees';
+$lang['turn180'] = 'Turn 180 degrees';
+$lang['turn270'] = 'Turn 270 degrees';
+$lang['morrorvertical'] = 'Mirror vertical';
+$lang['mirrorhorizontal'] = 'Mirror horizontal';
+$lang['invert'] = 'Invert';
+$lang['emboss'] = 'Emboss';
+$lang['engrave'] = 'Engrave';
+$lang['grayscale'] = 'Grayscale';
+$lang['xray'] = 'Xray';
+$lang['image_buttons'] = 'Do you want to use edit buttons arround attached images';
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

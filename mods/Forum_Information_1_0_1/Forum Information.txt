@@ -1,0 +1,161 @@
+############################################################## 
+## MOD Title: Forum Information
+## MOD Author: lowjoel <webmaster@joelsplace.sg> Joel Low - http://joelsplace.sg/
+## MOD Description: Displays the Number of script queries executed, GZIP
+## compression information and page execution time.
+## MOD Version: 1.0.0
+## 
+## Installation Level: Easy
+## Installation Time: 3 Minutes
+## Files To Edit:  extension.inc,
+##                 language/lang_english/lang_main.php,
+##                 includes/page_tail.php,
+##                 templates/subSilver/subSilver.cfg,
+##                 templates/subSilver/overall_footer.tpl
+##
+## Included Files: templates/subSilver/images/generation.gif
+##                 templates/subSilver/images/gzip.gif
+##                 templates/subSilver/images/queries.gif
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+############################################################## 
+## MOD History:
+##
+##     2005-03-17  - Version 1.0.1
+##          - Updated installation instructions
+##          - Created folder hierachy for easy extraction
+##
+##     2005-03-12  - Version 1.0.0
+##          - Original release
+##
+############################################################## 
+## Author Notes: 
+##  
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+# 
+#-----[ COPY ]------------------------------------------ 
+#
+copy templates/subSilver/images/generation.gif to templates/subSilver/images/generation.gif
+copy templates/subSilver/images/gzip.gif to templates/subSilver/images/gzip.gif
+copy templates/subSilver/images/queries.gif to templates/subSilver/images/queries.gif
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+extension.inc
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$starttime = 0;
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+$starttime = time();
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+// That's all, Folks! 
+
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+//-------------------------- MOD: Forum Information MOD --------------------------
+$lang['L_GZIP_ENABLED'] = 'GZIP: Enabled';
+$lang['L_GZIP_DISABLED'] = 'GZIP: Disabled';
+$lang['L_GENERATION_TIME'] = 'Generation Time: %s  Seconds';
+$lang['L_MYSQL_QUERIES'] = 'Queries: %s';
+//-------------------------- End MOD: Forum Information MOD --------------------------
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+includes/page_tail.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+$template->pparse('overall_footer');
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+//-------------------------- MOD: Forum Information MOD --------------------------
+//delete
+//$template->pparse('overall_footer');
+//-------------------------- End MOD: Forum Information MOD --------------------------
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+echo "\x1f\x8b\x08\x00\x00\x00\x00\x00";
+	echo $gzip_contents;
+	echo pack('V', $gzip_crc);
+	echo pack('V', $gzip_size);
+}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+//-------------------------- MOD: Forum Information MOD --------------------------
+$endtime = microtime(); 
+$endtime = explode(" ", microtime()); 
+$endtime = $endtime[1] + $endtime[0]; 
+$gentime = round(($endtime - $starttime), 5);
+$template->assign_vars(array(
+  'L_GENERATION_TIME' => sprintf($lang['L_GENERATION_TIME'], $gentime),
+  'L_NUMBER_QUERIES' => sprintf($lang['L_MYSQL_QUERIES'],  $db->num_queries),
+  'L_GZIP_ON' =>  ($board_config['gzip_compress']) ? $lang['L_GZIP_ENABLED'] : $lang['L_GZIP_DISABLED'],
+  'S_GZIP_IMG' => $images['gzip'],
+  'S_QUERIES_IMG' => $images['queries'],
+  'S_GENERATION_IMG' => $images['generation']
+)
+);
+$template->pparse('overall_footer');
+//-------------------------- End MOD: Forum Information MOD --------------------------
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/subSilver.cfg
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+
+//-------------------------- MOD: Forum Information MOD --------------------------
+$images['gzip'] = "$current_template_images/gzip.gif"; 
+$images['queries'] = "$current_template_images/queries.gif"; 
+$images['generation'] = "$current_template_images/generation.gif"; 
+//-------------------------- End MOD: Forum Information MOD --------------------------
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+templates/subSilver/overall_footer.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+{TRANSLATION_INFO}
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+<br /><img src="{S_GZIP_IMG}" alt="{L_GZIP_ON}" /> {L_GZIP_ON}&nbsp;&nbsp;<img src="{S_QUERIES_IMG}" alt="{L_NUMBER_QUERIES}" alt="{L_NUMBER_QUERIES}" />{L_NUMBER_QUERIES}&nbsp;&nbsp;<img src="{S_GENERATION_IMG}" alt="{L_GENERATION_TIME}" /> {L_GENERATION_TIME}
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

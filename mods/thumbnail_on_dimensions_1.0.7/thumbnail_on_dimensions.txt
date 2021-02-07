@@ -1,0 +1,321 @@
+############################################################## 
+## MOD Title: Thumbnail-on-Dimensions mod (for Attachment mod)
+## MOD Author: Pseudonym < N/A > (N/A) N/A
+## MOD Description: This is a mod to Acyd Burn's Attachment mod. It enables thumbnails to be triggered by the dimensions of the original image, not the filesize.
+## MOD Version: 1.0.7
+## 
+## Installation Level: Easy
+## Installation Time: 5 Minutes 
+## Files To Edit:	attach_mod/posting_attachments.php,
+##			attach_mod/displaying.php,
+##			attach_mod/includes/functions_thumbs.php,
+##			language/lang_english/lang_admin_attach.php,
+##			language/lang_english/lang_main_attach.php,
+##			templates/subSilver/view_topic_attach_body.tpl
+## Included Files: n/a
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:
+## This mod is designed to be installed over the top of Acyd Burn's Attachment mod. 
+## It enables thumbnail creation to be triggered by the original image's dimensions, not its filesize.
+##
+## The Attachment mod can create a plain text link if an image exceeds certain dimensions
+## (the dimensions set via the ACP), but when determining whether or not to create a thumbnail
+## image, it relies solely on filesize. This Thumbnail-on-Dimensions mod takes the dimensions
+## at which a link would be displayed in place of the original image, and uses them to display a
+## thumbnail instead. Note that this means the original function cannot be used to create text links
+## to images while the Thumbnail-on-Dimensions mod is installed.
+## 
+## It is STRONGLY suggested you test the Attachment Mod's thumbnail function to ensure it works
+## properly before installing this mod on top.
+## 
+## IMPORTANT:
+## Images that were posted before this mod was installed may not have had thumbnails created for them.
+## This means that the thumbnail will be displayed as a broken image - although its link to the full
+## image will work fine. If this is the case, you need to run the thumbnail-creation file that is
+## included with the Attachment Mod in the /scripts/ folder. It's called, strangely enough,
+## create_thumbnails.php and it comes with instructions in a readme file in the same folder.
+## 
+## The Attachment mod topic can be found here: http://www.phpbb.com/phpBB/viewtopic.php?t=74505
+## 
+############################################################## 
+## MOD History: 
+## 
+##   2005-06-29 - Version 1.0.0 
+##      - Initial Release
+##   2006-01-12 - Versions 1.0.1 to 1.0.6
+##      - Minor code reformatting and license changes to comply with mod standards :)
+##      - Updated to install on Attachment mod v2.4.1
+##   2006-01-31 - Version 1.0.7
+##      - Expanded and clarified the Author's Notes above, so read them carefully!
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+attach_mod/posting_attachments.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				// Do we have to create a thumbnail ?
+				if ($cat_id == IMAGE_CAT && intval($attach_config['img_create_thumbnail']))
+				{
+					$this->thumbnail = 1;
+				}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+				// ######################################################################
+				// start Thumbnail-on-Dimensions mod...
+				elseif ($cat_id == IMAGE_CAT)
+				{
+					list($width, $height) = image_getdimension($file);
+					if ( ($width > intval($attach_config['img_link_width'])) || ($height > intval($attach_config['img_link_height'])) )
+					{
+						$this->thumbnail = 1;
+					}
+				}
+				// end Thumbnail-on-Dimensions mod
+				// ######################################################################
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+attach_mod/displaying.php
+# 
+#-----[ FIND ]------------------------------------------ 
+#  (Inside post-preview function, around line 457) 
+#
+				// Some basic Template Vars
+				$template->assign_vars(array(
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+					'L_CLICKFULLSIZE' => $lang['Image_link_clickfullsize'], // Thumbnail-on-Dimensions mod
+#
+#-----[ FIND ]------------------------------------------ 
+#  (Inside post-preview function, around line 493) 
+#
+							if ($width <= intval($attach_config['img_link_width']) && $height <= intval($attach_config['img_link_height']))
+							{
+								$image = TRUE;
+							}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+							// ######################################################################
+							// start Thumbnail-on-Dimensions mod...
+							if ( ($width > intval($attach_config['img_link_width'])) || ($height > intval($attach_config['img_link_height'])) )
+							{
+								$thumbnail = TRUE;
+							}
+							// end Thumbnail-on-Dimensions mod
+							// ######################################################################
+# 
+#-----[ FIND ]------------------------------------------ 
+#  (Inside post function, around line 683) 
+#
+			// Some basic Template Vars
+			$template->assign_vars(array(
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+				'L_CLICKFULLSIZE' => $lang['Image_link_clickfullsize'], // Thumbnail-on-Dimensions mod
+#
+#-----[ FIND ]------------------------------------------ 
+# (Inside post function, around line 719)
+#
+						if ($width <= intval($attach_config['img_link_width']) && $height <= intval($attach_config['img_link_height']))
+						{
+							$image = TRUE;
+						}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+						// ######################################################################
+						// start Thumbnail-on-Dimensions mod...
+						if ( ($width > intval($attach_config['img_link_width'])) || ($height > intval($attach_config['img_link_height'])) )
+						{
+							$thumbnail = TRUE;
+						}
+						// end Thumbnail-on-Dimensions mod
+						// ######################################################################
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+attach_mod/includes/functions_thumbs.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$max_width = 400;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// Thumbnail-on-Dimensions mod edit: Change $max_width from 400 to 150
+	$max_width = 150;
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_admin_attach.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+
+// Thumbnail-on-Dimensions mod:
+$lang['Image_link_size'] = 'Image Thumbnail Dimensions';
+$lang['Image_link_size_explain'] = 'If this defined Dimension of an Image is reached, the Image will be displayed as a Thumbnail, rather than full size (Width x Height in pixels).<br />If it is set to 0x0, this feature is disabled. With some Images this Feature will not work due to limitations in PHP.';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main_attach.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+
+// Thumbnail-on-Dimensions mod:
+$lang['Image_link_clickfullsize'] = 'Click for full size';
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewtopic_attach_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<!-- BEGIN attach -->
+	<br /><br />
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<div align="center" style="display: block; clear:both;"><hr width="95%" /></div><div style="display: block; width: 100%;">
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<!-- BEGIN denyrow -->
+	<div align="center"><hr width="95%" /></div>
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	<!-- BEGIN denyrow -->
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<div align="center"><hr width="95%" /></div>
+	<!-- END denyrow -->
+	<!-- BEGIN cat_stream -->
+	<div align="center"><hr width="95%" /></div>
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	<!-- END denyrow -->
+	<!-- BEGIN cat_stream -->
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<div align="center"><hr width="95%" /></div>
+	<!-- END cat_stream -->
+	<!-- BEGIN cat_swf -->
+	<div align="center"><hr width="95%" /></div>
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	<!-- END cat_stream -->
+	<!-- BEGIN cat_swf -->
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<div align="center"><hr width="95%" /></div>
+	<!-- END cat_swf -->
+	<!-- BEGIN cat_images -->
+	<div align="center"><hr width="95%" /></div>
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	<!-- END cat_swf -->
+	<!-- BEGIN cat_images -->
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<div align="center"><hr width="95%" /></div>
+	<!-- END cat_images -->
+	<!-- BEGIN cat_thumb_images -->
+	<div align="center"><hr width="95%" /></div>
+	<table width="95%" border="1" cellpadding="2" cellspacing="0" class="attachtable" align="center">
+	<tr>
+		<td width="100%" colspan="2" class="attachheader" align="center"><b><span class="gen">{postrow.attach.cat_thumb_images.DOWNLOAD_NAME}</span></b></td>
+	</tr>
+	<tr>
+		<td width="15%" class="attachrow"><span class="genmed">&nbsp;{L_DESCRIPTION}:</span></td>
+		<td width="75%" class="attachrow">
+			<table width="100%" border="0" cellpadding="0" cellspacing="4" align="center">
+			<tr>
+				<td class="attachrow"><span class="genmed">{postrow.attach.cat_thumb_images.COMMENT}</span></td>
+			</tr>
+			</table>
+		</td>
+	</tr>
+	<tr>
+		<td width="15%" class="attachrow"><span class="genmed">&nbsp;{L_FILESIZE}:</span></td>
+		<td width="75%" class="attachrow"><span class="genmed">&nbsp;{postrow.attach.cat_thumb_images.FILESIZE} {postrow.attach.cat_thumb_images.SIZE_VAR}</td>
+	</tr>
+	<tr>
+		<td width="15%" class="attachrow"><span class="genmed">&nbsp;{postrow.attach.cat_thumb_images.L_DOWNLOADED_VIEWED}:</span></td>
+		<td width="75%" class="attachrow"><span class="genmed">&nbsp;{postrow.attach.cat_thumb_images.L_DOWNLOAD_COUNT}</span></td>
+	</tr>
+	<tr>
+		<td colspan="2" align="center"><br /><a href="{postrow.attach.cat_thumb_images.IMG_SRC}" target="_blank"><img src="{postrow.attach.cat_thumb_images.IMG_THUMB_SRC}" alt="{postrow.attach.cat_thumb_images.DOWNLOAD_NAME}" border="0" /></a><br /><br /></td>
+	</tr>
+	</table>
+	<div align="center"><hr width="95%" /></div>
+	<!-- END cat_thumb_images -->
+	<!-- BEGIN attachrow -->
+	<div align="center"><hr width="95%" /></div>
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	<!-- END cat_images -->
+	<!-- BEGIN cat_thumb_images -->
+	<table border="1" cellpadding="5" cellspacing="0" class="attachtable" style="float:left; margin: 5px;" align="center" height="200">
+	<tr>
+		<td width="100%" class="attachheader" align="center"><b><span class="genmed">{postrow.attach.cat_thumb_images.DOWNLOAD_NAME}</span></b></td>
+	</tr>
+	<tr>
+		<td align="center" valign="middle"><a href="{postrow.attach.cat_thumb_images.IMG_SRC}" target="_blank"><img src="{postrow.attach.cat_thumb_images.IMG_THUMB_SRC}" alt="{postrow.attach.cat_thumb_images.DOWNLOAD_NAME}, {postrow.attach.cat_thumb_images.FILESIZE} {postrow.attach.cat_thumb_images.SIZE_VAR}
+{postrow.attach.cat_thumb_images.L_DOWNLOADED_VIEWED} {postrow.attach.cat_thumb_images.L_DOWNLOAD_COUNT}
+
+{postrow.attach.cat_thumb_images.COMMENT}" border="0" /></a><br /><span class="gensmall">{L_CLICKFULLSIZE}</span></td>
+	</tr>
+	</table>
+	<!-- END cat_thumb_images -->
+	<!-- BEGIN attachrow -->
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<div align="center"><hr width="95%" /></div>
+	<!-- END attachrow -->
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	<!-- END attachrow -->
+	</div><div align="center" style="display: block; clear:both;"><hr width="95%" /></div>
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

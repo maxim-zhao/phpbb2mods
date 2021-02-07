@@ -1,0 +1,100 @@
+##############################################################
+## MOD Title: DHTML Collapsible FAQ MOD
+## MOD Author: markus_petrux < phpbb.mods@phpmix.com > (Markus) http://www.phpmix.com
+## MOD Description: This MOD allows an easier FAQ navigation using DHTML, so the user can toogle
+##     the display attribute to expand/collapse the answers. It only shows an answer at a time.
+##     If the browser does not support write access to the display attribute, it reloads the FAQ
+##     page with the "default" template.
+## MOD Version: 1.0.2
+##
+## Installation Level: (Easy)
+## Installation Time: 5 Minutes
+## Files To Edit: 2
+##    faq.php
+##    language/lang_english/lang_main.php
+## Included Files: 2
+##    templates/collapsible_faq.js
+##    templates/subSilver/faq_dhtml.tpl
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## phpBB related:
+## - Tested with phpBB versions from 2.0.10 to 2.0.17
+## - It is highly recommened to use EasyMOD to install this MOD.
+##
+##############################################################
+## MOD History:
+##
+## 2005/09/25 - 1.0.2
+## - Added ability to automatically expand an answer when page loads.
+## - Changed the HREF of the FAQ entries so they behave as permalinks.
+## - Both changes make it really easy to provide links to FAQ entries.
+## - Thanks to ewelin for both suggestions.
+##   http://www.phpbb.com/phpBB/profile.php?mode=viewprofile&u=121727
+## - To upgrade from 1.0.0, just apply the COPY actions.
+##
+## 2004/09/11 - 1.0.0
+## - Initial Beta release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------------
+#
+copy templates/collapsible_faq.js to templates/collapsible_faq.js
+copy templates/subSilver/faq_dhtml.tpl to templates/subSilver/faq_dhtml.tpl
+#
+#-----[ OPEN ]------------------------------------------
+#
+faq.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	'body' => 'faq_body.tpl')
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//+MOD: DHTML Collapsible FAQ MOD
+	'body' => (isset($HTTP_GET_VARS['dhtml']) && $HTTP_GET_VARS['dhtml'] == 'no' ? 'faq_body.tpl' : 'faq_dhtml.tpl'))
+//-MOD: DHTML Collapsible FAQ MOD
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_FAQ_TITLE' => $l_title,
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//+MOD: DHTML Collapsible FAQ MOD
+	'U_CFAQ_JSLIB' => $phpbb_root_path . 'templates/collapsible_faq.js',
+	'L_CFAQ_NOSCRIPT' => sprintf($lang['dhtml_faq_noscript'], ('<a href="'.append_sid("faq.$phpEx?dhtml=no".(isset($HTTP_GET_VARS['mode']) ? '&amp;mode='.$HTTP_GET_VARS['mode'] : '')).'">'), '</a>'),
+//-MOD: DHTML Collapsible FAQ MOD
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//+MOD: DHTML Collapsible FAQ MOD
+// Please note: %sHERE%s is used to dynamically building the A HREF tag, do not remove the percent signs (%) around HERE!
+$lang['dhtml_faq_noscript'] = "It appears that your browser does not support javascript or it has been disabled in your browser's settings.<br /><br />Please, click %sHERE%s to view a plain HTML version of this FAQ.";
+//-MOD: DHTML Collapsible FAQ MOD
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

@@ -1,0 +1,354 @@
+##############################################################
+## MOD Title: List watched Topics
+## MOD Author: eviL3 < evil@phpbbmodders.net > (Igor Wiedler) http://phpbbmodders.net
+## MOD Description: This MOD will allow you to easily see all topics you are
+##                  watching. It uses search.php for this.
+##
+## MOD Version: 1.0.0e
+##
+## Installation Level: Easy
+## Installation Time: 5 Minutes
+## Files To Edit: search.php,
+##                includes/page_header.php,
+##                language/lang_english/lang_main.php,
+##                templates/subSilver/index_body.tpl
+##
+## Included Files: root/templates/subSilver/search_results_watch.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+## I made this MOD because otherwise there's not much sense
+## in using the watch topics feature. It's impossible to track
+## watched topics.
+##
+## There have been other MODs to do this, but i believe this one
+## is the the simplest.
+##
+##############################################################
+## MOD History:
+##
+##   2006-11-12 - Version 0.1.0
+##      - Initial release
+##
+##   2006-11-12 - Version 0.1.1
+##      - Fixed SQL
+##
+##   2006-11-28 - Version 0.2.0
+##      - Custom template
+##      - Remove with select boxes (great idea, drathbun)
+##      - MODx'd
+##
+##   2006-12-10 - Version 1.0.0
+##      - Fixed little typo (thanks ramon fincken)
+##      - Submitted to MODDB
+##
+##   2006-12-11 - Version 1.0.0a
+##      - Added a login check
+##
+##   2007-01-26 - Version 1.0.0b
+##      - Removed $phpbb_root_path from redirect
+##      - Fixed major XSS / SQL Injection
+##      - Added license.txt :P
+##      - Very many thanks to paul (from the MOD Team)
+##
+##   2007-01-29 - Version 1.0.0c
+##      - Fixed multi-page template problem (thanks to IPB_Refugee)
+##
+##   2007-02-03 - Version 1.0.0d
+##      - Fixed a problem with the previous fix (thanks to IPB_Refugee)
+##      - Removed flood check (from watched topics)
+##
+##   2007-06-25 - Version 1.0.0e
+##      - Fixed two bugs (thanks TerraFrost and MOD team)
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ COPY ]------------------------------------------
+#
+copy root/templates/subSilver/search_results_watch.tpl to templates/subSilver/search_results_watch.tpl
+#
+#-----[ OPEN ]------------------------------------------
+#
+search.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$search_id = ( isset($HTTP_GET_VARS['search_id']) ) ? $HTTP_GET_VARS['search_id'] : '';
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : List watched Topics ------------------------------------------------------------
+//-- add
+$watched = ( $search_id == 'watched' ) ? true : false;
+$watched_tpl = ( $watched || isset($HTTP_GET_VARS['watched']) ) ? true : false;
+
+if( $watched && !$userdata['session_logged_in'] )
+{
+	redirect(append_sid("login.$phpEx?redirect=search.$phpEx?search_id=watched", true));
+}
+
+if( $watched && sizeof( $HTTP_POST_VARS['unwatch'] ) && $HTTP_POST_VARS['delete'] )
+{
+	$topics = array();
+	while( list(,$topic_id) = @each($HTTP_POST_VARS['unwatch']) )
+	{
+		$topics[] = (int) $topic_id;
+	}
+	$sql_priority = ( SQL_LAYER == 'mysql' ) ? 'LOW_PRIORITY' : '';
+	$sql = "DELETE $sql_priority FROM " . TOPICS_WATCH_TABLE . '
+		WHERE topic_id IN ( ' . implode( ',', $topics ) . ')
+			AND user_id = ' . $userdata['user_id'];
+	if( !$db->sql_query( $sql ) )
+	{
+		message_die( GENERAL_ERROR, 'Couldn\'t unwatch topics', '', __LINE__, __FILE__, $sql );
+	}
+	else
+	{
+		$msg = $lang['Not_watching_search'] . '<br /><br />' . sprintf( $lang['Click_return_search'], '<a href="' . append_sid("search.$phpEx?search_id=watched") . '">', '</a>' );
+		message_die( GENERAL_MESSAGE, $msg );
+	}
+}
+//-- fin mod : List watched Topics --------------------------------------------------------
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	if ( $search_id == 'newposts'
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ || $search_id == 'egosearch'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ || $watched
+#
+#-----[ FIND ]------------------------------------------
+#
+				if (intval($row['last_search_time']) > 0 && ($current_time - intval($row['last_search_time'])) < intval($board_config['search_flood_interval']))
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+intval($board_config['search_flood_interval'])
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ && !$watched
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ( $search_id == 'newposts'
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ || $search_id == 'egosearch'
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ || $watched
+#
+#-----[ FIND ]------------------------------------------
+#
+			else if ( $search_id == 'egosearch' )
+#
+#-----[ FIND ]------------------------------------------
+#
+				$sort_by = 0;
+				$sort_dir = 'DESC';
+			}
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : List watched Topics ------------------------------------------------------------
+//-- add
+			elseif ( $watched )
+			{
+				if ( $userdata['session_logged_in'] )
+				{
+					$sql = 'SELECT t.topic_first_post_id as post_id 
+						FROM ' . TOPICS_TABLE . ' t, ' . TOPICS_WATCH_TABLE . ' tw
+						WHERE t.topic_id = tw.topic_id
+						AND tw.user_id = ' . $userdata['user_id'];
+				}
+				else
+				{
+					redirect(append_sid("login.$phpEx?redirect=search.$phpEx&search_id=watched", true));
+				}
+
+				$show_results = 'topics';
+				$sort_by = 0;
+				$sort_dir = 'DESC';
+			}
+//-- fin mod : List watched Topics --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+					message_die(GENERAL_MESSAGE, $lang['No_search_match']);
+#
+#-----[ FIND ]------------------------------------------
+#
+			message_die(GENERAL_MESSAGE, $lang['No_search_match']);
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//-- mod : List watched Topics ------------------------------------------------------------
+//-- add
+			$msg = ( !$watched ) ? $lang['No_search_match'] : $lang['No_watched_topics'];
+//-- fin mod : List watched Topics --------------------------------------------------------
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang['No_search_match']
+#
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------
+#
+$msg
+#
+#-----[ FIND ]------------------------------------------
+#
+$page_title = $lang['Search'];
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+$lang['Search']
+#
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------
+#
+ ( !$watched ) ? 
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+ : $lang['Search_watched_topics']
+#
+#-----[ FIND ]------------------------------------------
+#
+		if ( $show_results == 'posts' )
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//-- mod : List watched Topics ------------------------------------------------------------
+//-- add
+		if ( $watched_tpl )
+		{
+			$template->set_filenames(array(
+				'body' => 'search_results_watch.tpl')
+			);
+		}
+		else
+//-- fin mod : List watched Topics --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+					'LAST_POST_IMG' => $last_post_url,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+
+//-- mod : List watched Topics ------------------------------------------------------------
+//-- add
+					'UNWATCH_IMG'	=> '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . '=' . $searchset[$i]['topic_id'] . '&unwatch=topic') . '"><img src="' . $images['topic_un_watch'] . '" alt="' . $lang['Stop_watching_topic'] . '" border="0" /></a>',
+					'UNWATCH'		=> '<a href="' . append_sid("viewtopic.$phpEx?t=" . $searchset[$i]['topic_id'] . '&unwatch=topic') . '">' . $lang['Stop_watching_topic'] . '</a>',
+					'ROW_ID'		=> $searchset[$i]['topic_id'],
+//-- fin mod : List watched Topics --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+		$base_url = "search.$phpEx?search_id=$search_id";
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : List watched Topics ------------------------------------------------------------
+//-- add
+		$base_url .= ($watched) ? '&amp;watched' : '';
+//-- fin mod : List watched Topics --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+		$template->assign_vars(array(
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : List watched Topics ------------------------------------------------------------
+//-- add
+			'L_UNWATCH'		=> $lang['Unwatch'],
+			'L_MARK_ALL'	=> $lang['Mark_all'],
+			'L_UNMARK_ALL'	=> $lang['Unmark_all'],
+			'L_SELECT'		=> $lang['Select'],
+			'S_FORM_ACTION'	=> append_sid( "{$phpbb_root_path}search.$phpEx?search_id=watched" ),
+//-- fin mod : List watched Topics --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	'L_SEARCH_SELF' => $lang['Search_your_posts'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : List watched Topics ------------------------------------------------------------
+//-- add
+	'L_SEARCH_WATCHED' => $lang['Search_watched_topics'],
+//-- fin mod : List watched Topics --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+	'U_SEARCH_SELF' => append_sid('search.'.$phpEx.'?search_id=egosearch'),
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : List watched Topics ------------------------------------------------------------
+//-- add
+	'U_SEARCH_WATCHED' => append_sid( "search.$phpEx?search_id=watched" ),
+//-- fin mod : List watched Topics --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+
+//-- mod : List watched Topics ------------------------------------------------------------
+//-- add
+$lang['Search_watched_topics']	= 'View watched topics';
+$lang['Unwatch']				= 'Unwatch';
+$lang['Not_watching_search']	= 'You are no longer watching those topics';
+$lang['Click_return_search']	= 'Click %sHere%s to return to the seach page';
+$lang['No_watched_topics']		= 'You aren\'t watching any topics';
+//-- fin mod : List watched Topics --------------------------------------------------------
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/index_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+		<a href="{U_SEARCH_NEW}"
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+		<a href="{U_SEARCH_WATCHED}" class="gensmall">{L_SEARCH_WATCHED}</a><br />
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

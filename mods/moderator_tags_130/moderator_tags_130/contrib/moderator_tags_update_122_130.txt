@@ -1,0 +1,84 @@
+#################################################################
+## MOD Title:           Moderator Tags Update 1.2.2 to 1.3.0
+## MOD Author:          Coagulant < baryshev@gmail.com > (Baryshev Ilya) http://coagulant.com.ru
+## MOD Description:     Allows to update Moderator Tags Mod from version 1.2.2 to 1.3.0
+##
+## MOD Version:         1.0.0
+## Installation Level:  Easy
+## Installation Time:   1 Minute
+## Files To Edit:       (1)
+##                      includes/bbcode.php
+## Included Files:      N/A
+## License:             http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##
+##############################################################
+## MOD History:
+##
+##  2006-01-04 - Version 1.0.0
+##             - Initial Release
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/bbcode.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$text = bbencode_first_pass_pda($text, $uid, '/\[mod=(\\\".*?\\\")\]/is', '[/mod]', '', false, '', "[mod:$uid=\\1]");
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+	$text = bbencode_first_pass_pda($text, $uid, '/\[mod=\\\\&quot;(.*?)\\\\&quot;\]/is', '[/mod]', '', false, '', "[mod:$uid=\\\"\\1\\\"]");
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+				if( preg_match('#\[mod=\\\"#si', $possible_start, $match) && !preg_match('#\[mod=\\\"(.*?)\\\"\]#si', $possible_start) )
+				{
+					// OK we are in a mod tag that probably contains a ] bracket.
+					// Grab a bit more of the string to hopefully get all of it..
+					if ($close_pos = strpos($text, '"]', $curr_pos + 9))
+					{
+						if (strpos(substr($text, $curr_pos + 9, $close_pos - ($curr_pos + 9)), '[mod') === false)
+						{
+							$possible_start = substr($text, $curr_pos, $close_pos - $curr_pos + 2);
+						}
+					}
+				}
+
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+#
+				if( preg_match('#\[mod=\\\&quot;#si', $possible_start, $match) && !preg_match('#\[mod=\\\&quot;(.*?)\\\&quot;\]#si', $possible_start) )
+				{
+					// OK we are in a quote tag that probably contains a ] bracket.
+					// Grab a bit more of the string to hopefully get all of it..
+					if ($close_pos = strpos($text, '&quot;]', $curr_pos + 14))
+					{
+						if (strpos(substr($text, $curr_pos + 14, $close_pos - ($curr_pos + 14)), '[mod') === false)
+						{
+							$possible_start = substr($text, $curr_pos, $close_pos - $curr_pos + 7);
+						}
+					}
+				}
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

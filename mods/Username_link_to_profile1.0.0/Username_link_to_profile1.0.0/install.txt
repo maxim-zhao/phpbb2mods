@@ -1,0 +1,97 @@
+##############################################################
+## MOD Title: Username link to profile
+## MOD Author: -SV- < esizemore05@gmail.com > (Eric Sizemore) N/A
+## MOD Description: Makes the poster's name a link to their profile if they
+##                  aren't a guest. Also adds the appropriate "style" if the
+##                  poster is an Administrator or Moderator.
+##
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: ~3 Minutes
+## Files To Edit: viewtopic.php
+##
+## Included Files: N/A
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##  - Makes the poster's name a link to their profile if they
+##    aren't a guest. Also adds the appropriate "style" if the
+##    poster is an Administrator or Moderator.
+##
+##############################################################
+## MOD History:
+##
+##   2006-05-09 - Version 1.0.0
+##              - Initial release (submitted)
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ OPEN ]------------------------------------------------
+#
+viewtopic.php
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Go ahead and pull all data for this topic
+//
+$sql = "SELECT u.username, u.user_id, u.user_posts, u.user_from, u.user_website, u.user_email, u.user_icq, u.user_aim, u.user_yim, u.user_regdate, u.user_msnm, u.user_viewemail, u.user_rank, u.user_sig, u.user_sig_bbcode_uid, u.user_avatar, u.user_avatar_type, u.user_allowavatar, u.user_allowsmile, p.*,  pt.post_text, pt.post_subject, pt.bbcode_uid
+
+#
+#-----[ IN-LINE FIND ]----------------------------------------
+#
+, u.user_allowsmile
+
+#
+#-----[ IN-LINE AFTER, ADD ]----------------------------------
+#
+, u.user_level
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+    $template->assign_block_vars('postrow', array(
+
+#
+#-----[ BEFORE, ADD ]-----------------------------------------
+#
+    if ( $postrow[$i]['user_level'] == ADMIN )
+    {
+      $poster_color = ' style="color: #' . $theme['fontcolor3'] . '"';
+    }
+    else if ( $postrow[$i]['user_level'] == MOD )
+    {
+      $poster_color = ' style="color: #' . $theme['fontcolor2'] . '"';
+    }
+    else
+    {
+      $poster_color = '';
+    }
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'POSTER_NAME' => $poster,
+
+#
+#-----[ REPLACE WITH ]----------------------------------------
+#
+	'POSTER_NAME' => ( $postrow[$i]['user_id'] != ANONYMOUS ) ? '<a href="' . append_sid("profile.$phpEx?mode=viewprofile&amp;" . POST_USERS_URL . "=" . $poster_id) . '" class="name"' . $poster_color . '>' . $poster . '</a>' : $poster,
+
+#
+#-----[ SAVE/CLOSE ALL FILES ]--------------------------------
+#
+# EoM

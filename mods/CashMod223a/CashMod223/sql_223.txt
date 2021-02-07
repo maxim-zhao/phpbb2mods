@@ -1,0 +1,117 @@
+# 
+#-----[ SQL ]------------------------------------------
+#
+#   If you don't know how to execute sql queries, then copy
+#   sql_install.php into your phpbb directory and run it.
+#   (assuming you use mysql or mssql)
+#
+#   If you don't use mysql or mssql, you'll have to edit these queries accordingly
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_disable',0);
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_display_after_posts',1);
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_post_message','You earned %s for that post');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_disable_spam_num',10);
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_disable_spam_time',24);
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_disable_spam_message','You have exceeded the alloted amount of posts and will not earn anything for your post');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_installed','yes');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_version','2.2.3');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_adminbig','0');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('cash_adminnavbar','1');
+INSERT INTO phpbb_config (config_name, config_value) VALUES ('points_name','Points');
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+CREATE TABLE phpbb_cash (
+  cash_id smallint(6) NOT NULL auto_increment,
+  cash_order smallint(6) NOT NULL default '0',
+  cash_settings smallint(4) NOT NULL default '3313',
+  cash_dbfield varchar(64) NOT NULL default '',
+  cash_name varchar(64) NOT NULL default 'GP',
+  cash_default int(11) NOT NULL default '0',
+  cash_decimals tinyint(2) NOT NULL default '0',
+  cash_imageurl varchar(255) NOT NULL default '',
+  cash_exchange int(11) NOT NULL default '1',
+  cash_perpost int(11) NOT NULL default '25',
+  cash_postbonus int(11) NOT NULL default '2',
+  cash_perreply int(11) NOT NULL default '25',
+  cash_maxearn int(11) NOT NULL default '75',
+  cash_perpm int(11) NOT NULL default '0',
+  cash_perchar int(11) NOT NULL default '20',
+  cash_allowance tinyint(1) NOT NULL default '0',
+  cash_allowanceamount int(11) NOT NULL default '0',
+  cash_allowancetime tinyint(2) NOT NULL default '2',
+  cash_allowancenext int(11) NOT NULL default '0',
+  cash_forumlist varchar(255) NOT NULL default '',
+  PRIMARY KEY  (cash_id)
+);
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+CREATE TABLE phpbb_cash_events (
+  event_name varchar(32) NOT NULL default '',
+  event_data varchar(255) NOT NULL default '',
+  PRIMARY KEY  (event_name)
+);
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+CREATE TABLE phpbb_cash_exchange (
+  ex_cash_id1 int(11) NOT NULL default '0',
+  ex_cash_id2 int(11) NOT NULL default '0',
+  ex_cash_enabled int(1) NOT NULL default '0',
+  PRIMARY KEY  (ex_cash_id1,ex_cash_id2)
+);
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+CREATE TABLE phpbb_cash_groups (
+  group_id mediumint(6) NOT NULL default '0',
+  group_type tinyint(2) NOT NULL default '0',
+  cash_id smallint(6) NOT NULL default '0',
+  cash_perpost int(11) NOT NULL default '0',
+  cash_postbonus int(11) NOT NULL default '0',
+  cash_perreply int(11) NOT NULL default '0',
+  cash_perchar int(11) NOT NULL default '0',
+  cash_maxearn int(11) NOT NULL default '0',
+  cash_perpm int(11) NOT NULL default '0',
+  cash_allowance tinyint(1) NOT NULL default '0',
+  cash_allowanceamount int(11) NOT NULL default '0',
+  cash_allowancetime tinyint(2) NOT NULL default '2',
+  cash_allowancenext int(11) NOT NULL default '0',
+  PRIMARY KEY  (group_id,group_type,cash_id)
+);
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+#   If you have a different table prefix then change this command accordingly. 
+#   I have used the default table prefix! 
+# 
+CREATE TABLE phpbb_cash_log (
+  log_id int(11) NOT NULL auto_increment,
+  log_time int(11) NOT NULL default '0',
+  log_type smallint(6) NOT NULL default '0',
+  log_action varchar(255) NOT NULL default '',
+  log_text varchar(255) NOT NULL default '',
+  PRIMARY KEY  (log_id)
+);
+

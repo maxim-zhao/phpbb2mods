@@ -1,0 +1,185 @@
+##############################################################
+## MOD Title: Ban reasons
+## MOD Author: eviL3 < evil@phpbbmodders.net > (n/a) http://phpbbmodders.net/
+## MOD Description:	This MOD will allow you to add a Reson for banning a Person.
+##					HTML is also allowed. When the banned person tries to login,
+##					he/she will see the custom ban reason instead of the standard message.
+## MOD Version: 1.0.5
+## 
+## Installation Level: Easy
+## Installation Time: 8 minutes
+## Files To Edit:
+##		language/lang_english/lang_admin.php
+##		includes/sessions.php
+##		admin/admin_user_ban.php
+##		templates/subSilver/admin/user_ban_body.tpl
+##
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: This was kinda "requested" by helpmeplez on phpbb.com
+## If you don't know how to run sql queries, put db_update.php
+## into your root dir and run it. Hope you enjoy this MOD!
+##############################################################
+## MOD History:
+##
+##	2006-06-28 - Version 1.0.1
+##		- First validated version :)
+##
+##	2006-07-19 - Version 1.0.2
+##		- Updated unneeded template part
+##		- Updated banlist in contrib folder
+##		- Added a new Addon to the contrib
+##		- Thanks a lot to Whip-lash ;)
+##
+##	2006-07-20 - Version 1.0.2a
+##		- Fixed a little error
+##
+##	2006-08-06 - Version 1.0.3
+##		- Fixed various little things the mod team mentioned
+##		- Also fixed little stuff in the contrib MODs...
+##
+##	2006-09-20 - Version 1.0.4
+##		- Updated the ban reasons extended add-on.
+##
+##	2007-05-17 - Version 1.0.5
+##		- MODX
+##		- New db_update script
+##		- Cleanup and added comments :P
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ SQL ]------------------------------------------
+#
+ALTER TABLE phpbb_banlist ADD ban_reason VARCHAR( 255 ) NOT NULL ;
+#
+#-----[ OPEN ]------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]------------------------------------------
+#
+?>
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+//-- mod : Ban reasons ------------------------------------------------------------
+//-- add
+$lang['Ban_reason'] = 'Ban reason';
+//-- fin mod : Ban reasons --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/sessions.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	$sql = "SELECT ban_ip, ban_userid, ban_email 
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ban_email
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, ban_reason
+#
+#-----[ FIND ]------------------------------------------
+#
+			message_die(CRITICAL_MESSAGE, 'You_been_banned');
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+//-- mod : Ban reasons ------------------------------------------------------------
+//-- add
+			if (isset($ban_info['ban_reason']) && $ban_info['ban_reason'] != '' && $ban_info['ban_userid'])
+			{
+				message_die(CRITICAL_MESSAGE, $ban_info['ban_reason']);
+			}
+			else
+			{
+				message_die(CRITICAL_MESSAGE, 'You_been_banned');
+			}
+//-- fin mod : Ban reasons --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_user_ban.php
+#
+#-----[ FIND ]------------------------------------------
+#
+		$user_list[] = $this_userdata['user_id'];
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Ban reasons ------------------------------------------------------------
+//-- add
+		if (!empty($HTTP_POST_VARS['ban_reason']))
+		{
+			$ban_reason = (string) $HTTP_POST_VARS['ban_reason'];
+		}
+//-- fin mod : Ban reasons --------------------------------------------------------
+#
+#-----[ FIND ]------------------------------------------
+#
+         	$sql = "INSERT INTO " . BANLIST_TABLE . " (ban_userid
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+ban_userid
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, ban_reason
+#
+#-----[ FIND ]------------------------------------------
+#
+VALUES (" . $user_list[$i]
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+" . $user_list[$i] . "
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, '" . str_replace("\'", "''", $ban_reason) . "'
+#
+#-----[ FIND ]------------------------------------------
+#
+		'L_USERNAME' => $lang['Username'], 
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+//-- mod : Ban reasons ------------------------------------------------------------
+//-- add
+		'L_BAN_REASON' => $lang['Ban_reason'],
+//-- fin mod : Ban reasons --------------------------------------------------------
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/user_ban_body.tpl
+#
+#-----[ FIND ]------------------------------------------
+#
+	  <td class="row2"><input class="post" type="text" class="post" name="username" maxlength="50" size="20" /> <input type="hidden" name="mode" value="edit" />{S_HIDDEN_FIELDS} <input type="submit" name="usersubmit" value="{L_FIND_USERNAME}" class="liteoption" onClick="window.open('{U_SEARCH_USER}', '_phpbbsearch', 'HEIGHT=250,resizable=yes,WIDTH=400');return false;" /></td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+	  <td class="row1">{L_BAN_REASON}:</td>
+	  <td class="row2"><textarea class="post" type="text" name="ban_reason" size="20" style="width:100%; height:60px;"></textarea></td>
+	</tr>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

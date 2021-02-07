@@ -1,0 +1,739 @@
+############################################################## 
+## MOD Title:  Xfire Miniprofile Mod
+## MOD Author: saabirsa < saabirsa@hotmail.com > (Saabir Salim) http://www.support.isua.co.uk/
+## MOD Description:  Displays your Xfire Miniprofile under the signature when viewing you post and profile.
+## MOD Version: 1.0.0c
+## 
+## Installation Level: Intermediate 
+## Installation Time:  20-30 minutes
+## Files To Edit:  11
+##		  o viewtopic.php
+##		  o admin/admin_users.php
+##                o includes/usercp_viewprofile.php
+##                o includes/usercp_register.php
+##                o includes/functions_validate.php
+##                o includes/usercp_avatar.php
+##                o language/lang_english/lang_main.php
+##		  o templates/subSilver/viewtopic_body.tpl
+##		  o templates/subSilver/profile_view_body.tpl
+##		  o templates/subSilver/profile_add_body.tpl
+##		  o templates/subSilver/admin/user_edit_body.tpl
+## Included Files: 1
+##                o db_update.php
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: The MOD shows your Xfire miniprofile under the post and profile of a user.
+## This mod can also be used for other images other that Xfire, for example a dynamic signature, ETC
+##
+## The Xfire Website is http://www.xfire.com/ Register, if you don't have an account :)
+##
+## This MOD will install using Easymod by Nuttzy.
+## 
+## Support:
+## Support For This MOD Can Be Found @
+## http://www.support.isua.co.uk/viewforum.php?f=29
+##
+## Thanks To :
+## o The Xfire Team
+##
+## To-Do :
+## o Any Thing You Can Think Of :-D
+##
+## Any Help?
+## o Make mod change styles
+## o Disable Xfire from showing board-wide
+## o New Dedicated ACP Page for my mods
+## o Any Help Would Be Greatly Appreciated And Your Name Will Be In The "Thanks To :" Bit.
+##############################################################
+## MOD History: 
+##
+##   2006-01-13 - Version 1.0.0c
+##      - Fixed a bug so SQL updates (was a typo)
+##
+##   2005-12-30 - Version 1.0.0b
+##      - A few fixes and a fix for phpBB 2.0.19
+##
+##   2005-11-30 - Version 1.0.0a
+##      - A few fixes for the phpBB Mod Team
+##
+##   2005-11-25 - Version 1.0.0
+##      - Final Touches, ready for relesase, and submitted to the phpBB Mod Database
+##
+##   2005-11-23 - Version 0.0.5
+##      - Fixes major bugs, and makes EasyMod compatiable.
+##
+##   2005-11-23 - Version 0.0.4
+##      - Another release, this drops a unneeded SQL Query.
+##
+##   2005-11-22 - Version 0.0.3
+##      - Another even quicker release, makes the miniprofile open in a new window,
+##	  and ads the alt"" tag to the xfire images for WC3 Compaitablity. 
+##
+##   2005-11-22 - Version 0.0.2
+##      - Another quick release, Fixes a bug in the viewtopic section. 
+## 
+##   2005-11-22 - Version 0.0.1
+##      - Initial BETA Release, A Lot Needs Doing! 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ SQL ]------------------------------------------
+#
+# If you have a different table prefix then change this command accordingly.
+# I have used the default table prefix!
+# You Can Also Use The Included db_update.php file
+#
+
+ALTER TABLE phpbb_users ADD `user_xfire` VARCHAR( 255 );
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+
+viewtopic.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+//
+// Go ahead and pull all data for this topic
+//
+$sql = "SELECT u.username, u.user_id,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+u.user_yim,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ u.user_xfire,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		$msn_img = ( $postrow[$i]['user_msnm'] ) ? '<a href="' . $temp_url . '"><img src="' . $images['icon_msnm'] . '" alt="' . $lang['MSNM'] . '" title="' . $lang['MSNM'] . '" border="0" /></a>' : '';
+		$msn = ( $postrow[$i]['user_msnm'] ) ? '<a href="' . $temp_url . '">' . $lang['MSNM'] . '</a>' : '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+		$xfire = ( $postrow[$i]['user_xfire'] ) ? '<br />_________________<br /><a target="_blank" href="http://profile.xfire.com/'.$postrow[$i]['user_xfire'].'"><img src="http://miniprofile.xfire.com/bg/bg/type/0/' . $postrow[$i]['user_xfire'] . '.png" width="440" height="111" alt="' . $lang['xfire2'] . '" border="0" /></a>' : '';
+		$xfire_img = $xfire;
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		$msn_img = '';
+		$msn = '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+		$xfire_img = '';
+		$xfire = '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		'MSN_IMG' => $msn_img,
+		'MSN' => $msn,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+		'XFIRE_IMG' => $xfire_img, 
+		'XFIRE' => $xfire, 
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+
+admin/admin_users.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		$msn = ( !empty($HTTP_POST_VARS['msn']) ) ? trim(strip_tags( $HTTP_POST_VARS['msn'] ) ) : '';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+		$xfire = ( !empty($HTTP_POST_VARS['xfire']) ) ? trim(strip_tags( $HTTP_POST_VARS['xfire'] ) ) : '';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		validate_optional_fields
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+);
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+#
+
+, $xfire
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+			$msn = htmlspecialchars(stripslashes($msn));
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+			$xfire = htmlspecialchars(stripslashes($xfire));
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql .
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+, user_msnm = '" . str_replace("\'", "''", $msn) . "'
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+, user_xfire = '" . str_replace("\'", "''", $xfire) . "'
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+			$msn = htmlspecialchars(stripslashes($msn));
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+			$xfire = htmlspecialchars(stripslashes($xfire));
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		$msn = htmlspecialchars($this_userdata['user_msnm']);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+		$xfire = htmlspecialchars($this_userdata['user_xfire']);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+			$s_hidden_fields .= '<input type="hidden" name="msn" value="' . str_replace("\"", "&quot;", $msn) . '" />';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+			$s_hidden_fields .= '<input type="hidden" name="xfire" value="' . str_replace("\"", "&quot;", $xfire) . '" />';
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+			'MSN' => $msn,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+			'XFIRE' => $xfire, 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+			'L_MESSENGER' => $lang['MSNM'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+			'L_XFIRE' => $lang['xfire'], 
+
+# 
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+includes/usercp_viewprofile.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+$msn_img = ( $profiledata['user_msnm'] ) ? $profiledata['user_msnm'] : '&nbsp;';
+$msn = $msn_img;
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+$xfire_img = ( $profiledata['user_xfire'] ) ? '<a target="_blank" href="http://profile.xfire.com/'.$profiledata['user_xfire'].'"><img src="http://miniprofile.xfire.com/bg/bg/type/0/' . $profiledata['user_xfire'] . '.png"  width="440" height="111" alt="' . $lang['xfire2'] . '" border="0" /></a>' : '&nbsp;';
+$xfire = $xfire_img;
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+	'MSN_IMG' => $msn_img,
+	'MSN' => $msn,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+	'XFIRE_IMG' => $xfire_img, 
+	'XFIRE' => $xfire,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+	'L_MESSENGER' => $lang['MSNM'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+	'L_XFIRE' => $lang['xfire'], 
+	'L_XFIRE2' => $lang['xfire2'], 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+includes/usercp_register.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+$strip_var_list = array('email' =>
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+ 'msn' => 'msn',
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ 'xfire' => 'xfire',
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+validate_optional_fields
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+);
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+#
+
+, $xfire
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		$msn = stripslashes($msn);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+		$xfire = stripslashes($xfire);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+			$sql = "UPDATE " . USERS_TABLE . "
+				SET " . $username_sql . $passwd_sql . "user_email = '" .
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+user_msnm = '" . str_replace("\'", "''", $msn) . "',
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ user_xfire = '" . str_replace("\'", "''", $xfire) . "',
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+			//
+			// Get current date
+			//
+			$sql = "INSERT INTO " . USERS_TABLE . "	(user_id,
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+user_msnm,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ user_xfire,
+
+#
+#-----[ FIND ]------------------------------------------ 
+#
+
+'" . str_replace("\'", "''", $msn) . "',
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+'" . str_replace("\'", "''", $msn) . "',
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ '" . str_replace("\'", "''", $xfire) . "',
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+					'MSN' => $msn,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+					'XFIRE' => $xfire, 
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+	$msn = stripslashes($msn);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+	$xfire = stripslashes($xfire);
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+	$msn = $userdata['user_msnm'];
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+	$xfire = $userdata['user_xfire'];
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+	display_avatar_gallery
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+$msn,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ $xfire,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		'MSN' => $msn,
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+		'XFIRE' => $xfire,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		'L_MESSENGER' => $lang['MSNM'],
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+		'L_XFIRE' => $lang['xfire'], 
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+includes/functions_validate.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+function validate_optional_fields(
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+)
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+#
+
+, &$xfire
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+	$check_var_length = array(
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+);
+
+# 
+#-----[ IN-LINE BEFORE, ADD ]------------------------------------------ 
+#
+
+, 'xfire'
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+includes/usercp_avatar.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+function display_avatar_gallery(
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+&$msn,
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ &$xfire,
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+	$params = array(
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+'msn',
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+ 'xfire',
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+language/lang_english/lang_main.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+$lang['MSNM'] = 'MSN Messenger';
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+$lang['xfire'] = 'XFire Profile Name';
+$lang['xfire2'] = 'XFire';
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+templates/subSilver/viewtopic_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+{postrow.SIGNATURE}
+
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+
+{postrow.SIGNATURE}
+
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+
+{postrow.XFIRE}
+
+#
+#-----[ OPEN ]------------------------------------------ 
+#
+
+templates/subSilver/profile_view_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		<tr> 
+		  <td valign="top" align="right" nowrap="nowrap"><span class="gen">{L_INTERESTS}:</span></td>
+		  <td> <b><span class="gen">{INTERESTS}</span></b></td>
+		</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+		<tr> 
+		  <td valign="middle" nowrap="nowrap" align="right"><span class="gen">{L_XFIRE2}:</span></td>
+		  <td class="row1" valign="middle"><span class="gen">{XFIRE}</span></td>
+		</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+templates/subSilver/profile_add_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+   <tr> 
+     <td class="row1"><span class="gen">{L_MESSENGER}:</span></td>
+     <td class="row2"> 
+      <input type="text" class="post" style="width: 150px"  name="msn" size="20" maxlength="255" value="{MSN}" />
+     </td>
+   </tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+	<tr> 
+	  <td class="row1"><span class="gen">{L_XFIRE}:</span></td>
+	  <td class="row2"> 
+		<input type="text" class="post" style="width: 150px" name="xfire" size="20" maxlength="255" value="{XFIRE}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+#
+
+templates/subSilver/admin/user_edit_body.tpl
+
+# 
+#-----[ FIND ]------------------------------------------ 
+#
+
+		<input class="post" type="text" name="msn" size="20" maxlength="255" value="{MSN}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+
+	<tr> 
+	  <td class="row1"><span class="gen">{L_XFIRE}</span></td>
+	  <td class="row2"> 
+		<input class="post" type="text" name="xfire" size="20" maxlength="255" value="{XFIRE}" />
+	  </td>
+	</tr>
+
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

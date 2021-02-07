@@ -1,0 +1,295 @@
+################################################################# 
+## MOD Title: Registration Stopper
+## MOD Author: Fountain of Apples < webmacster87@gmail.com > (Douglas Bell) http://www.foamods.info
+## MOD Description: Adds an admin setting that allows you to disable new registrations to your board.
+## MOD Version: 1.2.0a
+## 
+## Installation Level: Intermediate
+## Installation Time: 10 Minutes
+## Files To Edit: profile.php
+##		admin/admin_board.php
+##		includes/constants.php
+##		includes/page_header.php
+##		language/lang_english/lang_admin.php
+##		language/lang_english/lang_main.php
+##		templates/subSilver/overall_header.tpl
+##		templates/subSilver/admin/board_config_body.tpl
+## Included Files: admin/avc_mods/avc_stopreg.php
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/
+############################################################## 
+## Author Notes: 
+## 
+## This MOD borrows a feature from phpBB3 which allows you to disable all new registrations to your board. After installing this MOD, go to the Administration Control Panel, and under the General Configuration pane, choose "Disable" at the User Activation prompt.
+##
+## If you still want to allow adminstrators to register new users, I recommend you download my ACP User Registration MOD (see http://www.foamods.info to download). This MOD does not block registrations by that MOD.
+##
+## If you decide that you wish to re-enable registrations, YOU DO NOT HAVE TO UNINSTALL THIS MOD. Simply change the User Activation setting to one of the other three options and this MOD's functionality will essentially be disabled.
+##
+## This MOD is compatible with phpBB2 only, and is not compatible with phpBB3. (This functionality is already built into phpBB3, so stop wasting time looking for a MOD to do it!)
+##
+## LICENSE:
+## Registration Stopper is released under the GNU General Public License, either version 2 or (at your option) any later version. By installing this MOD, you state that you agree to the terms laid out in the license and will abide by them. A copy of the license can be found at license.txt. Registration Stopper is Copyright 2005-2007 Douglas Bell.
+##
+## UPDATES:
+## Updates to the current version of this MOD are provided from all previous releases, and can be found in the contrib/updates/ directory in MODX and Text Template formats. Be sure to read the readme file in that directory to choose the right update script.
+##
+## DOWNLOAD & SUPPORT:
+## You can find out more information about this MOD and my other MODs from my website at < http://www.foamods.info >. Support is available at this MOD's phpBB.com topic, < http://www.phpbb.com/community/viewtopic.php?t=313879 >.
+############################################################## 
+## MOD History:
+##
+##	2007-06-26 - Version 1.2.0a
+##		- Fixed: An IN-LINE BEFORE, ADD in templates/subSilver/admin/board_config_body.tpl should have been an IN-LINE AFTER, ADD. Thanks to lostage for finding this!
+##
+##	2007-06-15 - Version 1.2.0
+##		- MOD updated to reflect the interface seen in phpBB3. "Disable" is now a setting under the User Activation prompt, and no longer its own setting.
+##		- Updated Author Notes, Contact Information, and MOD Description.
+##		- MOD now packaged using the new MODX format.
+##		- Advanced Version Check info file updated for compatibility with AVC 3.
+##
+##	2006-01-01 - Version 1.0.1
+##		- Repackage and re-release of the MOD to try to fix errors that users have been receiving with opening the install script and installing with EasyMOD. No changes to code.
+##		- Updated Author's Notes and contact info.
+##
+##	2005-08-06 - Version 1.0.0
+##		- No new features; just repackaged as 1.0.0.
+##
+##	2005-07-25 - Version 0.2.0
+##		- Release Candidate for version 1.0.0.
+##		- Fixed an error where no message was displaying when the register page was accessed & registrations were disabled.
+##		- Configuration option language has been re-written to be easier to understand.
+##		- Fixed an error in the install file where the lang tags were being added to the wrong files.
+##		- MOD install script updated to the new MOD Template changes effective on July 23rd, 2005.
+##
+##   2005-07-06 - Version 0.1.0
+##      - Initial release, listed on MOD Development forum in beta.
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+profile.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+	else if ( $mode == 'editprofile' || $mode == 'register' )
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+	// MOD: Registration Stopper
+	// Here we added
+	// && $board_config['require_activation'] != USER_ACTIVATION_DISABLE
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+# Do this to the FIND we just did.
+#
+'register'
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------------------
+#
+ && $board_config['require_activation'] != USER_ACTIVATION_DISABLE
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# This is also done to the FIND we did above.
+#
+	// END MOD: Registration Stopper
+#
+#-----[ FIND ]---------------------------------------------
+#
+	else if ( $mode == 'confirm' )
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+	// MOD: Registration Stopper
+	else if ( $mode == 'register' && $board_config['require_activation'] == USER_ACTIVATION_DISABLE )
+	{
+		$message .= $lang['Registrations_disabled'] . "<br /><br />" . sprintf($lang['Click_return_forum_index'], "<a href=\"" . append_sid("index.".$phpEx) . "\">", "</a>");
+		message_die(GENERAL_MESSAGE, $message);
+	}
+	// END MOD: Registration Stopper
+#
+#-----[ OPEN ]---------------------------------------------
+#
+admin/admin_board.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+$activation_admin = ( $new['require_activation'] == USER_ACTIVATION_ADMIN ) ? "checked=\"checked\"" : "";
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+// MOD: Registration Stopper
+$activation_disable = ( $new['require_activation'] == USER_ACTIVATION_DISABLE ) ? "checked=\"checked\"" : "";
+// END MOD: Registration Stopper
+#
+#-----[ FIND ]---------------------------------------------
+# This is a partial search, the full line is longer
+#
+	"L_ACCT_ACTIVATION" =>
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+	// MOD: Registration Stopper
+	"L_ACCT_ACTIVATION_EXPLAIN" => $lang['Activation_disable_explain'],
+	// END MOD: Registration Stopper
+#
+#-----[ FIND ]---------------------------------------------
+# This is a partial search, the full line is longer
+#
+	"ACTIVATION_ADMIN_CHECKED" =>
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+	// MOD: Registration Stopper
+	"ACTIVATION_DISABLE" => USER_ACTIVATION_DISABLE, 
+	"ACTIVATION_DISABLE_CHECKED" => $activation_disable, 
+	// END MOD: Registration Stopper
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/constants.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+define('USER_ACTIVATION_ADMIN', 2);
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+// MOD: Registration Stopper
+define('USER_ACTIVATION_DISABLE', 3);
+// END MOD: Registration Stopper
+#
+#-----[ OPEN ]---------------------------------------------
+#
+includes/page_header.php
+#
+#-----[ FIND ]---------------------------------------------
+#
+$l_timezone = (count($l_timezone) > 1 && $l_timezone[count($l_timezone)-1] != 0) ? $lang[sprintf('%.1f', $board_config['board_timezone'])] : $lang[number_format($board_config['board_timezone'])];
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+#
+
+// MOD: Registration Stopper
+if ( $board_config['require_activation'] != USER_ACTIVATION_DISABLE && !$userdata['session_logged_in'] )
+{
+	$template->assign_block_vars('switch_register', array());
+}
+// END MOD: Registration Stopper
+#
+#-----[ OPEN ]---------------------------------------------
+#
+language/lang_english/lang_admin.php
+#
+#-----[ FIND ]---------------------------------------------
+# This is a partial search, the full line is longer
+#
+$lang['Acc_Admin'] = '
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# On the next line
+#
+// MOD: Registration Stopper
+// Activation Disable Setting for Board Configuration Panel
+$lang['Activation_disable_explain'] = 'User will require the new user to activate their e-mail address before they can login. Admin will require an administrator to activate the user before they can login. Disabled will disable the registration form for all new users.';
+// END MOD: Registration Stopper
+
+#
+#-----[ OPEN ]---------------------------------------------
+#
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]---------------------------------------------
+# This is a partial search, the full line is longer
+#
+$lang['About_user'] = '
+#
+#-----[ AFTER, ADD ]---------------------------------------------
+# On the next line
+#
+
+// MOD: Registration Stopper
+// Lang tags for "Registrations Disabled" Message
+$lang['Registrations_disabled'] = 'Sorry, but the board administrator does not allow new registrations to this board.';
+$lang['Click_return_forum_index'] = 'Click %sHere%s to return to the Forum Index'; // a href, /a tags
+// END MOD: Registration Stopper
+#
+#-----[ OPEN ]---------------------------------------------
+#
+templates/subSilver/overall_header.tpl
+#
+#-----[ FIND ]---------------------------------------------
+# If your style has been edited, this line MAY appear multiple times
+# (it shouldn't in the default phpBB installation). If so, search
+# for: {L_REGISTER} The next 2 FINDs will be before and after that
+# line.
+#
+						<!-- BEGIN switch_user_logged_out -->
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+						<!-- Registration Stopper -->
+						<!-- BEGIN switch_register -->
+#
+#-----[ FIND ]---------------------------------------------
+#
+						<!-- END switch_user_logged_out -->
+#
+#-----[ REPLACE WITH ]---------------------------------------------
+#
+						<!-- END switch_register -->
+#
+#-----[ OPEN ]---------------------------------------------
+#
+templates/subSilver/admin/board_config_body.tpl
+#
+#-----[ FIND ]---------------------------------------------
+#
+		<td class="row1">{L_ACCT_ACTIVATION}</td>
+#
+#-----[ BEFORE, ADD ]---------------------------------------------
+#
+	<!-- Registration Stopper -->
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+# Do this to the FIND that we did earlier
+#
+</td>
+#
+#-----[ IN-LINE BEFORE, ADD ]---------------------------------------------
+#
+<br /><span class="gensmall">{L_ACCT_ACTIVATION_EXPLAIN}</span>
+#
+#-----[ FIND ]---------------------------------------------
+# This is a partial FIND, the full line is longer
+# This should be the line after the previous FIND
+#
+		<td class="row2"><input type="radio" name="require_activation" value="{ACTIVATION_NONE}"
+#
+#-----[ IN-LINE FIND ]---------------------------------------------
+#
+<td class="row2">
+#
+#-----[ IN-LINE AFTER, ADD ]---------------------------------------------
+#
+<input type="radio" name="require_activation" value="{ACTIVATION_DISABLE}" {ACTIVATION_DISABLE_CHECKED} />{L_DISABLED}&nbsp; &nbsp;
+#
+#-----[ DIY INSTRUCTIONS ]---------------------------------------------
+#
+This MOD has a version checker compatible with the Advanced Version Check MOD that will check for the latest version of this MOD. If you wish to use it, copy root/admin/avc_mods/avc_stopreg.php to admin/avc_mods/avc_stopreg.php.
+
+At this point, the MOD is installed, but registrations by default have not been disabled. To disable registrations, go to your General Configuration panel in the ACP and set User Activation to Disabled. Note that should you change your mind, you do NOT have to uninstall this MOD, just change back the setting in the General Configuration panel.
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM

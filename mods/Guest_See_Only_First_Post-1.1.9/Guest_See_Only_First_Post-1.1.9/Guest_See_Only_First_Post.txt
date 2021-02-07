@@ -1,0 +1,1255 @@
+#################################################################
+## MOD Title: Guest See Only First Post
+## MOD Author: Wicher < N/A > (N/A) http://www.detecties.com/phpbb2018
+## MOD Description: This mod shows only defined number of posts in a topic to users that are not logged in.
+##                  Admin can define number of posts to show in ACP/General Admin/Configuration
+##                  ( or in ACP/Forum Admin/Management )
+##                  as well as the message that has to be showed to the not logged in user.
+##                  In the ACP/Forum Admin/Management you can choose if you want to use this function per forum.
+##                  and if you want to use it along with announcements sticky's or polls.
+##                  Bot Indexing Mod 1.3.1 ( http://www.phpbb.com/phpBB/viewtopic.php?t=473524 )
+##                  is also compatible with thus preventing bots like google to show up in the 
+##                  stats for this mod in the ACP/GSOFP stats. 
+##  
+## MOD Version: 1.1.9	
+## 
+## Installation Level:  easy 
+## Installation Time:  20 minutes 
+## 
+## Files To Edit:    - index.php
+##                   - login.php
+##                   - profile.php
+##                   - viewforum.php
+##                   - viewtopic.php
+##                   - search.php
+##                   - admin/admin_board.php
+##                   - admin/admin_forums.php
+##                   - includes/constants.php
+##                   - includes/usercp_register.php
+##                   - language/lang_english/lang_main.php
+##                   - templates/subSilver/viewtopic_body.tpl
+##                   - templates/subSilver/subSilver.cfg
+##                   - templates/subSilver/admin/board_config_body.tpl
+##                   - templates/subSilver/admin/forum_admin_body.tpl
+## 
+## Included Files: guest_see_only_first_post.php
+##                 admin/admin_GSOFP_stats.php
+##                 includes/bignum.php
+##                 templates/subSilver/guest_see_only_first_post.tpl
+##                 templates/subSilver/admin/admin_GSOFP_body.tpl
+##                 templates/subSilver/images/num_back.gif
+##                 templates/subSilver/images/less.gif
+##                 templates/subSilver/images/more.gif
+##                 templates/subSilver/images/switch_on.gif
+##                 templates/subSilver/images/switch_off.gif
+##                 templates/subSilver/images/g_blank.gif
+##                 templates/subSilver/images/lang_english/guest_see_only_first_post.gif
+##                 templates/subSilver/images/lang_english/limited_view.gif
+##                 templates/subSilver/images/lang_english/unlimited_view.gif
+##                 templates/subSilver/images/lang_english/a_on.gif
+##                 templates/subSilver/images/lang_english/a_off.gif
+##                 templates/subSilver/images/lang_english/s_on.gif
+##                 templates/subSilver/images/lang_english/s_off.gif
+##                 templates/subSilver/images/lang_english/p_on.gif
+##                 templates/subSilver/images/lang_english/p_off.gif
+##                 templates/subSilver/images/lang_english/reset.gif
+##                 templates/subSilver/images/lang_english/reset_all.gif
+## 
+## License:      http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+## 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:   
+##		   This mod has been tested on phpbb 2.0.21 and 2.0.22
+##
+##         Many, many thanks to Dogs and Things for testing every single update i made for 
+##         this mod during development and for bringing idea's to my attention.
+##         This realy did speed things up.
+##         
+## 
+############################################################## 
+## MOD History: 
+##
+##   2007-02-21 - Version 1.1.9	 
+##   - new images for forum admin.
+##   2006-12-28 - Version 1.1.8	 
+##   - Changes in admin_forums.php.
+##   2006-12-28 - Version 1.1.7	 
+##   - Replaced two mixtup images for the global announce addon.
+##   2006-12-28 - Version 1.1.6	 
+##   - Took bug out viewtopic.php when installing the global announce addon.
+##   2006-12-27 - Version 1.1.5	 
+##   - again new images for forum admin. Again Code changes in subSilver.cfg.
+##   2006-12-26 - Version 1.1.4	 
+##   - new images for forum admin. Code changes in subSilver.cfg.
+##   2006-12-24 - Version 1.1.3	 
+##   - Forums admin now re-opens at forum wich setting has been changed. 
+##   2006-12-19 - Version 1.1.2	 
+##   - See Contrib update_1.1.1-1.1.2.txt 
+##   2006-12-19 - Version 1.1.1	 
+##   - Added choice howmany post to view in forum admin
+##     You can choose wether to override the setting in General Admin/Configuration.
+##   2006-12-19 - Version 1.1.0	 
+##   - One change in viewforum.php, at modline 324
+##   2006-12-18 - Version 1.0.9	 
+##   - Changes in Admin Stats Page, Added reset buttons
+##   2006-12-16 - Version 1.0.8 
+##   - Minor change in viewtopic.php, modline 442
+##   - Bug fixes in Global Announcements Mod Addon
+##   2006-12-16 - Version 1.0.7 
+##   - Added addon for Global Announcement Mod
+##   - Added Reset in GSOFP Stats
+##   2006-12-15 - Version 1.0.6 
+##   - Important change in viewtopic.php!!
+##   2006-12-15 - Version 1.0.5 
+##   - Added tooltips in forum admin
+##   2006-12-15 - Version 1.0.4 
+##   - Cosmetic change in forum admin:
+##     Only change for that is subSilver.cfg and uploading the new gif images
+##   2006-12-12 - Version 1.0.3 
+##   - Code change in viewtopic.php
+##     Adding Bot Indexing Mod 1.3.0 support did do harm for those who did not have that installed.
+##     Its still supported but in antother way.
+##     Change is on modline 428 (only the "FIND" and "BEFORE, ADD" action)
+##   - Added addon for simple subforums mod in Contrib folder.
+##   2006-12-12 - Version 1.0.2 
+##   - Added Administration Stats how many actual registered via registrationlink 
+##     and logged in via loginlink 
+##   - Another little change in board_config_body.tpl
+##   - Change in lang_main.php
+##   - Moved guest_see_only_first_post.php to includes/guest_see_only_first_post.php
+##   - Added choice wether to limit announcements, stickies and / or polls
+##   - Added includes/bignum.php for displaying big nimbers in stats
+##   - Added support for Bot Indexing Mod 1.3.0
+##   - Some things i dont remember.
+## 2006-12-09 - Version 1.0.1 
+## - Added Administration Stats how many clicked the registrationlink, loginlink and how 
+## many times the box has been shown. 
+## - Little change in board_config_body.tpl 
+## - Little change in lang_main.php 
+##   2006-12-09 - Version 1.0.0 
+##   - Added tooltip in viewforum pagination. 
+##   2006-12-08 - Version 0.0.9	 
+##   - Changes in index.php and viewforum.php, icon newest post alt text will state user has to log in first before 
+##     they can view the latest post of that forum if limited view is set and if there are more 
+##     post then given allowed to view.
+##   2006-12-08 - Version 0.0.8 
+##   - Changes in viewforum.php regarding pagination.
+##   - Ruled out pagination al together in viewtopic when postviews are limited and a guest is viewing.
+##   - Select boxes dont work for guests if guest postviews are limited.
+##   2006-12-08 - Version 0.0.7 
+##   - In topics with less or equal posts then given max view in the ACP, 
+##     guests wont see the alertbox anymore.
+##   - Now showing total number of replies to the topic instead of only total 
+##     number of posts in one page.
+##   2006-12-07 - Version 0.0.6 
+##   - Took some bugs out..
+##   2006-12-07 - Version 0.0.5 
+##   - Some cosmetic change to forum admin.
+##   2006-12-07 - Version 0.0.4 
+##   - Added choice per forum.
+##   - Added register link.
+##   2006-12-06 - Version 0.0.3 
+##   - fixed little buggie in search.php
+##   2006-12-06 - Version 0.0.2 
+##   - added login link.
+##   2006-12-06 - Version 0.0.1 
+##   - Started this thing.
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+
+# 
+#-----[ DIY INSTRUCTIONS ]------------------------------------------ 
+# 
+Execute GSOFP_1.1.9_db_install.php from your browser.
+It is in the root of your forumfiles.
+After execution, delete GSOFP_1.1.9_db_install.php from your server.
+.
+Look for some addons in Contrib
+.
+If for any reason you want to uninstall, 
+there are uninstall files in the Contrib Folder for uninstalling it from your database.
+Normal files have to be uninstalled by hand.
+# 
+#-----[ COPY ]------------------------------------------ 
+# 
+copy GSOFP_1.1.9_db_install.php to GSOFP_1.1.9_db_install.php
+copy admin/admin_GSOFP_stats.php to admin/admin_GSOFP_stats.php
+copy includes/bignum.php to includes/bignum.php
+copy includes/guest_see_only_first_post.php to includes/guest_see_only_first_post.php
+copy templates/subSilver/guest_see_only_first_post.tpl to templates/subSilver/guest_see_only_first_post.tpl
+copy templates/subSilver/admin/admin_GSOFP_body.tpl to templates/subSilver/admin/admin_GSOFP_body.tpl
+copy templates/subSilver/images/num_back.gif to templates/subSilver/images/num_back.gif
+copy templates/subSilver/images/less.gif to templates/subSilver/images/less.gif
+copy templates/subSilver/images/more.gif to templates/subSilver/images/more.gif
+copy templates/subSilver/images/switch_on.gif to templates/subSilver/images/switch_on.gif
+copy templates/subSilver/images/switch_off.gif to templates/subSilver/images/switch_off.gif
+copy templates/subSilver/images/g_blank.gif to templates/subSilver/images/g_blank.gif
+copy templates/subSilver/images/lang_english/guest_see_only_first_post.gif to templates/subSilver/images/lang_english/guest_see_only_first_post.gif
+copy templates/subSilver/images/lang_english/limited_view.gif to templates/subSilver/images/lang_english/limited_view.gif
+copy templates/subSilver/images/lang_english/unlimited_view.gif to templates/subSilver/images/lang_english/unlimited_view.gif
+copy templates/subSilver/images/lang_english/a_on.gif to templates/subSilver/images/lang_english/a_on.gif
+copy templates/subSilver/images/lang_english/a_off.gif to templates/subSilver/images/lang_english/a_off.gif
+copy templates/subSilver/images/lang_english/s_on.gif to templates/subSilver/images/lang_english/s_on.gif
+copy templates/subSilver/images/lang_english/s_off.gif to templates/subSilver/images/lang_english/s_off.gif
+copy templates/subSilver/images/lang_english/p_on.gif to templates/subSilver/images/lang_english/p_on.gif
+copy templates/subSilver/images/lang_english/p_off.gif to templates/subSilver/images/lang_english/p_off.gif
+copy templates/subSilver/images/lang_english/reset.gif to templates/subSilver/images/lang_english/reset.gif
+copy templates/subSilver/images/lang_english/reset_all.gif to templates/subSilver/images/lang_english/reset_all.gif
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+index.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+							$posts = $forum_data[$j]['forum_posts'];
+							$topics = $forum_data[$j]['forum_topics'];
+# 
+#-----[ AFTER,ADD ]------------------------------------------ 
+# 
+
+							// Start Guest See Only First Post by Wicher
+							$read_limit = $forum_data[$j]['read_limited'];
+							// End Guest See Only First Post by Wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+								$last_post .= '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $forum_data[$j]['forum_last_post_id']) . '#' . $forum_data[$j]['forum_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" border="0" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" /></a>';
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+									// Start Guest See Only First Post by Wicher
+									$sql = "SELECT topic_id, topic_replies
+										FROM " . TOPICS_TABLE . " 
+										WHERE topic_last_post_id = " . $forum_data[$j]['forum_last_post_id'];
+									if( !($result = $db->sql_query($sql)) )
+									{
+										message_die(GENERAL_ERROR, 'Could not query topic_id', '', __LINE__, __FILE__, $sql);
+									}
+									if ( !($row = $db->sql_fetchrow($result)) )
+									{
+										message_die(GENERAL_MESSAGE, 'No_new_posts_last_visit');
+									}
+									$topic_id = $row['topic_id'];
+									$replies = $row['topic_replies'];
+									$db->sql_freeresult($result);
+
+									if (!$userdata['session_logged_in'] && $forum_data[$j]['read_limited'] == 1 && $replies+1 > $board_config['guest_may_see_posts'])
+									{
+										$last_post .= '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_TOPIC_URL . '=' . $topic_id) . '"><img src="' . $images['icon_latest_reply'] . '" border="0" alt="' . $lang['have_to_login'] . '" title="' . $lang['have_to_login'] . '" /></a>';
+									}
+									else
+									{
+										$last_post .= '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $forum_data[$j]['forum_last_post_id']) . '#' . $forum_data[$j]['forum_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" border="0" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" /></a>';
+									}
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+login.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	//
+	// Do a full login page dohickey if
+	// user not already logged in
+	//
+	if( !$userdata['session_logged_in'] || (isset($HTTP_GET_VARS['admin']) && $userdata['session_logged_in'] && $userdata['user_level'] == ADMIN))
+	{
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		// Start Guest See Only First Post by Wicher
+		if ( isset($HTTP_GET_VARS[POST_DATA_URL]) )
+		{
+			//
+			// Update the GSOFP login counter
+			//
+			$sql = "UPDATE " . GSOFP_TABLE . "
+				SET GSOFP_logins = GSOFP_logins + 1";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, "Could not update GSOFP login counter.", '', __LINE__, __FILE__, $sql);
+			}
+		}
+		// End Guest See Only First Post by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+					$forward_page = $forward_match[0] . '?' . $forward_page;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+					$forward_page = preg_replace("/\?".POST_DATA_URL."=/", "&".POST_DATA_URL."=", $forward_page);
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+profile.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// End page specific functions
+// ---------------------------
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// Start Guest See Only First Post by Wicher
+if ( isset($HTTP_GET_VARS[POST_DATA_URL]) )
+{
+	$data_url = $HTTP_GET_VARS[POST_DATA_URL];
+	if ( $data_url == 'gosfp_registered' )
+	{
+		//
+		// Update the GSOFP realregisters counter
+		//
+		$sql = "UPDATE " . GSOFP_TABLE . "
+			SET GSOFP_realregisters = GSOFP_realregisters + 1";
+		if ( !$db->sql_query($sql) )
+		{
+			message_die(GENERAL_ERROR, "Could not update GSOFP realregisters counter.", '', __LINE__, __FILE__, $sql);
+		}
+	}
+}
+// End Guest See Only First Post by Wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+if ( isset($HTTP_GET_VARS['mode']) || isset($HTTP_POST_VARS['mode']) )
+{
+	$mode = ( isset($HTTP_GET_VARS['mode']) ) ? $HTTP_GET_VARS['mode'] : $HTTP_POST_VARS['mode'];
+	$mode = htmlspecialchars($mode);
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// Start Guest See Only First Post by Wicher
+	if ( $mode == 'register' )
+	{
+		if ( $data_url == 'yes' )
+		{
+			$from_guest_limit_box = '&amp;'.POST_DATA_URL.'='.$HTTP_GET_VARS[POST_DATA_URL];
+			//
+			// Update the GSOFP register counter
+			//
+			$sql = "UPDATE " . GSOFP_TABLE . "
+				SET GSOFP_registers = GSOFP_registers + 1";
+			if ( !$db->sql_query($sql) )
+			{
+				message_die(GENERAL_ERROR, "Could not update GSOFP register counter.", '', __LINE__, __FILE__, $sql);
+			}
+		}
+	}
+	// End Guest See Only First Post by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewforum.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		if( ( $replies + 1 ) > $board_config['posts_per_page'] )
+		{
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+		// Start Guest See Only First Post by Wicher
+		$read_limit = $forum_row['read_limited'];
+		// End Guest See Only First Post by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+				$goto_page .= '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=" . $topic_id . "&amp;start=$j") . '">' . $times . '</a>';
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+				// Start Guest See Only First Post by Wicher
+				if (!$userdata['session_logged_in'] && $read_limit)
+				{
+					$goto_page .= '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=" . $topic_id) . '" alt="' . $lang['have_to_login'] . '" title="' . $lang['have_to_login'] . '">' . $times . '</a>';
+				}
+				else
+				{
+					$goto_page .= '<a href="' . append_sid("viewtopic.$phpEx?" . POST_TOPIC_URL . "=" . $topic_id . "&amp;start=$j") . '">' . $times . '</a>';
+				}
+				// End Guest See Only First Post by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$last_post_url = '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $topic_rowset[$i]['topic_last_post_id']) . '#' . $topic_rowset[$i]['topic_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" border="0" /></a>';
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+		// Start Guest See Only First Post by Wicher
+		if (!$userdata['session_logged_in'] && $read_limit && $replies+1 > $board_config['guest_may_see_posts'])
+		{
+			$last_post_url = '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_TOPIC_URL . '=' . $topic_id) .'"><img src="' . $images['icon_latest_reply'] . '" alt="' . $lang['have_to_login'] . '" title="' . $lang['have_to_login'] . '" border="0" /></a>';		}
+		else
+		{
+			$last_post_url = '<a href="' . append_sid("viewtopic.$phpEx?"  . POST_POST_URL . '=' . $topic_rowset[$i]['topic_last_post_id']) . '#' . $topic_rowset[$i]['topic_last_post_id'] . '"><img src="' . $images['icon_latest_reply'] . '" alt="' . $lang['View_latest_post'] . '" title="' . $lang['View_latest_post'] . '" border="0" /></a>';
+		}
+		// End Guest See Only First Post by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+viewtopic.php 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// Start initial var setup
+//
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+# 
+// Start Guest See Only First Post by Wicher
+if ( isset($HTTP_GET_VARS[POST_DATA_URL]) )
+{
+	//
+	// Update the GSOFP login counter
+	//
+	$sql = "UPDATE " . GSOFP_TABLE . "
+		SET GSOFP_reallogins = GSOFP_reallogins + 1";
+	if ( !$db->sql_query($sql) )
+	{
+		message_die(GENERAL_ERROR, "Could not update GSOFP reallogin counter.", '', __LINE__, __FILE__, $sql);
+	}
+}
+// End Guest See Only First Post by Wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$sql = "SELECT t.topic_id, t.topic_title, t.topic_status
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+, f.auth_vote
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+# 
+, f.read_limited, f.guest_sticky, f.guest_announcement, f.guest_polls, f.guest_override_conf, f.guest_num_posts 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+$forum_id = intval($forum_topic_data['forum_id']);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// Start Guest See Only First Post by Wicher
+$read_limit = intval($forum_topic_data['read_limited']);
+$announce_limit = intval($forum_topic_data['guest_announcement']);
+$sticky_limit = intval($forum_topic_data['guest_sticky']);
+$poll_limit = intval($forum_topic_data['guest_polls']);
+// End Guest See Only First Post by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	$post_days = ( !empty($HTTP_POST_VARS['postdays']) ) ? intval($HTTP_POST_VARS['postdays']) : intval($HTTP_GET_VARS['postdays']);
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// Start Guest See Only First Post by Wicher
+	if ($post_days != $lang['LogIn First'])
+	{
+	// End Guest See Only First Post by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	if ( !empty($HTTP_POST_VARS['postdays']))
+	{
+		$start = 0;
+	}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	// Start Guest See Only First Post by Wicher
+	}
+	else
+	{
+		$total_replies = intval($forum_topic_data['topic_replies']) + 1;
+	
+		$limit_posts_time = '';
+		$post_days = 0;
+	}
+	// End Guest See Only First Post by Wicher
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+//
+// Send vars to template
+//
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+// Start Guest See Only First Post by Wicher
+if (!file_exists($phpbb_root_path."admin/admin_bots.$phpEx"))
+{
+	if ( !$userdata['session_logged_in'] )
+	{
+		if ( $read_limit )
+		{
+			if (!$announce_limit && $forum_topic_data['topic_type'] == POST_ANNOUNCE)
+			{
+				// do nothing
+			}
+			else if (!$sticky_limit && $forum_topic_data['topic_type'] == POST_STICKY)
+			{
+				// do nothing
+			}
+			else 
+			{
+				if ( $board_config['guest_may_see_posts'] < $total_posts )
+				{
+					include($phpbb_root_path . 'includes/guest_see_only_first_post.'.$phpEx);
+				}
+			}
+		}
+	}
+}
+else
+{
+	if ( !$userdata['session_logged_in'] && !IS_ROBOT ) // && !IS_ROBOT is for Bot Indexing Mod 1.3.0.
+	{
+		if ( $read_limit )
+		{
+			if (!$announce_limit && $forum_topic_data['topic_type'] == POST_ANNOUNCE)
+			{
+				// do nothing
+			}
+			else if (!$sticky_limit && $forum_topic_data['topic_type'] == POST_STICKY)
+			{
+				// do nothing
+			}
+			else 
+			{
+				if ( $board_config['guest_may_see_posts'] < $total_posts )
+				{
+					include($phpbb_root_path . 'includes/guest_see_only_first_post.'.$phpEx);
+				}
+			}
+		}
+	}
+}
+// End Guest See Only First Post by Wicher
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+		$template->assign_var_from_handle('POLL_DISPLAY', 'pollbox');
+	}
+}
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// Start Guest See Only First Post by Wicher
+if ( !$userdata['session_logged_in'])
+{
+	if ( $read_limit && $poll_limit )
+	{
+	$template->assign_vars(array(
+		'POLL_DISPLAY' => ''));
+	}
+}
+// End Guest See Only First Post by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+search.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+//
+// Define initial vars
+//
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+if ( !$userdata['session_logged_in'] )
+{
+	redirect(append_sid("login.$phpEx?redirect=search.$phpEx", true));
+}
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_board.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"L_ALLOW_NAME_CHANGE" => $lang['Allow_name_change'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Guest See Only First Post by Wicher
+	"L_GUEST_SEE_ONLY_FIRST_POST" => $lang['guest_see_only_first_post_config'],
+	"L_GUEST_SEE_ONLY_FIRST_POST_EXPLAIN" => $lang['guest_see_only_first_post_explain'],
+	"I_WICHERMOD" => $images['folder_hot'],
+	"U_LWF" => 'http://www.detecties.com/phpbb2018',
+	"L_WICHERMOD" => $lang['mymod'],
+	// End Guest See Only First Post by Wicher
+#
+#-----[ FIND ]------------------------------------------------
+#
+	"POSTS_PER_PAGE" => $new['posts_per_page'],
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Guest See Only First Post by Wicher
+	"GUEST_SEE_ONLY_FIRST_POST" => $new['guest_may_see_posts'],
+	"GUEST_SEE_ONLY_FIRST_POST_MESSAGE_1" => $new['guest_alert_message_1'],
+	"GUEST_SEE_ONLY_FIRST_POST_MESSAGE_2" => $new['guest_alert_message_2'],
+	// End Guest See Only First Post by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+admin/admin_forums.php
+#
+#-----[ FIND ]------------------------------------------------
+#
+			renumber_order('category');
+			$show_index = TRUE;
+
+			break;
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Start Guest See Only First Post by Wicher
+		case 'readlimited':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$sql = "UPDATE " . FORUMS_TABLE . "
+				SET read_limited = 1
+				WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change forum read_limit to yes", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'readunlimited':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$sql = "UPDATE " . FORUMS_TABLE . "
+				SET read_limited = 0
+				WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change forum read_limit to no", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'gueststickyon':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$sql = "UPDATE " . FORUMS_TABLE . "
+				SET guest_sticky = 1
+				WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change forum sticky read_limit to yes", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'gueststickyoff':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$sql = "UPDATE " . FORUMS_TABLE . "
+				SET guest_sticky = 0
+				WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change forum sticky read_limit to yes", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'guestannouncementon':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$sql = "UPDATE " . FORUMS_TABLE . "
+				SET guest_announcement = 1
+				WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change forum announcement read_limit to no", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'guestannouncementoff':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$sql = "UPDATE " . FORUMS_TABLE . "
+				SET guest_announcement = 0
+				WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change forum announcement read_limit to no", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'guestpollson':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$sql = "UPDATE " . FORUMS_TABLE . "
+				SET guest_polls = 1
+				WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change forum poll read_limit to no", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'guestpollsoff':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$sql = "UPDATE " . FORUMS_TABLE . "
+				SET guest_polls = 0
+				WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change forum poll read_limit to no", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'guestnumpostsup':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$num = intval($HTTP_GET_VARS['num'])+1;
+			if ($num > 127)
+			{
+				$num = 127;
+			}
+			$sql = "UPDATE " . FORUMS_TABLE . "
+					SET guest_num_posts = ".$num."
+					WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change forum poll read_limit to no", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'guestnumpostsdown':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$num = intval($HTTP_GET_VARS['num'])-1;
+			if ($num < 0)
+			{
+				$num = 0;
+			}
+			$sql = "UPDATE " . FORUMS_TABLE . "
+					SET guest_num_posts = ".$num."
+					WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change forum poll read_limit to no", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'overrideconfigyes':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$sql = "UPDATE " . FORUMS_TABLE . "
+					SET guest_override_conf = 1
+					WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change override setting to yes", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+
+		case 'overrideconfigno':
+			$forum_id = intval($HTTP_GET_VARS[POST_FORUM_URL]);
+			$sql = "UPDATE " . FORUMS_TABLE . "
+					SET guest_override_conf = 0
+					WHERE forum_id = $forum_id";
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, "Couldn't change override setting to yes", "", __LINE__, __FILE__, $sql);
+			}
+			$show_index = TRUE;
+			break;
+		// End Guest See Only First Post by Wicher
+
+#
+#-----[ FIND ]------------------------------------------------
+#
+	'S_FORUM_ACTION' => append_sid("admin_forums.$phpEx"),
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+	// Guest See Only First Post by Wicher
+	"I_WICHERMOD" => $images['folder_hot'],
+	"U_WICHERMOD" => 'http://www.detecties.com/phpbb2018',
+	"L_WICHERMOD" => $lang['mymod'],
+	'L_UP' => $lang['up'],
+	'L_DOWN' => $lang['down'],
+	// End Guest See Only First Post by Wicher
+#
+#-----[ FIND ]------------------------------------------------
+#
+		for($j = 0; $j < $total_forums; $j++)
+		{
+			$forum_id = $forum_rows[$j]['forum_id'];
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+			// Guest See Only First Post by Wicher
+			$b_limited = ( $forum_rows[$j]['read_limited'] ) ? $images['forum_admin_limited_on'] : $images['forum_admin_limited_off'];
+			$b_tooltip = ( $forum_rows[$j]['read_limited'] ) ? $lang['limited'] : $lang['unlimited'];
+			if ($b_limited == $images['forum_admin_limited_on'])
+			{
+				$a_limited = ( $forum_rows[$j]['guest_announcement'] ) ? $images['forum_announce_limited_on'] : $images['forum_announce_limited_off'];
+				$a_tooltip = ( $forum_rows[$j]['guest_announcement'] ) ? $lang['announce_on'] : $lang['announce_off'];
+				$s_limited = ( $forum_rows[$j]['guest_sticky'] ) ? $images['forum_sticky_limited_on'] : $images['forum_sticky_limited_off'];
+				$s_tooltip = ( $forum_rows[$j]['guest_sticky'] ) ? $lang['sticky_on'] : $lang['sticky_off'];
+				$p_limited = ( $forum_rows[$j]['guest_polls'] ) ? $images['forum_polls_limited_on'] : $images['forum_polls_limited_off'];
+				$p_tooltip = ( $forum_rows[$j]['guest_polls'] ) ? $lang['poll_on'] : $lang['poll_off'];
+				$sw_limited = ( $forum_rows[$j]['guest_override_conf'] ) ? $images['switch_on'] : $images['switch_off'];
+				$sw_tooltip = ( $forum_rows[$j]['guest_override_conf'] ) ? $lang['switch_off'] : $lang['switch_on'];
+				if ($sw_limited == $images['switch_on'])
+				{
+					$up_limited = $images['up'];
+					$down_limited = $images['down'];
+					$cw_limited = $forum_rows[$j]['guest_num_posts'];
+					$cw_back = $images['cw_back'];
+				}
+				else
+				{
+					$cw_limited = '';
+					$cw_back = '';
+					$up_limited = $images['guest_blank'];
+					$down_limited = $images['guest_blank'];
+				}
+			}
+			else
+			{
+				$a_limited = $images['guest_blank'];
+				$s_limited = $images['guest_blank'];
+				$p_limited = $images['guest_blank'];
+				$sw_limited = $images['guest_blank'];
+				$cw_limited = '';
+				$cw_back = '';
+				$up_limited = $images['guest_blank'];
+				$down_limited = $images['guest_blank'];
+			}
+			$b_case = ( !$forum_rows[$j]['read_limited'] ) ? 'readlimited' : 'readunlimited';
+			$a_case = ( !$forum_rows[$j]['guest_announcement'] ) ? 'guestannouncementon' : 'guestannouncementoff';
+			$s_case = ( !$forum_rows[$j]['guest_sticky'] ) ? 'gueststickyon' : 'gueststickyoff';
+			$p_case = ( !$forum_rows[$j]['guest_polls'] ) ? 'guestpollson' : 'guestpollsoff';
+			$sw_case = ( !$forum_rows[$j]['guest_override_conf'] ) ? 'overrideconfigyes' : 'overrideconfigno';
+			// End Guest See Only First Post by Wicher
+#
+#-----[ FIND ]------------------------------------------------
+#
+				$template->assign_block_vars("catrow.forumrow",	array(
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+					'FORUM_ID' => $forum_rows[$j]['forum_id'],
+#
+#-----[ FIND ]------------------------------------------------
+#
+					'U_VIEWFORUM' => append_sid($phpbb_root_path."viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id"),
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+"=$forum_id")
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ . '#' . $forum_id
+#
+#-----[ FIND ]------------------------------------------------
+#
+					'U_FORUM_EDIT' => append_sid("admin_forums.$phpEx?mode=editforum&amp;" . POST_FORUM_URL . "=$forum_id"),
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+"=$forum_id")
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ . '#' . $forum_id
+#
+#-----[ FIND ]------------------------------------------------
+#
+					'U_FORUM_DELETE' => append_sid("admin_forums.$phpEx?mode=deleteforum&amp;" . POST_FORUM_URL . "=$forum_id"),
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+"=$forum_id")
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ . '#' . $forum_id
+#
+#-----[ FIND ]------------------------------------------------
+#
+					'U_FORUM_MOVE_UP' => append_sid("admin_forums.$phpEx?mode=forum_order&amp;move=-15&amp;" . POST_FORUM_URL . "=$forum_id"),
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+"=$forum_id")
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ . '#' . $forum_id
+#
+#-----[ FIND ]------------------------------------------------
+#
+					'U_FORUM_MOVE_DOWN' => append_sid("admin_forums.$phpEx?mode=forum_order&amp;move=15&amp;" . POST_FORUM_URL . "=$forum_id"),
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+"=$forum_id")
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ . '#' . $forum_id
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+					// Guest See Only First Post by Wicher
+					'U_POSTS_UP' => append_sid("admin_forums.$phpEx?mode=guestnumpostsup&amp;num=" . $forum_rows[$j]['guest_num_posts'] . "&amp;" . POST_FORUM_URL . "=$forum_id"),
+					'U_POSTS_DOWN' => append_sid("admin_forums.$phpEx?mode=guestnumpostsdown&amp;num=" . $forum_rows[$j]['guest_num_posts'] . "&amp;" . POST_FORUM_URL . "=$forum_id"),
+					'CURRENT_NUM_POSTS' => $cw_limited,
+					'B_CWBACK' => $cw_back,
+					'U_SWITCH' => append_sid("admin_forums.$phpEx?mode=$sw_case&amp;" . POST_FORUM_URL . "=$forum_id") . '#' . $forum_id,
+					'L_SWITCH' => $sw_tooltip,
+					'B_SWITCH' => $sw_limited,
+					'B_UP' => $up_limited,
+					'B_DOWN' => $down_limited,
+					'U_FORUM_LIMITED' => append_sid("admin_forums.$phpEx?mode=$b_case&amp;" . POST_FORUM_URL . "=$forum_id") . '#' . $forum_id,
+					'B_FORUM_LIMITED' => $b_limited,
+					'L_FORUM_LIMITED' => $b_tooltip,
+					'U_ANNOUNCE_LIMITED' => append_sid("admin_forums.$phpEx?mode=$a_case&amp;" . POST_FORUM_URL . "=$forum_id") . '#' . $forum_id,
+					'B_ANNOUNCE_LIMITED' => $a_limited,
+					'L_ANNOUNCE_LIMITED' => $a_tooltip,
+					'U_STICKY_LIMITED' => append_sid("admin_forums.$phpEx?mode=$s_case&amp;" . POST_FORUM_URL . "=$forum_id") . '#' . $forum_id,
+					'B_STICKY_LIMITED' => $s_limited,
+					'L_STICKY_LIMITED' => $s_tooltip,
+					'U_POLLS_LIMITED' => append_sid("admin_forums.$phpEx?mode=$p_case&amp;" . POST_FORUM_URL . "=$forum_id") . '#' . $forum_id,
+					'B_POLLS_LIMITED' => $p_limited,
+					'L_POLLS_LIMITED' => $p_tooltip,
+					// End Guest See Only First Post by Wicher
+#
+#-----[ FIND ]------------------------------------------------
+#
+					'U_FORUM_RESYNC' => append_sid("admin_forums.$phpEx?mode=forum_sync&amp;" . POST_FORUM_URL . "=$forum_id"))
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+#
+"=$forum_id")
+# 
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------ 
+#
+ . '#' . $forum_id
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/constants.php
+#
+#-----[ FIND ]------------------------------------------
+#
+define('POST_GROUPS_URL', 'g');
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Start Guest See Only First Post by Wicher
+define('POST_DATA_URL', 'd');
+// End Guest See Only First Post by Wicher
+#
+#-----[ FIND ]------------------------------------------
+#
+define('VOTE_USERS_TABLE', $table_prefix.'vote_voters');
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+// Start Guest See Only First Post by Wicher
+define('GSOFP_TABLE', $table_prefix.'GSOFP_stats');
+// End Guest See Only First Post by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+includes/usercp_register.php
+#
+#-----[ FIND ]------------------------------------------
+#
+	global $userdata, $template, $lang, $phpbb_root_path, $phpEx;
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, $phpEx
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, $from_guest_limit_box
+#
+#-----[ FIND ]------------------------------------------
+#
+		"U_AGREE_OVER13" => append_sid("profile.$phpEx?mode=register&amp;agreed=true"),
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+agreed=true
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+$from_guest_limit_box
+#
+#-----[ FIND ]------------------------------------------
+#
+		"U_AGREE_UNDER13" => append_sid("profile.$phpEx?mode=register&amp;agreed=true&amp;coppa=true"))
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+coppa=true
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+$from_guest_limit_box
+#
+#-----[ FIND ]------------------------------------------
+#
+	$template->assign_vars(array(
+		'USERNAME' => isset($username) ? $username : '',
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+	// Start Guest See Only First Post by Wicher
+	if ( $from_guest_limit_box )
+	{
+		$submit_action = append_sid("profile.$phpEx?".POST_DATA_URL."=gosfp_registered");
+	}
+	else
+	{
+		$submit_action = append_sid("profile.$phpEx");
+	}
+	// END Guest See Only First Post by Wicher
+#
+#-----[ FIND ]------------------------------------------
+#
+		'S_PROFILE_ACTION' => append_sid("profile.$phpEx"))
+#
+#-----[ REPLACE WITH ]------------------------------------------
+#
+		// Start Guest See Only First Post by Wicher
+		'S_PROFILE_ACTION' => $submit_action)
+		// END Guest See Only First Post by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+#
+#-----[ FIND ]------------------------------------------
+#
+$lang['Forum_is_locked'] = 'Forum is locked';
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+// Start Guest See Only First Post by Wicher
+$lang['login_redirect'] = 'Login here and be redirected to this Topic';
+$lang['guest_board_message'] = 'Board Message';
+$lang['guest_see_only_first_post'] = 'Board Alert';
+$lang['mymod'] = 'One of Wicher\'s Mods'; // Never ever change this
+$lang['guest_see_only_first_post_config'] = 'Number of posts to show to a guest.';
+$lang['guest_see_only_first_post_explain'] = 'Here you can specify the number of posts to be shown to a not logged in user, a so called guest, and type a message to be shown to a guest.<br />Since in the config phpbb only allows for 255 characters there is a second box you can use if one is not enough. The second boxtext will be added to the first boxtext in the actual message.<br /><br />If you use "%p" in your message, it will be replaced by the number of posts that are available to logged in users in the topic he or she is looking at.<br />In Forum Admin/Administration you can set for every forum the appropriate settings.';
+$lang['LogIn First'] = 'Login First';
+$lang['have_to_login'] = 'You have to Login First before you can view latest posts.';
+$lang['gsofptitle'] = 'Statistics for Guest See Only First Post';
+$lang['loginclicks'] = 'Guests clicked Login link / Logged In';
+$lang['registerclicks'] = 'Guests clicked Register link / Registered';
+$lang['shows'] = 'Times Box Shown';
+$lang['times'] = 'Times';
+$lang['reset'] = 'Reset this Stat'; 
+$lang['reset_all'] = 'Reset all Stats'; 
+$lang['gsofp_explain'] = 'Here you can see the times a guest has clicked at a link in the Guest Limit Box.<br />Also you see how many times the box has been displayed.';
+$lang['limited'] = 'Postview is limited for guests, click to change this setting'; 
+$lang['unlimited'] = 'Postview is unlimited for guests, click to change this setting'; 
+$lang['announce_on'] = 'Anouncementspostview is limited for guests, click to change this setting'; 
+$lang['announce_off'] = 'Anouncementspostview is unlimited for guests, click to change this setting'; 
+$lang['sticky_on'] = 'Stickypostview is limited for guests, click to change this setting'; 
+$lang['sticky_off'] = 'Stickypostview is unlimited for guests, click to change this setting'; 
+$lang['poll_on'] = 'Pollview is limited for guests, click to change this setting'; 
+$lang['poll_off'] = 'Pollview is unlimited for guests, click to change this setting'; 
+$lang['up'] = 'Set limited postview + 1'; 
+$lang['down'] = 'Set limited postview - 1'; 
+$lang['switch_off'] = 'Setting this switch to off means the Number of posts to show to a guest set in General Admin/Configuration is used.'; 
+$lang['switch_on'] = 'Setting this switch to on means the Number of posts to show to a guest set in General Admin/Configuration is not used. Instead of that setting you can set it here for just this forum.'; 
+// End Guest See Only First Post by Wicher
+
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/viewtopic_body.tpl
+#
+#-----[ FIND ]------------------------------------------------
+#
+	  <span class="gensmall"><b>{PAGINATION}</b><br />
+	  &nbsp; </span></td>
+  </tr>
+</table>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+<!-- Start Guest See Only First Post by Wicher -->
+{GUEST_SEE_ONLY_FIRST_POST_BOX}
+<!-- End Guest See Only First Post by Wicher -->
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/subSilver.cfg
+#
+#-----[ FIND ]------------------------------------------------
+#
+$images['reply_locked'] = "$current_template_images/{LANG}/reply-locked.gif";
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+// Start Guest See Only First Post by Wicher
+$images['guest_see_only_first_post'] = "$current_template_images/{LANG}/guest_see_only_first_post.gif";
+$images['forum_admin_limited_on'] = "../$current_template_images/{LANG}/limited_view.gif";
+$images['forum_admin_limited_off'] = "../$current_template_images/{LANG}/unlimited_view.gif";
+$images['forum_announce_limited_on'] = "../$current_template_images/{LANG}/a_on.gif";
+$images['forum_announce_limited_off'] = "../$current_template_images/{LANG}/a_off.gif";
+$images['forum_sticky_limited_on'] = "../$current_template_images/{LANG}/s_on.gif";
+$images['forum_sticky_limited_off'] = "../$current_template_images/{LANG}/s_off.gif";
+$images['forum_polls_limited_on'] = "../$current_template_images/{LANG}/p_on.gif";
+$images['forum_polls_limited_off'] = "../$current_template_images/{LANG}/p_off.gif";
+$images['guest_blank'] = "../$current_template_images/g_blank.gif";
+$images['reset'] = "../$current_template_images/{LANG}/reset.gif";
+$images['reset_all'] = "../$current_template_images/{LANG}/reset_all.gif";
+$images['up'] = "../$current_template_images/more.gif";
+$images['down'] = "../$current_template_images/less.gif";
+$images['cw_back'] = "../$current_template_images/num_back.gif";
+$images['switch_on'] = "../$current_template_images/switch_on.gif";
+$images['switch_off'] = "../$current_template_images/switch_off.gif";
+$images['icon_mini_login'] = "$current_template_images/icon_mini_login.gif";
+$images['icon_mini_register'] = "$current_template_images/icon_mini_register.gif";
+// End Guest See Only First Post by Wicher
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/board_config_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_ALLOW_NAME_CHANGE}</td>
+		<td class="row2"><input type="radio" name="allow_namechange" value="1" {NAMECHANGE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="allow_namechange" value="0" {NAMECHANGE_NO} /> {L_NO}</td>
+	</tr>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+	<!-- Guest See Only First Post by Wicher -->
+	<tr>
+		<td class="row3" height="3" colspan="2"></td>
+	</tr>
+	<tr>
+		<td class="row1" valign="top"><a href="{U_LWF}" target="_blank"><img src="../{I_WICHERMOD}" alt="{L_WICHERMOD}" title="{L_WICHERMOD}" border="0" align="left"></a><br /><br />{L_GUEST_SEE_ONLY_FIRST_POST_EXPLAIN}</td>
+		<td class="row2">{L_GUEST_SEE_ONLY_FIRST_POST}:&nbsp;<input class="post" type="text" size="3" name="guest_may_see_posts" value="{GUEST_SEE_ONLY_FIRST_POST}" />
+		<br /><textarea name="guest_alert_message_1" rows="5" cols="30">{GUEST_SEE_ONLY_FIRST_POST_MESSAGE_1}</textarea>
+		<br /><textarea name="guest_alert_message_2" rows="5" cols="30">{GUEST_SEE_ONLY_FIRST_POST_MESSAGE_2}</textarea></td>
+	</tr>
+	<tr>
+		<td class="row3" height="3" colspan="2"></td>
+	</tr>
+	<!-- End Guest See Only First Post by Wicher -->
+#
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/admin/forum_admin_body.tpl
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<th class="thHead" colspan="7">{L_FORUM_TITLE}</th>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+colspan="7"
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+colspan="8"
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td class="catLeft" colspan="3"><span class="cattitle"><b><a href="{catrow.U_VIEWCAT}">{catrow.CAT_DESC}</a></b></span></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+colspan="3"
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+colspan="4"
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td class="row2"><span class="gen"><a href="{catrow.forumrow.U_VIEWFORUM}" target="_new">{catrow.forumrow.FORUM_NAME}</a></span><br /><span class="gensmall">{catrow.forumrow.FORUM_DESC}</span></td>
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+# 
+		<td class="row1" align="center" valign="middle">
+			<table>
+				<tr>
+					<td><a name="{catrow.forumrow.FORUM_ID}"></a><a href="{U_WICHERMOD}" target="_blank"><img src="../{I_WICHERMOD}" alt="{L_WICHERMOD}" title="{L_WICHERMOD}" border="0" align="left"></a></td>
+					<td rowspan="2" valign="top"><a href="{catrow.forumrow.U_FORUM_LIMITED}"><img src="{catrow.forumrow.B_FORUM_LIMITED}" alt="{catrow.forumrow.L_FORUM_LIMITED}" title="{catrow.forumrow.L_FORUM_LIMITED}" border="0"></a><br /><a href="{catrow.forumrow.U_ANNOUNCE_LIMITED}"><img src="{catrow.forumrow.B_ANNOUNCE_LIMITED}" alt="{catrow.forumrow.L_ANNOUNCE_LIMITED}" title="{catrow.forumrow.L_ANNOUNCE_LIMITED}" border="0"></a><a href="{catrow.forumrow.U_STICKY_LIMITED}"><img src="{catrow.forumrow.B_STICKY_LIMITED}" alt="{catrow.forumrow.L_STICKY_LIMITED}" title="{catrow.forumrow.L_STICKY_LIMITED}" border="0"></a><a href="{catrow.forumrow.U_POLLS_LIMITED}"><img src="{catrow.forumrow.B_POLLS_LIMITED}" alt="{catrow.forumrow.L_POLLS_LIMITED}" title="{catrow.forumrow.L_POLLS_LIMITED}" border="0"></a></td>
+				</tr>
+				<tr>
+		 			<td><a href="{catrow.forumrow.U_SWITCH}"><img src="{catrow.forumrow.B_SWITCH}" border="0" alt="{catrow.forumrow.L_SWITCH}" title="{catrow.forumrow.L_SWITCH}" align="left"></a><a href="{catrow.forumrow.U_POSTS_UP}"><img src="{catrow.forumrow.B_UP}" border="0" alt="{L_UP}" title="{L_UP}"></a>&nbsp;<a href="{catrow.forumrow.U_POSTS_DOWN}"><img src="{catrow.forumrow.B_DOWN}" border="0" alt="{L_DOWN}" title="{L_DOWN}"></a><br /><table cellpadding="0" width="26" background="{catrow.forumrow.B_CWBACK}"><tr><td align="center" height="1"><span class="gensmall">{catrow.forumrow.CURRENT_NUM_POSTS}</span></td></tr></table>&nbsp;</td>
+				</tr>
+			</table>
+		</td> 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td colspan="7" class="row2"><input class="post" type="text" name="{catrow.S_ADD_FORUM_NAME}" /> <input type="submit" class="liteoption"  name="{catrow.S_ADD_FORUM_SUBMIT}" value="{L_CREATE_FORUM}" /></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+colspan="7"
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+colspan="8"
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td colspan="7" height="1" class="spaceRow"><img src="../templates/subSilver/images/spacer.gif" alt="" width="1" height="1" /></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+colspan="7"
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+colspan="8"
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		<td colspan="7" class="catBottom"><input class="post" type="text" name="categoryname" /> <input type="submit" class="liteoption"  name="addcategory" value="{L_CREATE_CATEGORY}" /></td>
+# 
+#-----[ IN-LINE FIND ]------------------------------------------ 
+# 
+colspan="7"
+# 
+#-----[ IN-LINE REPLACE WITH ]------------------------------------------ 
+# 
+colspan="8"
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

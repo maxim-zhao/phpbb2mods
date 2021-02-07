@@ -1,0 +1,266 @@
+######################################################## 
+## 外掛名稱: Forum Logo Selector MOD
+## 外掛作者: ycl6 < ycl6@users.sourceforge.net > (Y.C. LIN) http://macphpbbmod.sourceforge.net/
+## 外掛描述: 這個外掛可以讓管理員在控制台中指定討論區的 LOGO，並且顯示在首頁
+## 外掛版本: 1.0.4
+## 
+## 安裝難度: 簡單
+## 安裝時間: 5 分鐘
+##
+## 需要編輯的檔案: 5
+##	admin/admin_board.php
+##	language/lang_chinese_traditional_taiwan/lang_admin.php
+##	includes/page_header.php
+##	templates/subSilver/admin/board_config_body.tpl
+##	templates/subSilver/overall_header.tpl
+##
+## 附加的檔案: 2
+##	images/logo/subBlack.gif
+##	images/logo/subSilver.gif
+##
+## 版權聲明: http://opensource.org/licenses/gpl-license.php GNU Public License v2 
+################################################################# 
+## 由於安全上的考量, 請檢查: http://www.phpbb.com/mods/
+## 是否有此外掛的最新版本. 雖然在加入外掛資料庫前，外掛已經經過檢查
+## 但是這並不保證外掛中完全沒有安全上的問題. 
+## 對於不在外掛資料庫 (http://www.phpbb.com/mods/) 內的外掛
+## 將不會在 phpbb.com 的討論板內給予支援 
+############################################################## 
+## 作者留言:
+##	此外掛在 2.0.18 上測試過. 可以用 EasyMOD 0.2.1a 來安裝此外掛
+############################################################## 
+## 版本歷史: 
+##
+##   2004-01-20 - 版本 1.0.0
+##     	- 首次發佈
+##
+##   2004-06-28 - 版本 1.0.1
+##      - 加入複製指令，以符合 phpBB MOD Database 的投件要求
+##
+##   2004-07-09 - 版本 1.0.2
+##      - 修正複製指令，以符合 phpBB MOD Database 的投件要求
+##
+##   2004-08-22 - 版本 1.0.3
+##      - 修正複製指令，以符合 phpBB MOD Database 的投件要求
+##
+##   2005-11-12 - 版本 1.0.4
+##      - 更新至新 MOD template 並且通過 2.0.18 上的測試
+##	- 更新的程式，可讓圖示以原大小顯示
+## 
+############################################################## 
+## 在增加此外掛前, 請務必備份所有需要修改的檔案
+##############################################################
+
+# 
+#-----[ 複製 ]------------------------------------------ 
+# 注意: 這代表把 logos 文件夾複製到 phpBB 跟目錄的 images 文件夾中
+copy images/logo/subSilver.gif to images/logo/subSilver.gif 
+copy images/logo/subBlack.gif to images/logo/subBlack.gif
+
+# 
+#-----[ SQL ]------------------------------------------ 
+#
+# 請記得修改成你的資料表名稱
+INSERT INTO `phpbb_config` VALUES ('logo_image_path', 'images/logo');
+INSERT INTO `phpbb_config` VALUES ('logo_image', 'subSilver.gif');
+INSERT INTO `phpbb_config` VALUES ('logo_image_w', '200');
+INSERT INTO `phpbb_config` VALUES ('logo_image_h', '91');
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+language/lang_chinese_traditional_taiwan/lang_admin.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+#
+?>
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+#
+// Logo Selector MOD
+$lang['Logo_settings'] = 'Logo 設定';
+$lang['Logo_explain'] = '在這裡, 你可以設定討論區 Logo 存放的路徑, 並且指定使用哪一個 Logo 和 Logo 顯示的長與寬度.';
+$lang['Logo_path'] = 'Logo 存放路徑';
+$lang['Logo_path_explain'] = '在您 phpBB 2 根目錄底下的路徑, 例如: images/logo';
+$lang['Logo'] = '選擇使用的 Logo 圖示';
+$lang['Logo_dimensions '] = 'Logo 顯示大小';
+$lang['Logo_dimensions_explain'] = '(高 x 寬 像素單位). 把這兩個數字分別設定為 0 代表以原長寬大小顯示';
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+admin/admin_board.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+$style_select = style_select($new['default_style'], 'default_style', "../templates");
+
+
+# 
+#-----[ 之前, 加上 ]------------------------------------------ 
+# 
+// Logo Selector MOD
+// Get all images in the logo directory
+$dir = @opendir($phpbb_root_path . $new['logo_image_path']);
+$count = 0;
+while( $file = @readdir($dir) )
+{
+	if( !@is_dir(phpbb_realpath($phpbb_root_path . $new['logo_image_path'] . '/' . $file)) )
+	{
+		if( preg_match('/(\.gif$|\.png$|\.jpg|\.jpeg)$/is', $file) )
+		{
+			$logo[$count] = $file; 
+			$count++;
+		}
+	}
+}
+@closedir($dir);
+// Logo ListBox
+$logo_list = "";
+for( $i = 0; $i < count($logo); $i++ )
+{
+	if ($logo[$i] == $new['logo_image'])
+		$logo_list .= '<option value="' . $logo[$i] . '" selected="selected">' . $logo[$i] . '</option>'; 
+	else 
+		$logo_list .= '<option value="' . $logo[$i] . '">' . $logo[$i] . '</option>';
+}
+
+$logo_image = $new['logo_image'];
+$logo_width = $new['logo_image_w'];
+$logo_height = $new['logo_image_h'];
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	"L_ADMIN" => $lang['Acc_Admin'], 
+
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	// Logo Selector MOD
+	"L_LOGO_SETTINGS" => $lang['Logo_settings'],
+	"L_LOGO_EXPLAIN" => $lang['Logo_explain'],
+	"L_LOGO_PATH" => $lang['Logo_path'], 
+	"L_LOGO_PATH_EXPLAIN" => $lang['Logo_path_explain'],
+	"L_LOGO" => $lang['Logo'],
+	"L_LOGO_DIMENSIONS" => $lang['Logo_dimensions'],
+	"L_LOGO_DIMENSIONS_EXPLAIN" => $lang['Logo_dimensions_explain'],
+	// Logo Selector MOD
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	"TIMEZONE_SELECT" => $timezone_select,
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	// Logo Selector MOD
+	"LOGO_PATH" => $new['logo_image_path'],
+	"LOGO_IMAGE_DIR" => $phpbb_root_path . $new['logo_image_path'], 
+	"LOGO_LIST" => $logo_list,
+	"LOGO_IMAGE" => ($logo_image) ? $phpbb_root_path . $board_config['logo_image_path'] .'/' . $logo_image : '',
+	"LOGO_WIDTH" => $new['logo_image_w'],
+	"LOGO_HEIGHT" => $new['logo_image_h'],
+	// Logo Selector MOD
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+includes/page_header.php
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	'SITE_DESCRIPTION' => $board_config['site_desc'],
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	// Logo Selector MOD
+	'LOGO' => ($board_config['logo_image']) ? $phpbb_root_path . $board_config['logo_image_path'] .'/' . $board_config['logo_image'] : '',
+	'LOGO_WIDTH' => ($board_config['logo_image_w'] == 0) ? "" : 'width="' . $board_config['logo_image_w'] . '" ',
+	'LOGO_HEIGHT' => ($board_config['logo_image_h'] == 0) ? "" : 'height="' . $board_config['logo_image_h'] . '" ',
+	// Logo Selector MOD
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+#  
+templates/subSilver/admin/board_config_body.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+<p>{L_CONFIGURATION_EXPLAIN}</p>
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+<script language="javascript" type="text/javascript">
+<!--
+function update_logo(newlogo)
+{
+	document.logo_image.src = "{LOGO_IMAGE_DIR}/" + newlogo;
+}
+//-->
+</script>
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+	<tr>
+		<td class="row1">{L_ENABLE_PRUNE}</td>
+		<td class="row2"><input type="radio" name="prune_enable" value="1" {PRUNE_YES} /> {L_YES}&nbsp;&nbsp;<input type="radio" name="prune_enable" value="0" {PRUNE_NO} /> {L_NO}</td>
+	</tr>
+
+# 
+#-----[ 之後, 加上 ]------------------------------------------ 
+# 
+	<tr>
+		<th class="thHead" colspan="2">{L_LOGO_SETTINGS}</th>
+	</tr>
+	<tr>
+		<td class="row2" colspan="2"><span class="gensmall">{L_LOGO_EXPLAIN}</span></td>
+	</tr>
+	<tr> 
+	  <td class="row1">{L_LOGO_PATH}<br /><span class="gensmall">{L_LOGO_PATH_EXPLAIN}</span></td>
+	  <td class="row2"><input class="post" type="text" size="20" maxlength="255" name="logo_image_path" value="{LOGO_PATH}" /></td>
+	</tr>
+	<tr>
+		<td class="row1">{L_LOGO_DIMENSIONS}<br /><span class="gensmall">{L_LOGO_DIMENSIONS_EXPLAIN}</span></td>
+		<td class="row2"><input class="post" type="text" size="3" maxlength="4" name="logo_image_h" value="{LOGO_HEIGHT}" /> x <input class="post" type="text" size="3" maxlength="4" name="logo_image_w" value="{LOGO_WIDTH}"></td>
+	</tr>
+	<tr> 
+	  <td class="row1">{L_LOGO}</td>
+	  <td class="row2"><select name="logo_image" onchange="update_logo(this.options[selectedIndex].value);">{LOGO_LIST}</select> &nbsp; <img name="logo_image" src="{LOGO_IMAGE}" border="0" width="{LOGO_WIDTH}" height="{LOGO_HEIGHT}"/> &nbsp;</td>
+	</tr>
+
+# 
+#-----[ 打開 ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl
+
+# 
+#-----[ 尋找 ]------------------------------------------ 
+# 
+				<td><a href="{U_INDEX}"><img src="templates/subSilver/images/logo_phpBB.gif" border="0" alt="{L_INDEX}" vspace="1" /></a></td>
+
+# 
+#-----[ 在該行內尋找 ]------------------------------------------ 
+# 
+"templates/subSilver/images/logo_phpBB.gif"
+
+# 
+#-----[ 把該行取代為 ]------------------------------------------ 
+# 
+"{LOGO}" {LOGO_WIDTH}{LOGO_HEIGHT}
+
+# 
+#-----[ 儲存/關閉所有檔案 ]------------------------------------------ 
+# 
+#
+# 外掛修正結束

@@ -1,0 +1,337 @@
+#################################################################
+## MOD Title: Personal Topic
+## MOD Author: Wicher < N/A > (N/A) http://www.detecties.com/phpbb2018
+## MOD Description: Adds an option to your forum to make it so that in 
+##                  certain forums users can only start one topic and cannot reply in others.
+##                  This is very nice when you want your users to be able to create a personal diary
+##                  or something like that.
+##                  Because of the fact that other users cannot reply in some one others topic
+##                  it will stay nice and clean, or just as messy as the topicstarter wants it to be.
+##                  Mod and Admin are ofcourse able to edit or delete or reply in all topics.
+##                  When creating or editting a forum via the ACP you can schoose wether to 
+##                  make it a Personal Topic forum or not.
+##  
+## MOD Version: 1.1.0
+## 
+## Installation Level:  easy 
+## Installation Time:  10 minutes 
+## 
+## Files To Edit:    - posting.php
+##                   - admin/admin_forums.php
+##                   - language/lang_english/lang_main.php 
+##                   - templates/subSilver/admin/forum_edit_body.tpl
+##
+## 
+## Included Files: N/A
+## 
+## License:      http://opensource.org/licenses/gpl-license.php GNU General Public License v2 
+## 
+############################################################## 
+## For security purposes, please check: http://www.phpbb.com/mods/ 
+## for the latest version of this MOD. Although MODs are checked 
+## before being allowed in the MODs Database there is no guarantee 
+## that there are no security problems within the MOD. No support 
+## will be given for MODs not found within the MODs Database which 
+## can be found at http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes:   
+##		   This mod has been tested on phpbb 2.0.21 
+## 
+############################################################## 
+## MOD History: 
+##
+## 2006-11-19 - Version 1.1.0 
+##    - added auth for mods
+##
+## Submitted 1.0.0 to phpbb for aproval 17-10-2006
+##
+## Started DEVelopment state 0.0.1 15-10-2006 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+
+
+# 
+#-----[ SQL ]------------------------------------------ 
+# 
+ALTER TABLE `phpbb_forums` ADD COLUMN `pt_forum` tinyint(2) NULL DEFAULT 0;
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+posting.php
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	case 'newtopic':
+		if ( empty($forum_id) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['Forum_not_exist']);
+		}
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Personal Topic by wicher
+		$sql = "SELECT pt_forum FROM " . FORUMS_TABLE . " 
+			WHERE forum_id = $forum_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain important info for this forum', '', __LINE__, __FILE__, $sql);
+		}
+		$status = $db->sql_fetchrow($result);
+		$pt_status = $status['pt_forum'];
+		if ($pt_status == 1)
+		{
+			$sql = "SELECT topic_poster 
+			FROM " . TOPICS_TABLE . " 
+			WHERE forum_id = " . $forum_id;
+			if ( !($result = $db->sql_query($sql)) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain info for this topic', '', __LINE__, __FILE__, $sql);
+			}
+			if ( $row = $db->sql_fetchrow($result) )
+			{
+				unset ($check_id);
+				do
+				{
+					if ($row['topic_poster'] == $userdata['user_id'])
+					{
+						$check_id = 1; 
+					}
+				}
+				while ( $row = $db->sql_fetchrow($result) );
+			}
+			$is_auth = auth(AUTH_ALL, $forum_id, $userdata, $post_info);
+			if (($check_id == 1) && (!$is_auth['auth_mod']) && ($userdata['user_level'] != ADMIN))
+			{
+				$redirect_page = "viewforum.$phpEx?" . POST_FORUM_URL . "=$forum_id&amp;sid=" . $userdata['session_id'];
+				$message = sprintf($lang['Click_return_forum'], '<a href="' . $redirect_page . '">', '</a>');
+				message_die(GENERAL_MESSAGE, $lang['allready_opened'].'<br /><br />'.$message);
+			}
+		}
+		// end Personal Topic by wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+		$sql = "SELECT * 
+			FROM " . FORUMS_TABLE . " 
+			WHERE forum_id = $forum_id";
+		break;
+
+	case 'reply':
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Personal Topic by wicher
+		if ( empty( $topic_id) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['No_topic_id']);
+		}
+
+		$sql = "SELECT topic_poster, forum_id 
+		FROM " . TOPICS_TABLE . " 
+		WHERE topic_id = " . $topic_id;
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain info for this topic', '', __LINE__, __FILE__, $sql);
+		}
+		if ( $row = $db->sql_fetchrow($result) )
+		{
+			$check_id = $row['topic_poster'];
+			$f_id = $row['forum_id'];
+		}
+
+		$sql = "SELECT pt_forum FROM " . FORUMS_TABLE . " 
+			WHERE forum_id = $f_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain important info for this forum', '', __LINE__, __FILE__, $sql);
+		}
+		$status = $db->sql_fetchrow($result);
+		$pt_status = $status['pt_forum'];
+
+		$is_auth = auth(AUTH_ALL, $f_id, $userdata, $post_info);
+		if (($pt_status == 1) && (!$is_auth['auth_mod']) && ($userdata['user_level'] != ADMIN))
+		{
+			if ($check_id != $userdata['user_id'])
+			{
+				$redirect_page = "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;sid=" . $userdata['session_id'];
+				$message = sprintf($lang['Click_return_topic'], '<a href="' . $redirect_page . '">', '</a>');
+				message_die(GENERAL_MESSAGE, $lang['cannot_write'].'<br /><br />'.$message);
+			}
+		}
+		// end Personal Topic by wicher
+
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+	case 'quote':
+	case 'editpost':
+
+# 
+#-----[ AFTER, ADD ]------------------------------------------ 
+#
+		// Personal Topic by wicher
+		if ( empty($post_id) )
+		{
+			message_die(GENERAL_MESSAGE, $lang['No_post_id']);
+		}
+
+		$sql = "SELECT poster_id, forum_id, topic_id 
+		FROM " . POSTS_TABLE . " 
+		WHERE post_id = " . $post_id;
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain info for this post', '', __LINE__, __FILE__, $sql);
+		}
+		if ( $row = $db->sql_fetchrow($result) )
+		{
+			$check_id = $row['poster_id'];
+			$f_id = $row['forum_id'];
+			$topic_id = $row['topic_id'];
+		}
+
+		$sql = "SELECT pt_forum FROM " . FORUMS_TABLE . " 
+			WHERE forum_id = $f_id";
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not obtain important info for this forum', '', __LINE__, __FILE__, $sql);
+		}
+		$status = $db->sql_fetchrow($result);
+		$pt_status = $status['pt_forum'];
+
+		$is_auth = auth(AUTH_ALL, $f_id, $userdata, $post_info);
+		if (($pt_status == 1) && (!$is_auth['auth_mod']) && ($userdata['user_level'] != ADMIN))
+		{
+			if ($check_id != $userdata['user_id'])
+			{
+				$redirect_page = "viewtopic.$phpEx?" . POST_TOPIC_URL . "=$topic_id&amp;sid=" . $userdata['session_id'];
+				$message = sprintf($lang['Click_return_topic'], '<a href="' . $redirect_page . '">', '</a>');
+				message_die(GENERAL_MESSAGE, $lang['cannot_write'].'<br /><br />'.$message);
+			}
+		}
+		// end Personal Topic by wicher
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_forums.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+			$template->set_filenames(array(
+				"body" => "admin/forum_edit_body.tpl")
+			);
+
+			$s_hidden_fields = '<input type="hidden" name="mode" value="' . $newmode .'" /><input type="hidden" name="' . POST_FORUM_URL . '" value="' . $forum_id . '" />';
+
+#
+#-----[ BEFORE, ADD ]------------------------------------------
+#
+			$pt_status_value = intval($row['pt_forum']);
+			if ($pt_status_value == 1)
+			{
+				$pt_status =	'<option value="1" selected="selected">'.$lang['Yes'].'</option>';
+				$pt_status .= '<option value="0">'.$lang['No'].'</option>';
+			}
+			else
+			{
+				$pt_status =	'<option value="1">'.$lang['Yes'].'</option>';
+				$pt_status .= '<option value="0" selected="selected">'.$lang['No'].'</option>';
+			}
+
+#
+#-----[ FIND ]------------------------------------------
+#
+				'S_STATUS_LIST' => $statuslist,
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				'S_PT_STATUS_LIST' => $pt_status,
+#
+#-----[ FIND ]------------------------------------------
+#
+				'L_FORUM_STATUS' => $lang['Forum_status'],
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+				'L_PT_ENABLED' => $lang['pt_enabled'],
+#
+#-----[ FIND ]------------------------------------------
+#
+			$sql = "INSERT INTO " . FORUMS_TABLE . " (forum_id, forum_name, cat_id, forum_desc, forum_order, forum_status, prune_enable" . $field_sql . ")
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, forum_status
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, pt_forum
+#
+#-----[ FIND ]------------------------------------------
+#
+				VALUES ('" . $next_id . "', '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', $next_order, " . intval($HTTP_POST_VARS['forumstatus']) . ", " . intval($HTTP_POST_VARS['prune_enable']) . $value_sql . ")";
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, " . intval($HTTP_POST_VARS['forumstatus']) . "
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, " . intval($HTTP_POST_VARS['ptstatus']) . "
+#
+#-----[ FIND ]------------------------------------------
+#
+				SET forum_name = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumname']) . "', cat_id = " . intval($HTTP_POST_VARS[POST_CAT_URL]) . ", forum_desc = '" . str_replace("\'", "''", $HTTP_POST_VARS['forumdesc']) . "', forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . ", prune_enable = " . intval($HTTP_POST_VARS['prune_enable']) . "
+#
+#-----[ IN-LINE FIND ]------------------------------------------
+#
+, forum_status = " . intval($HTTP_POST_VARS['forumstatus']) . "
+#
+#-----[ IN-LINE AFTER, ADD ]------------------------------------------
+#
+, pt_forum = " . intval($HTTP_POST_VARS['ptstatus']) . "
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+language/lang_english/lang_main.php
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+?>
+# 
+#-----[ BEFORE, ADD ]------------------------------------------ 
+#
+// Personal Topic
+$lang['pt_enabled'] = 'Make this a Personal Topics Forum<br />Forums users can only start one topic and cannot reply in others.';
+$lang['allready_opened'] = 'You already opened a topic in this forum, you cannot open another one here.<br />Use your existing topic to write whatever you want.';
+$lang['cannot_write'] = 'You are (in this forum) not allowed to write in the topic that belongs to someone else.<br />Look up your own topic to write in or start one for your self..';
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+templates/subSilver/admin/forum_edit_body.tpl
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	<tr> 
+	  <td class="row1">{L_FORUM_STATUS}</td>
+	  <td class="row2"><select name="forumstatus">{S_STATUS_LIST}</select></td>
+	</tr>
+#
+#-----[ AFTER, ADD ]------------------------------------------
+#
+	<tr>
+	  <td class="row1">{L_PT_ENABLED}</td>
+	  <td class="row2"><select name="ptstatus">{S_PT_STATUS_LIST}</select></td>
+	</tr>  
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM 

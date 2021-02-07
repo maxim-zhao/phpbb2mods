@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type="text/xsl" href="modx.subsilver.en.xsl"?>
+<!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
+<mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.0.xsd">
+	<header>
+		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+		<title lang="en-gb">EZ Content</title>
+		<description lang="en-gb"><![CDATA[Provides an easy way of having website content. Uses topics
+from your board, and displays them as webpages (http://yourdomain.com/content.php?t=TOPICid).
+Forum permission is configureable. Supplied is an addon, to show how to customize into an Announcements Page.]]></description>
+		<author-notes><![CDATA[Please read the README.html to find out how to use
+and configure this addon]]></author-notes>
+		<author-group>
+			<author>
+				<realname>Chris Bridges</realname>
+				<email>chris.j.bridges@gmail.com</email>
+				<username>christhatsme</username>
+				<homepage>http://chris.laxforums.co.uk</homepage>
+				<contributions />
+			</author>
+		</author-group>
+		<mod-version>
+			<major>1</major>
+			<minor>1</minor>
+			<revision>2</revision>
+		</mod-version>
+		<installation>
+			<level>Easy</level>
+			<time>180</time>
+			<target-version>
+				<target-primary>2.0</target-primary>
+				<target-major allow="exact">2</target-major>
+				<target-minor allow="exact">0</target-minor>
+			</target-version>
+		</installation>
+		<history>
+			<entry>
+				<date>2006-05-31</date>
+				<rev-version>
+					<major>1</major>
+					<minor>1</minor>
+					<revision>2</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> fixed minor bugs for MOD team</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-04-16</date>
+				<rev-version>
+					<major>1</major>
+					<minor>1</minor>
+					<revision>1</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> fixed minor bugs for MOD team</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-04-02</date>
+				<rev-version>
+					<major>1</major>
+					<minor>1</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> content.php is now a menu</change>
+					<change> new way of viewing (content.php?mode=view&amp;t=ID</change>
+					<change> Fixed all bugs, now resubmitting to MOD DB</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-02-13</date>
+				<rev-version>
+					<major>1</major>
+					<minor>0</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> First Release</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-02-12</date>
+				<rev-version>
+					<major>0</major>
+					<minor>8</minor>
+					<revision>1</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> Fixed bug in install script</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-02-11</date>
+				<rev-version>
+					<major>0</major>
+					<minor>8</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> View bug fixes</change>
+					<change> Added language support</change>
+				</changelog>
+			</entry>
+			<entry>
+				<date>2006-02-11</date>
+				<rev-version>
+					<major>0</major>
+					<minor>7</minor>
+					<revision>0</revision>
+				</rev-version>
+				<changelog lang="en-gb">
+					<change> BETA</change>
+				</changelog>
+			</entry>
+		</history>
+	</header>
+	<action-group>
+		<copy>
+			<file from="root/content.php"  to="content.php" />
+			<file from="root/templates/subSilver/content_body.tpl"  to="templates/subSilver/content_body.tpl" />
+			<file from="root/templates/subSilver/content_pages_body.tpl"  to="templates/subSilver/content_pages_body.tpl" />
+		</copy>
+		<open src="language/lang_english/lang_main.php">
+			<edit>
+				<find><![CDATA[?>
+]]></find>
+				<action type="before-add"><![CDATA[
+//
+// BEGIN EZ Content MOD by christhatsme
+//
+
+$lang['data_error'] = 'Error in Getting Data';
+$lang['permission_error'] = 'This entry does not have the requred permission to be viewed';
+$lang['Viewing_Content'] = 'Viewing Content';
+$lang['News_Posted_By'] = 'Posted by';
+$lang['News_Views'] = 'Views';
+$lang['And'] = 'and';
+$lang['News_Replies'] = 'Replies';
+$lang['News_Post'] = 'Post reply';
+$lang['EZcontent'] = 'Content';
+
+// 
+// END EZ Content MOD by christhatsme
+//
+]]></action>
+			</edit>
+		</open>
+		<open src="includes/constants.php">
+			<edit>
+				<find><![CDATA[define('PAGE_TOPIC_OFFSET', 5000);
+]]></find>
+				<action type="after-add"><![CDATA[define('PAGE_CONTENT', -1250);
+]]></action>
+			</edit>
+		</open>
+		<open src="viewonline.php">
+			<edit>
+				<find><![CDATA[				case PAGE_FAQ:
+					$location = $lang['Viewing_FAQ'];
+					$location_url = "faq.$phpEx";
+					break;
+]]></find>
+				<action type="after-add"><![CDATA[				case PAGE_CONTENT:
+					$location = $lang['Viewing_Content'];
+					$location_url = "content.$phpEx";
+					break;
+]]></action>
+			</edit>
+		</open>
+		<open src="admin/index.php">
+			<edit>
+				<find><![CDATA[						case PAGE_FAQ:
+							$location = $lang['Viewing_FAQ'];
+							$location_url = "index.$phpEx?pane=right";
+							break;
+]]></find>
+				<action type="after-add"><![CDATA[						case PAGE_CONTENT:
+							$location = $lang['Viewing_Content'];
+							$location_url = "index.$phpEx?pane=right";
+							break;
+]]></action>
+			</edit>
+		</open>
+		<diy-instructions><![CDATA[In order to configure this MOD:
+
+1) Edit content.php
+
+2) Enter configuration Details]]></diy-instructions>
+	</action-group>
+</mod>

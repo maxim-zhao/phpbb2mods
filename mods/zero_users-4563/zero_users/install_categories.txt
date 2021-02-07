@@ -1,0 +1,76 @@
+############################################################## 
+## MOD Title: Hide Zero Posters - Categories Hierarchy Addition
+## MOD Author: TerraFrost < N/A > (Jim Wigginton) http://www.frostjedi.com/phpbb
+## MOD Description: Removes members with zero-posts from the memberlist, et al.
+## MOD Version: 2.0.0
+##
+## Installation Level: Easy
+## Installation Time: 1 Minutes
+##
+## Files To Edit: 2
+##      includes/functions_categories_hierarchy.php
+##      admin/admin_board.php
+##############################################################
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered
+## in our MOD-Database, located at: http://www.phpbb.com/mods/
+##############################################################
+## Author Notes:
+##
+##   You should install this *only* if you have the Categories Hierarchy mod installed, and 
+##   only after you've run through install.txt.
+##
+##   The reason this is necessary is because the Categories Hiearchy mod changes the way
+##   the number of members is determined.  Before installing it, phpBB counts every member,
+##   and reports the total.  Afterwards, phpBB reports the number listed in the max_users row.
+##   In that way, it is similar to the way member post counts are stored.
+##
+##   The latest version of this mod can be found here:
+##   http://www.frostjedi.com/terra/scripts/phpbb/zero_users.zip
+##
+##   For support / comments / whatever, visit here:
+##   http://www.frostjedi.com/phpbb/viewforum.php?f=33
+##
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+# STEP NUMBER I: Modify Files
+#
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+includes/functions_categories_hierarchy.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+	// max users
+	$sql = "SELECT COUNT(user_id) AS user_total FROM " . USERS_TABLE . " WHERE user_id > 0";
+
+#
+#-----[	REPLACE WITH ]----------------------------------
+#
+	// max users
+	$sql = "SELECT COUNT(user_id) AS user_total FROM " . USERS_TABLE . " WHERE user_id > 0" . ($board_config['zero_count'] ? "  AND user_posts <> 0" : "");
+
+#
+#-----[ OPEN ]------------------------------------------
+#
+admin/admin_board.php
+
+#
+#-----[ FIND ]------------------------------------------
+#
+include($phpbb_root_path . 'includes/functions_selects.'.$phpEx);
+
+#
+#-----[	AFTER, ADD ]------------------------------------
+#
+$HTTP_POST_VARS['max_users'] = 0;
+
+#
+#-----[	SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

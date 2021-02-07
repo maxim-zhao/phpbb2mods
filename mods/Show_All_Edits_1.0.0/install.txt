@@ -1,0 +1,157 @@
+##############################################################
+## MOD Title: Show All Edits
+## MOD Author: xx521xx < N/A > (N/A) N/A
+## MOD Description: This MOD will update the "last edited by" line at the
+##                                     bottom of a post when a moderator or
+##                                     administrator edits it, as well as noting edits to the
+##                                     last post in a topic.
+## MOD Version: 1.0.0
+##
+## Installation Level: Easy
+## Installation Time: ~5 Minutes
+## Files To Edit: viewtopic.php, includes/functions_post.php,
+##                            language/lang_english/lang_main.php
+## Included Files: N/A
+## License: http://opensource.org/licenses/gpl-license.php GNU General Public License v2
+##############################################################
+## For security purposes, please check: http://www.phpbb.com/mods/
+## for the latest version of this MOD. Although MODs are checked
+## before being allowed in the MODs Database there is no guarantee
+## that there are no security problems within the MOD. No support
+## will be given for MODs not found within the MODs Database which
+## can be found at http://www.phpbb.com/mods/
+##############################################################
+## Author Notes: phpBB has a function to record how many times a post
+## has been edited, as well as who last edited it. However, phpBB only
+## records edits by the original poster - not by staff members. phpBB
+## also ignores edits made to the most recent post in a topic. This MOD
+## will change both of these things, so ALL edits will be recorded!
+##
+## This MOD makes no changes to template files, so it should work with
+## any template. Currently, it is only available in English, although the
+## single bit of text it adds will usually not be seen anyway (only if a user
+## is deleted after editing a post).
+##############################################################
+## MOD History:
+##
+##   12/2/06 - Version 1.0.0
+##      - First version
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#----[ SQL ]------------------------------
+#
+# Note that if your table prefix is not the default phpbb_, you will need
+# to change "phpbb_users" to match your prefix.
+#
+ALTER TABLE phpbb_posts ADD post_edit_user_id mediumint(8) DEFAULT 0 NOT NULL;
+#
+#----[ OPEN ]----------------------------
+#
+viewtopic.php
+#
+#----[ FIND ]-----------------------------
+#
+# This is a partial find. The full line, if not previously modified, is:
+# $l_edit_time_total = ( $postrow[$i]['post_edit_count'] == 1 ) ? $lang['Edited_time_total'] : $lang['Edited_times_total'];
+#
+$l_edit_time_total =
+#
+#----[ AFTER, ADD ]------------------
+#
+# Add this on a new line, without changing the line you just found.
+# This applies to all AFTER, ADD commands.
+#
+
+		// Figure out who edited this post last
+		// If the data is missing, assume the original poster did
+		if (!$postrow[$i]['post_edit_user_id'] || $postrow[$i]['post_edit_user_id'] == $postrow[$i]['poster_id'] )
+		{
+			$edited_by = $poster;
+		}
+		else
+		{
+			$edited_by_sql = 'SELECT username
+				FROM '.USERS_TABLE.'
+				WHERE user_id = '.$postrow[$i]['post_edit_user_id'];
+
+			if ( !( $result = $db->sql_query($edited_by_sql) ) )
+			{
+				message_die(GENERAL_ERROR, 'Could not obtain user information.');
+			}
+
+			if ( $row = $db->sql_fetchrow($result) )
+			{
+				$edited_by = $row['username'];
+			}
+			else
+			{
+				// If no users match the user ID, assume that the user no longer exists
+				$edited_by = $lang['A_former_user'];
+			}
+		}
+#
+#----[ FIND ]---------------------------------
+#
+# Full line:
+# $l_edited_by = '<br /><br />' . sprintf($l_edit_time_total, $poster, create_date($board_config['default_dateformat'], $postrow[$i]['post_edit_time'], $board_config['board_timezone']), $postrow[$i]['post_edit_count']);
+#
+$l_edited_by = '<br />
+#
+#----[ IN-LINE FIND ]--------------------
+#
+$poster
+#
+#----[ IN-LINE REPLACE WITH ]-----
+#
+$edited_by
+#
+#----[ OPEN ]--------------------------------
+#
+includes/functions_post.php
+#
+#----[ FIND ]---------------------------------
+#
+# Full line:
+# $edited_sql = ($mode == 'editpost' && !$post_data['last_post'] && $post_data['poster_post']) ? ", post_edit_time = $current_time, post_edit_count = post_edit_count + 1 " : "";
+#
+$edited_sql =
+#
+#----[ IN-LINE FIND ]-------------------
+#
+'editpost' && !$post_data['last_post'] && $post_data['poster_post'])
+#
+#----[ IN-LINE REPLACE WITH ]-----
+#
+'editpost')
+#
+#----[ IN-LINE FIND ]---------------------
+#
+# In the same line
+#
+$current_time
+#
+#----[ IN-LINE AFTER, ADD ]--------
+#
+, post_edit_user_id = ".$userdata['user_id']."
+#
+#----[ OPEN ]-------------------------------
+#
+language/lang_english/lang_main.php
+#
+#----[ FIND ]---------------------------------
+#
+#Full line:
+# $lang['No_posts_topic'] = 'No posts exist for this topic';
+#
+$lang['No_posts_topic']
+#
+#----[ AFTER, ADD ]-------------------
+#
+$lang['A_former_user'] = 'a former user';
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM

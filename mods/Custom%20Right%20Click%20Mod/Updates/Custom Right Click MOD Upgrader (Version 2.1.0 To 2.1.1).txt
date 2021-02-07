@@ -1,0 +1,162 @@
+############################################################## 
+## MOD Title: Custom Right Click MOD Upgrader (Version 2.1.0 To 2.1.0)
+## MOD Author: umarsa < umar_ahmed_salim@hotmail.com > (Umar Salim) http://www.support.isua.co.uk 
+## MOD Author, secondary: Saabir Salim < saabirsa@hotmail.com > (Saabir Salim) http://www.support.isua.co.uk 
+## MOD Description: This MOD Adds A Custom Right Click Menu Editable In The ACP On All phpBB Pages. 
+## MOD Version: 1.0.0 
+## 
+## Installation Level: Easy 
+## Installation Time: ~3 minutes (1 minute With The Almighty Easymod :-P)
+## Files To Edit:   1 
+##			o templates/subSilver/overall_header.tpl 
+## Included Files:  0
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+############################################################## 
+## Author Notes: Updates Files And SQL
+############################################################## 
+## MOD History: 
+##
+##   2005-03-03 - Version 1.0.0 
+## 
+##      - First Stable Release (Version 1.0.0) 
+## 
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+##############################################################
+# 
+#-----[ OPEN ]------------------------------------------ 
+# 
+templates/subSilver/overall_header.tpl 
+# 
+#-----[ FIND ]------------------------------------------ 
+# 
+<!-- I S U A  T E A M --> 
+<!-- Begin Right Click Menu MOD --> 
+<div id="ie5menu" class="skin0" onMouseover="highlightie5()" onMouseout="lowlightie5()" onClick="jumptoie5();"> 
+<div class="menuitems" url="{ISUA_LINK1}">{ISUA_NAME1}</div> 
+<div class="menuitems" url="{ISUA_LINK2}">{ISUA_NAME2}</div> 
+<hr> 
+<div class="menuitems" url="{ISUA_LINK3}">{ISUA_NAME3}</div> 
+<div class="menuitems" url="{ISUA_LINK4}">{ISUA_NAME4}</div> 
+<hr> 
+<div class="menuitems" url="{ISUA_LINK5}">{ISUA_NAME5}</div>  
+<div class="menuitems" url="{ISUA_LINK6}">{ISUA_NAME6}</div> 
+<hr>
+<div class="menuitems" url="{ISUA_LINK7}">{ISUA_NAME7}</div>  
+<div class="menuitems" url="{ISUA_LINK8}">{ISUA_NAME8}</div> 
+<hr>
+<div class="menuitems" url="{ISUA_LINK9}">{ISUA_NAME9}</div>  
+</div> 
+<script language="JavaScript1.2"> 
+if (document.all && window.print) { 
+ie5menu.className = menuskin; 
+document.oncontextmenu = showmenuie5; 
+document.body.onclick = hidemenuie5; 
+} 
+</script> 
+<!-- I S U A  T E A M --> 
+<!-- End Right Click Menu MOD --> 
+# 
+#-----[ REPLACE WITH ]------------------------------------------ 
+# 
+<!-- I S U A  T E A M --> 
+<!-- Begin Right Click Menu MOD --> 
+{ISUA_RCOF1}
+<div id="ie5menu" class="skin0" onMouseover="highlightie5(event)" onMouseout="lowlightie5(event)" onClick="jumptoie5(event)" display:none>
+<div class="menuitems" url="index.php">Home</div> 
+<div class="menuitems" url="faq.php">FAQ</div> 
+<hr><div class="menuitems" url="search.php">Search</div> 
+<div class="menuitems" url="memberlist.php">Memberlist</div> 
+<hr><div class="menuitems" url="groupcp.php">Usergroups</div>  
+<div class="menuitems" url="viewonline.php">Who is Online?</div> 
+<hr><div class="menuitems" url="profile.php?mode=editprofile">Profile</div>  
+<div class="menuitems" url="privmsg.php?folder=inbox">P.M.</div> 
+<hr><div class="menuitems" url="javascript:history.back();">Go Back</div>  
+</div> 
+<script language="JavaScript1.2">
+// This Code Thanks To http://www.dynamicdrive.com/
+//set this variable to 1 if you wish the URLs of the highlighted menu to be displayed in the status bar
+var display_url=0
+
+var ie5=document.all&&document.getElementById
+var ns6=document.getElementById&&!document.all
+if (ie5||ns6)
+var menuobj=document.getElementById("ie5menu")
+
+function showmenuie5(e){
+//Find out how close the mouse is to the corner of the window
+var rightedge=ie5? document.body.clientWidth-event.clientX : window.innerWidth-e.clientX
+var bottomedge=ie5? document.body.clientHeight-event.clientY : window.innerHeight-e.clientY
+
+//if the horizontal distance isn't enough to accomodate the width of the context menu
+if (rightedge<menuobj.offsetWidth)
+//move the horizontal position of the menu to the left by it's width
+menuobj.style.left=ie5? document.body.scrollLeft+event.clientX-menuobj.offsetWidth : window.pageXOffset+e.clientX-menuobj.offsetWidth
+else
+//position the horizontal position of the menu where the mouse was clicked
+menuobj.style.left=ie5? document.body.scrollLeft+event.clientX : window.pageXOffset+e.clientX
+
+//same concept with the vertical position
+if (bottomedge<menuobj.offsetHeight)
+menuobj.style.top=ie5? document.body.scrollTop+event.clientY-menuobj.offsetHeight : window.pageYOffset+e.clientY-menuobj.offsetHeight
+else
+menuobj.style.top=ie5? document.body.scrollTop+event.clientY : window.pageYOffset+e.clientY
+
+menuobj.style.visibility="visible"
+return false
+}
+
+function hidemenuie5(e){
+menuobj.style.visibility="hidden"
+}
+
+function highlightie5(e){
+var firingobj=ie5? event.srcElement : e.target
+if (firingobj.className=="menuitems"||ns6&&firingobj.parentNode.className=="menuitems"){
+if (ns6&&firingobj.parentNode.className=="menuitems") firingobj=firingobj.parentNode //up one node
+firingobj.style.backgroundColor="highlight"
+firingobj.style.color="white"
+if (display_url==1)
+window.status=event.srcElement.url
+}
+}
+
+function lowlightie5(e){
+var firingobj=ie5? event.srcElement : e.target
+if (firingobj.className=="menuitems"||ns6&&firingobj.parentNode.className=="menuitems"){
+if (ns6&&firingobj.parentNode.className=="menuitems") firingobj=firingobj.parentNode //up one node
+firingobj.style.backgroundColor=""
+firingobj.style.color="black"
+window.status=''
+}
+}
+
+function jumptoie5(e){
+var firingobj=ie5? event.srcElement : e.target
+if (firingobj.className=="menuitems"||ns6&&firingobj.parentNode.className=="menuitems"){
+if (ns6&&firingobj.parentNode.className=="menuitems") firingobj=firingobj.parentNode
+if (firingobj.getAttribute("target"))
+window.open(firingobj.getAttribute("url"),firingobj.getAttribute("target"))
+else
+window.location=firingobj.getAttribute("url")
+}
+}
+//NetscapeRCS
+if (ie5||ns6){
+menuobj.style.display=''
+document.oncontextmenu=showmenuie5
+document.onclick=hidemenuie5
+}
+
+</script>
+<!-- I S U A  T E A M --> 
+<!-- End Right Click Menu MOD --> 
+# 
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------ 
+# 
+# EoM
+#

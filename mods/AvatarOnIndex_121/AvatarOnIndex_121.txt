@@ -1,0 +1,175 @@
+##############################################################
+## MOD Title: Avatar on index
+## MOD Author: RedFoxy < redfoxy@redfoxy.it > (Massimo Ciccio') http://www.redfoxy.it/
+## MOD Description: Insert user avatar (with link to search about last message recived),
+##                  user name (with link to user's profile) and last message recived on
+##                  index page near who is online table box.
+##                  Very usefully!
+##
+## MOD Version: 1.2.1
+##
+## Installation Level: Easy
+## Installation Time: 1 Minutes
+## Files To Edit:
+##         index.php
+##         templates/subSilver/index_body.tpl 
+##
+## Included Files:
+##
+############################################################## 
+## For Security Purposes, Please Check: http://www.phpbb.com/mods/ for the 
+## latest version of this MOD. Downloading this MOD from other sites could cause malicious code 
+## to enter into your phpBB Forum. As such, phpBB will not offer support for MOD's not offered 
+## in our MOD-Database, located at: http://www.phpbb.com/mods/ 
+##############################################################
+## Author Notes:
+## That's my first release of that MOD, just to remember what I've do...
+## I have tested this MOD whit phpBB 2.0.4/2.0.6/2.0.10 with MySQL Database 3.23.56/4.0.16
+##
+## EasyMod: Tested with 0.1.13
+##
+## Future versions can be found at http://www.redfoxy.it
+## I've set up a support forum for my mods at http://www.forum.redfoxy.com (it's an
+## italian forum but you can post in english without problems.
+##
+## This MOD is released under the GPL License.
+## Intellectual Property is retained by the MOD Author(s) listed above
+## Copyright:      (C) 2004 Avatar on index 1.2.0 - RedFoxy
+##
+##############################################################
+## MOD History:
+##
+##   2004-11-08 - Version 1.2.0
+##   - Corrected some typo for phpbb.com mod database
+##
+##   2004-11-08 - Version 1.2.0
+##   - Add link to search about last message recived
+##   - Changed support to user's message and profile
+##   - Draw tpl again
+##   - EasyMod 0.1.13 compliant
+##
+##   2004-11-05 - Version 1.0.1
+##   - Typo corrected
+##   - Add link to edit profile
+##   - Draw new tpl
+##
+##   2004-11-03 - Version 1.0.0
+##   - First release
+############################################################## 
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD 
+############################################################## 
+#
+#-----[ OPEN ]----------------------------------------------------------
+#
+index.php
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+<?php
+#
+#-----[ AFTER, ADD ]----------------------------------------------------
+#
+//-- mod : Avatar on index -------------------------------------------------------------------------
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+	$template->set_filenames(array(
+		'body' => 'index_body.tpl')
+	);
+#
+#-----[ BEFORE, ADD ]---------------------------------------------------
+#
+//-- mod : Avatar on index -------------------------------------------------------------------------
+//-- add
+	if( $userdata['session_logged_in'] )
+	{
+		$sql = "SELECT u.user_avatar, u.user_avatar_type, u.user_id, u.user_allowavatar, u.username
+			FROM " . USERS_TABLE . " u
+			WHERE u.user_id = " . $userdata['user_id'] ;
+		if ( !($result = $db->sql_query($sql)) )
+		{
+			message_die(GENERAL_ERROR, 'Could not query user information', '', __LINE__, __FILE__, $sql);
+		}
+			$avatarrow = $db->sql_fetchrow($result);
+
+		if ( $avatarrow['user_avatar_type'] && $userdata['user_id'] != ANONYMOUS && $avatarrow['user_allowavatar'] )
+		{
+			switch( $avatarrow['user_avatar_type'] )
+			{
+				case USER_AVATAR_UPLOAD:
+					$user_avatar = ( $board_config['allow_avatar_upload'] ) ? $board_config['avatar_path'] . '/' . $avatarrow['user_avatar'] : '';
+					break;
+				case USER_AVATAR_REMOTE:
+					$user_avatar = ( $board_config['allow_avatar_remote'] ) ? $avatarrow['user_avatar'] : '';
+					break;
+				case USER_AVATAR_GALLERY:
+					$user_avatar = ( $board_config['allow_avatar_local'] ) ? $board_config['avatar_gallery_path'] . '/' . $avatarrow['user_avatar'] : '';
+					break;
+			}
+			$user_avatar = '<a href="' . append_sid($phpbb_root_path.'search.'.$phpEx.'?search_id=egosearch') .
+					'"><img src="' . $user_avatar . '" alt="' . $avatarrow['username'] . '" border="0" /></a><br>';
+		}
+		$user_name = '<a href="' . append_sid($phpbb_root_path.'profile.'.$phpEx.'?mode=editprofile') .
+				'"><b>' . $avatarrow['username'] . '</b></a>';
+
+		$sql = "SELECT COUNT(post_id) as tot
+			FROM " . POSTS_TABLE . "
+			WHERE post_time >= " . $userdata['user_lastvisit'] . "
+			AND poster_id != " . $userdata['user_id'];
+
+		$result = $db->sql_query($sql);
+
+		if( $result )
+		{
+			$row = $db->sql_fetchrow($result);
+			$user_newposts = '<a href="' . append_sid($phpbb_root_path.'search.'.$phpEx.'?search_id=newposts') .
+						'" class="gensmall">' . $lang['Search_new'] . ' (' . $row['tot'] .')</a>';
+		}
+	}
+	else
+	{
+		$user_avatar = '';
+	}
+//-- end : Avatar on index -------------------------------------------------------------------------
+
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+                'FORUM_LOCKED_IMG' => $images['forum_locked'],
+#
+#-----[ AFTER, ADD ]----------------------------------------------------
+#
+
+//-- mod : Avatar on index -------------------------------------------------------------------------
+//-- add
+		'USER_AVATAR' => $user_avatar,
+		'USER_NAME' => $user_name,
+		'USER_NEWPOSTS' => $user_newposts,
+//-- end : Avatar on index -------------------------------------------------------------------------
+#
+#-----[ OPEN ]----------------------------------------------------------
+#
+templates/subSilver/index_body.tpl 
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+#
+<table width="100%" cellspacing="0" cellpadding="2" border="0" align="center">
+#
+#-----[ BEFORE, ADD ]---------------------------------------------------
+#
+<!-- mod : Avatar on index -->
+#
+#-----[ FIND ]----------------------------------------------------------
+#
+	<td class="row1" align="center" valign="middle" rowspan="2"><img src="templates/subSilver/images/whosonline.gif" alt="{L_WHO_IS_ONLINE}" /></td>
+#
+#-----[ REPLACE WITH ]--------------------------------------------------
+#
+	<td class="row1" align="center" valign="middle" rowspan="2">{USER_AVATAR}
+	<span class="genmed">{USER_NAME}</b></span><br>
+	<span class="gensmall">{USER_NEWPOSTS}</span></td>
+#
+#-----[ SAVE/CLOSE ALL FILES ]------------------------------------------
+#
+# EoM
